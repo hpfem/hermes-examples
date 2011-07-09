@@ -2,20 +2,22 @@ project(hermes_examples)
 	cmake_minimum_required(VERSION 2.6)
 
 	set(CMAKE_MODULE_PATH ${CMAKE_HOME_DIRECTORY}/cmake)
-	include(FindHermes)
 	
 	# Where to look for the static libraries.
 	set(HERMES_DIRECTORY "/usr/lib")
 	set(HERMES_INCLUDE_PATHS "/usr/include")
 	set(DEP_INCLUDE_PATHS "/usr/include")
 
-	macro(SET_COMMON_TARGET_PROPERTIES TRGT HERMES_LIBRARY)
-		if(HERMES_LIBRARY STREQUAL "HERMES2D")
-			FIND_HERMES(HERMES_LIBRARY HERMES_DIRECTORY)
-		endif(HERMES_LIBRARY STREQUAL "HERMES2D")
-			
-		# Link to Hermes.
-		target_link_libraries(${TRGT} ${HERMES})
+	macro(SET_COMMON_TARGET_PROPERTIES TRGT HERMES_VERSION)
+		
+		set(HERMES_VERSION ${HERMES_VERSION})
+		
+		find_package(HERMES_COMMON REQUIRED)
+		find_package(HERMES REQUIRED)
+		
+		target_link_libraries(${TRGT} ${HERMES_COMMON_LIBRARY})
+		target_link_libraries(${TRGT} ${HERMES_LIBRARY})
+				
 	endmacro(SET_COMMON_TARGET_PROPERTIES)
 		
 	# Allow to override the default values in CMake.vars:
