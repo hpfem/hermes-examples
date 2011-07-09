@@ -3,7 +3,6 @@ project(hermes_examples)
 
 	set(CMAKE_MODULE_PATH ${CMAKE_HOME_DIRECTORY}/cmake)
 	include(FindHermes)
-	include(FindPTHREAD)
 	
 	# Where to look for the static libraries.
 	set(HERMES_DIRECTORY "/usr/lib")
