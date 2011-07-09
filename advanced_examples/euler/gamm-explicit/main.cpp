@@ -2,6 +2,10 @@
 #define HERMES_REPORT_FILE "application.log"
 #include "hermes2d.h"
 
+using namespace Hermes;
+using namespace Hermes::Hermes2D;
+using namespace Hermes::Hermes2D::Views;
+
 // This example solves the compressible Euler equations using a basic
 // piecewise-constant finite volume method.
 //
@@ -29,7 +33,7 @@ const int P_INIT = 2;                                   // Initial polynomial de
 const int INIT_REF_NUM = 2;                             // Number of initial uniform mesh refinements.                       
 double CFL_NUMBER = 1.0;                                // CFL value.
 double time_step = 1E-4;                                // Initial time step.
-const MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+const MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
                                                         // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 
 // Equation parameters.
@@ -63,11 +67,11 @@ int main(int argc, char* argv[])
   //mesh.refine_towards_boundary(BDY_SOLID_WALL_BOTTOM, 2);
 
   // Initialize boundary condition types and spaces with default shapesets.
-  L2Space space_rho(&mesh, P_INIT);
-  L2Space space_rho_v_x(&mesh, P_INIT);
-  L2Space space_rho_v_y(&mesh, P_INIT);
-  L2Space space_e(&mesh, P_INIT);
-  int ndof = Space::get_num_dofs(Hermes::vector<Space*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
+  L2Space<double> space_rho(&mesh, P_INIT);
+  L2Space<double> space_rho_v_x(&mesh, P_INIT);
+  L2Space<double> space_rho_v_y(&mesh, P_INIT);
+  L2Space<double> space_e(&mesh, P_INIT);
+  int ndof = Space<double>::get_num_dofs(Hermes::vector<Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
   info("ndof: %d", ndof);
 
   // Initialize solutions, set initial conditions.
@@ -84,31 +88,30 @@ int main(int argc, char* argv[])
     BDY_INLET, BDY_OUTLET, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, (P_INIT == 0));
 
   // Initialize the FE problem.
-  bool is_linear = true;  
-  DiscreteProblem dp(&wf, Hermes::vector<Space*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e), is_linear);
+  DiscreteProblem<double> dp(&wf, Hermes::vector<Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
 
   // If the FE problem is in fact a FV problem.
   if(P_INIT == 0) 
     dp.set_fvm();  
 
   // Filters for visualization of Mach number, pressure and entropy.
-  MachNumberFilter Mach_number(Hermes::vector<MeshFunction*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA);
-  PressureFilter pressure(Hermes::vector<MeshFunction*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA);
-  EntropyFilter entropy(Hermes::vector<MeshFunction*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA, RHO_EXT, P_EXT);
+  MachNumberFilter Mach_number(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA);
+  PressureFilter pressure(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA);
+  EntropyFilter entropy(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA, RHO_EXT, P_EXT);
 
-  ScalarView pressure_view("Pressure", new WinGeom(0, 0, 600, 300));
-  ScalarView Mach_number_view("Mach number", new WinGeom(700, 0, 600, 300));
-  ScalarView entropy_production_view("Entropy estimate", new WinGeom(0, 400, 600, 300));
+  ScalarView<double> pressure_view("Pressure", new WinGeom(0, 0, 600, 300));
+  ScalarView<double> Mach_number_view("Mach number", new WinGeom(700, 0, 600, 300));
+  ScalarView<double> entropy_production_view("Entropy estimate", new WinGeom(0, 400, 600, 300));
   
-  ScalarView s1("1", new WinGeom(0, 0, 600, 300));
-  ScalarView s2("2", new WinGeom(700, 0, 600, 300));
-  ScalarView s3("3", new WinGeom(0, 400, 600, 300));
-  ScalarView s4("4", new WinGeom(700, 400, 600, 300));
+  ScalarView<double> s1("1", new WinGeom(0, 0, 600, 300));
+  ScalarView<double> s2("2", new WinGeom(700, 0, 600, 300));
+  ScalarView<double> s3("3", new WinGeom(0, 400, 600, 300));
+  ScalarView<double> s4("4", new WinGeom(700, 400, 600, 300));
 
   // Set up the solver, matrix, and rhs according to the solver selection.
-  SparseMatrix* matrix = create_matrix(matrix_solver);
-  Vector* rhs = create_vector(matrix_solver);
-  Solver* solver = create_linear_solver(matrix_solver, matrix, rhs);
+  SparseMatrix<double>* matrix = create_matrix<double>(matrix_solver_type);
+  Vector<double>* rhs = create_vector<double>(matrix_solver_type);
+  LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver_type, matrix, rhs);
 
   // Set up CFL calculation class.
   CFLCalculation CFL(CFL_NUMBER, KAPPA);
@@ -126,28 +129,28 @@ int main(int argc, char* argv[])
 
     // Solve the matrix problem.
     info("Solving the matrix problem.");
-    scalar* solution_vector = NULL;
+    double* solution_vector = NULL;
     if(solver->solve()) {
       solution_vector = solver->get_solution();
-      Solution::vector_to_solutions(solution_vector, Hermes::vector<Space *>(&space_rho, &space_rho_v_x, 
-      &space_rho_v_y, &space_e), Hermes::vector<Solution *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
+      Solution<double>::vector_to_solutions(solution_vector, Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
+      &space_rho_v_y, &space_e), Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
     }
     else
       error ("Matrix solver failed.\n");
 
     if(SHOCK_CAPTURING) {
-      DiscontinuityDetector discontinuity_detector(Hermes::vector<Space *>(&space_rho, &space_rho_v_x, 
-        &space_rho_v_y, &space_e), Hermes::vector<Solution *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
+      DiscontinuityDetector discontinuity_detector(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
+        &space_rho_v_y, &space_e), Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
 
       std::set<int> discontinuous_elements = discontinuity_detector.get_discontinuous_element_ids(DISCONTINUITY_DETECTOR_PARAM);
 
-      FluxLimiter flux_limiter(solution_vector, Hermes::vector<Space *>(&space_rho, &space_rho_v_x, 
-        &space_rho_v_y, &space_e), Hermes::vector<Solution *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
+      FluxLimiter flux_limiter(solution_vector, Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
+        &space_rho_v_y, &space_e), Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
 
       flux_limiter.limit_according_to_detector(discontinuous_elements);
     }
 
-    CFL.calculate_semi_implicit(Hermes::vector<Solution *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), &mesh, time_step);
+    CFL.calculate_semi_implicit(Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), &mesh, time_step);
 
     // Visualization.
     

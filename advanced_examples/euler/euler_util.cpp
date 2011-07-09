@@ -23,24 +23,24 @@ CFLCalculation::CFLCalculation(double CFL_number, double kappa) : CFL_number(CFL
 {
 }
 
-void CFLCalculation::calculate(Hermes::vector<Solution*> solutions, Mesh* mesh, double & time_step)
+void CFLCalculation::calculate(Hermes::vector<Solution<double>*> solutions, Mesh* mesh, double & time_step)
 {
   // Create spaces of constant functions over the given mesh.
-  L2Space constant_rho_space(mesh, 0);
-  L2Space constant_rho_v_x_space(mesh, 0);
-  L2Space constant_rho_v_y_space(mesh, 0);
-  L2Space constant_energy_space(mesh, 0);
+  L2Space<double> constant_rho_space(mesh, 0);
+  L2Space<double> constant_rho_v_x_space(mesh, 0);
+  L2Space<double> constant_rho_v_y_space(mesh, 0);
+  L2Space<double> constant_energy_space(mesh, 0);
 
-  scalar* sln_vector = new scalar[constant_rho_space.get_num_dofs() * 4];
+  double* sln_vector = new double[constant_rho_space.get_num_dofs() * 4];
 
-  OGProjection::project_global(Hermes::vector<Space*>(&constant_rho_space, &constant_rho_v_x_space, &constant_rho_v_y_space, &constant_energy_space), solutions, sln_vector);
+  OGProjection<double>::project_global(Hermes::vector<Space<double>*>(&constant_rho_space, &constant_rho_v_x_space, &constant_rho_v_y_space, &constant_energy_space), solutions, sln_vector);
 
   // Determine the time step according to the CFL condition.
 
   double min_condition = 0;
   Element *e;
   for_all_active_elements(e, mesh) {
-    AsmList al;
+    AsmList<double> al;
     constant_rho_space.get_element_assembly_list(e, &al);
     double rho = sln_vector[al.dof[0]];
     constant_rho_v_x_space.get_element_assembly_list(e, &al);
@@ -61,17 +61,17 @@ void CFLCalculation::calculate(Hermes::vector<Solution*> solutions, Mesh* mesh, 
   delete [] sln_vector;
 }
 
-void CFLCalculation::calculate_semi_implicit(Hermes::vector<Solution*> solutions, Mesh* mesh, double & time_step)
+void CFLCalculation::calculate_semi_implicit(Hermes::vector<Solution<double>*> solutions, Mesh* mesh, double & time_step)
 {
   // Create spaces of constant functions over the given mesh.
-  L2Space constant_rho_space(mesh, 0);
-  L2Space constant_rho_v_x_space(mesh, 0);
-  L2Space constant_rho_v_y_space(mesh, 0);
-  L2Space constant_energy_space(mesh, 0);
+  L2Space<double> constant_rho_space(mesh, 0);
+  L2Space<double> constant_rho_v_x_space(mesh, 0);
+  L2Space<double> constant_rho_v_y_space(mesh, 0);
+  L2Space<double> constant_energy_space(mesh, 0);
 
-  scalar* sln_vector = new scalar[constant_rho_space.get_num_dofs() * 4];
+  double* sln_vector = new double[constant_rho_space.get_num_dofs() * 4];
 
-  OGProjection::project_global(Hermes::vector<Space*>(&constant_rho_space, &constant_rho_v_x_space, &constant_rho_v_y_space, &constant_energy_space), solutions, sln_vector);
+  OGProjection<double>::project_global(Hermes::vector<Space<double>*>(&constant_rho_space, &constant_rho_v_x_space, &constant_rho_v_y_space, &constant_energy_space), solutions, sln_vector);
 
   // Determine the time step according to the CFL condition.
 
@@ -79,7 +79,7 @@ void CFLCalculation::calculate_semi_implicit(Hermes::vector<Solution*> solutions
   Element *e;
   double w[4];
   for_all_active_elements(e, mesh) {
-    AsmList al;
+    AsmList<double> al;
     constant_rho_space.get_element_assembly_list(e, &al);
     w[0] = sln_vector[al.dof[0]];
     constant_rho_v_x_space.get_element_assembly_list(e, &al);
@@ -154,23 +154,23 @@ ADEStabilityCalculation::ADEStabilityCalculation(double AdvectionRelativeConstan
 {
 }
 
-void ADEStabilityCalculation::calculate(Hermes::vector<Solution*> solutions, Mesh* mesh, double & time_step)
+void ADEStabilityCalculation::calculate(Hermes::vector<Solution<double>*> solutions, Mesh* mesh, double & time_step)
 {
   // Create spaces of constant functions over the given mesh.
-  L2Space constant_rho_space(mesh, 0);
-  L2Space constant_rho_v_x_space(mesh, 0);
-  L2Space constant_rho_v_y_space(mesh, 0);
+  L2Space<double> constant_rho_space(mesh, 0);
+  L2Space<double> constant_rho_v_x_space(mesh, 0);
+  L2Space<double> constant_rho_v_y_space(mesh, 0);
 
-  scalar* sln_vector = new scalar[constant_rho_space.get_num_dofs() * 3];
+  double* sln_vector = new double[constant_rho_space.get_num_dofs() * 3];
 
-  OGProjection::project_global(Hermes::vector<Space*>(&constant_rho_space, &constant_rho_v_x_space, &constant_rho_v_y_space), solutions, sln_vector);
+  OGProjection<double>::project_global(Hermes::vector<Space<double>*>(&constant_rho_space, &constant_rho_v_x_space, &constant_rho_v_y_space), solutions, sln_vector);
 
   // Determine the time step according to the conditions.
   double min_condition_advection = 0.;
   double min_condition_diffusion = 0.;
   Element *e;
   for_all_active_elements(e, mesh) {
-    AsmList al;
+    AsmList<double> al;
     constant_rho_space.get_element_assembly_list(e, &al);
     double rho = sln_vector[al.dof[0]];
     constant_rho_v_x_space.get_element_assembly_list(e, &al);
@@ -204,8 +204,8 @@ double ADEStabilityCalculation::approximate_inscribed_circle_radius(Element * e)
   return h / 2;
 }
 
-DiscontinuityDetector::DiscontinuityDetector(Hermes::vector<Space *> spaces, 
-                        Hermes::vector<Solution *> solutions) : spaces(spaces), solutions(solutions)
+DiscontinuityDetector::DiscontinuityDetector(Hermes::vector<Space<double>*> spaces, 
+                        Hermes::vector<Solution<double>*> solutions) : spaces(spaces), solutions(solutions)
 {
   // A check that all meshes are the same in the spaces.
   unsigned int mesh0_seq = spaces[0]->get_mesh()->get_seq();
@@ -285,8 +285,8 @@ double DiscontinuityDetector::calculate_relative_flow_direction(Element* e, int 
       jwt[i] = pt[i][2] * tan[i][2];
  
   // Calculate.
-  Func<scalar>* density_vel_x = init_fn(solutions[1], eo);
-  Func<scalar>* density_vel_y = init_fn(solutions[2], eo);
+  Func<double>* density_vel_x = init_fn(solutions[1], eo);
+  Func<double>* density_vel_y = init_fn(solutions[2], eo);
 
   double result = 0.0;
   for(int point_i = 0; point_i < np; point_i++)
@@ -315,7 +315,7 @@ void DiscontinuityDetector::calculate_jumps(Element* e, int edge_i, double resul
   int np = solutions[0]->get_quad_2d()->get_num_points(eo);
 
   // Initialize the NeighborSearch.
-  NeighborSearch ns(e, mesh);
+  NeighborSearch<double> ns(e, mesh);
   ns.set_active_edge(edge_i);
 
   // The values to be returned.
@@ -326,9 +326,7 @@ void DiscontinuityDetector::calculate_jumps(Element* e, int edge_i, double resul
 
   // Go through all neighbors.
   for(int neighbor_i = 0; neighbor_i < ns.get_num_neighbors(); neighbor_i++) {
-    ns.active_segment = neighbor_i;
-    ns.neighb_el = ns.neighbors[neighbor_i];
-    ns.neighbor_edge = ns.neighbor_edges[neighbor_i];
+    ns.set_active_segment(neighbor_i);
 
     // Set active element to the solutions.
     solutions[0]->set_active_element(e);
@@ -337,11 +335,11 @@ void DiscontinuityDetector::calculate_jumps(Element* e, int edge_i, double resul
     solutions[3]->set_active_element(e);
   
     // Push all the necessary transformations.
-    for(unsigned int trf_i = 0; trf_i < ns.central_n_trans[neighbor_i]; trf_i++) {
-      solutions[0]->push_transform(ns.central_transformations[neighbor_i][trf_i]);
-      solutions[1]->push_transform(ns.central_transformations[neighbor_i][trf_i]);
-      solutions[2]->push_transform(ns.central_transformations[neighbor_i][trf_i]);
-      solutions[3]->push_transform(ns.central_transformations[neighbor_i][trf_i]);
+    for(unsigned int trf_i = 0; trf_i < ns.get_central_n_trans(neighbor_i); trf_i++) {
+      solutions[0]->push_transform(ns.get_central_transformations(neighbor_i, trf_i));
+      solutions[1]->push_transform(ns.get_central_transformations(neighbor_i, trf_i));
+      solutions[2]->push_transform(ns.get_central_transformations(neighbor_i, trf_i));
+      solutions[3]->push_transform(ns.get_central_transformations(neighbor_i, trf_i));
     }
 
     Geom<double>* geom = init_geom_surf(solutions[0]->get_refmap(), &surf_pos, eo);
@@ -351,35 +349,35 @@ void DiscontinuityDetector::calculate_jumps(Element* e, int edge_i, double resul
         jwt[i] = pt[i][2] * tan[i][2];
  
     // Prepare functions on the central element.
-    Func<scalar>* density = init_fn(solutions[0], eo);
-    Func<scalar>* density_vel_x = init_fn(solutions[1], eo);
-    Func<scalar>* density_vel_y = init_fn(solutions[2], eo);
-    Func<scalar>* energy = init_fn(solutions[3], eo);
+    Func<double>* density = init_fn(solutions[0], eo);
+    Func<double>* density_vel_x = init_fn(solutions[1], eo);
+    Func<double>* density_vel_y = init_fn(solutions[2], eo);
+    Func<double>* energy = init_fn(solutions[3], eo);
 
     // Set neighbor element to the solutions.
-    solutions[0]->set_active_element(ns.neighb_el);
-    solutions[1]->set_active_element(ns.neighb_el);
-    solutions[2]->set_active_element(ns.neighb_el);
-    solutions[3]->set_active_element(ns.neighb_el);
+    solutions[0]->set_active_element(ns.get_neighb_el());
+    solutions[1]->set_active_element(ns.get_neighb_el());
+    solutions[2]->set_active_element(ns.get_neighb_el());
+    solutions[3]->set_active_element(ns.get_neighb_el());
 
     // Push all the necessary transformations.
-    for(unsigned int trf_i = 0; trf_i < ns.neighbor_n_trans[neighbor_i]; trf_i++) {
-      solutions[0]->push_transform(ns.neighbor_transformations[neighbor_i][trf_i]);
-      solutions[1]->push_transform(ns.neighbor_transformations[neighbor_i][trf_i]);
-      solutions[2]->push_transform(ns.neighbor_transformations[neighbor_i][trf_i]);
-      solutions[3]->push_transform(ns.neighbor_transformations[neighbor_i][trf_i]);
+    for(unsigned int trf_i = 0; trf_i < ns.get_neighbor_n_trans(neighbor_i); trf_i++) {
+      solutions[0]->push_transform(ns.get_neighbor_transformations(neighbor_i, trf_i));
+      solutions[1]->push_transform(ns.get_neighbor_transformations(neighbor_i, trf_i));
+      solutions[2]->push_transform(ns.get_neighbor_transformations(neighbor_i, trf_i));
+      solutions[3]->push_transform(ns.get_neighbor_transformations(neighbor_i, trf_i));
     }
 
     // Prepare functions on the neighbor element.
-    Func<scalar>* density_neighbor = init_fn(solutions[0], eo);
-    Func<scalar>* density_vel_x_neighbor = init_fn(solutions[1], eo);
-    Func<scalar>* density_vel_y_neighbor = init_fn(solutions[2], eo);
-    Func<scalar>* energy_neighbor = init_fn(solutions[3], eo);
+    Func<double>* density_neighbor = init_fn(solutions[0], eo);
+    Func<double>* density_vel_x_neighbor = init_fn(solutions[1], eo);
+    Func<double>* density_vel_y_neighbor = init_fn(solutions[2], eo);
+    Func<double>* energy_neighbor = init_fn(solutions[3], eo);
 
-    DiscontinuousFunc<scalar> density_discontinuous(density, density_neighbor, true);
-    DiscontinuousFunc<scalar> density_vel_x_discontinuous(density_vel_x, density_vel_x_neighbor, true);
-    DiscontinuousFunc<scalar> density_vel_y_discontinuous(density_vel_y, density_vel_y_neighbor, true);
-    DiscontinuousFunc<scalar> energy_discontinuous(energy, energy_neighbor, true);
+    DiscontinuousFunc<double> density_discontinuous(density, density_neighbor, true);
+    DiscontinuousFunc<double> density_vel_x_discontinuous(density_vel_x, density_vel_x_neighbor, true);
+    DiscontinuousFunc<double> density_vel_y_discontinuous(density_vel_y, density_vel_y_neighbor, true);
+    DiscontinuousFunc<double> energy_discontinuous(energy, energy_neighbor, true);
 
     for(int point_i = 0; point_i < np; point_i++) {
       result[0] += jwt[point_i] * std::abs(density_discontinuous.get_val_central(point_i) - density_discontinuous.get_val_neighbor(point_i)); 
@@ -446,10 +444,10 @@ void DiscontinuityDetector::calculate_norms(Element* e, int edge_i, double resul
       jwt[i] = pt[i][2] * tan[i][2];
  
   // Calculate.
-  Func<scalar>* density = init_fn(solutions[0], eo);
-  Func<scalar>* density_vel_x = init_fn(solutions[1], eo);
-  Func<scalar>* density_vel_y = init_fn(solutions[2], eo);
-  Func<scalar>* energy = init_fn(solutions[3], eo);
+  Func<double>* density = init_fn(solutions[0], eo);
+  Func<double>* density_vel_x = init_fn(solutions[1], eo);
+  Func<double>* density_vel_y = init_fn(solutions[2], eo);
+  Func<double>* energy = init_fn(solutions[3], eo);
 
   for(int point_i = 0; point_i < np; point_i++) {
     result[0] = std::max(result[0], std::abs(density->val[point_i]));
@@ -473,19 +471,19 @@ void DiscontinuityDetector::calculate_norms(Element* e, int edge_i, double resul
   delete energy;
 };
 
-FluxLimiter::FluxLimiter(scalar* solution_vector, Hermes::vector<Space *> spaces, Hermes::vector<Solution *> solutions) : solution_vector(solution_vector), spaces(spaces), 
+FluxLimiter::FluxLimiter(double* solution_vector, Hermes::vector<Space<double>*> spaces, Hermes::vector<Solution<double>*> solutions) : solution_vector(solution_vector), spaces(spaces), 
   solutions(solutions)
 {};
 
 FluxLimiter::~FluxLimiter()
 {};
 
-void FluxLimiter::limit_according_to_detector(std::set<int>& discontinuous_elements, Hermes::vector<Space *> coarse_spaces)
+void FluxLimiter::limit_according_to_detector(std::set<int>& discontinuous_elements, Hermes::vector<Space<double>*> coarse_spaces)
 {
   // First adjust the solution_vector.
   for(unsigned int space_i = 0; space_i < spaces.size(); space_i++)
     for(std::set<int>::iterator it = discontinuous_elements.begin(); it != discontinuous_elements.end(); it++) {
-      AsmList al;
+      AsmList<double> al;
       spaces[space_i]->get_element_assembly_list(spaces[space_i]->get_mesh()->get_element(*it), &al);
       for(unsigned int shape_i = 0; shape_i < al.cnt; shape_i++)
         if(H2D_GET_H_ORDER(spaces[space_i]->get_shapeset()->get_order(al.idx[shape_i])) > 0 || H2D_GET_V_ORDER(spaces[space_i]->get_shapeset()->get_order(al.idx[shape_i])) > 0)
@@ -493,9 +491,9 @@ void FluxLimiter::limit_according_to_detector(std::set<int>& discontinuous_eleme
     }
 
   // Now adjust the solutions.
-  Solution::vector_to_solutions(solution_vector, spaces, solutions);
+  Solution<double>::vector_to_solutions(solution_vector, spaces, solutions);
 
-  if(coarse_spaces != Hermes::vector<Space *>()) {
+  if(coarse_spaces != Hermes::vector<Space<double>*>()) {
     // Now set the element order to zero.
     Element* e;
 
@@ -504,7 +502,7 @@ void FluxLimiter::limit_according_to_detector(std::set<int>& discontinuous_eleme
 
     for(unsigned int space_i = 0; space_i < spaces.size(); space_i++) {
       for(std::set<int>::iterator it = discontinuous_elements.begin(); it != discontinuous_elements.end(); it++) {
-        AsmList al;
+        AsmList<double> al;
         spaces[space_i]->get_element_assembly_list(spaces[space_i]->get_mesh()->get_element(*it), &al);
         for(unsigned int shape_i = 0; shape_i < al.cnt; shape_i++) {
           if(H2D_GET_H_ORDER(spaces[space_i]->get_shapeset()->get_order(al.idx[shape_i])) > 0 || H2D_GET_V_ORDER(spaces[space_i]->get_shapeset()->get_order(al.idx[shape_i])) > 0) {
@@ -523,28 +521,28 @@ void FluxLimiter::limit_according_to_detector(std::set<int>& discontinuous_eleme
       }
     }
 
-    Space::assign_dofs(coarse_spaces);
+    Space<double>::assign_dofs(coarse_spaces);
   }
 };
 
-void MachNumberFilter::filter_fn(int n, Hermes::vector<scalar*> values, scalar* result) 
+void MachNumberFilter::filter_fn(int n, Hermes::vector<double*> values, double* result) 
 {
   for (int i = 0; i < n; i++)
     result[i] = std::sqrt((values.at(1)[i] / values.at(0)[i])*(values.at(1)[i] / values.at(0)[i]) + (values.at(2)[i] / values.at(0)[i])*(values.at(2)[i] / values.at(0)[i]))
     / std::sqrt(kappa * QuantityCalculator::calc_pressure(values.at(0)[i], values.at(1)[i], values.at(2)[i], values.at(3)[i], kappa) / values.at(0)[i]);
 }
 
-void PressureFilter::filter_fn(int n, Hermes::vector<scalar*> values, scalar* result)
+void PressureFilter::filter_fn(int n, Hermes::vector<double*> values, double* result)
 {
   for (int i = 0; i < n; i++)
     result[i] = (kappa - 1.) * (values.at(3)[i] - (values.at(1)[i]*values.at(1)[i] + values.at(2)[i]*values.at(2)[i])/(2*values.at(0)[i]));
 }
 
 
-void EntropyFilter::filter_fn(int n, Hermes::vector<scalar*> values, scalar* result) 
+void EntropyFilter::filter_fn(int n, Hermes::vector<double*> values, double* result) 
 {
   for (int i = 0; i < n; i++)
     for (int i = 0; i < n; i++)
       result[i] = std::log((QuantityCalculator::calc_pressure(values.at(0)[i], values.at(1)[i], values.at(2)[i], values.at(3)[i], kappa) / p_ext)
-      / pow((values.at(0)[i] / rho_ext), kappa));
+      / Hermes::pow((values.at(0)[i] / rho_ext), kappa));
 }

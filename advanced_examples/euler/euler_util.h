@@ -3,6 +3,9 @@
 
 #include "hermes2d.h"
 
+using namespace Hermes;
+using namespace Hermes::Hermes2D;
+
 class QuantityCalculator
 {
 public:
@@ -22,8 +25,8 @@ public:
   CFLCalculation(double CFL_number, double kappa);
 
   // If the time step is necessary to decrease / possible to increase, the value time_step will be rewritten.
-  void calculate(Hermes::vector<Solution*> solutions, Mesh* mesh, double & time_step);
-  void calculate_semi_implicit(Hermes::vector<Solution*> solutions, Mesh* mesh, double & time_step);
+  void calculate(Hermes::vector<Solution<double>*> solutions, Mesh* mesh, double & time_step);
+  void calculate_semi_implicit(Hermes::vector<Solution<double>*> solutions, Mesh* mesh, double & time_step);
 
   void set_number(double new_CFL_number);
   
@@ -41,7 +44,7 @@ public:
   double approximate_inscribed_circle_radius(Element * e);
 
   // If the time step is necessary to decrease / possible to increase, the value time_step will be rewritten.
-  void calculate(Hermes::vector<Solution*> solutions, Mesh* mesh, double & time_step);
+  void calculate(Hermes::vector<Solution<double>*> solutions, Mesh* mesh, double & time_step);
   
 protected:
   double AdvectionRelativeConstant;
@@ -53,8 +56,8 @@ class DiscontinuityDetector
 {
 public:
   /// Constructor.
-  DiscontinuityDetector(Hermes::vector<Space *> spaces, 
-                        Hermes::vector<Solution *> solutions);
+  DiscontinuityDetector(Hermes::vector<Space<double> *> spaces, 
+                        Hermes::vector<Solution<double> *> solutions);
 
   /// Destructor.
    ~DiscontinuityDetector();
@@ -76,8 +79,8 @@ public:
 
 protected:
   /// Members.
-  Hermes::vector<Space *> spaces;
-  Hermes::vector<Solution *> solutions;
+  Hermes::vector<Space<double> *> spaces;
+  Hermes::vector<Solution<double> *> solutions;
   Mesh* mesh;
   std::set<int> discontinuous_element_ids;
 };
@@ -86,51 +89,51 @@ class FluxLimiter
 {
 public:
   /// Constructor.
-  FluxLimiter(scalar* solution_vector, Hermes::vector<Space *> spaces, Hermes::vector<Solution *> solutions);
+  FluxLimiter(double* solution_vector, Hermes::vector<Space<double> *> spaces, Hermes::vector<Solution<double> *> solutions);
 
   /// Destructor.
    ~FluxLimiter();
 
   /// Do the limiting.
-  void limit_according_to_detector(std::set<int>& discontinuous_elements, Hermes::vector<Space *> coarse_spaces = Hermes::vector<Space *>());
+  void limit_according_to_detector(std::set<int>& discontinuous_elements, Hermes::vector<Space<double> *> coarse_spaces = Hermes::vector<Space<double> *>());
 
 protected:
   /// Members.
-  scalar* solution_vector;
-  Hermes::vector<Space *> spaces;
-  Hermes::vector<Solution *> solutions;
+  double* solution_vector;
+  Hermes::vector<Space<double> *> spaces;
+  Hermes::vector<Solution<double> *> solutions;
 };
 
 // Filters.
-class MachNumberFilter : public SimpleFilter
+class MachNumberFilter : public SimpleFilter<double>
 {
 public: 
-  MachNumberFilter(Hermes::vector<MeshFunction*> solutions, double kappa) : SimpleFilter(solutions), kappa(kappa) {};
+  MachNumberFilter(Hermes::vector<MeshFunction<double>*> solutions, double kappa) : SimpleFilter<double>(solutions), kappa(kappa) {};
   ~MachNumberFilter() {};
 protected:
-  virtual void filter_fn(int n, Hermes::vector<scalar*> values, scalar* result);
+  virtual void filter_fn(int n, Hermes::vector<double*> values, double* result);
 
   double kappa;
 };
 
-class PressureFilter : public SimpleFilter
+class PressureFilter : public SimpleFilter<double>
 {
 public: 
-  PressureFilter(Hermes::vector<MeshFunction*> solutions, double kappa) : SimpleFilter(solutions), kappa(kappa) {};
+  PressureFilter(Hermes::vector<MeshFunction<double>*> solutions, double kappa) : SimpleFilter<double>(solutions), kappa(kappa) {};
   ~PressureFilter() {};
 protected:
-  virtual void filter_fn(int n, Hermes::vector<scalar*> values, scalar* result);
+  virtual void filter_fn(int n, Hermes::vector<double*> values, double* result);
 
   double kappa;
 };
 
-class EntropyFilter : public SimpleFilter
+class EntropyFilter : public SimpleFilter<double>
 {
 public: 
-  EntropyFilter(Hermes::vector<MeshFunction*> solutions, double kappa, double rho_ext, double p_ext) : SimpleFilter(solutions), kappa(kappa), rho_ext(rho_ext), p_ext(p_ext) {};
+  EntropyFilter(Hermes::vector<MeshFunction<double>*> solutions, double kappa, double rho_ext, double p_ext) : SimpleFilter<double>(solutions), kappa(kappa), rho_ext(rho_ext), p_ext(p_ext) {};
   ~EntropyFilter() {};
 protected:
-  virtual void filter_fn(int n, Hermes::vector<scalar*> values, scalar* result);
+  virtual void filter_fn(int n, Hermes::vector<double*> values, double* result);
 
   double kappa, rho_ext, p_ext;
 };
