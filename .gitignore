@@ -1,0 +1,35 @@
+CMakeCache.txt
+CMakeFiles/
+CPackConfig.cmake
+CPackSourceConfig.cmake
+CTestTestfile.cmake
+Makefile
+cmake_install.cmake
+config_real.cmake
+
+# Windows / Visual Studio
+*vcxproj*
+*tlog
+*.obj
+*.sln
+CMake.vars
+*.dll
+*.ilk
+*.pdb
+*.lib
+Debug/
+*.sdf
+
+# Documentation generated
+*.html
+*.eps
+*.js
+*.tex
+*.ps
+*.pdf
+*.png
+*.aux
+*.css
+*.tag
+*.sty
+*.dvi

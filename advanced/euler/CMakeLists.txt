@@ -1,0 +1,13 @@
+add_subdirectory(forward-step)
+add_subdirectory(gamm-explicit-adapt)
+add_subdirectory(gamm-explicit)
+add_subdirectory(advection-diffusion-explicit)
+add_subdirectory(advection-diffusion-explicit-adapt)
+
+if (WITH_TRILINOS)
+  add_subdirectory(gamm-implicit)
+  add_subdirectory(forward-step-implicit)
+  add_subdirectory(gamm-implicit-adapt)
+  add_subdirectory(advection-diffusion-implicit)
+  add_subdirectory(advection-diffusion-implicit-adapt)
+endif (WITH_TRILINOS)
