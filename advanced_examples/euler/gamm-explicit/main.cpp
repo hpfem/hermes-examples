@@ -125,10 +125,9 @@ int main(int argc, char* argv[])
 
     // Assemble the stiffness matrix and rhs.
     info("Assembling the stiffness matrix and right-hand side vector.");
-    dp.time.tick();
     dp.assemble(matrix, rhs);
-    dp.time.tick();
-    std::cout << dp.time.last();
+
+    dp.get_last_profiling_output(std::cout);
 
     // Solve the matrix problem.
     info("Solving the matrix problem.");
