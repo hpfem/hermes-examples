@@ -2,6 +2,10 @@
 #define HERMES_REPORT_FILE "application.log"
 #include "hermes2d.h"
 
+using namespace Hermes;
+using namespace Hermes::Hermes2D;
+using namespace Hermes::Hermes2D::Views;
+
 // This example solves the compressible Euler equations using a basic
 // piecewise-constant finite volume method.
 //
@@ -54,11 +58,11 @@ int main(int argc, char* argv[])
     mesh.refine_all_elements();
 
   // Initialize boundary condition types and spaces with default shapesets.
-  L2Space space_rho(&mesh, P_INIT);
-  L2Space space_rho_v_x(&mesh, P_INIT);
-  L2Space space_rho_v_y(&mesh, P_INIT);
-  L2Space space_e(&mesh, P_INIT);
-  int ndof = Space::get_num_dofs(Hermes::vector<Space*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
+  L2Space<double> space_rho(&mesh, P_INIT);
+  L2Space<double> space_rho_v_x(&mesh, P_INIT);
+  L2Space<double> space_rho_v_y(&mesh, P_INIT);
+  L2Space<double> space_e(&mesh, P_INIT);
+  int ndof = Space::get_num_dofs(Hermes::vector<Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
   info("ndof: %d", ndof);
 
   // Initialize solutions, set initial conditions.
@@ -82,7 +86,7 @@ int main(int argc, char* argv[])
   // Initialize the FE problem.
   bool is_linear = true;
   
-  DiscreteProblem dp(&wf, Hermes::vector<Space*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e), is_linear);
+  DiscreteProblem dp(&wf, Hermes::vector<Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e), is_linear);
   
   // If the FE problem is in fact a FV problem.
   if(P_INIT == 0)
@@ -93,19 +97,19 @@ int main(int argc, char* argv[])
   PressureFilter pressure(Hermes::vector<MeshFunction*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y, &sln_e), KAPPA);
   EntropyFilter entropy(Hermes::vector<MeshFunction*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y, &sln_e), KAPPA, RHO_EXT, P_EXT);
 
-  ScalarView pressure_view("Pressure", new WinGeom(0, 0, 600, 300));
-  ScalarView Mach_number_view("Mach number", new WinGeom(700, 0, 600, 300));
-  ScalarView entropy_production_view("Entropy estimate", new WinGeom(0, 400, 600, 300));
+  ScalarView<double> pressure_view("Pressure", new WinGeom(0, 0, 600, 300));
+  ScalarView<double> Mach_number_view("Mach number", new WinGeom(700, 0, 600, 300));
+  ScalarView<double> entropy_production_view("Entropy estimate", new WinGeom(0, 400, 600, 300));
 
   /*
-  ScalarView s1("1", new WinGeom(0, 0, 600, 300));
-  ScalarView s2("2", new WinGeom(700, 0, 600, 300));
-  ScalarView s3("3", new WinGeom(0, 400, 600, 300));
-  ScalarView s4("4", new WinGeom(700, 400, 600, 300));
+  ScalarView<double> s1("1", new WinGeom(0, 0, 600, 300));
+  ScalarView<double> s2("2", new WinGeom(700, 0, 600, 300));
+  ScalarView<double> s3("3", new WinGeom(0, 400, 600, 300));
+  ScalarView<double> s4("4", new WinGeom(700, 400, 600, 300));
   */
   
   // Set up the solver, matrix, and rhs according to the solver selection.
-  SparseMatrix* matrix = create_matrix(matrix_solver);
+  SparseMatrix<double>* matrix = create_matrix(matrix_solver);
   Vector* rhs = create_vector(matrix_solver);
   Solver* solver = create_linear_solver(matrix_solver, matrix, rhs);
 

@@ -4,7 +4,7 @@
 #include "numerical_flux.h"
 
 // Utility functions for the Euler equations.
-#include "../euler_util.h"
+#include "euler_util.h"
 
 class EulerEquationsWeakFormExplicit : public WeakForm<double>
 {
@@ -2033,7 +2033,7 @@ protected:
       
         Real R_squared = Hermes::pow(v_1 * concentration_prev->dx[i] + v_2 * concentration_prev->dy[i], 2.);
         Real R = Hermes::sqrt(R_squared); //This just does fabs(b1 * concentration_prev->dx[i] + b2 * concentration_prev->dy[i]); but it can be parsed
-        result += wt[i] * s_c * 0.5 * h_e * R * (concentration_prev->dx[i] * v->dx[i] + concentration_prev->dy[i] * v->dy[i]) / (Hermes::sqrt(pow(concentration_prev->dx[i], 2) + Hermes::pow(concentration_prev->dy[i], 2)) + 1.e-8);
+        result += wt[i] * s_c * 0.5 * h_e * R * (concentration_prev->dx[i] * v->dx[i] + concentration_prev->dy[i] * v->dy[i]) / (Hermes::sqrt(Hermes::pow(concentration_prev->dx[i], 2) + Hermes::pow(concentration_prev->dy[i], 2)) + 1.e-8);
         
         Scalar b_norm = Hermes::sqrt(v_1 * v_1 + v_2 * v_2);
         Real tau = 1. / Hermes::sqrt( 9 * Hermes::pow(4 * epsilon / Hermes::pow(h_e, 2), 2) + Hermes::pow(2 * b_norm / h_e, 2));

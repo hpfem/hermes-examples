@@ -3,7 +3,10 @@
 #include "hermes2d.h"
 
 using namespace Teuchos;
-using namespace RefinementSelectors;
+
+using namespace Hermes;
+using namespace Hermes::Hermes2D;
+using namespace Hermes::Hermes2D::Views;
 
 // This example solves the compressible Euler equations using the JFNK
 // method implemented in the NOX package of the Trilinos library.
@@ -61,10 +64,10 @@ int main(int argc, char* argv[])
     mesh.refine_all_elements();
 
   // Initialize boundary condition types and spaces with default shapesets.
-  L2Space space_rho(&mesh, P_INIT);
-  L2Space space_rho_v_x(&mesh, P_INIT);
-  L2Space space_rho_v_y(&mesh, P_INIT);
-  L2Space space_e(&mesh, P_INIT);
+  L2Space<double>space_rho(&mesh, P_INIT);
+  L2Space<double>space_rho_v_x(&mesh, P_INIT);
+  L2Space<double>space_rho_v_y(&mesh, P_INIT);
+  L2Space<double>space_e(&mesh, P_INIT);
   int ndof = Space::get_num_dofs(Hermes::vector<Space*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
   info("ndof: %d", ndof);
 

@@ -2,6 +2,10 @@
 #define HERMES_REPORT_FILE "application.log"
 #include "hermes2d.h"
 
+using namespace Hermes;
+using namespace Hermes::Hermes2D;
+using namespace Hermes::Hermes2D::Views;
+
 using namespace RefinementSelectors;
 // This example solves the compressible Euler equations coupled with an advection-diffution equation
 // using a basic piecewise-constant finite volume method for the flow and continuous FEM for the concentration
@@ -140,10 +144,10 @@ int main(int argc, char* argv[])
   bcs_concentration.add_boundary_condition(new ConcentrationTimedepEssentialBC(BDY_SOLID_WALL_TOP, 0.0, CONCENTRATION_EXT_STARTUP_TIME));
   bcs_concentration.add_boundary_condition(new ConcentrationTimedepEssentialBC(BDY_INLET, 0.0, CONCENTRATION_EXT_STARTUP_TIME));
   
-  L2Space space_rho(&mesh_flow, P_INIT_FLOW);
-  L2Space space_rho_v_x(&mesh_flow, P_INIT_FLOW);
-  L2Space space_rho_v_y(&mesh_flow, P_INIT_FLOW);
-  L2Space space_e(&mesh_flow, P_INIT_FLOW);
+  L2Space<double>space_rho(&mesh_flow, P_INIT_FLOW);
+  L2Space<double>space_rho_v_x(&mesh_flow, P_INIT_FLOW);
+  L2Space<double>space_rho_v_y(&mesh_flow, P_INIT_FLOW);
+  L2Space<double>space_e(&mesh_flow, P_INIT_FLOW);
   // Space for concentration.
   H1Space space_c(&mesh_concentration, &bcs_concentration, P_INIT_CONCENTRATION);
 
