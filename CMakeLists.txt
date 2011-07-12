@@ -7,23 +7,23 @@ project(hermes_examples)
 	# Where to look for the static libraries.
 	set(HERMES_DIRECTORY /lib)
 	set(HERMES_INCLUDE_PATH "/include")
-	set(DEP_INCLUDE_PATHS /include)
+	set(DEP_INCLUDE_PATHS "/include")
 
-        # Trilinos
-        # Enable support for Trilinos solvers.
-        set(WITH_TRILINOS           NO)
+	# Trilinos
+	# Enable support for Trilinos solvers.
+	set(WITH_TRILINOS           NO)
 		
 	# Allow to override the default values in CMake.vars:
 	include(CMake.vars OPTIONAL)
 
 	find_package(PTHREAD REQUIRED)
 
-        if(WITH_TRILINOS)
-                        find_package(TRILINOS REQUIRED)
-                        include_directories(${TRILINOS_INCLUDE_DIR})
-        endif(WITH_TRILINOS)
+	if(WITH_TRILINOS)
+		find_package(TRILINOS REQUIRED)
+		include_directories(${TRILINOS_INCLUDE_DIR})
+	endif(WITH_TRILINOS)
 
-        find_package(HERMES_COMMON REQUIRED)
+	find_package(HERMES_COMMON REQUIRED)
 	
 	set(HERMES2D_INCLUDE_PATH ${HERMES_INCLUDE_PATH}/hermes2d)
 	set(HERMES_COMMON_INCLUDE_PATH ${HERMES_INCLUDE_PATH}/hermes_common)

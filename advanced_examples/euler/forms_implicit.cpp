@@ -6,7 +6,7 @@
 // Utility functions for the Euler equations.
 #include "../euler_util.h"
 
-class EulerEquationsWeakFormImplicit : public WeakForm
+class EulerEquationsWeakFormImplicit : public WeakForm<double>
 {
 public:
   // Constructor.
@@ -15,10 +15,10 @@ public:
                                  std::string solid_wall_bottom_marker, 
                                  std::string solid_wall_top_marker, 
                                  std::string inlet_marker, std::string outlet_marker, 
-                                 Solution* prev_density, Solution* prev_density_vel_x, 
-                                 Solution* prev_density_vel_y, Solution* prev_energy, 
+                                 Solution<double>* prev_density, Solution<double>* prev_density_vel_x, 
+                                 Solution<double>* prev_density_vel_y, Solution<double>* prev_energy, 
                                  bool preconditioning, int num_of_equations = 4) :
-  WeakForm(num_of_equations, true), rho_ext(rho_ext), v1_ext(v1_ext), v2_ext(v2_ext), 
+  WeakForm<double>(num_of_equations, true), rho_ext(rho_ext), v1_ext(v1_ext), v2_ext(v2_ext), 
   pressure_ext(pressure_ext), energy_ext(QuantityCalculator::calc_energy(rho_ext, 
   rho_ext * v1_ext, rho_ext * v2_ext, pressure_ext, kappa)), euler_fluxes(new EulerFluxes(kappa)) {
     
@@ -87,10 +87,10 @@ public:
   // Destructor.
   ~EulerEquationsWeakFormImplicit() {};
 protected:
-  class EulerEquationsPreconditioning : public WeakForm::MatrixFormVol
+  class EulerEquationsPreconditioning : public MatrixFormVol<double>
   {
   public:
-    EulerEquationsPreconditioning(int i) : WeakForm::MatrixFormVol(i, i) {}
+    EulerEquationsPreconditioning(int i) : MatrixFormVol<double>(i, i) {}
 
     template<typename Real, typename Scalar>
     Scalar matrix_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, 
@@ -98,9 +98,9 @@ protected:
       return int_u_v<Real, Scalar>(n, wt, u, v);
     }
 
-    scalar value(int n, double *wt, Func<scalar> *u_ext[], Func<double> *u, Func<double> *v, 
-                 Geom<double> *e, ExtData<scalar> *ext) const {
-      return matrix_form<double, scalar>(n, wt, u_ext, u, v, e, ext);
+    double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
+                 Geom<double> *e, ExtData<double> *ext) const {
+      return matrix_form<double, double>(n, wt, u_ext, u, v, e, ext);
     }
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, 
@@ -109,10 +109,10 @@ protected:
     }
   };
 
-  class EulerEquationsLinearFormDensity : public WeakForm::VectorFormVol
+  class EulerEquationsLinearFormDensity : public VectorFormVol<double>
   {
   public:
-    EulerEquationsLinearFormDensity() : WeakForm::VectorFormVol(0) {}
+    EulerEquationsLinearFormDensity() : VectorFormVol<double>(0) {}
 
     template<typename Real, typename Scalar>
     Scalar vector_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, 
@@ -147,9 +147,9 @@ protected:
       return result * static_cast<EulerEquationsWeakFormImplicit*>(wf)->get_tau();
     }
 
-    scalar value(int n, double *wt, Func<scalar> *u_ext[], Func<double> *v, Geom<double> *e, 
-                 ExtData<scalar> *ext) const {
-      return vector_form<double, scalar>(n, wt, u_ext, v, e, ext);
+    double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, 
+                 ExtData<double> *ext) const {
+      return vector_form<double, double>(n, wt, u_ext, v, e, ext);
     }
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
@@ -158,11 +158,11 @@ protected:
     }
   };
 
-  class EulerEquationsLinearFormDensityVelX : public WeakForm::VectorFormVol
+  class EulerEquationsLinearFormDensityVelX : public VectorFormVol<double>
   {
   public:
     EulerEquationsLinearFormDensityVelX(double kappa) 
-         : WeakForm::VectorFormVol(1), kappa(kappa) {}
+         : VectorFormVol<double>(1), kappa(kappa) {}
 
     template<typename Real, typename Scalar>
     Scalar vector_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, 
@@ -197,9 +197,9 @@ protected:
       return result * static_cast<EulerEquationsWeakFormImplicit*>(wf)->get_tau();
     }
 
-    scalar value(int n, double *wt, Func<scalar> *u_ext[], Func<double> *v, 
-                 Geom<double> *e, ExtData<scalar> *ext) const {
-      return vector_form<double, scalar>(n, wt, u_ext, v, e, ext);
+    double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
+                 Geom<double> *e, ExtData<double> *ext) const {
+      return vector_form<double, double>(n, wt, u_ext, v, e, ext);
     }
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
@@ -210,11 +210,11 @@ protected:
     double kappa;
   };
 
-  class EulerEquationsLinearFormDensityVelY : public WeakForm::VectorFormVol
+  class EulerEquationsLinearFormDensityVelY : public VectorFormVol<double>
   {
   public:
     EulerEquationsLinearFormDensityVelY(double kappa) 
-         : WeakForm::VectorFormVol(2), kappa(kappa) {}
+         : VectorFormVol<double>(2), kappa(kappa) {}
 
     template<typename Real, typename Scalar>
     Scalar vector_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, 
@@ -249,9 +249,9 @@ protected:
       return result * static_cast<EulerEquationsWeakFormImplicit*>(wf)->get_tau();
     }
 
-    scalar value(int n, double *wt, Func<scalar> *u_ext[], Func<double> *v, 
-                 Geom<double> *e, ExtData<scalar> *ext) const {
-      return vector_form<double, scalar>(n, wt, u_ext, v, e, ext);
+    double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
+                 Geom<double> *e, ExtData<double> *ext) const {
+      return vector_form<double, double>(n, wt, u_ext, v, e, ext);
     }
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
@@ -262,11 +262,11 @@ protected:
     double kappa;
   };
 
-  class EulerEquationsLinearFormEnergy : public WeakForm::VectorFormVol
+  class EulerEquationsLinearFormEnergy : public VectorFormVol<double>
   {
   public:
     EulerEquationsLinearFormEnergy(double kappa) 
-         : WeakForm::VectorFormVol(3), kappa(kappa) {}
+         : VectorFormVol<double>(3), kappa(kappa) {}
 
     template<typename Real, typename Scalar>
     Scalar vector_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, 
@@ -301,9 +301,9 @@ protected:
       return result * static_cast<EulerEquationsWeakFormImplicit*>(wf)->get_tau();
     }
 
-    scalar value(int n, double *wt, Func<scalar> *u_ext[], Func<double> *v, 
-                 Geom<double> *e, ExtData<scalar> *ext) const {
-      return vector_form<double, scalar>(n, wt, u_ext, v, e, ext);
+    double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
+                 Geom<double> *e, ExtData<double> *ext) const {
+      return vector_form<double, double>(n, wt, u_ext, v, e, ext);
     }
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
@@ -314,11 +314,11 @@ protected:
     double kappa;
   };
 
-  class EulerEquationsLinearFormTime : public WeakForm::VectorFormVol
+  class EulerEquationsLinearFormTime : public VectorFormVol<double>
   {
   public:
     EulerEquationsLinearFormTime(int i) 
-         : WeakForm::VectorFormVol(i), component_i(i) {}
+         : VectorFormVol<double>(i), component_i(i) {}
 
     template<typename Real, typename Scalar>
     Scalar vector_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, 
@@ -328,9 +328,9 @@ protected:
       int_u_v<Real, Scalar>(n, wt, u_ext[component_i], v);
     }
 
-    scalar value(int n, double *wt, Func<scalar> *u_ext[], Func<double> *v, 
-                 Geom<double> *e, ExtData<scalar> *ext) const {
-      return vector_form<double, scalar>(n, wt, u_ext, v, e, ext);
+    double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
+                 Geom<double> *e, ExtData<double> *ext) const {
+      return vector_form<double, double>(n, wt, u_ext, v, e, ext);
     }
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, 
@@ -345,14 +345,14 @@ protected:
     int component_i;
   };
 
-  class EulerEquationsLinearFormInterface : public WeakForm::VectorFormSurf
+  class EulerEquationsLinearFormInterface : public VectorFormSurf<double>
   {
   public:
     EulerEquationsLinearFormInterface(int i, NumericalFlux* num_flux) 
-         : WeakForm::VectorFormSurf(i, H2D_DG_INNER_EDGE), element(i), num_flux(num_flux) {}
+         : VectorFormSurf<double>(i, H2D_DG_INNER_EDGE), element(i), num_flux(num_flux) {}
 
-    scalar value(int n, double *wt, Func<scalar> *u_ext[], Func<double> *v, 
-                 Geom<double> *e, ExtData<scalar> *ext) const {
+    double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
+                 Geom<double> *e, ExtData<double> *ext) const {
       double result = 0;
       double w_L[4], w_R[4];
       for (int i = 0;i < n;i++) {
@@ -384,14 +384,14 @@ protected:
     NumericalFlux* num_flux;
   };
 
-  class EulerEquationsLinearFormSolidWall : public WeakForm::VectorFormSurf
+  class EulerEquationsLinearFormSolidWall : public VectorFormSurf<double>
   {
   public:
     EulerEquationsLinearFormSolidWall(int i, std::string marker, NumericalFlux* num_flux) 
-         : WeakForm::VectorFormSurf(i, marker), element(i), num_flux(num_flux) {}
+         : VectorFormSurf<double>(i, marker), element(i), num_flux(num_flux) {}
 
-    scalar value(int n, double *wt, Func<scalar> *u_ext[], Func<double> *v, 
-                 Geom<double> *e, ExtData<scalar> *ext) const {
+    double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
+                 Geom<double> *e, ExtData<double> *ext) const {
       double result = 0;
       for (int i = 0;i < n;i++) {
         double w_L[4];
@@ -416,14 +416,14 @@ protected:
     NumericalFlux* num_flux;
   };
 
-  class EulerEquationsLinearFormInlet : public WeakForm::VectorFormSurf
+  class EulerEquationsLinearFormInlet : public VectorFormSurf<double>
   {
   public:
     EulerEquationsLinearFormInlet(int i, std::string marker, NumericalFlux* num_flux) 
-         : WeakForm::VectorFormSurf(i, marker), element(i), num_flux(num_flux) {}
+         : VectorFormSurf<double>(i, marker), element(i), num_flux(num_flux) {}
 
-    scalar value(int n, double *wt, Func<scalar> *u_ext[], Func<double> *v, Geom<double> *e, 
-                 ExtData<scalar> *ext) const {
+    double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, 
+                 ExtData<double> *ext) const {
       double result = 0;
       double w_L[4], w_B[4];
 
@@ -457,14 +457,14 @@ protected:
     NumericalFlux* num_flux;
   };
 
-  class EulerEquationsLinearFormOutlet : public WeakForm::VectorFormSurf
+  class EulerEquationsLinearFormOutlet : public VectorFormSurf<double>
   {
   public:
     EulerEquationsLinearFormOutlet(int i, std::string marker, NumericalFlux* num_flux) : 
-    WeakForm::VectorFormSurf(i, marker), element(i), num_flux(num_flux) {}
+    VectorFormSurf<double>(i, marker), element(i), num_flux(num_flux) {}
 
-    scalar value(int n, double *wt, Func<scalar> *u_ext[], Func<double> *v, 
-                 Geom<double> *e, ExtData<scalar> *ext) const {
+    double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
+                 Geom<double> *e, ExtData<double> *ext) const {
       double result = 0;
       double w_L[4];
       for (int i = 0;i < n;i++) {
@@ -501,7 +501,7 @@ protected:
   friend class EulerEquationsWeakFormImplicitCoupled;
 };
 
-class EulerEquationsWeakFormImplicitMultiComponent : public WeakForm
+class EulerEquationsWeakFormImplicitMultiComponent : public WeakForm<double>
 {
 public:
   // Constructor.
@@ -509,9 +509,9 @@ public:
         double rho_ext, double v1_ext, double v2_ext, double pressure_ext, 
         std::string solid_wall_bottom_marker, std::string solid_wall_top_marker, 
         std::string inlet_marker, std::string outlet_marker, 
-        Solution* prev_density, Solution* prev_density_vel_x, Solution* prev_density_vel_y, 
-        Solution* prev_energy, bool preconditioning, bool fvm_only = false, int num_of_equations = 4) :
-        WeakForm(num_of_equations, true), rho_ext(rho_ext), v1_ext(v1_ext), v2_ext(v2_ext), 
+        Solution<double>* prev_density, Solution<double>* prev_density_vel_x, Solution<double>* prev_density_vel_y, 
+        Solution<double>* prev_energy, bool preconditioning, bool fvm_only = false, int num_of_equations = 4) :
+        WeakForm<double>(num_of_equations, true), rho_ext(rho_ext), v1_ext(v1_ext), v2_ext(v2_ext), 
         pressure_ext(pressure_ext), energy_ext(QuantityCalculator::calc_energy(rho_ext, 
         rho_ext * v1_ext, rho_ext * v2_ext, pressure_ext, kappa)), euler_fluxes(new EulerFluxes(kappa))
   {
@@ -547,10 +547,10 @@ public:
 
     if(preconditioning) {
       /*
-      EulerEquationsMatrixFormVolPreconditioning* precon_vol 
-        = new EulerEquationsMatrixFormVolPreconditioning(matrix_coordinates_precon_vol, kappa);
-      EulerEquationsMatrixFormSurfPreconditioning* precon_surf 
-       = new EulerEquationsMatrixFormSurfPreconditioning(matrix_coordinates, kappa);
+      EulerEquationsMatrixFormVol<double>Preconditioning* precon_vol 
+        = new EulerEquationsMatrixFormVol<double>Preconditioning(matrix_coordinates_precon_vol, kappa);
+      EulerEquationsMatrixFormSurf<double>Preconditioning* precon_surf 
+       = new EulerEquationsMatrixFormSurf<double>Preconditioning(matrix_coordinates, kappa);
       add_multicomponent_matrix_form(precon_vol);
       add_multicomponent_matrix_form_surf(precon_surf);
       */
@@ -596,15 +596,15 @@ public:
   // Destructor.
   ~EulerEquationsWeakFormImplicitMultiComponent() {};
 protected:
-  class EulerEquationsMatrixFormVolPreconditioning : public WeakForm::MultiComponentMatrixFormVol
+  class EulerEquationsMatrixFormVolPreconditioning : public MultiComponentMatrixFormVol<double>
   {
   public:
     EulerEquationsMatrixFormVolPreconditioning(Hermes::vector<std::pair<unsigned int, 
                                                unsigned int> >coordinates, double kappa) 
-         : WeakForm::MultiComponentMatrixFormVol(coordinates), kappa(kappa) {}
+         : MultiComponentMatrixFormVol<double>(coordinates), kappa(kappa) {}
 
-    void value(int n, double *wt, Func<scalar> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, 
-               ExtData<scalar> *ext, Hermes::vector<double>& result) const {
+    void value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, 
+               ExtData<double> *ext, Hermes::vector<double>& result) const {
       double result_0_0 = 0;
       double result_0_1 = 0;
       double result_0_2 = 0;
@@ -755,16 +755,16 @@ protected:
     double kappa;
   };
 
-  class EulerEquationsMatrixFormSurfPreconditioning : public WeakForm::MultiComponentMatrixFormSurf
+  class EulerEquationsMatrixFormSurfPreconditioning : public MultiComponentMatrixFormSurf<double>
   {
   public:
     EulerEquationsMatrixFormSurfPreconditioning(Hermes::vector<std::pair<unsigned int, 
                                                 unsigned int> >coordinates, double kappa) 
-    : WeakForm::MultiComponentMatrixFormSurf(coordinates, H2D_DG_INNER_EDGE), 
+    : MultiComponentMatrixFormSurf<double>(coordinates, H2D_DG_INNER_EDGE), 
       num_flux(new StegerWarmingNumericalFlux(kappa)) { }
 
-    void value(int n, double *wt, Func<scalar> *u_ext[], Func<double> *u, 
-               Func<double> *v, Geom<double> *e, ExtData<scalar> *ext, 
+    void value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
+               Func<double> *v, Geom<double> *e, ExtData<double> *ext, 
                Hermes::vector<double>& result) const {
       double result_0_0 = 0;
       double result_0_1 = 0;
@@ -896,15 +896,15 @@ protected:
   };
 
   class EulerEquationsMatrixFormVolPreconditioningSimple 
-             : public WeakForm::MultiComponentMatrixFormVol
+             : public MultiComponentMatrixFormVol<double>
   {
   public:
     EulerEquationsMatrixFormVolPreconditioningSimple(Hermes::vector<std::pair<unsigned int, 
                                                      unsigned int> >coordinates) 
-         : WeakForm::MultiComponentMatrixFormVol(coordinates) {}
+         : MultiComponentMatrixFormVol<double>(coordinates) {}
 
-  void value(int n, double *wt, Func<scalar> *u_ext[], Func<double> *u, Func<double> *v, 
-               Geom<double> *e, ExtData<scalar> *ext, Hermes::vector<double>& result) const {
+  void value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
+               Geom<double> *e, ExtData<double> *ext, Hermes::vector<double>& result) const {
       double result_n = int_u_v<double, double>(n, wt, u, v);
       
       result.push_back(result_n);
@@ -919,14 +919,14 @@ protected:
     }
   };
   
-  class EulerEquationsLinearForm : public WeakForm::MultiComponentVectorFormVol
+  class EulerEquationsLinearForm : public MultiComponentVectorFormVol<double>
   {
   public:
     EulerEquationsLinearForm(Hermes::vector<unsigned int> coordinates, double kappa) 
-                             : WeakForm::MultiComponentVectorFormVol(coordinates), kappa(kappa) { }
+                             : MultiComponentVectorFormVol<double>(coordinates), kappa(kappa) { }
 
-    void value(int n, double *wt, Func<scalar> *u_ext[], Func<double> *v, Geom<double> *e, 
-               ExtData<scalar> *ext, Hermes::vector<double>& result) const {
+    void value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, 
+               ExtData<double> *ext, Hermes::vector<double>& result) const {
       double result_0 = 0;
       double result_1 = 0;
       double result_2 = 0;
@@ -1045,14 +1045,14 @@ protected:
     double kappa;
   };
   
-  class EulerEquationsLinearFormTime : public WeakForm::MultiComponentVectorFormVol
+  class EulerEquationsLinearFormTime : public MultiComponentVectorFormVol<double>
   {
   public:
     EulerEquationsLinearFormTime(Hermes::vector<unsigned int> coordinates) 
-         : WeakForm::MultiComponentVectorFormVol(coordinates) {}
+         : MultiComponentVectorFormVol<double>(coordinates) {}
 
-    void value(int n, double *wt, Func<scalar> *u_ext[], Func<double> *v, Geom<double> *e, 
-               ExtData<scalar> *ext, Hermes::vector<double>& result) const {
+    void value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, 
+               ExtData<double> *ext, Hermes::vector<double>& result) const {
       result.push_back(int_u_v<double, double>(n, wt, ext->fn[0], v) 
                        - int_u_v<double, double>(n, wt, u_ext[0], v));
       result.push_back(int_u_v<double, double>(n, wt, ext->fn[1], v) 
@@ -1069,15 +1069,15 @@ protected:
     }
   };
   
-  class EulerEquationsLinearFormInterface : public WeakForm::MultiComponentVectorFormSurf
+  class EulerEquationsLinearFormInterface : public MultiComponentVectorFormSurf<double>
   {
   public:
     EulerEquationsLinearFormInterface(Hermes::vector<unsigned int> coordinates, 
                                       NumericalFlux* num_flux) 
-         : WeakForm::MultiComponentVectorFormSurf(coordinates, H2D_DG_INNER_EDGE), num_flux(num_flux) {}
+         : MultiComponentVectorFormSurf<double>(coordinates, H2D_DG_INNER_EDGE), num_flux(num_flux) {}
 
-    void value(int n, double *wt, Func<scalar> *u_ext[], Func<double> *v, 
-               Geom<double> *e, ExtData<scalar> *ext, Hermes::vector<double>& result) const {
+    void value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
+               Geom<double> *e, ExtData<double> *ext, Hermes::vector<double>& result) const {
       double result_0 = 0;
       double result_1 = 0;
       double result_2 = 0;
@@ -1163,15 +1163,15 @@ protected:
     NumericalFlux* num_flux;
   };
 
-  class EulerEquationsLinearFormSolidWall : public WeakForm::MultiComponentVectorFormSurf
+  class EulerEquationsLinearFormSolidWall : public MultiComponentVectorFormSurf<double>
   {
   public:
     EulerEquationsLinearFormSolidWall(Hermes::vector<unsigned int> coordinates, 
                                       std::string marker, NumericalFlux* num_flux) 
-         : WeakForm::MultiComponentVectorFormSurf(coordinates, marker), num_flux(num_flux) {}
+         : MultiComponentVectorFormSurf<double>(coordinates, marker), num_flux(num_flux) {}
 
-    void value(int n, double *wt, Func<scalar> *u_ext[], Func<double> *v, Geom<double> *e, 
-               ExtData<scalar> *ext, Hermes::vector<double>& result) const {
+    void value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, 
+               ExtData<double> *ext, Hermes::vector<double>& result) const {
       double result_0 = 0;
       double result_1 = 0;
       double result_2 = 0;
@@ -1205,15 +1205,15 @@ protected:
     NumericalFlux* num_flux;
   };
 
-  class EulerEquationsLinearFormInlet : public WeakForm::MultiComponentVectorFormSurf
+  class EulerEquationsLinearFormInlet : public MultiComponentVectorFormSurf<double>
   {
   public:
     EulerEquationsLinearFormInlet(Hermes::vector<unsigned int> coordinates, 
                                   std::string marker, NumericalFlux* num_flux) : 
-        WeakForm::MultiComponentVectorFormSurf(coordinates, marker), num_flux(num_flux) {}
+        MultiComponentVectorFormSurf<double>(coordinates, marker), num_flux(num_flux) {}
 
-    void value(int n, double *wt, Func<scalar> *u_ext[], Func<double> *v, Geom<double> *e, 
-               ExtData<scalar> *ext, Hermes::vector<double>& result) const {
+    void value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, 
+               ExtData<double> *ext, Hermes::vector<double>& result) const {
       double result_0 = 0;
       double result_1 = 0;
       double result_2 = 0;
@@ -1256,15 +1256,15 @@ protected:
     NumericalFlux* num_flux;
   };
 
-  class EulerEquationsLinearFormOutlet : public WeakForm::MultiComponentVectorFormSurf
+  class EulerEquationsLinearFormOutlet : public MultiComponentVectorFormSurf<double>
   {
   public:
     EulerEquationsLinearFormOutlet(Hermes::vector<unsigned int> coordinates, 
                                    std::string marker, NumericalFlux* num_flux) : 
-    WeakForm::MultiComponentVectorFormSurf(coordinates, marker), num_flux(num_flux) {}
+    MultiComponentVectorFormSurf<double>(coordinates, marker), num_flux(num_flux) {}
 
-    void value(int n, double *wt, Func<scalar> *u_ext[], Func<double> *v, Geom<double> *e, 
-               ExtData<scalar> *ext, Hermes::vector<double>& result) const {
+    void value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, 
+               ExtData<double> *ext, Hermes::vector<double>& result) const {
       double result_0 = 0;
       double result_1 = 0;
       double result_2 = 0;
@@ -1322,9 +1322,9 @@ public:
                                         double pressure_ext, std::string solid_wall_marker,
                     std::string inlet_marker, std::string outlet_marker, 
                     Hermes::vector<std::string> natural_bc_concentration_markers,
-                    Solution* prev_density, Solution* prev_density_vel_x, 
-                    Solution* prev_density_vel_y, Solution* prev_energy, 
-                    Solution* prev_concentration, bool preconditioning, double epsilon, bool fvm_only = false)
+                    Solution<double>* prev_density, Solution<double>* prev_density_vel_x, 
+                    Solution<double>* prev_density_vel_y, Solution<double>* prev_energy, 
+                    Solution<double>* prev_concentration, bool preconditioning, double epsilon, bool fvm_only = false)
        : EulerEquationsWeakFormImplicitMultiComponent(num_flux, kappa, rho_ext, v1_ext, v2_ext, pressure_ext,
                                         solid_wall_marker, solid_wall_marker, inlet_marker, 
                                         outlet_marker, prev_density, prev_density_vel_x,
@@ -1354,9 +1354,9 @@ public:
                                         double pressure_ext, std::string solid_wall_marker_bottom, std::string solid_wall_marker_top,
                     std::string inlet_marker, std::string outlet_marker, 
                     Hermes::vector<std::string> natural_bc_concentration_markers,
-                    Solution* prev_density, Solution* prev_density_vel_x, 
-                    Solution* prev_density_vel_y, Solution* prev_energy, 
-                    Solution* prev_concentration, bool preconditioning, double epsilon, bool fvm_only = false)
+                    Solution<double>* prev_density, Solution<double>* prev_density_vel_x, 
+                    Solution<double>* prev_density_vel_y, Solution<double>* prev_energy, 
+                    Solution<double>* prev_concentration, bool preconditioning, double epsilon, bool fvm_only = false)
        : EulerEquationsWeakFormImplicitMultiComponent(num_flux, kappa, rho_ext, v1_ext, v2_ext, pressure_ext,
                                         solid_wall_marker_bottom, solid_wall_marker_top, inlet_marker, 
                                         outlet_marker, prev_density, prev_density_vel_x,
@@ -1384,11 +1384,11 @@ public:
   // Destructor.
   ~EulerEquationsWeakFormImplicitCoupled() {};
 protected:
-  class VectorFormConcentrationDiffusion : public WeakForm::VectorFormVol
+  class VectorFormConcentrationDiffusion : public VectorFormVol<double>
   {
   public:
     VectorFormConcentrationDiffusion(int i, double epsilon) 
-          : WeakForm::VectorFormVol(i), epsilon(epsilon) {}
+          : VectorFormVol<double>(i), epsilon(epsilon) {}
 
     template<typename Real, typename Scalar>
     Scalar vector_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, 
@@ -1398,9 +1398,9 @@ protected:
              * static_cast<EulerEquationsWeakFormImplicit*>(wf)->get_tau();
     }
 
-    scalar value(int n, double *wt, Func<scalar> *u_ext[], Func<double> *v, 
-                 Geom<double> *e, ExtData<scalar> *ext) const {
-      return vector_form<double, scalar>(n, wt, u_ext, v, e, ext);
+    double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
+                 Geom<double> *e, ExtData<double> *ext) const {
+      return vector_form<double, double>(n, wt, u_ext, v, e, ext);
     }
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
@@ -1412,10 +1412,10 @@ protected:
     double epsilon;
   };
 
-  class VectorFormConcentrationAdvection : public WeakForm::VectorFormVol
+  class VectorFormConcentrationAdvection : public VectorFormVol<double>
   {
   public:
-    VectorFormConcentrationAdvection(int i) : WeakForm::VectorFormVol(i) {}
+    VectorFormConcentrationAdvection(int i) : VectorFormVol<double>(i) {}
 
     template<typename Real, typename Scalar>
     Scalar vector_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, 
@@ -1433,9 +1433,9 @@ protected:
       return result * static_cast<EulerEquationsWeakFormImplicit*>(wf)->get_tau();
     }
 
-    scalar value(int n, double *wt, Func<scalar> *u_ext[], Func<double> *v, 
-                 Geom<double> *e, ExtData<scalar> *ext) const {
-      return vector_form<double, scalar>(n, wt, u_ext, v, e, ext);
+    double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
+                 Geom<double> *e, ExtData<double> *ext) const {
+      return vector_form<double, double>(n, wt, u_ext, v, e, ext);
     }
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
@@ -1444,11 +1444,11 @@ protected:
     }
   };
 
-  class VectorFormConcentrationNatural : public WeakForm::VectorFormSurf
+  class VectorFormConcentrationNatural : public VectorFormSurf<double>
   {
   public:
     VectorFormConcentrationNatural(int i, std::string marker) 
-          : WeakForm::VectorFormSurf(i, marker) {}
+          : VectorFormSurf<double>(i, marker) {}
 
     template<typename Real, typename Scalar>
     Scalar vector_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, 
@@ -1468,9 +1468,9 @@ protected:
       return - result * static_cast<EulerEquationsWeakFormImplicit*>(wf)->get_tau();
     }
 
-    scalar value(int n, double *wt, Func<scalar> *u_ext[], Func<double> *v, 
-                 Geom<double> *e, ExtData<scalar> *ext) const {
-      return vector_form<double, scalar>(n, wt, u_ext, v, e, ext);
+    double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
+                 Geom<double> *e, ExtData<double> *ext) const {
+      return vector_form<double, double>(n, wt, u_ext, v, e, ext);
     }
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
@@ -1479,10 +1479,10 @@ protected:
     }
   };
 
-  class VectorFormConcentrationInterface : public WeakForm::VectorFormSurf
+  class VectorFormConcentrationInterface : public VectorFormSurf<double>
   {
   public:
-    VectorFormConcentrationInterface(int i) : WeakForm::VectorFormSurf(i, H2D_DG_INNER_EDGE) {}
+    VectorFormConcentrationInterface(int i) : VectorFormSurf<double>(i, H2D_DG_INNER_EDGE) {}
 
     template<typename Real, typename Scalar>
     Scalar vector_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, 
@@ -1508,9 +1508,9 @@ protected:
       return - result * static_cast<EulerEquationsWeakFormImplicit*>(wf)->get_tau();
     }
 
-    scalar value(int n, double *wt, Func<scalar> *u_ext[], Func<double> *v, Geom<double> *e, 
-                 ExtData<scalar> *ext) const {
-      return vector_form<double, scalar>(n, wt, u_ext, v, e, ext);
+    double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, 
+                 ExtData<double> *ext) const {
+      return vector_form<double, double>(n, wt, u_ext, v, e, ext);
     }
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
