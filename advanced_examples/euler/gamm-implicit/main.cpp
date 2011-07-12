@@ -100,7 +100,7 @@ int main(int argc, char* argv[])
   // Initialize the FE problem.
   bool is_linear = false;
   DiscreteProblem<double> dp(&wf, Hermes::vector<Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
-  
+
   // If the FE problem is in fact a FV problem.
   if(P_INIT == 0)
     dp.set_fvm();
@@ -133,31 +133,32 @@ int main(int argc, char* argv[])
   solver.set_ls_tolerance(NOX_LINEAR_TOLERANCE);
   solver.disable_abs_resid();
   solver.set_conv_rel_resid(NOX_NONLINEAR_TOLERANCE);
-  if(PRECONDITIONING) {
+  if(PRECONDITIONING)
+  {
     RCP<Precond<double> > pc = rcp(new Preconditioners::MlPrecond<double>("sa"));
     solver.set_precond(pc);
   }
 
   int iteration = 0; double t = 0;
-  for(t = 0.0; t < 3.0; t += time_step) {
+  for(t = 0.0; t < 3.0; t += time_step)
+  {
     info("---- Time step %d, time %3.5f.", iteration++, t);
 
     OGProjection<double>::project_global(Hermes::vector<Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e), 
-    Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), coeff_vec);
-    
-    solver.set_init_sln(coeff_vec);
+      Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), coeff_vec);
 
     info("Assembling by DiscreteProblem, solving by NOX.");
-    if (solver.solve())
-      Solution<double>::vector_to_solutions(solver.get_solution(), Hermes::vector<Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e), 
+    if (solver.solve(coeff_vec))
+      Solution<double>::vector_to_solutions(solver.get_sln_vector(), Hermes::vector<Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e), 
       Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
     else
       error("NOX failed.");
-   
+
     // Visualization.
     if((iteration - 1) % EVERY_NTH_STEP == 0) {
       // Hermes visualization.
-      if(HERMES_VISUALIZATION) {
+      if(HERMES_VISUALIZATION)
+      {
         Mach_number.reinit();
         pressure.reinit();
         entropy.reinit();
@@ -172,7 +173,8 @@ int main(int argc, char* argv[])
         */
       }
       // Output solution in VTK format.
-      if(VTK_VISUALIZATION) {
+      if(VTK_VISUALIZATION)
+      {
         pressure.reinit();
         Mach_number.reinit();
         Linearizer<double> lin;
@@ -193,7 +195,7 @@ int main(int argc, char* argv[])
     info("Total number of iterations in linsolver: %d (achieved tolerance in the last step: %g)", 
       solver.get_num_lin_iters(), solver.get_achieved_tol());
   }
-  
+
   pressure_view.close();
   entropy_production_view.close();
   Mach_number_view.close();

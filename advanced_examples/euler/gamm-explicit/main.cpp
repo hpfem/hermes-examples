@@ -34,7 +34,7 @@ const int INIT_REF_NUM = 3;                             // Number of initial uni
 double CFL_NUMBER = 1.0;                                // CFL value.
 double time_step = 1E-4;                                // Initial time step.
 const MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-                                                        // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 
 // Equation parameters.
 const double P_EXT = 2.5;         // Exterior pressure (dimensionless).
@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
   ScalarView<double> pressure_view("Pressure", new WinGeom(0, 0, 600, 300));
   ScalarView<double> Mach_number_view("Mach number", new WinGeom(700, 0, 600, 300));
   ScalarView<double> entropy_production_view("Entropy estimate", new WinGeom(0, 400, 600, 300));
-  
+
   ScalarView<double> s1("1", new WinGeom(0, 0, 600, 300));
   ScalarView<double> s2("2", new WinGeom(700, 0, 600, 300));
   ScalarView<double> s3("3", new WinGeom(0, 400, 600, 300));
@@ -117,7 +117,8 @@ int main(int argc, char* argv[])
   CFLCalculation CFL(CFL_NUMBER, KAPPA);
 
   int iteration = 0; double t = 0;
-  for(t = 0.0; t < 3.0; t += time_step) {
+  for(t = 0.0; t < 3.0; t += time_step)
+  {
     info("---- Time step %d, time %3.5f.", iteration++, t);
 
     // Set the current time step.
@@ -131,38 +132,35 @@ int main(int argc, char* argv[])
 
     // Solve the matrix problem.
     info("Solving the matrix problem.");
-    double* solution_vector = NULL;
-    if(solver->solve()) {
-      solution_vector = solver->get_solution();
-      Solution<double>::vector_to_solutions(solution_vector, Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
+    if(solver->solve())
+      Solution<double>::vector_to_solutions(solver->get_sln_vector(), Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
       &space_rho_v_y, &space_e), Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
-    }
     else
       error ("Matrix solver failed.\n");
 
-    if(SHOCK_CAPTURING) {
-      DiscontinuityDetector discontinuity_detector(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-        &space_rho_v_y, &space_e), Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
+    if(SHOCK_CAPTURING)
+    {      DiscontinuityDetector discontinuity_detector(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
+    &space_rho_v_y, &space_e), Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
 
-      std::set<int> discontinuous_elements = discontinuity_detector.get_discontinuous_element_ids(DISCONTINUITY_DETECTOR_PARAM);
+    std::set<int> discontinuous_elements = discontinuity_detector.get_discontinuous_element_ids(DISCONTINUITY_DETECTOR_PARAM);
 
-      FluxLimiter flux_limiter(solution_vector, Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-        &space_rho_v_y, &space_e), Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
+    FluxLimiter flux_limiter(solver->get_sln_vector(), Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
+      &space_rho_v_y, &space_e), Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
 
-      flux_limiter.limit_according_to_detector(discontinuous_elements);
+    flux_limiter.limit_according_to_detector(discontinuous_elements);
     }
 
     CFL.calculate_semi_implicit(Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), &mesh, time_step);
 
     // Visualization.
-    
+
     Mach_number.reinit();
     pressure.reinit();
     entropy.reinit();
     pressure_view.show(&pressure);
     entropy_production_view.show(&entropy);
     Mach_number_view.show(&Mach_number);
-    
+
     /*
     s1.show(&prev_rho);
     s2.show(&prev_rho_v_x);
@@ -170,19 +168,19 @@ int main(int argc, char* argv[])
     s4.show(&prev_e);
     */
     //View::wait();
-    
+
   }
-  
+
   pressure_view.close();
   entropy_production_view.close();
   Mach_number_view.close();
 
-  
+
   s1.close();
   s2.close();
   s3.close();
   s4.close();
-  
+
 
   return 0;
 }

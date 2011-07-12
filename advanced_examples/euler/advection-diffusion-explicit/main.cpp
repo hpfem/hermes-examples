@@ -39,12 +39,12 @@ const int P_INIT_CONCENTRATION = 1;                    // Polynomial degree for 
 double CFL_NUMBER = 1.0;                               // CFL value.
 double time_step = 1E-5, util_time_step;               // Initial and utility time step.
 const MatrixSolverType matrix_solver_type = SOLVER_UMFPACK; // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-                                                       // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 
 unsigned int INIT_REF_NUM_FLOW = 3;                    // Number of initial uniform mesh refinements of the mesh for the flow.
 unsigned int INIT_REF_NUM_CONCENTRATION = 3;           // Number of initial uniform mesh refinements of the mesh for the concentration.
 unsigned int INIT_REF_NUM_CONCENTRATION_BDY = 1;       // Number of initial mesh refinements of the mesh for the concentration towards the 
-                                                       // part of the boundary where the concentration is prescribed.
+// part of the boundary where the concentration is prescribed.
 // Equation parameters.
 const double P_EXT = 2.5;                              // Exterior pressure (dimensionless).
 const double RHO_EXT = 1.0;                            // Inlet density (dimensionless).   
@@ -94,10 +94,10 @@ int main(int argc, char* argv[])
   // Initialize boundary condition types and spaces with default shapesets.
   // For the concentration.
   EssentialBCs<double> bcs_concentration;
-  
+
   bcs_concentration.add_boundary_condition(new ConcentrationTimedepEssentialBC(BDY_DIRICHLET_CONCENTRATION, CONCENTRATION_EXT, CONCENTRATION_EXT_STARTUP_TIME));
   bcs_concentration.add_boundary_condition(new ConcentrationTimedepEssentialBC(BDY_SOLID_WALL_TOP, 0.0, CONCENTRATION_EXT_STARTUP_TIME));
-  
+
   L2Space<double>space_rho(&mesh_flow, P_INIT_FLOW);
   L2Space<double>space_rho_v_x(&mesh_flow, P_INIT_FLOW);
   L2Space<double>space_rho_v_y(&mesh_flow, P_INIT_FLOW);
@@ -121,7 +121,7 @@ int main(int argc, char* argv[])
   // Initialize weak formulation.
   EulerEquationsWeakFormSemiImplicitCoupled wf(&num_flux, KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, BDY_SOLID_WALL_BOTTOM,
     BDY_SOLID_WALL_TOP, BDY_INLET, BDY_OUTLET, BDY_NATURAL_CONCENTRATION, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_c, EPSILON, (P_INIT_FLOW == 0));
-  
+
   wf.set_time_step(time_step);
 
   // Initialize the FE problem.
@@ -142,7 +142,7 @@ int main(int argc, char* argv[])
   ScalarView<double> entropy_production_view("Entropy estimate", new WinGeom(0, 400, 600, 300));
   ScalarView<double> s5("Concentration", new WinGeom(700, 400, 600, 300));
   */
-  
+
   ScalarView<double> s1("1", new WinGeom(0, 0, 600, 300));
   ScalarView<double> s2("2", new WinGeom(700, 0, 600, 300));
   ScalarView<double> s3("3", new WinGeom(0, 400, 600, 300));
@@ -161,7 +161,8 @@ int main(int argc, char* argv[])
   ADEStabilityCalculation ADES(ADVECTION_STABILITY_CONSTANT, DIFFUSION_STABILITY_CONSTANT, EPSILON);
 
   int iteration = 0; double t = 0;
-  for(t = 0.0; t < 100.0; t += time_step) {
+  for(t = 0.0; t < 100.0; t += time_step)
+  {
     info("---- Time step %d, time %3.5f.", iteration++, t);
 
     // Set the current time step.
@@ -176,14 +177,15 @@ int main(int argc, char* argv[])
     info("Solving the matrix problem.");
     double* solution_vector = NULL;
     if(solver->solve()) {
-      solution_vector = solver->get_solution();
+      solution_vector = solver->get_sln_vector();
       Solution<double>::vector_to_solutions(solution_vector, Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-      &space_rho_v_y, &space_e, &space_c), Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_c));
+        &space_rho_v_y, &space_e, &space_c), Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_c));
     }
     else
-    error ("Matrix solver failed.\n");
+      error ("Matrix solver failed.\n");
 
-    if(SHOCK_CAPTURING) {
+    if(SHOCK_CAPTURING)
+    {
       DiscontinuityDetector discontinuity_detector(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
         &space_rho_v_y, &space_e), Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
 
@@ -209,16 +211,16 @@ int main(int argc, char* argv[])
     // Visualization.
     if((iteration - 1) % EVERY_NTH_STEP == 0) {
       // Hermes visualization.
-      if(HERMES_VISUALIZATION) {
-        /*
-        Mach_number.reinit();
-        pressure.reinit();
-        entropy.reinit();
-        pressure_view.show(&pressure);
-        entropy_production_view.show(&entropy);
-        Mach_number_view.show(&Mach_number);
-        s5.show(&prev_c);
-        */
+      if(HERMES_VISUALIZATION)
+      {        /*
+               Mach_number.reinit();
+               pressure.reinit();
+               entropy.reinit();
+               pressure_view.show(&pressure);
+               entropy_production_view.show(&entropy);
+               Mach_number_view.show(&Mach_number);
+               s5.show(&prev_c);
+               */
         s1.show(&prev_rho);
         s2.show(&prev_rho_v_x);
         s3.show(&prev_rho_v_y);
@@ -232,10 +234,11 @@ int main(int argc, char* argv[])
         s5.save_numbered_screenshot("concentration%i.bmp", iteration, true);
         */
         //s5.wait_for_close();
-        
+
       }
       // Output solution in VTK format.
-      if(VTK_VISUALIZATION) {
+      if(VTK_VISUALIZATION)
+      {
         pressure.reinit();
         Mach_number.reinit();
         Linearizer<double> lin;
@@ -252,18 +255,17 @@ int main(int argc, char* argv[])
         lin.save_solution_vtk(&prev_c, filename, "Concentration", true);
         sprintf(filename, "Concentration-3D-%i.vtk", iteration - 1);
         lin.save_solution_vtk(&prev_c, filename, "Concentration", true);
- 
       }
     }
   }
-  
+
   /*
   pressure_view.close();
   entropy_production_view.close();
   Mach_number_view.close();
   s5.close();
   */
-  
+
   s1.close();
   s2.close();
   s3.close();

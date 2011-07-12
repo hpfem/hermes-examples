@@ -39,39 +39,39 @@ double time_step = 1E-6;                          // Initial time step.
 // Adaptivity.
 const int UNREF_FREQ = 1;                         // Every UNREF_FREQth time step the mesh is unrefined.
 int REFINEMENT_COUNT = 0;                         // Number of mesh refinements between two unrefinements.
-                                                  // The mesh is not unrefined unless there has been a refinement since
-                                                  // last unrefinement.
+// The mesh is not unrefined unless there has been a refinement since
+// last unrefinement.
 const double THRESHOLD = 0.3;                     // This is a quantitative parameter of the adapt(...) function and
-                                                  // it has different meanings for various adaptive strategies (see below).
+// it has different meanings for various adaptive strategies (see below).
 const int STRATEGY = 1;                           // Adaptive strategy:
-                                                  // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
-                                                  //   error is processed. If more elements have similar errors, refine
-                                                  //   all to keep the mesh symmetric.
-                                                  // STRATEGY = 1 ... refine all elements whose error is larger
-                                                  //   than THRESHOLD times maximum element error.
-                                                  // STRATEGY = 2 ... refine all elements whose error is larger
-                                                  //   than THRESHOLD.
-                                                  // More adaptive strategies can be created in adapt_ortho_h1.cpp.
+// STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
+//   error is processed. If more elements have similar errors, refine
+//   all to keep the mesh symmetric.
+// STRATEGY = 1 ... refine all elements whose error is larger
+//   than THRESHOLD times maximum element error.
+// STRATEGY = 2 ... refine all elements whose error is larger
+//   than THRESHOLD.
+// More adaptive strategies can be created in adapt_ortho_h1.cpp.
 CandList CAND_LIST = H2D_HP_ANISO;                // Predefined list of element refinement candidates. Possible values are
-                                                  // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
-                                                  // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
+// H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
+// H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
 const int MAX_P_ORDER = -1;                       // Maximum polynomial degree used. -1 for unlimited.
-                                                  // See User Documentation for details.
+// See User Documentation for details.
 const int MESH_REGULARITY = -1;                   // Maximum allowed level of hanging nodes:
-                                                  // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
-                                                  // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
-                                                  // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
-                                                  // Note that regular meshes are not supported, this is due to
-                                                  // their notoriously bad performance.
+// MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
+// MESH_REGULARITY = 1 ... at most one-level hanging nodes,
+// MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
+// Note that regular meshes are not supported, this is due to
+// their notoriously bad performance.
 const double CONV_EXP = 1;                        // Default value is 1.0. This parameter influences the selection of
-                                                  // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
+// cancidates in hp-adaptivity. See get_optimal_refinement() for details.
 const double ERR_STOP = 0.25;                      // Stopping criterion for adaptivity (rel. error tolerance between the
-                                                  // fine mesh and coarse mesh solution in percent).
+// fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 100000;                     // Adaptivity process stops when the number of degrees of freedom grows over
-                                                  // this limit. This is mainly to prevent h-adaptivity to go on forever.
-                                                  // Matrix solver for orthogonal projections.
+// this limit. This is mainly to prevent h-adaptivity to go on forever.
+// Matrix solver for orthogonal projections.
 MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-                                                  // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 
 // Equation parameters.
 const double P_EXT = 2.5;                         // Exterior pressure (dimensionless).
@@ -117,14 +117,14 @@ int main(int argc, char* argv[])
   InitialSolutionEulerDensityVelX sln_rho_v_x(&mesh, RHO_EXT * V1_EXT);
   InitialSolutionEulerDensityVelY sln_rho_v_y(&mesh, RHO_EXT * V2_EXT);
   InitialSolutionEulerDensityEnergy sln_e(&mesh, QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA));
-  
+
   InitialSolutionEulerDensity prev_rho(&mesh, RHO_EXT);
   InitialSolutionEulerDensityVelX prev_rho_v_x(&mesh, RHO_EXT * V1_EXT);
   InitialSolutionEulerDensityVelY prev_rho_v_y(&mesh, RHO_EXT * V2_EXT);
   InitialSolutionEulerDensityEnergy prev_e(&mesh, QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA));
 
   Solution<double> rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e;
-  
+
   // Numerical flux.
   OsherSolomonNumericalFlux num_flux(KAPPA);
 
@@ -148,34 +148,36 @@ int main(int argc, char* argv[])
   ScalarView<double> s2("2", new WinGeom(700, 0, 600, 300));
   ScalarView<double> s3("3", new WinGeom(0, 400, 600, 300));
   ScalarView<double> s4("4", new WinGeom(700, 400, 600, 300));
-  
+
   // Initialize refinement selector.
   L2ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, MAX_P_ORDER);
   selector.set_error_weights(1.0, 1.0, 1.0);
-  
+
   // Set up CFL calculation class.
   CFLCalculation CFL(CFL_NUMBER, KAPPA);
-  
+
   int iteration = 0; double t = 0;
-  for(t = 0.0; t < 3.0; t += time_step) {
+  for(t = 0.0; t < 3.0; t += time_step)
+  {
     info("---- Time step %d, time %3.5f.", iteration++, t);
-    
+
     // Periodic global derefinements.
     if (iteration > 1 && iteration % UNREF_FREQ == 0 && REFINEMENT_COUNT > 0) {
       REFINEMENT_COUNT = 0;
       info("Global mesh derefinement.");
       space_rho.unrefine_all_mesh_elements();
-        if(CAND_LIST == H2D_HP_ANISO)
-          space_rho.adjust_element_order(-1, P_INIT);
+      if(CAND_LIST == H2D_HP_ANISO)
+        space_rho.adjust_element_order(-1, P_INIT);
       space_rho_v_x.copy_orders(&space_rho);
       space_rho_v_y.copy_orders(&space_rho);
       space_e.copy_orders(&space_rho);
     }
-    
+
     // Adaptivity loop:
     int as = 1; 
     bool done = false;
-    do {
+    do
+    {
       info("---- Adaptivity step %d:", as);
 
       // Construct globally refined reference mesh and setup reference space.
@@ -183,7 +185,7 @@ int main(int argc, char* argv[])
       if(CAND_LIST == H2D_HP_ANISO)
         order_increase = 1;
       Hermes::vector<Space<double> *>* ref_spaces = Space<double>::construct_refined_spaces(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-      &space_rho_v_y, &space_e), order_increase);
+        &space_rho_v_y, &space_e), order_increase);
 
       ndof = Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
         &space_rho_v_y, &space_e));
@@ -214,7 +216,7 @@ int main(int argc, char* argv[])
       info("Solving on reference mesh.");
       bool is_linear = true;
       DiscreteProblem<double> dp(&wf, *ref_spaces);
-      
+
       SparseMatrix<double>* matrix = create_matrix<double>(matrix_solver_type);
       Vector<double>* rhs = create_vector<double>(matrix_solver_type);
       LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver_type, matrix, rhs);
@@ -225,22 +227,23 @@ int main(int argc, char* argv[])
       // Solve the linear system of the reference problem. If successful, obtain the solutions.
       double* solution_vector = NULL;
       if(solver->solve()) {
-        solution_vector = solver->get_solution();
-        Solution<double>::vector_to_solutions(solver->get_solution(), *ref_spaces, 
-                                              Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e));
+        solution_vector = solver->get_sln_vector();
+        Solution<double>::vector_to_solutions(solver->get_sln_vector(), *ref_spaces, 
+          Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e));
       }
       else 
         error ("Matrix solver failed.\n");
-      
+
       DiscontinuityDetector discontinuity_detector(*ref_spaces, 
-					Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e));
-      
+        Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e));
+
       FluxLimiter flux_limiter(solution_vector, *ref_spaces,
-						Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e));
+        Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e));
 
       std::set<int> discontinuous_elements;
-      
-      if(SHOCK_CAPTURING) {
+
+      if(SHOCK_CAPTURING)
+      {
         discontinuous_elements = discontinuity_detector.get_discontinuous_element_ids(DISCONTINUITY_DETECTOR_PARAM);
 
         flux_limiter.limit_according_to_detector(discontinuous_elements);
@@ -249,52 +252,56 @@ int main(int argc, char* argv[])
       // Project the fine mesh solution onto the coarse mesh.
       info("Projecting reference solution on coarse mesh.");
       OGProjection<double>::project_global(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-      &space_rho_v_y, &space_e), Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), 
-                     Hermes::vector<Solution<double>*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y, &sln_e), matrix_solver_type, 
-                     Hermes::vector<ProjNormType>(HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM)); 
+        &space_rho_v_y, &space_e), Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), 
+        Hermes::vector<Solution<double>*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y, &sln_e), matrix_solver_type, 
+        Hermes::vector<ProjNormType>(HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM)); 
 
       // Calculate element errors and total error estimate.
       info("Calculating error estimate.");
       Adapt<double>* adaptivity = new Adapt<double>(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-      &space_rho_v_y, &space_e), Hermes::vector<ProjNormType>(HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM));
+        &space_rho_v_y, &space_e), Hermes::vector<ProjNormType>(HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM));
       double err_est_rel_total = adaptivity->calc_err_est(Hermes::vector<Solution<double>*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y, &sln_e),
-							  Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e)) * 100;
-      
+        Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e)) * 100;
+
       CFL.calculate(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), rsln_rho.get_mesh(), time_step);
 
       // Report results.
       info("err_est_rel: %g%%", err_est_rel_total);
-      
+
       // If err_est too large, adapt the mesh.
-      if (err_est_rel_total < ERR_STOP) {
+      if (err_est_rel_total < ERR_STOP)
+      {
         done = true;
 
-        if(SHOCK_CAPTURING) {
+        if(SHOCK_CAPTURING)
+        {
           flux_limiter.limit_according_to_detector(discontinuous_elements, Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-                &space_rho_v_y, &space_e));
+            &space_rho_v_y, &space_e));
         }
 
         // Visualization of the refined space before it gets deleted.
         if((iteration - 1) % EVERY_NTH_STEP == 0) {
           // Hermes visualization.
-          if(HERMES_VISUALIZATION) {
+          if(HERMES_VISUALIZATION)
+          {
             order_view_coarse.show(&space_rho);
-           // order_view_fine.show((*ref_spaces)[0]);
+            // order_view_fine.show((*ref_spaces)[0]);
           }
-          if(VTK_VISUALIZATION) {
-            Orderizer ord;
-            char filename[40];
-            sprintf(filename, "Orders-coarse-%i.vtk", iteration - 1);
-            ord.save_orders_vtk(&space_rho, filename);
-            sprintf(filename, "Orders-fine-%i.vtk", iteration - 1);
-            ord.save_orders_vtk((*ref_spaces)[0], filename);
+          if(VTK_VISUALIZATION)
+          {            Orderizer ord;
+          char filename[40];
+          sprintf(filename, "Orders-coarse-%i.vtk", iteration - 1);
+          ord.save_orders_vtk(&space_rho, filename);
+          sprintf(filename, "Orders-fine-%i.vtk", iteration - 1);
+          ord.save_orders_vtk((*ref_spaces)[0], filename);
           }
         }
       }
-      else {
+      else
+      {
         info("Adapting coarse mesh.");
-	done = adaptivity->adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&selector, &selector, &selector, &selector), 
-                                 THRESHOLD, STRATEGY, MESH_REGULARITY);
+        done = adaptivity->adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&selector, &selector, &selector, &selector), 
+          THRESHOLD, STRATEGY, MESH_REGULARITY);
 
         REFINEMENT_COUNT++;
         if (Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
@@ -326,26 +333,27 @@ int main(int argc, char* argv[])
     delete rsln_rho_v_y.get_mesh();
     delete rsln_e.get_mesh();
 
-// Visualization.
+    // Visualization.
     if((iteration - 1) % EVERY_NTH_STEP == 0) {
       // Hermes visualization.
-      if(HERMES_VISUALIZATION) {
-	/*
-        Mach_number.reinit();
-        pressure.reinit();
-        entropy.reinit();
-        pressure_view.show(&pressure);
-        entropy_production_view.show(&entropy);
-        Mach_number_view.show(&Mach_number);
-        */
+      if(HERMES_VISUALIZATION)
+      {        /*
+               Mach_number.reinit();
+               pressure.reinit();
+               entropy.reinit();
+               pressure_view.show(&pressure);
+               entropy_production_view.show(&entropy);
+               Mach_number_view.show(&Mach_number);
+               */
         s1.show(&prev_rho);
         s2.show(&prev_rho_v_x);
         s3.show(&prev_rho_v_y);
         s4.show(&prev_e);
-        
+
       }
       // Output solution in VTK format.
-      if(VTK_VISUALIZATION) {
+      if(VTK_VISUALIZATION)
+      {
         pressure.reinit();
         Mach_number.reinit();
         Linearizer<double> lin;
@@ -361,7 +369,7 @@ int main(int argc, char* argv[])
       }
     }
   }
-  
+
   pressure_view.close();
   entropy_production_view.close();
   Mach_number_view.close();
@@ -372,6 +380,6 @@ int main(int argc, char* argv[])
   s3.close();
   s4.close();
   */
-  
+
   return 0;
 }
