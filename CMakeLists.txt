@@ -4,9 +4,9 @@ project(hermes_examples)
 	set(CMAKE_MODULE_PATH ${CMAKE_HOME_DIRECTORY}/cmake)
 	
 	# Where to look for the static libraries.
-	set(HERMES_DIRECTORY "/usr/lib")
-	set(HERMES_INCLUDE_PATHS "/usr/include")
-	set(DEP_INCLUDE_PATHS "/usr/include")
+	set(HERMES_DIRECTORY /lib)
+	set(HERMES_INCLUDE_PATH "/include")
+	set(DEP_INCLUDE_PATHS /include)
 
 	macro(SET_COMMON_TARGET_PROPERTIES TRGT HERMES_VERSION)
 		
@@ -25,9 +25,13 @@ project(hermes_examples)
 
 	find_package(PTHREAD REQUIRED)
 	
-	include_directories(${HERMES_INCLUDE_PATHS})
+	set(HERMES2D_INCLUDE_PATH ${HERMES_INCLUDE_PATH}/hermes2d)
+	set(HERMES_COMMON_INCLUDE_PATH ${HERMES_INCLUDE_PATH}/hermes_common)
+
+	include_directories(${HERMES_COMMON_INCLUDE_PATH})
+	include_directories(${HERMES2D_INCLUDE_PATH})
 	include_directories(${DEP_INCLUDE_PATHS})
-	
+
 	add_subdirectory(benchmarks-general)
 	add_subdirectory(benchmarks-nist)
 	add_subdirectory(tutorials)
