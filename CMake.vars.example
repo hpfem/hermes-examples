@@ -4,3 +4,8 @@ set(PTHREAD_ROOT ${DEP_ROOT})
 set(HERMES_DIRECTORY "${DEP_ROOT}/lib")
 set(HERMES_INCLUDE_PATH "${DEP_ROOT}/include")
 set(DEP_INCLUDE_PATHS "${DEP_ROOT}/include")
+
+# Experimental
+# Turn on Zoltan AND MPI
+# SET(WITH_ZOLTAN YES)
+# SET(WITH_MPI NO)
