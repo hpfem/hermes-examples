@@ -176,28 +176,24 @@ int main(int argc, char* argv[])
     // Solve the matrix problem.
     info("Solving the matrix problem.");
     double* solution_vector = NULL;
-    if(solver->solve()) {
-      solution_vector = solver->get_sln_vector();
-      Solution<double>::vector_to_solutions(solution_vector, Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-        &space_rho_v_y, &space_e, &space_c), Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_c));
-    }
+		
+		if(solver->solve())
+      if(!SHOCK_CAPTURING)
+        Solution<double>::vector_to_solutions(solution_vector, Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
+					&space_rho_v_y, &space_e, &space_c), Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_c));
+      else
+        {      
+          FluxLimiter flux_limiter(FluxLimiter::Krivodonova, solver->get_sln_vector(), Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
+            &space_rho_v_y, &space_e));
+
+          flux_limiter.limit_according_to_detector();
+
+          flux_limiter.get_limited_solutions(Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
+        }
     else
       error ("Matrix solver failed.\n");
-
-    if(SHOCK_CAPTURING)
-    {
-      DiscontinuityDetector discontinuity_detector(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-        &space_rho_v_y, &space_e), Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
-
-      std::set<int> discontinuous_elements = discontinuity_detector.get_discontinuous_element_ids(DISCONTINUITY_DETECTOR_PARAM);
-
-      FluxLimiter flux_limiter(solution_vector, Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-        &space_rho_v_y, &space_e), Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
-
-      flux_limiter.limit_according_to_detector(discontinuous_elements);
-    }
-
-    util_time_step = time_step;
+		
+		util_time_step = time_step;
 
     CFL.calculate_semi_implicit(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), &mesh_flow, util_time_step);
 

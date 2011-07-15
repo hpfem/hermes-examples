@@ -1,15 +1,17 @@
 # Everything is in meters:
 a = 0.5
-b = 1
-c = 1
+b = 1.0
+a_b = 1.5
+a_b_a = 2.0
+c = 1.0
 
 vertices = [
   [ 0, 0 ],
   [ a, 0 ],
-  [ a+b, 0 ],
-  [ a+b+a, 0 ],
-  [ a+b+a, c ],
-  [ a+b, c ],
+  [ a_b, 0 ],
+  [ a_b_a, 0 ],
+  [ a_b_a, c ],
+  [ a_b, c ],
   [ a, c ],
   [ 0, c ]
 ]

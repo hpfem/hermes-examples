@@ -6,6 +6,7 @@
 using namespace Hermes;
 using namespace Hermes::Hermes2D;
 
+// Class calculating various quantities
 class QuantityCalculator
 {
 public:
@@ -25,8 +26,8 @@ public:
   CFLCalculation(double CFL_number, double kappa);
 
   // If the time step is necessary to decrease / possible to increase, the value time_step will be rewritten.
-  void calculate(Hermes::vector<Solution<double>*> solutions, Mesh* mesh, double & time_step);
-  void calculate_semi_implicit(Hermes::vector<Solution<double>*> solutions, Mesh* mesh, double & time_step);
+  void calculate(Hermes::vector<Solution<double>*> solutions, Mesh* mesh, double & time_step) const;
+  void calculate_semi_implicit(Hermes::vector<Solution<double>*> solutions, Mesh* mesh, double & time_step) const;
 
   void set_number(double new_CFL_number);
   
@@ -63,8 +64,31 @@ public:
    ~DiscontinuityDetector();
 
   /// Return a reference to the inner structures.
+  virtual std::set<int>& get_discontinuous_element_ids() = 0;
+
+protected:
+  /// Members.
+  Hermes::vector<Space<double> *> spaces;
+  Hermes::vector<Solution<double> *> solutions;
+  std::set<int> discontinuous_element_ids;
+  Mesh* mesh;
+};
+
+class KrivodonovaDiscontinuityDetector : public DiscontinuityDetector
+{
+public:
+  /// Constructor.
+  KrivodonovaDiscontinuityDetector(Hermes::vector<Space<double> *> spaces, 
+                        Hermes::vector<Solution<double> *> solutions);
+
+  /// Destructor.
+   ~KrivodonovaDiscontinuityDetector();
+
+  /// Return a reference to the inner structures.
+  std::set<int>& get_discontinuous_element_ids();
   std::set<int>& get_discontinuous_element_ids(double threshold);
 
+protected:
   /// Calculates relative (w.r.t. the boundary edge_i of the Element e).
   double calculate_relative_flow_direction(Element* e, int edge_i);
 
@@ -76,32 +100,57 @@ public:
 
   /// Calculates the norm of the solution on the central element.
   void calculate_norms(Element* e, int edge_i, double result[4]);
+};
+
+class KuzminDiscontinuityDetector : public DiscontinuityDetector
+{
+public:
+  /// Constructor.
+  KuzminDiscontinuityDetector(Hermes::vector<Space<double> *> spaces, 
+                        Hermes::vector<Solution<double> *> solutions);
+
+  /// Destructor.
+   ~KuzminDiscontinuityDetector();
+
+  /// Return a reference to the inner structures.
+  std::set<int>& get_discontinuous_element_ids();
 
 protected:
-  /// Members.
-  Hermes::vector<Space<double> *> spaces;
-  Hermes::vector<Solution<double> *> solutions;
-  Mesh* mesh;
-  std::set<int> discontinuous_element_ids;
+  void find_centroid_values(Hermes::Hermes2D::Element* e, double u_c[4]);
+  void find_centroid_derivatives(Hermes::Hermes2D::Element* e, double u_dx_c[4], double u_dy_c[4]);
+  void find_vertex_values(Hermes::Hermes2D::Element* e, double vertex_values[4][4]);
+  void find_u_i_min_max(Hermes::Hermes2D::Element* e, double u_i_min[4][4], double u_i_max[4][4]);
+  void find_alpha_i(double u_i_min[4][4], double u_i_max[4][4], double u_c[4], double u_i[4][4], double alpha_i[4]);
+  void find_alpha_i_real(Hermes::Hermes2D::Element* e, double u_i[4][4], double u_c[4], double u_dx_c[4], double u_dy_c[4], double alpha_i_real[4]);
 };
 
 class FluxLimiter
 {
 public:
+  /// Enumeration of types.
+  /// Used to pick the proper DiscontinuityDetector.
+  enum LimitingType
+  {
+    Krivodonova,
+    Kuzmin
+  };
   /// Constructor.
-  FluxLimiter(double* solution_vector, Hermes::vector<Space<double> *> spaces, Hermes::vector<Solution<double> *> solutions);
+  FluxLimiter(LimitingType type, double* solution_vector, Hermes::vector<Space<double> *> spaces);
 
   /// Destructor.
    ~FluxLimiter();
 
   /// Do the limiting.
-  void limit_according_to_detector(std::set<int>& discontinuous_elements, Hermes::vector<Space<double> *> coarse_spaces = Hermes::vector<Space<double> *>());
+  /// With the possibility to also limit the spaces from which the spaces in the constructors are refined.
+  virtual void limit_according_to_detector(Hermes::vector<Space<double> *> coarse_spaces_to_limit = Hermes::vector<Space<double> *>());
 
+  void get_limited_solutions(Hermes::vector<Solution<double>*>& solutions_to_limit);
 protected:
   /// Members.
   double* solution_vector;
   Hermes::vector<Space<double> *> spaces;
-  Hermes::vector<Solution<double> *> solutions;
+  DiscontinuityDetector* detector;
+  Hermes::vector<Solution<double>*> limited_solutions;
 };
 
 // Filters.

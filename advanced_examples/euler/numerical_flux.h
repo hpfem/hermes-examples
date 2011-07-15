@@ -73,20 +73,23 @@ public:
           double nx, double ny);
 
   // Also calculates the speed of sound.
-  void Lambda_plus(double result[4], double nx, double ny);
+  void Lambda_plus(double result[4]);
 
   // Also calculates the speed of sound.
-  void Lambda_minus(double result[4], double nx, double ny);
+  void Lambda_minus(double result[4]);
 
-  void T_1(double result[4][4], double nx, double ny);
-  void T_2(double result[4][4], double nx, double ny);
-  void T_3(double result[4][4], double nx, double ny);
-  void T_4(double result[4][4], double nx, double ny);
+  // Calculates all eigenvalues.
+  void Lambda(double result[4]);
 
-  void T_inv_1(double result[4][4], double nx, double ny);
-  void T_inv_2(double result[4][4], double nx, double ny);
-  void T_inv_3(double result[4][4], double nx, double ny);
-  void T_inv_4(double result[4][4], double nx, double ny);
+  void T_1(double result[4][4]);
+  void T_2(double result[4][4]);
+  void T_3(double result[4][4]);
+  void T_4(double result[4][4]);
+
+  void T_inv_1(double result[4][4]);
+  void T_inv_2(double result[4][4]);
+  void T_inv_3(double result[4][4]);
+  void T_inv_4(double result[4][4]);
 
   virtual void numerical_flux_solid_wall(double result[4], double w_L[4], double nx, double ny);
   
@@ -101,6 +104,8 @@ public:
   virtual void numerical_flux_outlet(double result[4], double w_L[4], double pressure, double nx, double ny);
   
   virtual double numerical_flux_outlet_i(int component, double w_L[4], double pressure, double nx, double ny);
+
+  double* get_q();
 
 protected:
   // States.

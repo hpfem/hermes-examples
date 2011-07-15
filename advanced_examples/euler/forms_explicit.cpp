@@ -4,7 +4,9 @@
 #include "numerical_flux.h"
 
 // Utility functions for the Euler equations.
-#include "euler_util.h"
+#include "../euler_util.h"
+
+std::ofstream ostream_out ("out");
 
 class EulerEquationsWeakFormExplicit : public WeakForm<double>
 {
@@ -13,7 +15,7 @@ public:
   EulerEquationsWeakFormExplicit(NumericalFlux* num_flux, double kappa, double rho_ext, double v1_ext, double v2_ext, double pressure_ext, 
   std::string solid_wall_bottom_marker, std::string solid_wall_top_marker, std::string inlet_marker, std::string outlet_marker, 
   Solution<double>* prev_density, Solution<double>* prev_density_vel_x, Solution<double>* prev_density_vel_y, Solution<double>* prev_energy, bool fvm_only = false, int num_of_equations = 4) :
-  WeakForm<double>(num_of_equations), rho_ext(rho_ext), v1_ext(v1_ext), v2_ext(v2_ext), pressure_ext(pressure_ext), 
+  WeakForm(num_of_equations), rho_ext(rho_ext), v1_ext(v1_ext), v2_ext(v2_ext), pressure_ext(pressure_ext), 
   energy_ext(QuantityCalculator::calc_energy(rho_ext, rho_ext * v1_ext, rho_ext * v2_ext, pressure_ext, kappa)), euler_fluxes(new EulerFluxes(kappa)) {
     add_matrix_form(new EulerEquationsBilinearFormTime(0));
     add_matrix_form(new EulerEquationsBilinearFormTime(1));
@@ -506,7 +508,7 @@ public:
   EulerEquationsWeakFormExplicitMultiComponent(NumericalFlux* num_flux, double kappa, double rho_ext, double v1_ext, double v2_ext, double pressure_ext, 
         std::string solid_wall_bottom_marker, std::string solid_wall_top_marker, std::string inlet_marker, std::string outlet_marker, 
         Solution<double>* prev_density, Solution<double>* prev_density_vel_x, Solution<double>* prev_density_vel_y, Solution<double>* prev_energy, bool fvm_only = false, int num_of_equations = 4) :
-        WeakForm<double>(num_of_equations), rho_ext(rho_ext), v1_ext(v1_ext), v2_ext(v2_ext), pressure_ext(pressure_ext), 
+        WeakForm(num_of_equations), rho_ext(rho_ext), v1_ext(v1_ext), v2_ext(v2_ext), pressure_ext(pressure_ext), 
         energy_ext(QuantityCalculator::calc_energy(rho_ext, rho_ext * v1_ext, rho_ext * v2_ext, pressure_ext, kappa)), euler_fluxes(new EulerFluxes(kappa))
   {
     Hermes::vector<std::pair<unsigned int, unsigned int> > matrix_coordinates;
@@ -1013,7 +1015,7 @@ public:
   EulerEquationsWeakFormSemiImplicitMultiComponent(NumericalFlux* num_flux, double kappa, double rho_ext, double v1_ext, double v2_ext, double pressure_ext, 
         std::string solid_wall_bottom_marker, std::string solid_wall_top_marker, std::string inlet_marker, std::string outlet_marker, 
         Solution<double>* prev_density, Solution<double>* prev_density_vel_x, Solution<double>* prev_density_vel_y, Solution<double>* prev_energy, bool fvm_only = false, int num_of_equations = 4) :
-        WeakForm<double>(num_of_equations), rho_ext(rho_ext), v1_ext(v1_ext), v2_ext(v2_ext), pressure_ext(pressure_ext), 
+        WeakForm(num_of_equations), rho_ext(rho_ext), v1_ext(v1_ext), v2_ext(v2_ext), pressure_ext(pressure_ext), 
         energy_ext(QuantityCalculator::calc_energy(rho_ext, rho_ext * v1_ext, rho_ext * v2_ext, pressure_ext, kappa)), euler_fluxes(new EulerFluxes(kappa))
   {
     Hermes::vector<std::pair<unsigned int, unsigned int> > matrix_coordinates;
@@ -1046,41 +1048,39 @@ public:
     vector_coordinates.push_back(2);
     vector_coordinates.push_back(3);
     
+    // Time - matrix.
     add_multicomponent_matrix_form(new EulerEquationsBilinearFormTime(matrix_coordinates));
 
+    // Eulerian fluxes.
     if(!fvm_only) 
       add_multicomponent_matrix_form(new EulerEquationsBilinearForm(matrix_coordinates_full, kappa));
 
+    // Numerical flux.
     add_multicomponent_matrix_form_surf(new EulerEquationsMatrixFormSurfSemiImplicit(matrix_coordinates_full, kappa));
     add_multicomponent_matrix_form_surf(new EulerEquationsMatrixFormSurfSemiImplicit2(matrix_coordinates_full, kappa));
 
+    // Time - rhs.
     add_multicomponent_vector_form(new EulerEquationsLinearFormTime(vector_coordinates));
     
+    // Solid wall.
     add_multicomponent_matrix_form_surf(new EulerEquationsMatrixFormSolidWall(matrix_coordinates_full, 
                                         solid_wall_bottom_marker, kappa));
     
     if(solid_wall_bottom_marker != solid_wall_top_marker)
       add_multicomponent_matrix_form_surf(new EulerEquationsMatrixFormSolidWall(matrix_coordinates_full, 
                                           solid_wall_top_marker, kappa));
-
-    add_multicomponent_matrix_form_surf(new EulerEquationsMatrixFormSemiImplicitInlet(matrix_coordinates_full, 
-                                        inlet_marker, kappa));
-    //add_multicomponent_matrix_form_surf(new EulerEquationsMatrixFormSemiImplicitOutlet(matrix_coordinates_full, 
-      //                                  outlet_marker, kappa));
-
-    add_multicomponent_vector_form_surf(new EulerEquationsVectorFormSemiImplicitInlet(vector_coordinates, 
-                                        inlet_marker, kappa));
     
+    // Inlet.
+    add_multicomponent_matrix_form_surf(new EulerEquationsMatrixFormSemiImplicitInletOutlet(matrix_coordinates_full, 
+                                        inlet_marker, kappa));
+    add_multicomponent_vector_form_surf(new EulerEquationsVectorFormSemiImplicitInletOutlet(vector_coordinates, 
+                                        inlet_marker, kappa));
 
-    add_multicomponent_matrix_form_surf(new EulerEquationsMatrixFormSemiImplicitInlet(matrix_coordinates_full, 
+    // Outlet.
+    add_multicomponent_matrix_form_surf(new EulerEquationsMatrixFormSemiImplicitInletOutlet(matrix_coordinates_full, 
                                         outlet_marker, kappa));
-    //add_multicomponent_matrix_form_surf(new EulerEquationsMatrixFormSemiImplicitOutlet(matrix_coordinates_full, 
-      //                                  outlet_marker, kappa));
-
-    add_multicomponent_vector_form_surf(new EulerEquationsVectorFormSemiImplicitInlet(vector_coordinates, 
+    add_multicomponent_vector_form_surf(new EulerEquationsVectorFormSemiImplicitInletOutlet(vector_coordinates, 
                                         outlet_marker, kappa));
-    
-
 
     for(unsigned int vector_form_i = 0;vector_form_i < this->vfvol_mc.size();vector_form_i++) {
       vfvol_mc.at(vector_form_i)->ext.push_back(prev_density);
@@ -1293,7 +1293,7 @@ protected:
     }
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const {
-      return u->val[0] * u->val[0] + v->val[0] * v->val[0];
+      return u->val[0] * v->dx[0] * v->dy[0] * ext->fn[0]->val[0] * ext->fn[1]->val[0] * ext->fn[2]->val[0] * ext->fn[3]->val[0];
     }
 
     double kappa;
@@ -1363,6 +1363,8 @@ protected:
         num_flux->P_plus(P_plus_3, w_L, e_3_3_1, e->nx[i], e->ny[i]);
         num_flux->P_plus(P_plus_4, w_L, e_4_4_1, e->nx[i], e->ny[i]);
 
+         ostream_out << (v->get_val_central(i) - v->get_val_neighbor(i)) << std::endl;
+
         result_0_0 += wt[i] * (P_plus_1[0] * u->get_val_central(i)) * (v->get_val_central(i) - v->get_val_neighbor(i)) * static_cast<EulerEquationsWeakFormSemiImplicitMultiComponent*>(wf)->get_tau();
         result_0_1 += wt[i] * (P_plus_2[0] * u->get_val_central(i)) * (v->get_val_central(i) - v->get_val_neighbor(i)) * static_cast<EulerEquationsWeakFormSemiImplicitMultiComponent*>(wf)->get_tau();
         result_0_2 += wt[i] * (P_plus_3[0] * u->get_val_central(i)) * (v->get_val_central(i) - v->get_val_neighbor(i)) * static_cast<EulerEquationsWeakFormSemiImplicitMultiComponent*>(wf)->get_tau();
@@ -1412,7 +1414,7 @@ protected:
         result += wt[i] * u->get_val_central(i) * v->get_val_central(i);
         result += wt[i] * u->get_val_neighbor(i) * v->get_val_neighbor(i);
       }
-      return result;
+      return result + Ord(2);
     }
 
     StegerWarmingNumericalFlux* num_flux;
@@ -1532,16 +1534,16 @@ protected:
         result += wt[i] * u->get_val_central(i) * v->get_val_central(i);
         result += wt[i] * u->get_val_neighbor(i) * v->get_val_neighbor(i);
       }
-      return result;
+      return result + Ord(2);
     }
 
     StegerWarmingNumericalFlux* num_flux;
   };
 
-  class EulerEquationsMatrixFormSemiImplicitInlet : public MultiComponentMatrixFormSurf<double>
+  class EulerEquationsMatrixFormSemiImplicitInletOutlet : public MultiComponentMatrixFormSurf<double>
   {
   public:
-    EulerEquationsMatrixFormSemiImplicitInlet(Hermes::vector<std::pair<unsigned int, 
+    EulerEquationsMatrixFormSemiImplicitInletOutlet(Hermes::vector<std::pair<unsigned int, 
                                                 unsigned int> >coordinates, 
                                   std::string marker, double kappa) 
     : MultiComponentMatrixFormSurf<double>(coordinates, marker), 
@@ -1570,7 +1572,7 @@ protected:
       double result_3_2 = 0;
       double result_3_3 = 0;
 
-      double w_L[4], w_B[4];
+      double w_L[4];
 
       for (int i = 0;i < n;i++) {
         w_L[0] = ext->fn[0]->val[i];
@@ -1578,20 +1580,20 @@ protected:
         w_L[2] = ext->fn[2]->val[i];
         w_L[3] = ext->fn[3]->val[i];
 
-        double e_1_1[4] = {1, 0, 0, 0};
-        double e_2_2[4] = {0, 1, 0, 0};
-        double e_3_3[4] = {0, 0, 1, 0};
-        double e_4_4[4] = {0, 0, 0, 1};
+        double e_1[4] = {1, 0, 0, 0};
+        double e_2[4] = {0, 1, 0, 0};
+        double e_3[4] = {0, 0, 1, 0};
+        double e_4[4] = {0, 0, 0, 1};
 
         double P_plus_1[4];
         double P_plus_2[4];
         double P_plus_3[4];
         double P_plus_4[4];
       
-        num_flux->P_plus(P_plus_1, w_L, e_1_1, e->nx[i], e->ny[i]);
-        num_flux->P_plus(P_plus_2, w_L, e_2_2, e->nx[i], e->ny[i]);
-        num_flux->P_plus(P_plus_3, w_L, e_3_3, e->nx[i], e->ny[i]);
-        num_flux->P_plus(P_plus_4, w_L, e_4_4, e->nx[i], e->ny[i]);
+        num_flux->P_plus(P_plus_1, w_L, e_1, e->nx[i], e->ny[i]);
+        num_flux->P_plus(P_plus_2, w_L, e_2, e->nx[i], e->ny[i]);
+        num_flux->P_plus(P_plus_3, w_L, e_3, e->nx[i], e->ny[i]);
+        num_flux->P_plus(P_plus_4, w_L, e_4, e->nx[i], e->ny[i]);
 
         result_0_0 += wt[i] * P_plus_1[0] * u->val[i] * v->val[i] * static_cast<EulerEquationsWeakFormSemiImplicitMultiComponent*>(wf)->get_tau();
         result_0_1 += wt[i] * P_plus_2[0] * u->val[i] * v->val[i] * static_cast<EulerEquationsWeakFormSemiImplicitMultiComponent*>(wf)->get_tau();
@@ -1637,133 +1639,15 @@ protected:
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
             Geom<Ord> *e, ExtData<Ord> *ext) const {
-      return u->val[0] + v->val[0];
-    }
-
-    StegerWarmingNumericalFlux* num_flux;
-  };
-
-  class EulerEquationsMatrixFormSemiImplicitOutlet : public MultiComponentMatrixFormSurf<double>
-  {
-  public:
-    EulerEquationsMatrixFormSemiImplicitOutlet(Hermes::vector<std::pair<unsigned int, 
-                                                unsigned int> >coordinates, 
-                                  std::string marker, double kappa) 
-    : MultiComponentMatrixFormSurf<double>(coordinates, marker), 
-      num_flux(new StegerWarmingNumericalFlux(kappa)) { }
-
-    void value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
-               Func<double> *v, Geom<double> *e, ExtData<double> *ext, 
-               Hermes::vector<double>& result) const {
-      double result_0_0 = 0;
-      double result_0_1 = 0;
-      double result_0_2 = 0;
-      double result_0_3 = 0;
-
-      double result_1_0 = 0;
-      double result_1_1 = 0;
-      double result_1_2 = 0;
-      double result_1_3 = 0;
-
-      double result_2_0 = 0;
-      double result_2_1 = 0;
-      double result_2_2 = 0;
-      double result_2_3 = 0;
-
-      double result_3_0 = 0;
-      double result_3_1 = 0;
-      double result_3_2 = 0;
-      double result_3_3 = 0;
-
-      double w_L[4], w_B[4];
-
-      for (int i = 0;i < n;i++) {
-        w_L[0] = ext->fn[0]->val[i];
-        w_L[1] = ext->fn[1]->val[i];
-        w_L[2] = ext->fn[2]->val[i];
-        w_L[3] = ext->fn[3]->val[i];
-
-        double e_1_1[4] = {1, 0, 0, 0};
-        double e_2_2[4] = {0, 1, 0, 0};
-        double e_3_3[4] = {0, 0, 1, 0};
-        double e_4_4[4] = {0, 0, 0, 1};
-
-        double P_plus_1[4];
-        double P_plus_2[4];
-        double P_plus_3[4];
-        double P_plus_4[4];
-      
-        num_flux->P_plus(P_plus_1, w_L, e_1_1, e->nx[i], e->ny[i]);
-        num_flux->P_plus(P_plus_2, w_L, e_2_2, e->nx[i], e->ny[i]);
-        num_flux->P_plus(P_plus_3, w_L, e_3_3, e->nx[i], e->ny[i]);
-        num_flux->P_plus(P_plus_4, w_L, e_4_4, e->nx[i], e->ny[i]);
-        
-        double e_1_1_2[4] = {1, 0, 0, 0};
-        double e_2_2_2[4] = {0, 1, 0, 0};
-        double e_3_3_2[4] = {0, 0, 1, 0};
-        double e_4_4_2[4] = {0, 0, 0, 1};
-              
-        double P_minus_1[4];
-        double P_minus_2[4];
-        double P_minus_3[4];
-        double P_minus_4[4];
-      
-        num_flux->P_minus(P_minus_1, w_L, e_1_1_2, e->nx[i], e->ny[i]);
-        num_flux->P_minus(P_minus_2, w_L, e_2_2_2, e->nx[i], e->ny[i]);
-        num_flux->P_minus(P_minus_3, w_L, e_3_3_2, e->nx[i], e->ny[i]);
-        num_flux->P_minus(P_minus_4, w_L, e_4_4_2, e->nx[i], e->ny[i]);
-
-        result_0_0 += wt[i] * (P_plus_1[0] + P_minus_1[0]) * u->val[i] * v->val[i] * static_cast<EulerEquationsWeakFormSemiImplicitMultiComponent*>(wf)->get_tau();
-        result_0_1 += wt[i] * (P_plus_2[0] + P_minus_2[0]) * u->val[i] * v->val[i] * static_cast<EulerEquationsWeakFormSemiImplicitMultiComponent*>(wf)->get_tau();
-        result_0_2 += wt[i] * (P_plus_3[0] + P_minus_3[0]) * u->val[i] * v->val[i] * static_cast<EulerEquationsWeakFormSemiImplicitMultiComponent*>(wf)->get_tau();
-        result_0_3 += wt[i] * (P_plus_4[0] + P_minus_4[0]) * u->val[i] * v->val[i] * static_cast<EulerEquationsWeakFormSemiImplicitMultiComponent*>(wf)->get_tau();
-
-        result_1_0 += wt[i] * (P_plus_1[1] + P_minus_1[1]) * u->val[i] * v->val[i] * static_cast<EulerEquationsWeakFormSemiImplicitMultiComponent*>(wf)->get_tau();
-        result_1_1 += wt[i] * (P_plus_2[1] + P_minus_2[1]) * u->val[i] * v->val[i] * static_cast<EulerEquationsWeakFormSemiImplicitMultiComponent*>(wf)->get_tau();
-        result_1_2 += wt[i] * (P_plus_3[1] + P_minus_3[1]) * u->val[i] * v->val[i] * static_cast<EulerEquationsWeakFormSemiImplicitMultiComponent*>(wf)->get_tau();
-        result_1_3 += wt[i] * (P_plus_4[1] + P_minus_4[1]) * u->val[i] * v->val[i] * static_cast<EulerEquationsWeakFormSemiImplicitMultiComponent*>(wf)->get_tau();
-
-        result_2_0 += wt[i] * (P_plus_1[2] + P_minus_1[2]) * u->val[i] * v->val[i] * static_cast<EulerEquationsWeakFormSemiImplicitMultiComponent*>(wf)->get_tau();
-        result_2_1 += wt[i] * (P_plus_2[2] + P_minus_2[2]) * u->val[i] * v->val[i] * static_cast<EulerEquationsWeakFormSemiImplicitMultiComponent*>(wf)->get_tau();
-        result_2_2 += wt[i] * (P_plus_3[2] + P_minus_3[2]) * u->val[i] * v->val[i] * static_cast<EulerEquationsWeakFormSemiImplicitMultiComponent*>(wf)->get_tau();
-        result_2_3 += wt[i] * (P_plus_4[2] + P_minus_4[2]) * u->val[i] * v->val[i] * static_cast<EulerEquationsWeakFormSemiImplicitMultiComponent*>(wf)->get_tau();
-
-        result_3_0 += wt[i] * (P_plus_1[3] + P_minus_1[3]) * u->val[i] * v->val[i] * static_cast<EulerEquationsWeakFormSemiImplicitMultiComponent*>(wf)->get_tau();
-        result_3_1 += wt[i] * (P_plus_2[3] + P_minus_2[3]) * u->val[i] * v->val[i] * static_cast<EulerEquationsWeakFormSemiImplicitMultiComponent*>(wf)->get_tau();
-        result_3_2 += wt[i] * (P_plus_3[3] + P_minus_3[3]) * u->val[i] * v->val[i] * static_cast<EulerEquationsWeakFormSemiImplicitMultiComponent*>(wf)->get_tau();
-        result_3_3 += wt[i] * (P_plus_4[3] + P_minus_4[3]) * u->val[i] * v->val[i] * static_cast<EulerEquationsWeakFormSemiImplicitMultiComponent*>(wf)->get_tau();
-      }
-
-      result.push_back(result_0_0);
-      result.push_back(result_0_1);
-      result.push_back(result_0_2);
-      result.push_back(result_0_3);
-
-      result.push_back(result_1_0);
-      result.push_back(result_1_1);
-      result.push_back(result_1_2);
-      result.push_back(result_1_3);
-
-      result.push_back(result_2_0);
-      result.push_back(result_2_1);
-      result.push_back(result_2_2);
-      result.push_back(result_2_3);
-
-      result.push_back(result_3_0);
-      result.push_back(result_3_1);
-      result.push_back(result_3_2);
-      result.push_back(result_3_3);
-    }
-
-    Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
-            Geom<Ord> *e, ExtData<Ord> *ext) const {
-      return u->val[0] + v->val[0];
+      return u->val[0] * v->val[0] * Ord(2);
     }
 
     StegerWarmingNumericalFlux* num_flux;
   };
   
-  class EulerEquationsVectorFormSemiImplicitInlet : public MultiComponentVectorFormSurf<double>
+  /* This boundary condition does not work very well, it it equal to calculating numerical flux, as if the state
+     outside of the domain was the given one. On the inlet, this produces a non-physical wave.
+  class EulerEquationsVectorFormSemiImplicitInletOutlet : public MultiComponentVectorFormSurf<double>
   {
   public:
     EulerEquationsVectorFormSemiImplicitInlet(Hermes::vector<unsigned int> coordinates, 
@@ -1779,7 +1663,7 @@ protected:
       double result_2 = 0;
       double result_3 = 0;
 
-      double w_L[4], w_B[4];
+      double w_B[4];
 
       for (int i = 0;i < n;i++) {
         w_B[0] = static_cast<EulerEquationsWeakFormSemiImplicitMultiComponent*>(wf)->rho_ext;
@@ -1813,7 +1697,120 @@ protected:
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, 
             Geom<Ord> *e, ExtData<Ord> *ext) const {
-      return v->val[0] + v->val[0];
+      return v->val[0] * v->val[0] * Ord(2);
+    }
+
+    StegerWarmingNumericalFlux* num_flux;
+  };
+  */
+
+  class EulerEquationsVectorFormSemiImplicitInletOutlet : public MultiComponentVectorFormSurf<double>
+  {
+  public:
+    EulerEquationsVectorFormSemiImplicitInletOutlet(Hermes::vector<unsigned int> coordinates, 
+                                  std::string marker, double kappa) 
+    : MultiComponentVectorFormSurf<double>(coordinates, marker), 
+      num_flux(new StegerWarmingNumericalFlux(kappa)) { }
+
+    void value(int n, double *wt, Func<double> *u_ext[],
+               Func<double> *v, Geom<double> *e, ExtData<double> *ext, 
+               Hermes::vector<double>& result) const {
+      double result_0 = 0;
+      double result_1 = 0;
+      double result_2 = 0;
+      double result_3 = 0;
+
+      double w_B[4], w_L[4], eigenvalues[4], alpha[4], q_ji_star[4], beta[4], q_ji[4], w_ji[4];
+
+      for (int i = 0; i < n; i++) {
+        
+        // Inner state.
+        w_L[0] = ext->fn[0]->val[i];
+        w_L[1] = ext->fn[1]->val[i];
+        w_L[2] = ext->fn[2]->val[i];
+        w_L[3] = ext->fn[3]->val[i];
+
+        // Transformation of the inner state to the local coordinates.
+        num_flux->Q(num_flux->get_q(), w_L, e->nx[i], e->ny[i]);
+
+        // Initialize the matrices.
+        double T[4][4];
+        double T_inv[4][4];
+        for(unsigned int ai = 0; ai < 4; ai++) {
+          for(unsigned int aj = 0; aj < 4; aj++) {
+            T[ai][aj] = 0.0;
+            T_inv[ai][aj] = 0.0;
+          }
+          alpha[ai] = 0;
+          beta[ai] = 0;
+          q_ji[ai] = 0;
+          w_ji[ai] = 0;
+          eigenvalues[ai] = 0;
+        }
+
+        // Calculate Lambda^-.
+        num_flux->Lambda(eigenvalues);
+        num_flux->T_1(T);
+        num_flux->T_2(T);
+        num_flux->T_3(T);
+        num_flux->T_4(T);
+        num_flux->T_inv_1(T_inv);
+        num_flux->T_inv_2(T_inv);
+        num_flux->T_inv_3(T_inv);
+        num_flux->T_inv_4(T_inv);
+
+        // "Prescribed" boundary state.
+        w_B[0] = static_cast<EulerEquationsWeakFormSemiImplicitMultiComponent*>(wf)->rho_ext;
+        w_B[1] = static_cast<EulerEquationsWeakFormSemiImplicitMultiComponent*>(wf)->rho_ext 
+                 * static_cast<EulerEquationsWeakFormSemiImplicitMultiComponent*>(wf)->v1_ext;
+        w_B[2] = static_cast<EulerEquationsWeakFormSemiImplicitMultiComponent*>(wf)->rho_ext 
+                 * static_cast<EulerEquationsWeakFormSemiImplicitMultiComponent*>(wf)->v2_ext;
+        w_B[3] = static_cast<EulerEquationsWeakFormSemiImplicitMultiComponent*>(wf)->energy_ext;
+
+        num_flux->Q(q_ji_star, w_B, e->nx[i], e->ny[i]);
+
+        for(unsigned int ai = 0; ai < 4; ai++)
+          for(unsigned int aj = 0; aj < 4; aj++)
+            alpha[ai] += T_inv[ai][aj] * num_flux->get_q()[aj];
+
+        for(unsigned int bi = 0; bi < 4; bi++)
+          for(unsigned int bj = 0; bj < 4; bj++)
+            beta[bi] += T_inv[bi][bj] * q_ji_star[bj];
+
+        for(unsigned int si = 0; si< 4; si++)
+          for(unsigned int sj = 0; sj < 4; sj++)
+            if(eigenvalues[sj] < 0)
+              q_ji[si] += beta[sj] * T[si][sj];
+            else
+              q_ji[si] += alpha[sj] * T[si][sj];
+
+        num_flux->Q_inv(w_ji, q_ji, e->nx[i], e->ny[i]);
+
+        double P_minus[4];
+
+        double w_B_temp[4];
+        w_B_temp[0] = w_ji[0];
+        w_B_temp[1] = w_ji[1];
+        w_B_temp[2] = w_ji[2];
+        w_B_temp[3] = w_ji[3];
+      
+        num_flux->P_minus(P_minus, w_ji, w_B_temp, e->nx[i], e->ny[i]);
+
+        result_0 += wt[i] * (P_minus[0]) * v->val[i];
+        result_1 += wt[i] * (P_minus[1]) * v->val[i];
+        result_2 += wt[i] * (P_minus[2]) * v->val[i];
+        result_3 += wt[i] * (P_minus[3]) * v->val[i];
+      }
+
+      result.push_back(-result_0 * static_cast<EulerEquationsWeakFormSemiImplicitMultiComponent*>(wf)->get_tau());
+      result.push_back(-result_1 * static_cast<EulerEquationsWeakFormSemiImplicitMultiComponent*>(wf)->get_tau());
+      result.push_back(-result_2 * static_cast<EulerEquationsWeakFormSemiImplicitMultiComponent*>(wf)->get_tau());
+      result.push_back(-result_3 * static_cast<EulerEquationsWeakFormSemiImplicitMultiComponent*>(wf)->get_tau());
+    }
+
+    Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, 
+            Geom<Ord> *e, ExtData<Ord> *ext) const {
+      return v->val[0] * v->val[0] * Ord(2);
     }
 
     StegerWarmingNumericalFlux* num_flux;
@@ -1843,7 +1840,7 @@ protected:
       if(int_u_v<Ord, Ord>(n, wt, ext->fn[3], v) > result)
         result = int_u_v<Ord, Ord>(n, wt, ext->fn[1], v);
 
-      return result;
+      return result + Ord(2);
     }
   };
 
@@ -1941,7 +1938,7 @@ protected:
     }
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const {
-      return v->val[0] * Ord(2);
+      return v->val[0] * Ord(3);
     }
 
     // Members.
@@ -2036,7 +2033,7 @@ protected:
         result += wt[i] * s_c * 0.5 * h_e * R * (concentration_prev->dx[i] * v->dx[i] + concentration_prev->dy[i] * v->dy[i]) / (Hermes::sqrt(Hermes::pow(concentration_prev->dx[i], 2) + Hermes::pow(concentration_prev->dy[i], 2)) + 1.e-8);
         
         Scalar b_norm = Hermes::sqrt(v_1 * v_1 + v_2 * v_2);
-        Real tau = 1. / Hermes::sqrt( 9 * Hermes::pow(4 * epsilon / Hermes::pow(h_e, 2), 2) + Hermes::pow(2 * b_norm / h_e, 2));
+        Real tau = 1. / Hermes::sqrt( 9 * Hermes::pow(4 * epsilon / pow(h_e, 2), 2) + pow(2 * b_norm / h_e, 2));
         result += wt[i] * tau * (-v_1 * v->dx[i] - v_2 * v->dy[i] + epsilon * v->laplace[i]) * (-v_1 * concentration_prev->dx[i] - v_2 * concentration_prev->dy[i]);
       }
       return result * static_cast<EulerEquationsWeakFormExplicit*>(wf)->get_tau();
@@ -2241,7 +2238,7 @@ protected:
         Scalar v_1 = density_vel_x_prev->val[i] / density_prev->val[i];
         Scalar v_2 = density_vel_y_prev->val[i] / density_prev->val[i];
 
-
+        
         result += wt[i] * (epsilon * (u->dx[i]*v->dx[i] + u->dy[i]*v->dy[i])
                                    - (v_1 * u->val[i] * v->dx[i] + v_2 * u->val[i] * v->dy[i]));
       
@@ -2250,7 +2247,7 @@ protected:
         result += wt[i] * s_c * 0.5 * h_e * R * (u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i]) / (Hermes::sqrt(Hermes::pow(u->dx[i], 2) + Hermes::pow(u->dy[i], 2)) + 1.e-8);
         
         Scalar b_norm = Hermes::sqrt(v_1 * v_1 + v_2 * v_2);
-        Real tau = 1. / Hermes::sqrt( 9 * Hermes::pow(4 * epsilon / Hermes::pow(h_e, 2), 2) + Hermes::pow(2 * b_norm / h_e, 2));
+        Real tau = 1. / Hermes::sqrt( 9 * pow(4 * epsilon / pow(h_e, 2), 2) + pow(2 * b_norm / h_e, 2));
         result += wt[i] * tau * (-v_1 * v->dx[i] - v_2 * v->dy[i] + epsilon * v->laplace[i]) * (-v_1 * u->dx[i] - v_2 * u->dy[i] + epsilon * u->laplace[i]);
       }
       return result * static_cast<EulerEquationsWeakFormExplicit*>(wf)->get_tau();
@@ -2304,92 +2301,4 @@ protected:
       return matrix_form<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
     }
   };
-  /*
-  class MatrixFormConcentrationAdvection : public MatrixFormVol<double>
-  {
-  public:
-    MatrixFormConcentrationAdvection(int i, int j) : MatrixFormVol<double>(i, j) {}
-
-    template<typename Real, typename Scalar>
-    Scalar matrix_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, 
-                       Geom<Real> *e, ExtData<Scalar> *ext) const {
-      Func<Real>* density_prev = ext->fn[0];
-      Func<Real>* density_vel_x_prev = ext->fn[1];
-      Func<Real>* density_vel_y_prev = ext->fn[2];
-
-      Scalar result = 0;
-      for (int i = 0;i < n;i++)
-        result += wt[i] * (u->dx[i] * density_vel_x_prev->val[i] * v->val[i] / density_prev->val[i] + u->dy[i] * density_vel_y_prev->val[i] * v->val[i] / density_prev->val[i]);
-
-      return result * static_cast<EulerEquationsWeakFormExplicit*>(wf)->get_tau();
-    }
-
-    double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
-                 Geom<double> *e, ExtData<double> *ext) const {
-      return matrix_form<double, double>(n, wt, u_ext,u , v, e, ext);
-    }
-
-    Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, 
-            ExtData<Ord> *ext) const {
-      return Ord(5);
-    }
-  };
-
-  class MatrixFormConcentrationDiffusion : public MatrixFormVol<double>
-  {
-  public:
-    MatrixFormConcentrationDiffusion(int i, int j, double epsilon) 
-          : MatrixFormVol<double>(i, j), epsilon(epsilon) {}
-
-    template<typename Real, typename Scalar>
-    Scalar matrix_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, 
-                       Geom<Real> *e, ExtData<Scalar> *ext) const {
-      return -epsilon * int_grad_u_grad_v<Real, Scalar>(n, wt, u, v) 
-             * static_cast<EulerEquationsWeakFormExplicit*>(wf)->get_tau();
-    }
-
-    double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
-                 Geom<double> *e, ExtData<double> *ext) const {
-      return matrix_form<double, double>(n, wt, u_ext, u, v, e, ext);
-    }
-
-    Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, 
-            ExtData<Ord> *ext) const {
-      return matrix_form<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
-    }
-
-    // Member.
-    double epsilon;
-  };
-  
-  class MatrixFormConcentrationAdvection : public MatrixFormVol<double>
-  {
-  public:
-    MatrixFormConcentrationAdvection(int i, int j) : MatrixFormVol<double>(i, j) {}
-
-    template<typename Real, typename Scalar>
-    Scalar matrix_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, 
-                       Geom<Real> *e, ExtData<Scalar> *ext) const {
-      Func<Real>* density_prev = ext->fn[0];
-      Func<Real>* density_vel_x_prev = ext->fn[1];
-      Func<Real>* density_vel_y_prev = ext->fn[2];
-
-      Scalar result = 0;
-      for (int i = 0;i < n;i++)
-        result += wt[i] * u->val[i] * ((density_vel_x_prev->val[i] * v->dx[i]) + (density_vel_y_prev->val[i] * v->dy[i])) / density_prev->val[i];
-
-      return -result * static_cast<EulerEquationsWeakFormExplicit*>(wf)->get_tau();
-    }
-
-    double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
-                 Geom<double> *e, ExtData<double> *ext) const {
-      return matrix_form<double, double>(n, wt, u_ext,u , v, e, ext);
-    }
-
-    Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, 
-            ExtData<Ord> *ext) const {
-      return Ord(5);
-    }
-  };
-  */
 };

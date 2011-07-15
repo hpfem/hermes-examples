@@ -29,7 +29,7 @@ bool SHOCK_CAPTURING = true;
 // Quantitative parameter of the discontinuity detector.
 double DISCONTINUITY_DETECTOR_PARAM = 1.0;
 
-const int P_INIT = 0;                                   // Initial polynomial degree.                      
+const int P_INIT = 1;                                   // Initial polynomial degree.                      
 const int INIT_REF_NUM = 3;                             // Number of initial uniform mesh refinements.                       
 double CFL_NUMBER = 1.0;                                // CFL value.
 double time_step = 1E-4;                                // Initial time step.
@@ -133,27 +133,28 @@ int main(int argc, char* argv[])
     // Solve the matrix problem.
     info("Solving the matrix problem.");
     if(solver->solve())
-      Solution<double>::vector_to_solutions(solver->get_sln_vector(), Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-      &space_rho_v_y, &space_e), Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
+      if(!SHOCK_CAPTURING)
+        Solution<double>::vector_to_solutions(solver->get_sln_vector(), Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
+          &space_rho_v_y, &space_e), Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
+      else
+        {      
+          FluxLimiter flux_limiter(FluxLimiter::Krivodonova, solver->get_sln_vector(), Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
+            &space_rho_v_y, &space_e));
+
+          flux_limiter.limit_according_to_detector();
+
+          flux_limiter.get_limited_solutions(Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
+        }
     else
       error ("Matrix solver failed.\n");
-
-    if(SHOCK_CAPTURING)
-    {      DiscontinuityDetector discontinuity_detector(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-    &space_rho_v_y, &space_e), Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
-
-    std::set<int> discontinuous_elements = discontinuity_detector.get_discontinuous_element_ids(DISCONTINUITY_DETECTOR_PARAM);
-
-    FluxLimiter flux_limiter(solver->get_sln_vector(), Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-      &space_rho_v_y, &space_e), Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
-
-    flux_limiter.limit_according_to_detector(discontinuous_elements);
-    }
 
     CFL.calculate_semi_implicit(Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), &mesh, time_step);
 
     // Visualization.
 
+    if((iteration - 1) % EVERY_NTH_STEP == 0) {
+      // Hermes visualization.
+      if(HERMES_VISUALIZATION) {
     Mach_number.reinit();
     pressure.reinit();
     entropy.reinit();
@@ -167,7 +168,20 @@ int main(int argc, char* argv[])
     s3.show(&prev_rho_v_y);
     s4.show(&prev_e);
     */
-    //View::wait();
+        
+      }
+      // Output solution in VTK format.
+      if(VTK_VISUALIZATION) {
+        pressure.reinit();
+        Mach_number.reinit();
+        Linearizer<double> lin;
+        char filename[40];
+        sprintf(filename, "pressure-3D-%i.vtk", iteration - 1);
+        lin.save_solution_vtk(&pressure, filename, "Pressure", true);
+        sprintf(filename, "Mach number-3D-%i.vtk", iteration - 1);
+        lin.save_solution_vtk(&Mach_number, filename, "MachNumber", true);
+      }
+    }
 
   }
 

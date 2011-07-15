@@ -315,19 +315,15 @@ int main(int argc, char* argv[])
 
       OGProjection<double>::project_global(flow_spaces, Hermes::vector<MeshFunction<double> *>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), flow_solution_vector);
 
-      DiscontinuityDetector discontinuity_detector(flow_spaces, Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e));
+			FluxLimiter flux_limiter(FluxLimiter::Krivodonova, flow_solution_vector, flow_spaces);
 
-      FluxLimiter flux_limiter(flow_solution_vector, flow_spaces, Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e));
+			flux_limiter.limit_according_to_detector();
 
-      std::set<int> discontinuous_elements;
-
+			flux_limiter.get_limited_solutions(Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
+			
       if(SHOCK_CAPTURING)
-      {
-        discontinuous_elements = discontinuity_detector.get_discontinuous_element_ids(DISCONTINUITY_DETECTOR_PARAM);
-
-        flux_limiter.limit_according_to_detector(discontinuous_elements);
-      }
-
+        flux_limiter.get_limited_solutions(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e));
+      
       // Project the fine mesh solution onto the coarse mesh.
       info("Projecting reference solution on coarse mesh.");
       OGProjection<double>::project_global(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x,
@@ -367,10 +363,8 @@ int main(int argc, char* argv[])
       {
         done = true;
         if(SHOCK_CAPTURING)
-        {
-          flux_limiter.limit_according_to_detector(discontinuous_elements, Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
+          flux_limiter.limit_according_to_detector(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
             &space_rho_v_y, &space_e));
-        }
       }
 
       else
