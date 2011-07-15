@@ -1,5 +1,3 @@
-//#define H2D_EULER_NUM_FLUX_TESTING
-
 #define HERMES_REPORT_INFO
 #define HERMES_REPORT_FILE "application.log"
 #include "hermes2d.h"
@@ -32,18 +30,24 @@ bool SHOCK_CAPTURING = true;
 double DISCONTINUITY_DETECTOR_PARAM = 1.0;
 
 const int P_INIT = 0;                             // Initial polynomial degree.                      
-const int INIT_REF_NUM = 3;                             // Number of initial uniform mesh refinements.                       
+const int INIT_REF_NUM = 2;                             // Number of initial uniform mesh refinements.                       
 double CFL_NUMBER = 1.0;                                // CFL value.
 double time_step = 1E-6;                          // Initial time step.
 
 // Adaptivity.
-const int UNREF_FREQ = 1;                         // Every UNREF_FREQth time step the mesh is unrefined.
-int REFINEMENT_COUNT = 0;                         // Number of mesh refinements between two unrefinements.
+// Every UNREF_FREQth time step the mesh is unrefined.
+const int UNREF_FREQ = 1;
+
+// Number of mesh refinements between two unrefinements.
 // The mesh is not unrefined unless there has been a refinement since
 // last unrefinement.
-const double THRESHOLD = 0.3;                     // This is a quantitative parameter of the adapt(...) function and
+int REFINEMENT_COUNT = 0;                         
+
+// This is a quantitative parameter of the adapt(...) function and
 // it has different meanings for various adaptive strategies (see below).
-const int STRATEGY = 1;                           // Adaptive strategy:
+const double THRESHOLD = 0.3;                     
+
+// Adaptive strategy:
 // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
 //   error is processed. If more elements have similar errors, refine
 //   all to keep the mesh symmetric.
@@ -52,26 +56,41 @@ const int STRATEGY = 1;                           // Adaptive strategy:
 // STRATEGY = 2 ... refine all elements whose error is larger
 //   than THRESHOLD.
 // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-CandList CAND_LIST = H2D_HP_ANISO;                // Predefined list of element refinement candidates. Possible values are
+const int STRATEGY = 1;                           
+
+// Predefined list of element refinement candidates. Possible values are
 // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
 // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
-const int MAX_P_ORDER = -1;                       // Maximum polynomial degree used. -1 for unlimited.
+CandList CAND_LIST = H2D_HP_ANISO;                
+
+// Maximum polynomial degree used. -1 for unlimited.
 // See User Documentation for details.
-const int MESH_REGULARITY = -1;                   // Maximum allowed level of hanging nodes:
+const int MAX_P_ORDER = 1;                       
+
+// Maximum allowed level of hanging nodes:
 // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
 // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
 // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
 // Note that regular meshes are not supported, this is due to
 // their notoriously bad performance.
-const double CONV_EXP = 1;                        // Default value is 1.0. This parameter influences the selection of
+const int MESH_REGULARITY = -1;                   
+
+// Default value is 1.0. This parameter influences the selection of
 // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-const double ERR_STOP = 0.25;                      // Stopping criterion for adaptivity (rel. error tolerance between the
+const double CONV_EXP = 1;                        
+
+// Stopping criterion for adaptivity (rel. error tolerance between the
 // fine mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 100000;                     // Adaptivity process stops when the number of degrees of freedom grows over
+const double ERR_STOP = 1.0;                     
+
+// Adaptivity process stops when the number of degrees of freedom grows over
 // this limit. This is mainly to prevent h-adaptivity to go on forever.
+const int NDOF_STOP = 100000;                   
+
 // Matrix solver for orthogonal projections.
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+// Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
 
 // Equation parameters.
 const double P_EXT = 2.5;                         // Exterior pressure (dimensionless).
@@ -100,8 +119,7 @@ int main(int argc, char* argv[])
   mloader.load("GAMM-channel.mesh", &mesh);
 
   // Perform initial mesh refinements.
-  for (int i = 0; i < INIT_REF_NUM; i++) 
-    mesh.refine_all_elements(0, true);
+  for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements(0);
   //mesh.refine_towards_boundary(BDY_SOLID_WALL_BOTTOM, 2);
 
   // Initialize boundary condition types and spaces with default shapesets.
@@ -129,7 +147,7 @@ int main(int argc, char* argv[])
   OsherSolomonNumericalFlux num_flux(KAPPA);
 
   // Initialize weak formulation.
-  EulerEquationsWeakFormExplicitMultiComponent wf(&num_flux, KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, BDY_SOLID_WALL_BOTTOM, BDY_SOLID_WALL_TOP, 
+  EulerEquationsWeakFormSemiImplicitMultiComponent wf(&num_flux, KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, BDY_SOLID_WALL_BOTTOM, BDY_SOLID_WALL_TOP, 
     BDY_INLET, BDY_OUTLET, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, (P_INIT == 0 && CAND_LIST == H2D_H_ANISO));
 
   // Filters for visualization of Mach number, pressure and entropy.
@@ -141,13 +159,8 @@ int main(int argc, char* argv[])
   ScalarView<double> Mach_number_view("Mach number", new WinGeom(700, 0, 600, 300));
   ScalarView<double> entropy_production_view("Entropy estimate", new WinGeom(0, 400, 600, 300));
 
-  OrderView<double> order_view_coarse("Orders - coarse", new WinGeom(700, 350, 600, 300));
-  OrderView<double> order_view_fine("Orders - fine", new WinGeom(700, 700, 600, 300));
-
-  ScalarView<double> s1("1", new WinGeom(0, 0, 600, 300));
-  ScalarView<double> s2("2", new WinGeom(700, 0, 600, 300));
-  ScalarView<double> s3("3", new WinGeom(0, 400, 600, 300));
-  ScalarView<double> s4("4", new WinGeom(700, 400, 600, 300));
+  //OrderView<double> order_view_coarse("Orders - coarse", new WinGeom(700, 350, 600, 300));
+  //OrderView<double> order_view_fine("Orders - fine", new WinGeom(700, 700, 600, 300));
 
   // Initialize refinement selector.
   L2ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, MAX_P_ORDER);
@@ -197,9 +210,13 @@ int main(int argc, char* argv[])
 
       if(as > 1) {
         delete rsln_rho.get_mesh();
+        rsln_rho.own_mesh = false;
         delete rsln_rho_v_x.get_mesh();
+        rsln_rho_v_x.own_mesh = false;
         delete rsln_rho_v_y.get_mesh();
+        rsln_rho_v_y.own_mesh = false;
         delete rsln_e.get_mesh();
+        rsln_e.own_mesh = false;
       }
 
       // Report NDOFs.
@@ -223,21 +240,25 @@ int main(int argc, char* argv[])
 
       wf.set_time_step(time_step);
       dp.assemble(matrix, rhs);
-			
-			FluxLimiter flux_limiter(FluxLimiter::Krivodonova, solver->get_sln_vector(), *ref_spaces);
-      
-			// Solve the linear system of the reference problem. If successful, obtain the solutions.
-      if(solver->solve())
-				if(!SHOCK_CAPTURING)
-					Solution<double>::vector_to_solutions(solver->get_sln_vector(), *ref_spaces, 
-						Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e));
-				else
-				{      
-					flux_limiter.limit_according_to_detector();
 
-					flux_limiter.get_limited_solutions(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e));
-				}
-      else 
+      dp.get_last_profiling_output(std::cout);
+
+      FluxLimiter* flux_limiter;
+
+      // Solve the matrix problem.
+      info("Solving the matrix problem.");
+      if(solver->solve())
+        if(!SHOCK_CAPTURING)
+          Solution<double>::vector_to_solutions(solver->get_sln_vector(), *ref_spaces, 
+          Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e));
+        else
+        {      
+          flux_limiter = new FluxLimiter(FluxLimiter::Kuzmin, solver->get_sln_vector(), *ref_spaces);
+          flux_limiter->limit_according_to_detector(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
+          &space_rho_v_y, &space_e));
+          flux_limiter->get_limited_solutions(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e));
+        }
+      else
         error ("Matrix solver failed.\n");
 
       // Project the fine mesh solution onto the coarse mesh.
@@ -254,7 +275,7 @@ int main(int argc, char* argv[])
       double err_est_rel_total = adaptivity->calc_err_est(Hermes::vector<Solution<double>*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y, &sln_e),
         Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e)) * 100;
 
-      CFL.calculate(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), rsln_rho.get_mesh(), time_step);
+      CFL.calculate_semi_implicit(Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), &mesh, time_step);
 
       // Report results.
       info("err_est_rel: %g%%", err_est_rel_total);
@@ -264,27 +285,22 @@ int main(int argc, char* argv[])
       {
         done = true;
 
-        if(SHOCK_CAPTURING)
-        {
-          flux_limiter.limit_according_to_detector(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-            &space_rho_v_y, &space_e));
-        }
-
         // Visualization of the refined space before it gets deleted.
         if((iteration - 1) % EVERY_NTH_STEP == 0) {
           // Hermes visualization.
           if(HERMES_VISUALIZATION)
           {
-            order_view_coarse.show(&space_rho);
+            //order_view_coarse.show(&space_rho);
             // order_view_fine.show((*ref_spaces)[0]);
           }
           if(VTK_VISUALIZATION)
-          {            Orderizer ord;
-          char filename[40];
-          sprintf(filename, "Orders-coarse-%i.vtk", iteration - 1);
-          ord.save_orders_vtk(&space_rho, filename);
-          sprintf(filename, "Orders-fine-%i.vtk", iteration - 1);
-          ord.save_orders_vtk((*ref_spaces)[0], filename);
+          {            
+            Orderizer ord;
+            char filename[40];
+            sprintf(filename, "Orders-coarse-%i.vtk", iteration - 1);
+            ord.save_orders_vtk(&space_rho, filename);
+            sprintf(filename, "Orders-fine-%i.vtk", iteration - 1);
+            ord.save_orders_vtk((*ref_spaces)[0], filename);
           }
         }
       }
@@ -314,33 +330,30 @@ int main(int argc, char* argv[])
     while (done == false);
 
     // Copy the solutions into the previous time level ones.
-
     prev_rho.copy(&rsln_rho);
     prev_rho_v_x.copy(&rsln_rho_v_x);
     prev_rho_v_y.copy(&rsln_rho_v_y);
     prev_e.copy(&rsln_e);
     delete rsln_rho.get_mesh();
+    rsln_rho.own_mesh = false;
     delete rsln_rho_v_x.get_mesh();
+    rsln_rho_v_x.own_mesh = false;
     delete rsln_rho_v_y.get_mesh();
+    rsln_rho_v_y.own_mesh = false;
     delete rsln_e.get_mesh();
+    rsln_e.own_mesh = false;
 
     // Visualization.
     if((iteration - 1) % EVERY_NTH_STEP == 0) {
       // Hermes visualization.
       if(HERMES_VISUALIZATION)
-      {        /*
-               Mach_number.reinit();
-               pressure.reinit();
-               entropy.reinit();
-               pressure_view.show(&pressure);
-               entropy_production_view.show(&entropy);
-               Mach_number_view.show(&Mach_number);
-               */
-        s1.show(&prev_rho);
-        s2.show(&prev_rho_v_x);
-        s3.show(&prev_rho_v_y);
-        s4.show(&prev_e);
-
+      {        
+        Mach_number.reinit();
+        pressure.reinit();
+        entropy.reinit();
+        pressure_view.show(&pressure);
+        entropy_production_view.show(&entropy);
+        Mach_number_view.show(&Mach_number);
       }
       // Output solution in VTK format.
       if(VTK_VISUALIZATION)
@@ -364,13 +377,6 @@ int main(int argc, char* argv[])
   pressure_view.close();
   entropy_production_view.close();
   Mach_number_view.close();
-
-  /*
-  s1.close();
-  s2.close();
-  s3.close();
-  s4.close();
-  */
 
   return 0;
 }
