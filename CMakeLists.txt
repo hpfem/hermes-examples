@@ -5,9 +5,9 @@ project(hermes_examples)
         include(CommonTargetProperties)
 	
 	# Where to look for the static libraries.
-	set(HERMES_DIRECTORY /lib)
-	set(HERMES_INCLUDE_PATH "/include")
-	set(DEP_INCLUDE_PATHS "/include")
+	set(HERMES_DIRECTORY usr/local/lib)
+	set(HERMES_INCLUDE_PATH usr/local/include)
+	set(DEP_INCLUDE_PATHS usr/local/include)
 
 	# Trilinos
 	# Enable support for Trilinos solvers.
