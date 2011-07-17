@@ -4,7 +4,7 @@
 #include "numerical_flux.h"
 
 // Utility functions for the Euler equations.
-#include "../euler_util.h"
+#include "euler_util.h"
 
 std::ofstream ostream_out ("out");
 
