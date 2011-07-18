@@ -248,7 +248,8 @@ int main(int argc, char* argv[])
         else
         {      
           flux_limiter = new FluxLimiter(FluxLimiter::Kuzmin, solver->get_sln_vector(), *ref_spaces);
-          flux_limiter->limit_according_to_detector();
+          flux_limiter->limit_according_to_detector(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
+            &space_rho_v_y, &space_e));
           flux_limiter->get_limited_solutions(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e));
         }
       else
@@ -260,10 +261,6 @@ int main(int argc, char* argv[])
         &space_rho_v_y, &space_e), Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), 
         Hermes::vector<Solution<double>*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y, &sln_e), matrix_solver_type, 
         Hermes::vector<ProjNormType>(HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM)); 
-
-      if(SHOCK_CAPTURING)
-        flux_limiter->limit_according_to_detector(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-          &space_rho_v_y, &space_e));
 
       // Calculate element errors and total error estimate.
       info("Calculating error estimate.");
