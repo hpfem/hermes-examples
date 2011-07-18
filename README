@@ -22,10 +22,10 @@ Compilation
 After successful instalation of Hermes from https://github.com/hpfem/hermes-dev, one has to set cmake correctly to find Hermes common and Hermes2D libraries.
 These are by default installed to::
 
-		/usr/local on Linux
-		"C:\Program Files" on Win32
-		"C:\Program Files (x86)" on Win64
-			
+    /usr/local on Linux
+    "C:\Program Files" on Win32
+    "C:\Program Files (x86)" on Win64
+		
 But as this can change, and in all cases for those using Windows OS, one is advised to create his/her CMake.vars file, according to attached example file CMake.vars.example with the
 correct path to his/her installation of Hermes, and possibly with other specifications of the build.
 
