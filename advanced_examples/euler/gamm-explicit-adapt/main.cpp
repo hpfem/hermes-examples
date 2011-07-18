@@ -127,8 +127,6 @@ int main(int argc, char* argv[])
   L2Space<double>space_rho_v_x(&mesh, P_INIT);
   L2Space<double>space_rho_v_y(&mesh, P_INIT);
   L2Space<double>space_e(&mesh, P_INIT);
-  int ndof = Space<double>::get_num_dofs(Hermes::vector<Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
-  info("ndof: %d", ndof);
 
   // Initialize solutions, set initial conditions.
   InitialSolutionEulerDensity sln_rho(&mesh, RHO_EXT);
@@ -196,11 +194,9 @@ int main(int argc, char* argv[])
       int order_increase = 0;
       if(CAND_LIST == H2D_HP_ANISO)
         order_increase = 1;
+
       Hermes::vector<Space<double> *>* ref_spaces = Space<double>::construct_refined_spaces(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
         &space_rho_v_y, &space_e), order_increase);
-
-      ndof = Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-        &space_rho_v_y, &space_e));
 
       // Project the previous time level solution onto the new fine mesh.
       info("Projecting the previous time level solution onto the new fine mesh.");
