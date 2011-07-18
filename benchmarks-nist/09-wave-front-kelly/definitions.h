@@ -1,5 +1,4 @@
 #include "hermes2d.h"
-#include "adapt/kelly_type_adapt.h"
 
 using namespace Hermes::Hermes2D;
 using namespace WeakFormsH1;
@@ -17,8 +16,8 @@ class CustomWeakForm : public WeakForm<double>
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u,
                         Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
 
-    virtual Hermes::Ord ord(int n, double *wt, Func<Hermes::Ord> *u_ext[], Func<Hermes::Ord> *u, Func<Hermes::Ord> *v,
-                            Geom<Hermes::Ord> *e, ExtData<Hermes::Ord> *ext) const;
+    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v,
+                    Geom<Ord> *e, ExtData<Ord> *ext) const;
   };
   
   class Residual : public VectorFormVol<double>
@@ -30,8 +29,8 @@ class CustomWeakForm : public WeakForm<double>
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
                          Geom<double> *e, ExtData<double> *ext) const;
 
-    virtual Hermes::Ord ord(int n, double *wt, Func<Hermes::Ord> *u_ext[], Func<Hermes::Ord> *v,
-                            Geom<Hermes::Ord> *e, ExtData<Hermes::Ord> *ext) const;
+    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v,
+                    Geom<Ord> *e, ExtData<Ord> *ext) const;
   };
   
   public:

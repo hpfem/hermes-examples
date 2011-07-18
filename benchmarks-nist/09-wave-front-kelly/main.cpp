@@ -185,7 +185,7 @@ int main(int argc, char* argv[])
       cpu_time.tick();
       
       // Ensure that the two possible approaches to interface error estimators accumulation give same results.
-      KellyTypeAdapt<double> adaptivity2(&space, HERMES_UNSET_NORM, false);
+      KellyTypeAdapt<double> adaptivity2(&space, false);
       adaptivity2.disable_aposteriori_interface_scaling();
       adaptivity2.add_error_estimator_surf(new InterfaceErrorForm);
       

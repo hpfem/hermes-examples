@@ -71,24 +71,24 @@ double ResidualErrorForm::residual_estimator(int n, double* wt,
   double result = 0.;
 
   for (int i = 0; i < n; i++)
-    result += wt[i] * Hermes::sqr(-rhs->value(e->x[i], e->y[i]) + u->laplace[i] );
+    result += wt[i] * Hermes::sqr( -rhs->value(e->x[i], e->y[i]) + u->laplace[i] );
 
   return result * Hermes::sqr(e->diam);
 #else
   error("Define H2D_SECOND_DERIVATIVES_ENABLED in hermes2d_common_defs.h"
-        "if you want to use second derivatives of shape functions in weak forms.");
+        "if you want to use second derivatives in weak forms.");
 #endif
 }
 
-Hermes::Ord ResidualErrorForm::residual_estimator(int n, double* wt, 
-                                                  Func< Ord >* u_ext[], Func< Ord >* u, 
-                                                  Geom< Ord >* e, ExtData< Ord >* ext) const
+Ord ResidualErrorForm::residual_estimator(int n, double* wt, 
+                                          Func< Ord >* u_ext[], Func< Ord >* u, 
+                                          Geom< Ord >* e, ExtData< Ord >* ext) const
 {
 #ifdef H2D_SECOND_DERIVATIVES_ENABLED
-  return sqr(-rhs->value_ord(e->x[0], e->y[0]) + u->laplace[0] );
+  return sqr( -rhs->value_ord(e->x[0], e->y[0]) + u->laplace[0] );
 #else
-  error("Define H2D_SECOND_DERIVATIVES_ENABLED in h2d_common.h"
-        "if you want to use second derivatives of shape functions in weak forms.");
+  error("Define H2D_SECOND_DERIVATIVES_ENABLED in hermes2d_common_defs.h"
+        "if you want to use second derivatives in weak forms.");
 #endif
 }
 
