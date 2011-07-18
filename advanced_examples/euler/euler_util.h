@@ -144,7 +144,7 @@ public:
   /// With the possibility to also limit the spaces from which the spaces in the constructors are refined.
   virtual void limit_according_to_detector(Hermes::vector<Space<double> *> coarse_spaces_to_limit = Hermes::vector<Space<double> *>());
 
-  void get_limited_solutions(Hermes::vector<Solution<double>*>& solutions_to_limit);
+  void get_limited_solutions(Hermes::vector<Solution<double>*> solutions_to_limit);
 protected:
   /// Members.
   double* solution_vector;

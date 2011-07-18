@@ -22,7 +22,7 @@ Compilation
 After successful instalation of Hermes from https://github.com/hpfem/hermes-dev, one has to set cmake correctly to find Hermes common and Hermes2D libraries.
 These are by default installed to::
 
-    /usr/local on Linux
+    /include and /lib (runtime paths of the library /usr/local/lib) on Linux
     "C:\Program Files" on Win32
     "C:\Program Files (x86)" on Win64
 		

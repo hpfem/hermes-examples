@@ -502,8 +502,6 @@ std::set<int>& KuzminDiscontinuityDetector::get_discontinuous_element_ids()
 {
   Element* e;
 
-  std::set<int> discontinuous_element_ids;
-
   for_all_active_elements(e, mesh)
   {
     if(e->is_triangle())
@@ -684,6 +682,9 @@ void KuzminDiscontinuityDetector::find_alpha_i_real(Hermes::Hermes2D::Element* e
 
 FluxLimiter::FluxLimiter(FluxLimiter::LimitingType type, double* solution_vector, Hermes::vector<Space<double>*> spaces) : solution_vector(solution_vector), spaces(spaces)
 {
+  for(unsigned int sol_i = 0; sol_i < spaces.size(); sol_i++)
+    limited_solutions.push_back(new Hermes::Hermes2D::Solution<double>(spaces[sol_i]->get_mesh()));
+
   Solution<double>::vector_to_solutions(solution_vector, spaces, limited_solutions);
   switch(type)
   {
@@ -699,7 +700,7 @@ FluxLimiter::FluxLimiter(FluxLimiter::LimitingType type, double* solution_vector
 FluxLimiter::~FluxLimiter()
 {};
 
-void FluxLimiter::get_limited_solutions(Hermes::vector<Solution<double>*>& solutions_to_limit)
+void FluxLimiter::get_limited_solutions(Hermes::vector<Solution<double>*> solutions_to_limit)
 {
   for(unsigned int i = 0; i < solutions_to_limit.size(); i++)
     solutions_to_limit[i]->copy(this->limited_solutions[i]);
