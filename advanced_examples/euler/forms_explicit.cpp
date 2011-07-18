@@ -2033,7 +2033,7 @@ protected:
         result += wt[i] * s_c * 0.5 * h_e * R * (concentration_prev->dx[i] * v->dx[i] + concentration_prev->dy[i] * v->dy[i]) / (Hermes::sqrt(Hermes::pow(concentration_prev->dx[i], 2) + Hermes::pow(concentration_prev->dy[i], 2)) + 1.e-8);
         
         Scalar b_norm = Hermes::sqrt(v_1 * v_1 + v_2 * v_2);
-        Real tau = 1. / Hermes::sqrt( 9 * Hermes::pow(4 * epsilon / pow(h_e, 2), 2) + pow(2 * b_norm / h_e, 2));
+        Real tau = 1. / Hermes::sqrt( 9 * Hermes::pow(4 * epsilon / Hermes::pow(h_e, 2), 2) + Hermes::pow(2 * b_norm / h_e, 2));
         result += wt[i] * tau * (-v_1 * v->dx[i] - v_2 * v->dy[i] + epsilon * v->laplace[i]) * (-v_1 * concentration_prev->dx[i] - v_2 * concentration_prev->dy[i]);
       }
       return result * static_cast<EulerEquationsWeakFormExplicit*>(wf)->get_tau();
@@ -2247,7 +2247,7 @@ protected:
         result += wt[i] * s_c * 0.5 * h_e * R * (u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i]) / (Hermes::sqrt(Hermes::pow(u->dx[i], 2) + Hermes::pow(u->dy[i], 2)) + 1.e-8);
         
         Scalar b_norm = Hermes::sqrt(v_1 * v_1 + v_2 * v_2);
-        Real tau = 1. / Hermes::sqrt( 9 * pow(4 * epsilon / pow(h_e, 2), 2) + pow(2 * b_norm / h_e, 2));
+        Real tau = 1. / Hermes::sqrt( 9 * Hermes::pow(4 * epsilon / Hermes::pow(h_e, 2), 2) + Hermes::pow(2 * b_norm / h_e, 2));
         result += wt[i] * tau * (-v_1 * v->dx[i] - v_2 * v->dy[i] + epsilon * v->laplace[i]) * (-v_1 * u->dx[i] - v_2 * u->dy[i] + epsilon * u->laplace[i]);
       }
       return result * static_cast<EulerEquationsWeakFormExplicit*>(wf)->get_tau();

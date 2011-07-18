@@ -36,7 +36,7 @@ double time_step = 1E-6;                          // Initial time step.
 
 // Adaptivity.
 // Every UNREF_FREQth time step the mesh is unrefined.
-const int UNREF_FREQ = 1;
+const int UNREF_FREQ = 3;
 
 // Number of mesh refinements between two unrefinements.
 // The mesh is not unrefined unless there has been a refinement since
@@ -164,7 +164,6 @@ int main(int argc, char* argv[])
 
   // Initialize refinement selector.
   L2ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, MAX_P_ORDER);
-  selector.set_error_weights(1.0, 1.0, 1.0);
 
   // Set up CFL calculation class.
   CFLCalculation CFL(CFL_NUMBER, KAPPA);
@@ -224,11 +223,6 @@ int main(int argc, char* argv[])
         Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
         &space_rho_v_y, &space_e)), Space<double>::get_num_dofs(*ref_spaces));
 
-      // Very imporant, set the meshes for the flow as the same.
-      (*ref_spaces)[1]->get_mesh()->set_seq((*ref_spaces)[0]->get_mesh()->get_seq());
-      (*ref_spaces)[2]->get_mesh()->set_seq((*ref_spaces)[0]->get_mesh()->get_seq());
-      (*ref_spaces)[3]->get_mesh()->set_seq((*ref_spaces)[0]->get_mesh()->get_seq());
-
       // Assemble the reference problem.
       info("Solving on reference mesh.");
       bool is_linear = true;
@@ -254,8 +248,7 @@ int main(int argc, char* argv[])
         else
         {      
           flux_limiter = new FluxLimiter(FluxLimiter::Kuzmin, solver->get_sln_vector(), *ref_spaces);
-          flux_limiter->limit_according_to_detector(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-          &space_rho_v_y, &space_e));
+          flux_limiter->limit_according_to_detector();
           flux_limiter->get_limited_solutions(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e));
         }
       else
@@ -267,6 +260,10 @@ int main(int argc, char* argv[])
         &space_rho_v_y, &space_e), Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), 
         Hermes::vector<Solution<double>*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y, &sln_e), matrix_solver_type, 
         Hermes::vector<ProjNormType>(HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM)); 
+
+      if(SHOCK_CAPTURING)
+        flux_limiter->limit_according_to_detector(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
+          &space_rho_v_y, &space_e));
 
       // Calculate element errors and total error estimate.
       info("Calculating error estimate.");

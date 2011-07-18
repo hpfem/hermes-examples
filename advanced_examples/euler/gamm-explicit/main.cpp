@@ -138,7 +138,7 @@ int main(int argc, char* argv[])
           &space_rho_v_y, &space_e), Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
       else
         {      
-          FluxLimiter flux_limiter(FluxLimiter::Krivodonova, solver->get_sln_vector(), Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
+          FluxLimiter flux_limiter(FluxLimiter::Kuzmin, solver->get_sln_vector(), Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
             &space_rho_v_y, &space_e));
 
           flux_limiter.limit_according_to_detector();
