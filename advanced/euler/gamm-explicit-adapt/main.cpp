@@ -201,18 +201,7 @@ int main(int argc, char* argv[])
       // Project the previous time level solution onto the new fine mesh.
       info("Projecting the previous time level solution onto the new fine mesh.");
       OGProjection<double>::project_global(*ref_spaces, Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), 
-        Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), matrix_solver_type);
-
-      if(as > 1) {
-        delete rsln_rho.get_mesh();
-        rsln_rho.own_mesh = false;
-        delete rsln_rho_v_x.get_mesh();
-        rsln_rho_v_x.own_mesh = false;
-        delete rsln_rho_v_y.get_mesh();
-        rsln_rho_v_y.own_mesh = false;
-        delete rsln_e.get_mesh();
-        rsln_e.own_mesh = false;
-      }
+        Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), matrix_solver_type, Hermes::vector<Hermes::Hermes2D::ProjNormType>(), iteration > 1);
 
       // Report NDOFs.
       info("ndof_coarse: %d, ndof_fine: %d.", 
