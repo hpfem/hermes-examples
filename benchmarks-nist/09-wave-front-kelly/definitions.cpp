@@ -63,9 +63,9 @@ void CustomExactSolution::derivatives(double x, double y, double& dx, double& dy
   dy = (e/(c * f));
 }
 
-double ResidualErrorForm::residual_estimator(int n, double* wt, 
-                                             Func< double >* u_ext[], Func< double >* u, 
-                                             Geom< double >* e, ExtData< double >* ext) const
+double ResidualErrorForm::value(int n, double* wt, 
+                                Func< double >* u_ext[], Func< double >* u, 
+                                Geom< double >* e, ExtData< double >* ext) const
 {
 #ifdef H2D_SECOND_DERIVATIVES_ENABLED
   double result = 0.;
@@ -80,9 +80,9 @@ double ResidualErrorForm::residual_estimator(int n, double* wt,
 #endif
 }
 
-Ord ResidualErrorForm::residual_estimator(int n, double* wt, 
-                                          Func< Ord >* u_ext[], Func< Ord >* u, 
-                                          Geom< Ord >* e, ExtData< Ord >* ext) const
+Ord ResidualErrorForm::ord(int n, double* wt, 
+                           Func< Ord >* u_ext[], Func< Ord >* u, 
+                           Geom< Ord >* e, ExtData< Ord >* ext) const
 {
 #ifdef H2D_SECOND_DERIVATIVES_ENABLED
   return sqr( -rhs->value_ord(e->x[0], e->y[0]) + u->laplace[0] );

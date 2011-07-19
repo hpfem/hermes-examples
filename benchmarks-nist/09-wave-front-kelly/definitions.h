@@ -110,26 +110,12 @@ public:
     : KellyTypeAdapt<double>::ErrorEstimatorForm(0), rhs(rhs) 
   { };
 
-  double residual_estimator(int n, double *wt, 
-                            Func<double> *u_ext[], Func<double> *u, 
-                            Geom<double> *e, ExtData<double> *ext) const;
+  double value(int n, double *wt, 
+               Func<double> *u_ext[], Func<double> *u, 
+               Geom<double> *e, ExtData<double> *ext) const;
 
-  Ord residual_estimator(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, 
-                         Geom<Ord> *e, ExtData<Ord> *ext) const;
-
-  virtual double value(int n, double *wt, Func<double> *u_ext[],
-                       Func<double> *u, Geom<double> *e,
-                       ExtData<double> *ext) const
-  {
-    return residual_estimator(n, wt, u_ext, u, e, ext);
-  }
-
-  virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[],
-                    Func<Ord> *u, Geom<Ord> *e,
-                    ExtData<Ord> *ext) const
-  {
-    return residual_estimator(n, wt, u_ext, u, e, ext);
-  }
+  Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, 
+          Geom<Ord> *e, ExtData<Ord> *ext) const;
 
 private:
   CustomRightHandSide* rhs;
