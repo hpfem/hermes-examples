@@ -509,41 +509,69 @@ std::set<int>& KuzminDiscontinuityDetector::get_discontinuous_element_ids()
     double u_c[4], u_dx_c[4], u_dy_c[4], u_dxx_c[4], u_dxy_c[4], u_dyy_c[4];
     find_centroid_values(e, u_c);
     find_centroid_derivatives(e, u_dx_c, u_dy_c);
-    find_second_centroid_derivatives(e, u_dxx_c, u_dxy_c, u_dyy_c);
 
     // Vertex values.
     double u_i[4][4];
-    double u_d_i[4][4][2];
     find_vertex_values(e, u_i);
-    find_vertex_derivatives(e, u_d_i);
 
     // Boundaries for alpha_i calculation.
     double u_i_min_first_order[4][4];
     double u_i_max_first_order[4][4];
     find_u_i_min_max_first_order(e, u_i_min_first_order, u_i_max_first_order);
+
+    // alpha_i calculation.
+    double alpha_i_first_order[4];
+    find_alpha_i_first_order(u_i_min_first_order, u_i_max_first_order, u_c, u_i, alpha_i_first_order);
+
+    // calculate real factor multiplicating the gradient.
+    double alpha_i_first_order_real[4];
+    find_alpha_i_first_order_real(e, u_i, u_c, u_dx_c, u_dy_c, alpha_i_first_order_real);
+
+    // measure.
+    for(unsigned int i = 0; i < 4; i++)
+      if(alpha_i_first_order_real[i] > alpha_i_first_order[i])
+        discontinuous_element_ids.insert(e->id);
+  }
+
+  return discontinuous_element_ids;
+}
+
+std::set<int>& KuzminDiscontinuityDetector::get_second_order_discontinuous_element_ids()
+{
+  Element* e;
+
+  for_all_active_elements(e, mesh)
+  {
+    if(e->is_triangle())
+      error("So far this limiter is implemented just for quads.");
+    double u_dx_c[4], u_dy_c[4], u_dxx_c[4], u_dxy_c[4], u_dyy_c[4];
+    find_centroid_derivatives(e, u_dx_c, u_dy_c);
+    find_second_centroid_derivatives(e, u_dxx_c, u_dxy_c, u_dyy_c);
+
+    // Vertex values.
+    double u_d_i[4][4][2];
+    find_vertex_derivatives(e, u_d_i);
+
+    // Boundaries for alpha_i calculation.
     double u_d_i_min_second_order[4][4][2];
     double u_d_i_max_second_order[4][4][2];
     find_u_i_min_max_second_order(e, u_d_i_min_second_order, u_d_i_max_second_order);
 
     // alpha_i calculation.
-    double alpha_i_first_order[4];
-    find_alpha_i_first_order(u_i_min_first_order, u_i_max_first_order, u_c, u_i, alpha_i_first_order);
     double alpha_i_second_order[4];
     find_alpha_i_second_order(u_d_i_min_second_order, u_d_i_max_second_order, u_dx_c, u_dy_c, u_d_i, alpha_i_second_order);
 
     // calculate real factor multiplicating the gradient.
-    double alpha_i_first_order_real[4];
-    find_alpha_i_first_order_real(e, u_i, u_c, u_dx_c, u_dy_c, alpha_i_first_order_real);
     double alpha_i_second_order_real[4];
     find_alpha_i_second_order_real(e, u_d_i, u_dx_c, u_dy_c, u_dxx_c, u_dxy_c, u_dyy_c, alpha_i_second_order_real);
 
     // measure.
     for(unsigned int i = 0; i < 4; i++)
-      if(alpha_i_first_order_real[i] > alpha_i_first_order[i] || alpha_i_second_order_real[i] > alpha_i_second_order[i])
-        discontinuous_element_ids.insert(e->id);
+      if(alpha_i_second_order_real[i] > alpha_i_second_order[i])
+        second_order_discontinuous_element_ids.insert(e->id);
   }
 
-  return discontinuous_element_ids;
+  return second_order_discontinuous_element_ids;
 }
 
 void KuzminDiscontinuityDetector::find_centroid_values(Hermes::Hermes2D::Element* e, double u_c[4])
@@ -563,7 +591,7 @@ void KuzminDiscontinuityDetector::find_centroid_values(Hermes::Hermes2D::Element
 
   for(unsigned int i = 0; i < this->solutions.size(); i++)
   {
-    solutions[i]->get_refmap()->set_active_element(e);
+    solutions[i]->set_active_element(e);
     solutions[i]->get_refmap()->untransform(e, c_x, c_y, c_ref_x, c_ref_y);
     u_c[i] = solutions[i]->get_ref_value_transformed(e, c_ref_x, c_ref_y, 0, 0);
   }
@@ -586,7 +614,7 @@ void KuzminDiscontinuityDetector::find_centroid_derivatives(Hermes::Hermes2D::El
 
   for(unsigned int i = 0; i < this->solutions.size(); i++)
   {
-    solutions[i]->get_refmap()->set_active_element(e);
+    solutions[i]->set_active_element(e);
     solutions[i]->get_refmap()->untransform(e, c_x, c_y, c_ref_x, c_ref_y);
     u_dx_c[i] = solutions[i]->get_ref_value_transformed(e, c_ref_x, c_ref_y, 0, 1);
     u_dy_c[i] = solutions[i]->get_ref_value_transformed(e, c_ref_x, c_ref_y, 0, 2);
@@ -610,7 +638,7 @@ void KuzminDiscontinuityDetector::find_second_centroid_derivatives(Hermes::Herme
 
   for(unsigned int i = 0; i < this->solutions.size(); i++)
   {
-    solutions[i]->get_refmap()->set_active_element(e);
+    solutions[i]->set_active_element(e);
     solutions[i]->get_refmap()->untransform(e, c_x, c_y, c_ref_x, c_ref_y);
     u_dxx_c[i] = solutions[i]->get_ref_value_transformed(e, c_ref_x, c_ref_y, 0, 3);
     u_dyy_c[i] = solutions[i]->get_ref_value_transformed(e, c_ref_x, c_ref_y, 0, 4);
@@ -652,6 +680,8 @@ void KuzminDiscontinuityDetector::find_u_i_min_max_first_order(Hermes::Hermes2D:
   for(unsigned int j = 0; j < e->nvert; j++)
   {
     Hermes::Hermes2D::NeighborSearch<double> ns(e, mesh);
+    if(e->en[j]->bnd)
+      continue;
     ns.set_active_edge(j);
 
     // First beginning neighbors on every edge.
@@ -677,7 +707,7 @@ void KuzminDiscontinuityDetector::find_u_i_min_max_first_order(Hermes::Hermes2D:
     /// \todo This is where it fails for triangles, where it is much more complicated to look for elements sharing a vertex.
     ns.set_active_segment(0);
     Hermes::Hermes2D::NeighborSearch<double> ns_1(ns.get_neighb_el(), mesh);
-    ns_1.set_active_edge((ns.get_neighbor_edge().local_num_of_edge + 1) % ns_1.get_neighb_el()->nvert);
+    ns_1.set_active_edge((ns.get_neighbor_edge().local_num_of_edge + 1) % ns.get_neighb_el()->nvert);
     ns_1.set_active_segment(0);
     find_centroid_values(ns_1.get_neighb_el(), u_c);
     for(unsigned int min_i = 0; min_i < 4; min_i++)
@@ -736,6 +766,8 @@ void KuzminDiscontinuityDetector::find_u_i_min_max_second_order(Hermes::Hermes2D
   for(unsigned int j = 0; j < e->nvert; j++)
   {
     Hermes::Hermes2D::NeighborSearch<double> ns(e, mesh);
+    if(e->en[j]->bnd)
+      continue;
     ns.set_active_edge(j);
 
     // First beginning neighbors on every edge.
@@ -774,7 +806,9 @@ void KuzminDiscontinuityDetector::find_u_i_min_max_second_order(Hermes::Hermes2D
     /// \todo This is where it fails for triangles, where it is much more complicated to look for elements sharing a vertex.
     ns.set_active_segment(0);
     Hermes::Hermes2D::NeighborSearch<double> ns_1(ns.get_neighb_el(), mesh);
-    ns_1.set_active_edge((ns.get_neighbor_edge().local_num_of_edge + 1) % ns_1.get_neighb_el()->nvert);
+    if(ns.get_neighb_el()->en[(ns.get_neighbor_edge().local_num_of_edge + 1) % ns.get_neighb_el()->nvert]->bnd)
+      continue;
+    ns_1.set_active_edge((ns.get_neighbor_edge().local_num_of_edge + 1) % ns.get_neighb_el()->nvert);
     ns_1.set_active_segment(0);
     find_centroid_derivatives(ns_1.get_neighb_el(), u_dx_c, u_dy_c);
     for(unsigned int min_i = 0; min_i < 4; min_i++)
@@ -923,6 +957,60 @@ void FluxLimiter::limit_according_to_detector(Hermes::vector<Space<double> *> co
                 }
                 if(all_sons_visited)
                   coarse_spaces_to_limit[space_i]->set_element_order_internal(spaces[space_i]->get_mesh()->get_element(*it)->parent->id, 0);
+                break;
+            }
+          }
+        }
+      }
+
+      Space<double>::assign_dofs(coarse_spaces_to_limit);
+    }
+};
+
+void FluxLimiter::limit_second_orders_according_to_detector(Hermes::vector<Space<double> *> coarse_spaces_to_limit)
+{
+  std::set<int> discontinuous_elements;
+  if(static_cast<KuzminDiscontinuityDetector*>(this->detector))
+    discontinuous_elements = static_cast<KuzminDiscontinuityDetector*>(this->detector)->get_second_order_discontinuous_element_ids();
+  else
+    error("limit_second_orders_according_to_detector() is to be used only with Kuzmin's vertex based detector.");
+
+  // First adjust the solution_vector.
+  for(unsigned int space_i = 0; space_i < spaces.size(); space_i++)
+    for(std::set<int>::iterator it = discontinuous_elements.begin(); it != discontinuous_elements.end(); it++) {
+      AsmList<double> al;
+      spaces[space_i]->get_element_assembly_list(spaces[space_i]->get_mesh()->get_element(*it), &al);
+      for(unsigned int shape_i = 0; shape_i < al.cnt; shape_i++)
+        if(H2D_GET_H_ORDER(spaces[space_i]->get_shapeset()->get_order(al.idx[shape_i])) > 1 || H2D_GET_V_ORDER(spaces[space_i]->get_shapeset()->get_order(al.idx[shape_i])) > 1)
+          solution_vector[al.dof[shape_i]] = 0.0;
+    }
+
+    // Now adjust the solutions.
+    Solution<double>::vector_to_solutions(solution_vector, spaces, limited_solutions);
+
+    if(coarse_spaces_to_limit != Hermes::vector<Space<double>*>()) {
+      // Now set the element order to zero.
+      Element* e;
+
+      for_all_elements(e, spaces[0]->get_mesh())
+        e->visited = false;
+
+      for(unsigned int space_i = 0; space_i < spaces.size(); space_i++) {
+        for(std::set<int>::iterator it = discontinuous_elements.begin(); it != discontinuous_elements.end(); it++) {
+          AsmList<double> al;
+          spaces[space_i]->get_element_assembly_list(spaces[space_i]->get_mesh()->get_element(*it), &al);
+          for(unsigned int shape_i = 0; shape_i < al.cnt; shape_i++) {
+            if(H2D_GET_H_ORDER(spaces[space_i]->get_shapeset()->get_order(al.idx[shape_i])) > 1 || H2D_GET_V_ORDER(spaces[space_i]->get_shapeset()->get_order(al.idx[shape_i])) > 1) {
+              spaces[space_i]->get_mesh()->get_element(*it)->visited = true;
+              bool all_sons_visited = true;
+              for(unsigned int son_i = 0; son_i < 4; son_i++)
+                if(!spaces[space_i]->get_mesh()->get_element(*it)->parent->sons[son_i]->visited)
+                {
+                  all_sons_visited = false;
+                  break;
+                }
+                if(all_sons_visited)
+                  coarse_spaces_to_limit[space_i]->set_element_order_internal(spaces[space_i]->get_mesh()->get_element(*it)->parent->id, 1);
                 break;
             }
           }

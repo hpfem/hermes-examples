@@ -29,7 +29,7 @@ bool SHOCK_CAPTURING = true;
 // Quantitative parameter of the discontinuity detector.
 double DISCONTINUITY_DETECTOR_PARAM = 1.0;
 
-const int P_INIT = 1;                                   // Initial polynomial degree.                      
+const int P_INIT = 2;                                   // Initial polynomial degree.                      
 const int INIT_REF_NUM = 3;                             // Number of initial uniform mesh refinements.                       
 double CFL_NUMBER = 1.0;                                // CFL value.
 double time_step = 1E-4;                                // Initial time step.
@@ -140,6 +140,9 @@ int main(int argc, char* argv[])
         {      
           FluxLimiter flux_limiter(FluxLimiter::Kuzmin, solver->get_sln_vector(), Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
             &space_rho_v_y, &space_e));
+
+          if(P_INIT > 1)
+            flux_limiter.limit_second_orders_according_to_detector();
 
           flux_limiter.limit_according_to_detector();
 

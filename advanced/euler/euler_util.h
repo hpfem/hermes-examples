@@ -115,6 +115,9 @@ public:
   /// Return a reference to the inner structures.
   std::set<int>& get_discontinuous_element_ids();
 
+  /// Return a reference to the inner structures.
+  std::set<int>& get_second_order_discontinuous_element_ids();
+
 protected:
   /// Center.
   void find_centroid_values(Hermes::Hermes2D::Element* e, double u_c[4]);
@@ -134,6 +137,10 @@ protected:
   void find_u_i_min_max_second_order(Hermes::Hermes2D::Element* e, double u_d_i_min[4][4][2], double u_d_i_max[4][4][2]);
   void find_alpha_i_second_order(double u_d_i_min[4][4][2], double u_d_i_max[4][4][2], double u_dx_c[4], double u_dy_c[4], double u_d_i[4][4][2], double alpha_i[4]);
   void find_alpha_i_second_order_real(Hermes::Hermes2D::Element* e, double u_i[4][4][2], double u_dx_c[4], double u_dy_c[4], double u_dxx_c[4], double u_dxy_c[4], double u_dyy_c[4], double alpha_i_real[4]);
+
+private:
+  /// For limiting of second order terms.
+  std::set<int> second_order_discontinuous_element_ids;
 };
 
 class FluxLimiter
@@ -155,6 +162,9 @@ public:
   /// Do the limiting.
   /// With the possibility to also limit the spaces from which the spaces in the constructors are refined.
   virtual void limit_according_to_detector(Hermes::vector<Space<double> *> coarse_spaces_to_limit = Hermes::vector<Space<double> *>());
+  
+  /// For Kuzmin's detector.
+  virtual void limit_second_orders_according_to_detector(Hermes::vector<Space<double> *> coarse_spaces_to_limit = Hermes::vector<Space<double> *>());
 
   void get_limited_solutions(Hermes::vector<Solution<double>*> solutions_to_limit);
 protected:
