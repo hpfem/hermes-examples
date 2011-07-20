@@ -65,7 +65,7 @@ CandList CAND_LIST = H2D_HP_ANISO;
 
 // Maximum polynomial degree used. -1 for unlimited.
 // See User Documentation for details.
-const int MAX_P_ORDER = 1;                       
+const int MAX_P_ORDER = -1;                       
 
 // Maximum allowed level of hanging nodes:
 // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
@@ -233,6 +233,8 @@ int main(int argc, char* argv[])
         else
         {      
           flux_limiter = new FluxLimiter(FluxLimiter::Kuzmin, solver->get_sln_vector(), *ref_spaces);
+          flux_limiter->limit_second_orders_according_to_detector(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
+            &space_rho_v_y, &space_e));
           flux_limiter->limit_according_to_detector(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
             &space_rho_v_y, &space_e));
           flux_limiter->get_limited_solutions(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e));
