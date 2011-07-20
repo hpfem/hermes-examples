@@ -1,0 +1,28 @@
+a = 0.0
+b = 3.141592654
+c = 6.283185307
+
+vertices = [
+  [ a, -0.5 ],    # vertex 0
+  [ b, -0.5 ],    # vertex 1
+  [ c, -0.5 ],    # vertex 2
+  [ a, 0.5 ],     # vertex 3
+  [ b, 0.5 ],     # vertex 4
+  [ c, 0.5 ]      # vertex 5
+]
+
+elements = [
+  [ 0, 1, 4, 3, "Cu" ],    # quad 0
+  [ 1, 2, 5, 4, "Al" ]    # quad 1
+]
+
+boundaries = [
+  [ 3, 0, "Left" ],
+  [ 2, 5, "Right" ]
+  [ 0, 1, "Unused" ],
+  [ 1, 2, "Unused" ],
+  [ 5, 4, "Unused" ],
+  [ 4, 3, "Unused" ]
+]
+
+
