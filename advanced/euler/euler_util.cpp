@@ -1,5 +1,6 @@
 #include "euler_util.h"
 #include "limits.h"
+#include <limits>
 
 // Calculates energy from other quantities.
 double QuantityCalculator::calc_energy(double rho, double rho_v_x, double rho_v_y, double pressure, double kappa)
@@ -642,7 +643,7 @@ std::set<int>& KuzminDiscontinuityDetector::get_second_order_discontinuous_eleme
 
     // measure.
     for(unsigned int i = 0; i < 4; i++)
-      if(0.99 > alpha_i_second_order[i])
+      if(0.95 > alpha_i_second_order[i])
         second_order_discontinuous_element_ids.insert(e->id);
   }
 
