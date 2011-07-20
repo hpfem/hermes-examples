@@ -36,7 +36,7 @@ double time_step = 1E-6;                          // Initial time step.
 
 // Adaptivity.
 // Every UNREF_FREQth time step the mesh is unrefined.
-const int UNREF_FREQ = 3;
+const int UNREF_FREQ = 5;
 
 // Number of mesh refinements between two unrefinements.
 // The mesh is not unrefined unless there has been a refinement since
@@ -65,7 +65,7 @@ CandList CAND_LIST = H2D_HP_ANISO;
 
 // Maximum polynomial degree used. -1 for unlimited.
 // See User Documentation for details.
-const int MAX_P_ORDER = 2;                       
+const int MAX_P_ORDER = 1;                       
 
 // Maximum allowed level of hanging nodes:
 // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
@@ -119,7 +119,8 @@ int main(int argc, char* argv[])
   mloader.load("GAMM-channel.mesh", &mesh);
 
   // Perform initial mesh refinements.
-  for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements(0);
+  for (int i = 0; i < INIT_REF_NUM; i++) 
+    mesh.refine_all_elements(0, true);
   //mesh.refine_towards_boundary(BDY_SOLID_WALL_BOTTOM, 2);
 
   // Initialize boundary condition types and spaces with default shapesets.
@@ -162,6 +163,7 @@ int main(int argc, char* argv[])
 
   // Initialize refinement selector.
   L2ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, MAX_P_ORDER);
+  selector.set_error_weights(1.0, 1.0, 1.0);
 
   // Set up CFL calculation class.
   CFLCalculation CFL(CFL_NUMBER, KAPPA);
@@ -218,6 +220,7 @@ int main(int argc, char* argv[])
       LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver_type, matrix, rhs);
 
       wf.set_time_step(time_step);
+
       dp.assemble(matrix, rhs);
 
       dp.get_last_profiling_output(std::cout);
