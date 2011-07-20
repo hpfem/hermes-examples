@@ -30,13 +30,13 @@ bool SHOCK_CAPTURING = true;
 double DISCONTINUITY_DETECTOR_PARAM = 1.0;
 
 const int P_INIT = 0;                             // Initial polynomial degree.                      
-const int INIT_REF_NUM = 2;                             // Number of initial uniform mesh refinements.                       
+const int INIT_REF_NUM = 3;                             // Number of initial uniform mesh refinements.                       
 double CFL_NUMBER = 1.0;                                // CFL value.
 double time_step = 1E-6;                          // Initial time step.
 
 // Adaptivity.
 // Every UNREF_FREQth time step the mesh is unrefined.
-const int UNREF_FREQ = 3;
+const int UNREF_FREQ = 5;
 
 // Number of mesh refinements between two unrefinements.
 // The mesh is not unrefined unless there has been a refinement since
@@ -119,7 +119,8 @@ int main(int argc, char* argv[])
   mloader.load("GAMM-channel.mesh", &mesh);
 
   // Perform initial mesh refinements.
-  for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements(0);
+  for (int i = 0; i < INIT_REF_NUM; i++) 
+    mesh.refine_all_elements(0, true);
   //mesh.refine_towards_boundary(BDY_SOLID_WALL_BOTTOM, 2);
 
   // Initialize boundary condition types and spaces with default shapesets.
@@ -149,9 +150,9 @@ int main(int argc, char* argv[])
     BDY_INLET, BDY_OUTLET, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, (P_INIT == 0 && CAND_LIST == H2D_H_ANISO));
 
   // Filters for visualization of Mach number, pressure and entropy.
-  MachNumberFilter Mach_number(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA);
-  PressureFilter pressure(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA);
-  EntropyFilter entropy(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA, RHO_EXT, P_EXT);
+  MachNumberFilter Mach_number(Hermes::vector<MeshFunction<double>*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y, &sln_e), KAPPA);
+  PressureFilter pressure(Hermes::vector<MeshFunction<double>*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y, &sln_e), KAPPA);
+  EntropyFilter entropy(Hermes::vector<MeshFunction<double>*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y, &sln_e), KAPPA, RHO_EXT, P_EXT);
 
   ScalarView<double> pressure_view("Pressure", new WinGeom(0, 0, 600, 300));
   ScalarView<double> Mach_number_view("Mach number", new WinGeom(700, 0, 600, 300));
@@ -162,6 +163,7 @@ int main(int argc, char* argv[])
 
   // Initialize refinement selector.
   L2ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, MAX_P_ORDER);
+  selector.set_error_weights(1.0, 1.0, 1.0);
 
   // Set up CFL calculation class.
   CFLCalculation CFL(CFL_NUMBER, KAPPA);
@@ -218,6 +220,7 @@ int main(int argc, char* argv[])
       LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver_type, matrix, rhs);
 
       wf.set_time_step(time_step);
+
       dp.assemble(matrix, rhs);
 
       dp.get_last_profiling_output(std::cout);
@@ -233,6 +236,8 @@ int main(int argc, char* argv[])
         else
         {      
           flux_limiter = new FluxLimiter(FluxLimiter::Kuzmin, solver->get_sln_vector(), *ref_spaces);
+          flux_limiter->limit_second_orders_according_to_detector(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
+            &space_rho_v_y, &space_e));
           flux_limiter->limit_according_to_detector(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
             &space_rho_v_y, &space_e));
           flux_limiter->get_limited_solutions(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e));

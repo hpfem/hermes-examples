@@ -1,35 +1,27 @@
 #define HERMES_REPORT_ALL
+#define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
 
 using namespace RefinementSelectors;
 
-//  This is the ninth in the series of NIST benchmarks with known exact solutions. This benchmark
-//  has four different versions, use the global variable "PARAM" (below) to switch among them.
+//  This singularly perturbed problem exhibits a thin boundary layer. The
+//  exact solution facilitates convergence studies.
 //
-//  Reference: W. Mitchell, A Collection of 2D Elliptic Problems for Testing Adaptive Algorithms, 
-//                          NIST Report 7668, February 2010.
+//  PDE: -Laplace u + K*K*u - K*K + g(x,y) = 0.
 //
-//  PDE: -Laplace u + f = 0
+//  Domain: Square (-1,1)^2.
 //
-//  Known exact solution: atan(alpha * (sqrt(pow(x - x_loc, 2) + pow(y - y_loc, 2)) - r_zero))
-//  See the class CustomExactSolution::value in "definitions.cpp"
+//  BC: Homogeneous Dirichlet.
 //
-//  Domain: unit square (0, 1) x (0, 1), see the file square_quad.mesh or square_tri.mesh.
-//
-//  BC:  Dirichlet, given by exact solution.
+//  Exact solution: v(x,y) = U(x)U(y) where U(t) = 1 - (exp(K*x) + exp(-K*x))/(exp(K) + exp(-K)) is
+//  the exact solution to the 1D singularly perturbed problem -u'' + K*K*u = K*K* in (-1,1)
+//  equipped with zero Dirichlet BC.
 //
 //  The following parameters can be changed:
 
-int PARAM = 3;         // PARAM determines which parameter values you wish to use 
-                       // for the steepness and location of the wave front. 
-                       //  | name       | alpha | x_loc	| y_loc | r_zero
-                       // 0: mild         20      -0.05   -0.05    0.7
-                       // 1: steep        1000    -0.05   -0.05    0.7
-                       // 2: asymmetric   1000     1.5     0.25    0.92
-                       // 3: well         50       0.5     0.5     0.25
-
 const int P_INIT = 1;                             // Initial polynomial degree of all mesh elements.
-const int INIT_REF_NUM = 2;                       // Number of initial uniform mesh refinements.
+const int INIT_REF_NUM = 0;                       // Number of initial mesh refinements (the original mesh is just one element).
+const int INIT_REF_NUM_BDY = 5;                   // Number of initial mesh refinements towards the boundary.
 const double THRESHOLD = 0.3;                     // This is a quantitative parameter of the adapt(...) function and
                                                   // it has different meanings for various adaptive strategies (see below).
 const int STRATEGY = 0;                           // Adaptive strategy:
@@ -51,100 +43,63 @@ const int MESH_REGULARITY = -1;                   // Maximum allowed level of ha
                                                   // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
                                                   // Note that regular meshes are not supported, this is due to
                                                   // their notoriously bad performance.
-const double CONV_EXP = 1.0;                      // Default value is 1.0. This parameter influences the selection of
+const double CONV_EXP = 0.5;                      // Default value is 1.0. This parameter influences the selection of
                                                   // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-const double ERR_STOP = 0.5;                      // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 1.0;                      // Stopping criterion for adaptivity (rel. error tolerance between the
                                                   // reference mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 60000;                      // Adaptivity process stops when the number of degrees of freedom grows
+const int NDOF_STOP = 100000;                     // Adaptivity process stops when the number of degrees of freedom grows
                                                   // over this limit. This is to prevent h-adaptivity to go on forever.
 Hermes::MatrixSolverType matrix_solver = Hermes::SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
                                                   // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 
+// Problem parameters.
+const double K = 1e2;
+
 int main(int argc, char* argv[])
 {
-  // Define problem parameters: (x_loc, y_loc) is the center of the circular wave front, R_ZERO is the distance from the 
-  // wave front to the center of the circle, and alpha gives the steepness of the wave front.
-  
-  double alpha, x_loc, y_loc, r_zero;
-  switch(PARAM) 
-  {
-  case 0:
-    alpha = 20;
-    x_loc = -0.05;
-    y_loc = -0.05;
-    r_zero = 0.7;
-    break;
-  case 1:
-    alpha = 1000;
-    x_loc = -0.05;
-    y_loc = -0.05;
-    r_zero = 0.7;
-    break;
-  case 2:
-    alpha = 1000;
-    x_loc = 1.5;
-    y_loc = 0.25;
-    r_zero = 0.92;
-    break;
-  case 3:
-    alpha = 50;
-    x_loc = 0.5;
-    y_loc = 0.5;
-    r_zero = 0.25;
-    break;
-  default:   // The same as 0.
-    alpha = 20;
-    x_loc = -0.05;
-    y_loc = -0.05;
-    r_zero = 0.7;
-    break;
-  }
-
-   // Load the mesh.
+  // Load the mesh.
   Mesh mesh;
   H2DReader mloader;
-  mloader.load("square_quad.mesh", &mesh);     // quadrilaterals
-  // mloader.load("square_tri.mesh", &mesh);   // triangles
+  mloader.load("square.mesh", &mesh);
 
   // Perform initial mesh refinement.
   for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
-  
-  // Set exact solution.
-  CustomExactSolution exact_sln(&mesh, alpha, x_loc, y_loc, r_zero);
+  mesh.refine_towards_boundary("Bdy", INIT_REF_NUM_BDY);
 
-  // Define right-hand side.
-  CustomRightHandSide rhs(alpha, x_loc, y_loc, r_zero);
+  // Define exact solution.
+  CustomExactSolution exact_sln(&mesh, K);
+
+  // Define right side vector.
+  CustomFunction f(K);
 
   // Initialize the weak formulation.
-  CustomWeakForm wf(&rhs);
-  // Equivalent, but slower:
-  // WeakFormsH1::DefaultWeakFormPoisson wf(HERMES_ANY, HERMES_ONE, &rhs);
-
-  // Initialize boundary conditions.
-  DefaultEssentialBCNonConst<double> bc("Bdy", &exact_sln);
-  EssentialBCs<double> bcs(&bc);
+  CustomWeakForm wf(&f);
   
+  // Initialize boundary conditions.
+  DefaultEssentialBCConst<double> bc_essential("Bdy", 0.0);
+  EssentialBCs<double> bcs(&bc_essential);
+
   // Create an H1 space with default shapeset.
   H1Space<double> space(&mesh, &bcs, P_INIT);
-   
+  
   // Initialize approximate solution.
   Solution<double> sln;
- 
+
   // Initialize refinement selector.
   H1ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
-  
+
   // Initialize views.
   Views::ScalarView<double> sview("Solution", new Views::WinGeom(0, 0, 440, 350));
   sview.show_mesh(false);
-  sview.fix_scale_width(50);
-  Views::OrderView<double>  oview("Polynomial orders", new Views::WinGeom(450, 0, 420, 350));
-  
+  Views::OrderView<double> oview("Polynomial orders", new Views::WinGeom(450, 0, 400, 350));
+
   // DOF and CPU convergence graphs.
   SimpleGraph graph_dof_est, graph_cpu_est, graph_dof_exact, graph_cpu_exact;
-  
+
   // Time measurement.
   Hermes::TimePeriod cpu_time;
-  
+  cpu_time.tick();
+
   // Adaptivity loop:
   int as = 1; bool done = false;
   do
@@ -152,21 +107,21 @@ int main(int argc, char* argv[])
     cpu_time.tick();
 
     // Construct globally refined reference mesh and setup reference space.
-    Space<double>* ref_space = Space<double>::construct_refined_space(&space, 1);
+    Space<double>* ref_space = Space<double>::construct_refined_space(&space);
     int ndof_ref = ref_space->get_num_dofs();
 
     info("---- Adaptivity step %d (%d DOF):", as, ndof_ref);
     cpu_time.tick();
     
     info("Solving on reference mesh.");
-    
-    // Assemble the discrete problem.    
+
+    // Assemble the discrete problem.
     DiscreteProblem<double> dp(&wf, ref_space);
-    
+
     // Initial coefficient vector for the Newton's method.  
     double* coeff_vec = new double[ndof_ref];
     memset(coeff_vec, 0, ndof_ref * sizeof(double));
-    
+
     NewtonSolver<double> newton(&dp, matrix_solver);
     newton.set_verbose_output(false);
     
@@ -179,7 +134,7 @@ int main(int argc, char* argv[])
     
     cpu_time.tick();
     verbose("Solution: %g s", cpu_time.last());
-    
+
     // Project the fine mesh solution onto the coarse mesh.
     info("Calculating error estimate and exact error.");
     OGProjection<double>::project_global(&space, &ref_sln, &sln, matrix_solver);
@@ -246,7 +201,7 @@ int main(int argc, char* argv[])
     delete ref_space;
   }
   while (done == false);
-  
+
   verbose("Total running time: %g s", cpu_time.accumulated());
 
   // Wait for all views to be closed.

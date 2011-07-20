@@ -141,6 +141,8 @@ int main(int argc, char* argv[])
           FluxLimiter flux_limiter(FluxLimiter::Kuzmin, solver->get_sln_vector(), Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
             &space_rho_v_y, &space_e));
 
+          if(P_INIT > 1) flux_limiter.limit_second_orders_according_to_detector();
+
           flux_limiter.limit_according_to_detector();
 
           flux_limiter.get_limited_solutions(Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
