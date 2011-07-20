@@ -511,6 +511,8 @@ std::set<int>& KuzminDiscontinuityDetector::get_discontinuous_element_ids()
 
   for_all_active_elements(e, mesh)
   {
+    if(this->second_order_discontinuous_element_ids.find(e->id) == this->second_order_discontinuous_element_ids.end())
+      continue;
     if(e->is_triangle())
       error("So far this limiter is implemented just for quads.");
     double u_c[4], u_dx_c[4], u_dy_c[4];
@@ -550,7 +552,7 @@ std::set<int>& KuzminDiscontinuityDetector::get_discontinuous_element_ids()
 
     // measure.
     for(unsigned int i = 0; i < 4; i++)
-      if(0.95 > alpha_i_first_order[i])
+      if(0.9999 > alpha_i_first_order[i])
         discontinuous_element_ids.insert(e->id);
   }
 
@@ -643,7 +645,7 @@ std::set<int>& KuzminDiscontinuityDetector::get_second_order_discontinuous_eleme
 
     // measure.
     for(unsigned int i = 0; i < 4; i++)
-      if(0.95 > alpha_i_second_order[i])
+      if(0.9999 > alpha_i_second_order[i])
         second_order_discontinuous_element_ids.insert(e->id);
   }
 
@@ -936,18 +938,18 @@ void KuzminDiscontinuityDetector::find_alpha_i_second_order(double u_d_i_min[4][
     for(unsigned int vertex_i = 0; vertex_i < 4; vertex_i++)
     {
       // Sanity checks.
-      if(std::abs(u_d_i[sol_i][vertex_i][0] - u_dx_c[sol_i]) < 1E-6)
+      if(std::abs(u_dx_c[sol_i]) < 1E-5)
         continue;
-      if(std::abs((u_d_i[sol_i][vertex_i][0] - u_dx_c[sol_i]) / u_dx_c[sol_i]) > 10)
+      if(std::abs((u_d_i_min[sol_i][vertex_i][0] - u_dx_c[sol_i]) / u_dx_c[sol_i]) > 10)
         continue;
-      if(std::abs((u_d_i[sol_i][vertex_i][0] - u_dx_c[sol_i]) / u_dx_c[sol_i]) > 10)
+      if(std::abs((u_d_i_max[sol_i][vertex_i][0] - u_dx_c[sol_i]) / u_dx_c[sol_i]) > 10)
         continue;
 
-      if(std::abs(u_d_i[sol_i][vertex_i][1] - u_dy_c[sol_i]) < 1E-6)
+      if(std::abs(u_dy_c[sol_i]) < 1E-5)
         continue;
-      if(std::abs((u_d_i[sol_i][vertex_i][1] - u_dy_c[sol_i]) / u_dy_c[sol_i]) > 10)
+      if(std::abs((u_d_i_min[sol_i][vertex_i][1] - u_dy_c[sol_i]) / u_dy_c[sol_i]) > 10)
         continue;
-      if(std::abs((u_d_i[sol_i][vertex_i][1] - u_dy_c[sol_i]) / u_dy_c[sol_i]) > 10)
+      if(std::abs((u_d_i_max[sol_i][vertex_i][1] - u_dy_c[sol_i]) / u_dy_c[sol_i]) > 10)
         continue;
 
       // dx.
@@ -1100,6 +1102,16 @@ void FluxLimiter::limit_second_orders_according_to_detector(Hermes::vector<Space
 
     // Now adjust the solutions.
     Solution<double>::vector_to_solutions(solution_vector, spaces, limited_solutions);
+    if(dynamic_cast<KuzminDiscontinuityDetector*>(this->detector))
+    {
+      delete detector;
+      this->detector = new KuzminDiscontinuityDetector(spaces, limited_solutions);
+    }
+    else
+    {
+      delete detector;
+      this->detector = new KrivodonovaDiscontinuityDetector(spaces, limited_solutions);
+    }
 
     if(coarse_spaces_to_limit != Hermes::vector<Space<double>*>()) {
       // Now set the element order to zero.
