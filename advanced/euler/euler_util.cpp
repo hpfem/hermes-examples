@@ -1,5 +1,6 @@
 #include "euler_util.h"
 #include "limits.h"
+#include <limits>
 
 // Calculates energy from other quantities.
 double QuantityCalculator::calc_energy(double rho, double rho_v_x, double rho_v_y, double pressure, double kappa)
@@ -537,7 +538,10 @@ std::set<int>& KuzminDiscontinuityDetector::get_discontinuous_element_ids()
     double u_i_max_first_order[4][4];
     for(int i = 0; i < 4; i++)
       for(int j = 0; j < 4; j++)
-        u_i_min_first_order[i][j] = u_i_max_first_order[i][j] = u_i[i][j];
+      {
+        u_i_min_first_order[i][j] = std::numeric_limits<double>::infinity();
+        u_i_max_first_order[i][j] = -std::numeric_limits<double>::infinity();
+      }
     find_u_i_min_max_first_order(e, u_i_min_first_order, u_i_max_first_order);
 
     // alpha_i calculation.
@@ -546,7 +550,7 @@ std::set<int>& KuzminDiscontinuityDetector::get_discontinuous_element_ids()
 
     // measure.
     for(unsigned int i = 0; i < 4; i++)
-      if(0.99 > alpha_i_first_order[i])
+      if(0.95 > alpha_i_first_order[i])
         discontinuous_element_ids.insert(e->id);
   }
 
@@ -627,7 +631,10 @@ std::set<int>& KuzminDiscontinuityDetector::get_second_order_discontinuous_eleme
     for(int i = 0; i < 4; i++)
       for(int j = 0; j < 4; j++)
         for(int k = 0; k < 2; k++)
-          u_d_i_min_second_order[i][j][k] = u_d_i_max_second_order[i][j][k] = u_d_i[i][j][k];
+        {
+          u_d_i_min_second_order[i][j][k] = std::numeric_limits<double>::infinity();
+          u_d_i_max_second_order[i][j][k] = -std::numeric_limits<double>::infinity();
+        }
     find_u_i_min_max_second_order(e, u_d_i_min_second_order, u_d_i_max_second_order);
 
     // alpha_i calculation.
@@ -636,7 +643,7 @@ std::set<int>& KuzminDiscontinuityDetector::get_second_order_discontinuous_eleme
 
     // measure.
     for(unsigned int i = 0; i < 4; i++)
-      if(0.99 > alpha_i_second_order[i])
+      if(0.95 > alpha_i_second_order[i])
         second_order_discontinuous_element_ids.insert(e->id);
   }
 
@@ -749,15 +756,8 @@ void KuzminDiscontinuityDetector::find_u_i_min_max_first_order(Hermes::Hermes2D:
   for(unsigned int j = 0; j < e->nvert; j++)
   {
     Hermes::Hermes2D::NeighborSearch<double> ns(e, mesh);
-    if(e->en[j]->bnd)
-    {
-      for(unsigned int i = 0; i < 4; i++)
-      {
-        u_i_min[i][j] = - std::numeric_limits<double>::infinity();
-        u_i_max[i][j] = std::numeric_limits<double>::infinity();
-      }
-    continue;
-    }
+    if(e->en[j]->bnd || e->en[(j - 1) % e->nvert]->bnd)
+      continue;
     ns.set_active_edge(j);
 
     // First beginning neighbors on every edge.
@@ -774,12 +774,15 @@ void KuzminDiscontinuityDetector::find_u_i_min_max_first_order(Hermes::Hermes2D:
     // Second end neighbors on every edge.
     ns.set_active_segment(ns.get_num_neighbors() - 1);
     find_centroid_values(ns.get_neighb_el(), u_c);
-    for(unsigned int min_i = 0; min_i < 4; min_i++)
-      if(u_i_min[min_i][(j + 1) % e->nvert] > u_c[min_i])
-        u_i_min[min_i][(j + 1) % e->nvert] = u_c[min_i];
-    for(unsigned int max_i = 0; max_i < 4; max_i++)
-      if(u_i_max[max_i][(j + 1) % e->nvert] < u_c[max_i])
-        u_i_max[max_i][(j + 1) % e->nvert] = u_c[max_i];
+    if(!e->en[(j + 1) % e->nvert]->bnd)
+    {
+      for(unsigned int min_i = 0; min_i < 4; min_i++)
+        if(u_i_min[min_i][(j + 1) % e->nvert] > u_c[min_i])
+          u_i_min[min_i][(j + 1) % e->nvert] = u_c[min_i];
+      for(unsigned int max_i = 0; max_i < 4; max_i++)
+        if(u_i_max[max_i][(j + 1) % e->nvert] < u_c[max_i])
+          u_i_max[max_i][(j + 1) % e->nvert] = u_c[max_i];
+    }
 
     // Now the hard part, neighbors' neighbors.
     /// \todo This is where it fails for triangles, where it is much more complicated to look for elements sharing a vertex.
@@ -791,8 +794,8 @@ void KuzminDiscontinuityDetector::find_u_i_min_max_first_order(Hermes::Hermes2D:
     ns_1.set_active_segment(0);
     find_centroid_values(ns_1.get_neighb_el(), u_c);
     for(unsigned int min_i = 0; min_i < 4; min_i++)
-      if(u_i_min[min_i][(j + 1) % e->nvert] > u_c[min_i])
-        u_i_min[min_i][(j + 1) % e->nvert] = u_c[min_i];
+      if(u_i_min[min_i][j] > u_c[min_i])
+        u_i_min[min_i][j] = u_c[min_i];
     for(unsigned int max_i = 0; max_i < 4; max_i++)
       if(u_i_max[max_i][j] < u_c[max_i])
         u_i_max[max_i][j] = u_c[max_i];
@@ -806,6 +809,14 @@ void KuzminDiscontinuityDetector::find_alpha_i_first_order(double u_i_min[4][4],
     alpha_i[sol_i] = 1;
     for(unsigned int vertex_i = 0; vertex_i < 4; vertex_i++)
     {
+      // Sanity checks.
+      if(std::abs(u_i[sol_i][vertex_i] - u_c[sol_i]) < 1E-6)
+        continue;
+      if(std::abs((u_i_min[sol_i][vertex_i] - u_c[sol_i]) / u_c[sol_i]) > 10)
+        continue;
+      if(std::abs((u_i_max[sol_i][vertex_i] - u_c[sol_i]) / u_c[sol_i]) > 10)
+        continue;
+
       if(u_i[sol_i][vertex_i] < u_c[sol_i])
       {
         if((u_i_min[sol_i][vertex_i] - u_c[sol_i]) / (u_i[sol_i][vertex_i] - u_c[sol_i]) < alpha_i[sol_i])
@@ -847,16 +858,8 @@ void KuzminDiscontinuityDetector::find_u_i_min_max_second_order(Hermes::Hermes2D
   for(unsigned int j = 0; j < e->nvert; j++)
   {
     Hermes::Hermes2D::NeighborSearch<double> ns(e, mesh);
-    if(e->en[j]->bnd)
-    {
-      for(unsigned int i = 0; i < 4; i++)
-        for(unsigned int k = 0; k < 2; k++)
-        {
-          u_d_i_min[i][j][k] = - std::numeric_limits<double>::infinity();
-          u_d_i_max[i][j][k] = std::numeric_limits<double>::infinity();
-        }
-    continue;
-    }
+    if(e->en[j]->bnd || e->en[(j - 1) % e->nvert]->bnd)
+      continue;
 
     ns.set_active_edge(j);
 
@@ -881,19 +884,22 @@ void KuzminDiscontinuityDetector::find_u_i_min_max_second_order(Hermes::Hermes2D
     // Second end neighbors on every edge.
     ns.set_active_segment(ns.get_num_neighbors() - 1);
     find_centroid_derivatives(ns.get_neighb_el(), u_dx_c, u_dy_c);
-    for(unsigned int min_i = 0; min_i < 4; min_i++)
+    if(!e->en[(j + 1) % e->nvert]->bnd)
     {
-      if(u_d_i_min[min_i][(j + 1) % e->nvert][0] > u_dx_c[min_i])
-        u_d_i_min[min_i][(j + 1) % e->nvert][0] = u_dx_c[min_i];
-      if(u_d_i_min[min_i][(j + 1) % e->nvert][1] > u_dy_c[min_i])
-        u_d_i_min[min_i][(j + 1) % e->nvert][1] = u_dy_c[min_i];
-    }
-    for(unsigned int max_i = 0; max_i < 4; max_i++)
-    {
-      if(u_d_i_max[max_i][(j + 1) % e->nvert][0] < u_dx_c[max_i])
-        u_d_i_max[max_i][(j + 1) % e->nvert][0] = u_dx_c[max_i];
-      if(u_d_i_max[max_i][(j + 1) % e->nvert][1] < u_dy_c[max_i])
-        u_d_i_max[max_i][(j + 1) % e->nvert][1] = u_dy_c[max_i];
+      for(unsigned int min_i = 0; min_i < 4; min_i++)
+      {
+        if(u_d_i_min[min_i][(j + 1) % e->nvert][0] > u_dx_c[min_i])
+          u_d_i_min[min_i][(j + 1) % e->nvert][0] = u_dx_c[min_i];
+        if(u_d_i_min[min_i][(j + 1) % e->nvert][1] > u_dy_c[min_i])
+          u_d_i_min[min_i][(j + 1) % e->nvert][1] = u_dy_c[min_i];
+      }
+      for(unsigned int max_i = 0; max_i < 4; max_i++)
+      {
+        if(u_d_i_max[max_i][(j + 1) % e->nvert][0] < u_dx_c[max_i])
+          u_d_i_max[max_i][(j + 1) % e->nvert][0] = u_dx_c[max_i];
+        if(u_d_i_max[max_i][(j + 1) % e->nvert][1] < u_dy_c[max_i])
+          u_d_i_max[max_i][(j + 1) % e->nvert][1] = u_dy_c[max_i];
+      }
     }
 
     // Now the hard part, neighbors' neighbors.
@@ -929,6 +935,21 @@ void KuzminDiscontinuityDetector::find_alpha_i_second_order(double u_d_i_min[4][
     alpha_i[sol_i] = 1;
     for(unsigned int vertex_i = 0; vertex_i < 4; vertex_i++)
     {
+      // Sanity checks.
+      if(std::abs(u_d_i[sol_i][vertex_i][0] - u_dx_c[sol_i]) < 1E-6)
+        continue;
+      if(std::abs((u_d_i[sol_i][vertex_i][0] - u_dx_c[sol_i]) / u_dx_c[sol_i]) > 10)
+        continue;
+      if(std::abs((u_d_i[sol_i][vertex_i][0] - u_dx_c[sol_i]) / u_dx_c[sol_i]) > 10)
+        continue;
+
+      if(std::abs(u_d_i[sol_i][vertex_i][1] - u_dy_c[sol_i]) < 1E-6)
+        continue;
+      if(std::abs((u_d_i[sol_i][vertex_i][1] - u_dy_c[sol_i]) / u_dy_c[sol_i]) > 10)
+        continue;
+      if(std::abs((u_d_i[sol_i][vertex_i][1] - u_dy_c[sol_i]) / u_dy_c[sol_i]) > 10)
+        continue;
+
       // dx.
       if(u_d_i[sol_i][vertex_i][0] < u_dx_c[sol_i])
       {
