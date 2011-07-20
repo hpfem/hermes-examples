@@ -546,7 +546,7 @@ std::set<int>& KuzminDiscontinuityDetector::get_discontinuous_element_ids()
 
     // measure.
     for(unsigned int i = 0; i < 4; i++)
-      if(1.01 > alpha_i_first_order[i] * 1.01)
+      if(0.99 > alpha_i_first_order[i])
         discontinuous_element_ids.insert(e->id);
   }
 
@@ -585,6 +585,42 @@ std::set<int>& KuzminDiscontinuityDetector::get_second_order_discontinuous_eleme
     double u_d_i[4][4][2];
     find_vertex_derivatives(e, u_d_i);
 
+    if(
+      (std::abs(u_d_i[0][0][0]) < 1E-8) &&
+      (std::abs(u_d_i[0][0][1]) < 1E-8) &&
+      (std::abs(u_d_i[0][1][0]) < 1E-8) &&
+      (std::abs(u_d_i[0][2][1]) < 1E-8) &&
+      (std::abs(u_d_i[0][2][0]) < 1E-8) &&
+      (std::abs(u_d_i[0][2][1]) < 1E-8) &&
+      (std::abs(u_d_i[0][3][0]) < 1E-8) &&
+      (std::abs(u_d_i[0][3][1]) < 1E-8) &&
+      (std::abs(u_d_i[1][3][0]) < 1E-8) &&
+      (std::abs(u_d_i[1][3][1]) < 1E-8) &&
+      (std::abs(u_d_i[1][3][0]) < 1E-8) &&
+      (std::abs(u_d_i[1][3][1]) < 1E-8) &&
+      (std::abs(u_d_i[1][3][0]) < 1E-8) &&
+      (std::abs(u_d_i[1][3][1]) < 1E-8) &&
+      (std::abs(u_d_i[1][2][0]) < 1E-8) &&
+      (std::abs(u_d_i[1][1][1]) < 1E-8) &&
+      (std::abs(u_d_i[2][1][0]) < 1E-8) &&
+      (std::abs(u_d_i[2][2][1]) < 1E-8) &&
+      (std::abs(u_d_i[2][2][0]) < 1E-8) &&
+      (std::abs(u_d_i[2][2][1]) < 1E-8) &&
+      (std::abs(u_d_i[2][2][0]) < 1E-8) &&
+      (std::abs(u_d_i[2][2][1]) < 1E-8) &&
+      (std::abs(u_d_i[2][2][0]) < 1E-8) &&
+      (std::abs(u_d_i[2][2][1]) < 1E-8) &&
+      (std::abs(u_d_i[3][0][0]) < 1E-8) &&
+      (std::abs(u_d_i[3][1][1]) < 1E-8) &&
+      (std::abs(u_d_i[3][2][0]) < 1E-8) &&
+      (std::abs(u_d_i[3][3][1]) < 1E-8) &&
+      (std::abs(u_d_i[3][0][0]) < 1E-8) &&
+      (std::abs(u_d_i[3][1][1]) < 1E-8) &&
+      (std::abs(u_d_i[3][2][0]) < 1E-8) &&
+      (std::abs(u_d_i[3][3][1]) < 1E-8)
+      )
+      continue;
+
     // Boundaries for alpha_i calculation.
     double u_d_i_min_second_order[4][4][2];
     double u_d_i_max_second_order[4][4][2];
@@ -600,7 +636,7 @@ std::set<int>& KuzminDiscontinuityDetector::get_second_order_discontinuous_eleme
 
     // measure.
     for(unsigned int i = 0; i < 4; i++)
-      if(1.01 > alpha_i_second_order[i])
+      if(0.99 > alpha_i_second_order[i])
         second_order_discontinuous_element_ids.insert(e->id);
   }
 
@@ -812,7 +848,15 @@ void KuzminDiscontinuityDetector::find_u_i_min_max_second_order(Hermes::Hermes2D
   {
     Hermes::Hermes2D::NeighborSearch<double> ns(e, mesh);
     if(e->en[j]->bnd)
-      continue;
+    {
+      for(unsigned int i = 0; i < 4; i++)
+        for(unsigned int k = 0; k < 2; k++)
+        {
+          u_d_i_min[i][j][k] = - std::numeric_limits<double>::infinity();
+          u_d_i_max[i][j][k] = std::numeric_limits<double>::infinity();
+        }
+    continue;
+    }
 
     ns.set_active_edge(j);
 
