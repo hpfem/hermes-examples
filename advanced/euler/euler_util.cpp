@@ -544,13 +544,9 @@ std::set<int>& KuzminDiscontinuityDetector::get_discontinuous_element_ids()
     double alpha_i_first_order[4];
     find_alpha_i_first_order(u_i_min_first_order, u_i_max_first_order, u_c, u_i, alpha_i_first_order);
 
-    // calculate real factor multiplicating the gradient.
-    double alpha_i_first_order_real[4];
-    find_alpha_i_first_order_real(e, u_i, u_c, u_dx_c, u_dy_c, alpha_i_first_order_real);
-
     // measure.
     for(unsigned int i = 0; i < 4; i++)
-      if(alpha_i_first_order_real[i] > alpha_i_first_order[i] * 1.01)
+      if(1.01 > alpha_i_first_order[i] * 1.01)
         discontinuous_element_ids.insert(e->id);
   }
 
@@ -602,13 +598,9 @@ std::set<int>& KuzminDiscontinuityDetector::get_second_order_discontinuous_eleme
     double alpha_i_second_order[4];
     find_alpha_i_second_order(u_d_i_min_second_order, u_d_i_max_second_order, u_dx_c, u_dy_c, u_d_i, alpha_i_second_order);
 
-    // calculate real factor multiplicating the gradient.
-    double alpha_i_second_order_real[4];
-    find_alpha_i_second_order_real(e, u_d_i, u_dx_c, u_dy_c, u_dxx_c, u_dxy_c, u_dyy_c, alpha_i_second_order_real);
-
     // measure.
     for(unsigned int i = 0; i < 4; i++)
-      if(alpha_i_second_order_real[i] > alpha_i_second_order[i])
+      if(1.01 > alpha_i_second_order[i])
         second_order_discontinuous_element_ids.insert(e->id);
   }
 
