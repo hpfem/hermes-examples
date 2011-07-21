@@ -511,23 +511,13 @@ std::set<int>& KuzminDiscontinuityDetector::get_discontinuous_element_ids()
 
   for_all_active_elements(e, mesh)
   {
+    if(this->second_order_discontinuous_element_ids.find(e->id) == this->second_order_discontinuous_element_ids.end())
+      continue;
     if(e->is_triangle())
       error("So far this limiter is implemented just for quads.");
     double u_c[4], u_dx_c[4], u_dy_c[4];
     find_centroid_values(e, u_c);
     find_centroid_derivatives(e, u_dx_c, u_dy_c);
-
-    if(
-      (std::abs(u_dx_c[0]) < 1E-8) &&
-      (std::abs(u_dx_c[1]) < 1E-8) &&
-      (std::abs(u_dx_c[2]) < 1E-8) &&
-      (std::abs(u_dx_c[3]) < 1E-8) &&
-      (std::abs(u_dy_c[0]) < 1E-8) &&
-      (std::abs(u_dy_c[1]) < 1E-8) &&
-      (std::abs(u_dy_c[2]) < 1E-8) &&
-      (std::abs(u_dy_c[3]) < 1E-8)
-      )
-      continue;
 
     // Vertex values.
     double u_i[4][4];
@@ -550,7 +540,7 @@ std::set<int>& KuzminDiscontinuityDetector::get_discontinuous_element_ids()
 
     // measure.
     for(unsigned int i = 0; i < 4; i++)
-      if(0.95 > alpha_i_first_order[i])
+      if(1.0 > alpha_i_first_order[i])
         discontinuous_element_ids.insert(e->id);
   }
 
@@ -569,62 +559,10 @@ std::set<int>& KuzminDiscontinuityDetector::get_second_order_discontinuous_eleme
     find_centroid_derivatives(e, u_dx_c, u_dy_c);
     find_second_centroid_derivatives(e, u_dxx_c, u_dxy_c, u_dyy_c);
 
-    if(
-      (std::abs(u_dxx_c[0]) < 1E-8) &&
-      (std::abs(u_dxx_c[1]) < 1E-8) &&
-      (std::abs(u_dxx_c[2]) < 1E-8) &&
-      (std::abs(u_dxx_c[3]) < 1E-8) &&
-      (std::abs(u_dxy_c[0]) < 1E-8) &&
-      (std::abs(u_dxy_c[1]) < 1E-8) &&
-      (std::abs(u_dxy_c[2]) < 1E-8) &&
-      (std::abs(u_dxy_c[3]) < 1E-8) &&
-      (std::abs(u_dyy_c[0]) < 1E-8) &&
-      (std::abs(u_dyy_c[1]) < 1E-8) &&
-      (std::abs(u_dyy_c[2]) < 1E-8) &&
-      (std::abs(u_dyy_c[3]) < 1E-8)
-      )
-      continue;
-
     // Vertex values.
     double u_d_i[4][4][2];
     find_vertex_derivatives(e, u_d_i);
-
-    if(
-      (std::abs(u_d_i[0][0][0]) < 1E-8) &&
-      (std::abs(u_d_i[0][0][1]) < 1E-8) &&
-      (std::abs(u_d_i[0][1][0]) < 1E-8) &&
-      (std::abs(u_d_i[0][2][1]) < 1E-8) &&
-      (std::abs(u_d_i[0][2][0]) < 1E-8) &&
-      (std::abs(u_d_i[0][2][1]) < 1E-8) &&
-      (std::abs(u_d_i[0][3][0]) < 1E-8) &&
-      (std::abs(u_d_i[0][3][1]) < 1E-8) &&
-      (std::abs(u_d_i[1][3][0]) < 1E-8) &&
-      (std::abs(u_d_i[1][3][1]) < 1E-8) &&
-      (std::abs(u_d_i[1][3][0]) < 1E-8) &&
-      (std::abs(u_d_i[1][3][1]) < 1E-8) &&
-      (std::abs(u_d_i[1][3][0]) < 1E-8) &&
-      (std::abs(u_d_i[1][3][1]) < 1E-8) &&
-      (std::abs(u_d_i[1][2][0]) < 1E-8) &&
-      (std::abs(u_d_i[1][1][1]) < 1E-8) &&
-      (std::abs(u_d_i[2][1][0]) < 1E-8) &&
-      (std::abs(u_d_i[2][2][1]) < 1E-8) &&
-      (std::abs(u_d_i[2][2][0]) < 1E-8) &&
-      (std::abs(u_d_i[2][2][1]) < 1E-8) &&
-      (std::abs(u_d_i[2][2][0]) < 1E-8) &&
-      (std::abs(u_d_i[2][2][1]) < 1E-8) &&
-      (std::abs(u_d_i[2][2][0]) < 1E-8) &&
-      (std::abs(u_d_i[2][2][1]) < 1E-8) &&
-      (std::abs(u_d_i[3][0][0]) < 1E-8) &&
-      (std::abs(u_d_i[3][1][1]) < 1E-8) &&
-      (std::abs(u_d_i[3][2][0]) < 1E-8) &&
-      (std::abs(u_d_i[3][3][1]) < 1E-8) &&
-      (std::abs(u_d_i[3][0][0]) < 1E-8) &&
-      (std::abs(u_d_i[3][1][1]) < 1E-8) &&
-      (std::abs(u_d_i[3][2][0]) < 1E-8) &&
-      (std::abs(u_d_i[3][3][1]) < 1E-8)
-      )
-      continue;
-
+    
     // Boundaries for alpha_i calculation.
     double u_d_i_min_second_order[4][4][2];
     double u_d_i_max_second_order[4][4][2];
@@ -643,7 +581,7 @@ std::set<int>& KuzminDiscontinuityDetector::get_second_order_discontinuous_eleme
 
     // measure.
     for(unsigned int i = 0; i < 4; i++)
-      if(0.95 > alpha_i_second_order[i])
+      if(1.0 > alpha_i_second_order[i])
         second_order_discontinuous_element_ids.insert(e->id);
   }
 
@@ -936,18 +874,18 @@ void KuzminDiscontinuityDetector::find_alpha_i_second_order(double u_d_i_min[4][
     for(unsigned int vertex_i = 0; vertex_i < 4; vertex_i++)
     {
       // Sanity checks.
-      if(std::abs(u_d_i[sol_i][vertex_i][0] - u_dx_c[sol_i]) < 1E-6)
+      if(std::abs(u_dx_c[sol_i]) < 1E-5)
         continue;
-      if(std::abs((u_d_i[sol_i][vertex_i][0] - u_dx_c[sol_i]) / u_dx_c[sol_i]) > 10)
+      if(std::abs((u_d_i_min[sol_i][vertex_i][0] - u_dx_c[sol_i]) / u_dx_c[sol_i]) > 10)
         continue;
-      if(std::abs((u_d_i[sol_i][vertex_i][0] - u_dx_c[sol_i]) / u_dx_c[sol_i]) > 10)
+      if(std::abs((u_d_i_max[sol_i][vertex_i][0] - u_dx_c[sol_i]) / u_dx_c[sol_i]) > 10)
         continue;
 
-      if(std::abs(u_d_i[sol_i][vertex_i][1] - u_dy_c[sol_i]) < 1E-6)
+      if(std::abs(u_dy_c[sol_i]) < 1E-5)
         continue;
-      if(std::abs((u_d_i[sol_i][vertex_i][1] - u_dy_c[sol_i]) / u_dy_c[sol_i]) > 10)
+      if(std::abs((u_d_i_min[sol_i][vertex_i][1] - u_dy_c[sol_i]) / u_dy_c[sol_i]) > 10)
         continue;
-      if(std::abs((u_d_i[sol_i][vertex_i][1] - u_dy_c[sol_i]) / u_dy_c[sol_i]) > 10)
+      if(std::abs((u_d_i_max[sol_i][vertex_i][1] - u_dy_c[sol_i]) / u_dy_c[sol_i]) > 10)
         continue;
 
       // dx.
@@ -1100,6 +1038,16 @@ void FluxLimiter::limit_second_orders_according_to_detector(Hermes::vector<Space
 
     // Now adjust the solutions.
     Solution<double>::vector_to_solutions(solution_vector, spaces, limited_solutions);
+    if(dynamic_cast<KuzminDiscontinuityDetector*>(this->detector))
+    {
+      delete detector;
+      this->detector = new KuzminDiscontinuityDetector(spaces, limited_solutions);
+    }
+    else
+    {
+      delete detector;
+      this->detector = new KrivodonovaDiscontinuityDetector(spaces, limited_solutions);
+    }
 
     if(coarse_spaces_to_limit != Hermes::vector<Space<double>*>()) {
       // Now set the element order to zero.
