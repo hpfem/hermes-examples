@@ -50,6 +50,5 @@ project(hermes_examples)
 	include_directories(${DEP_INCLUDE_PATHS})
 
 	add_subdirectory(1d)
-	add_subdirectory(advanced)
-	add_subdirectory(benchmarks-general)
-	add_subdirectory(benchmarks-nist)
+	add_subdirectory(2d)
+	
