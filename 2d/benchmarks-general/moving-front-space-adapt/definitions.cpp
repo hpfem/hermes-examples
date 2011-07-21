@@ -108,18 +108,18 @@ Ord CustomVectorFormVol::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v
   Ord result = 0;
   if (gt == HERMES_PLANAR) {
     for (int i = 0; i < n; i++) {
-      result += wt[i] * coeff->value(e->x[i], e->y[i]) * v->val[i];
+      result += wt[i] * coeff->value_ord(e->x[i], e->y[i]) * v->val[i];
     }
   }
   else {
     if (gt == HERMES_AXISYM_X) {
       for (int i = 0; i < n; i++) {
-        result += wt[i] * e->y[i] * coeff->value(e->x[i], e->y[i]) * v->val[i];
+        result += wt[i] * e->y[i] * coeff->value_ord(e->x[i], e->y[i]) * v->val[i];
       }
     }
     else {
       for (int i = 0; i < n; i++) {
-        result += wt[i] * e->x[i] * coeff->value(e->x[i], e->y[i]) * v->val[i];
+        result += wt[i] * e->x[i] * coeff->value_ord(e->x[i], e->y[i]) * v->val[i];
       }
     }
   }
@@ -127,7 +127,7 @@ Ord CustomVectorFormVol::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v
   return result;
 }
 
-WeakForm::VectorFormVol* CustomVectorFormVol::clone() 
+VectorFormVol<double>* CustomVectorFormVol::clone() 
 {
   return new CustomVectorFormVol(*this);
 }
