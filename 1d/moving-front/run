@@ -1,0 +1,4 @@
+rm *~ 
+./1d-moving-front
+python plot_error_history.py
+

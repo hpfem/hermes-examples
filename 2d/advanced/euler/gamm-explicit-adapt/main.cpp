@@ -30,13 +30,13 @@ bool SHOCK_CAPTURING = true;
 double DISCONTINUITY_DETECTOR_PARAM = 1.0;
 
 const int P_INIT = 0;                             // Initial polynomial degree.                      
-const int INIT_REF_NUM = 3;                             // Number of initial uniform mesh refinements.                       
+const int INIT_REF_NUM = 2;                             // Number of initial uniform mesh refinements.                       
 double CFL_NUMBER = 1.0;                                // CFL value.
 double time_step = 1E-6;                          // Initial time step.
 
 // Adaptivity.
 // Every UNREF_FREQth time step the mesh is unrefined.
-const int UNREF_FREQ = 5;
+const int UNREF_FREQ = 1;
 
 // Number of mesh refinements between two unrefinements.
 // The mesh is not unrefined unless there has been a refinement since
@@ -45,7 +45,7 @@ int REFINEMENT_COUNT = 0;
 
 // This is a quantitative parameter of the adapt(...) function and
 // it has different meanings for various adaptive strategies (see below).
-const double THRESHOLD = 0.3;                     
+const double THRESHOLD = 0.7;                     
 
 // Adaptive strategy:
 // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
@@ -150,9 +150,9 @@ int main(int argc, char* argv[])
     BDY_INLET, BDY_OUTLET, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, (P_INIT == 0 && CAND_LIST == H2D_H_ANISO));
 
   // Filters for visualization of Mach number, pressure and entropy.
-  MachNumberFilter Mach_number(Hermes::vector<MeshFunction<double>*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y, &sln_e), KAPPA);
-  PressureFilter pressure(Hermes::vector<MeshFunction<double>*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y, &sln_e), KAPPA);
-  EntropyFilter entropy(Hermes::vector<MeshFunction<double>*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y, &sln_e), KAPPA, RHO_EXT, P_EXT);
+  MachNumberFilter Mach_number(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA);
+  PressureFilter pressure(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA);
+  EntropyFilter entropy(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA, RHO_EXT, P_EXT);
 
   ScalarView<double> pressure_view("Pressure", new WinGeom(0, 0, 600, 300));
   ScalarView<double> Mach_number_view("Mach number", new WinGeom(700, 0, 600, 300));
@@ -187,6 +187,7 @@ int main(int argc, char* argv[])
 
     // Adaptivity loop:
     int as = 1; 
+    int ndofs_prev = 0;
     bool done = false;
     do
     {
@@ -199,6 +200,14 @@ int main(int argc, char* argv[])
 
       Hermes::vector<Space<double> *>* ref_spaces = Space<double>::construct_refined_spaces(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
         &space_rho_v_y, &space_e), order_increase);
+
+      if(ndofs_prev != 0)
+        if(Space<double>::get_num_dofs(*ref_spaces) == ndofs_prev)
+          selector.set_error_weights(2.0 * selector.get_error_weight_h(), 1.0, 1.0);
+        else
+          selector.set_error_weights(1.0, 1.0, 1.0);
+
+      ndofs_prev = Space<double>::get_num_dofs(*ref_spaces);
 
       // Project the previous time level solution onto the new fine mesh.
       info("Projecting the previous time level solution onto the new fine mesh.");
@@ -225,8 +234,6 @@ int main(int argc, char* argv[])
 
       dp.get_last_profiling_output(std::cout);
 
-      FluxLimiter* flux_limiter;
-
       // Solve the matrix problem.
       info("Solving the matrix problem.");
       if(solver->solve())
@@ -235,12 +242,15 @@ int main(int argc, char* argv[])
           Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e));
         else
         {      
-          flux_limiter = new FluxLimiter(FluxLimiter::Kuzmin, solver->get_sln_vector(), *ref_spaces);
-          flux_limiter->limit_second_orders_according_to_detector(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
+          FluxLimiter flux_limiter(FluxLimiter::Kuzmin, solver->get_sln_vector(), *ref_spaces);
+          
+          flux_limiter.limit_second_orders_according_to_detector(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
             &space_rho_v_y, &space_e));
-          flux_limiter->limit_according_to_detector(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
+          
+          flux_limiter.limit_according_to_detector(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
             &space_rho_v_y, &space_e));
-          flux_limiter->get_limited_solutions(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e));
+
+          flux_limiter.get_limited_solutions(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e));
         }
       else
         error ("Matrix solver failed.\n");
