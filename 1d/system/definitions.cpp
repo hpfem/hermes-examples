@@ -86,7 +86,7 @@ CustomRightHandSide2::~CustomRightHandSide2()
 
 
 ExactSolutionFitzHughNagumo1::ExactSolutionFitzHughNagumo1(Mesh* mesh)
-     : ExactSolutionScalar(mesh) 
+     : ExactSolutionScalar<double>(mesh) 
 {
   cef1 = new CustomExactFunction1();
 }
@@ -113,7 +113,7 @@ ExactSolutionFitzHughNagumo1::~ExactSolutionFitzHughNagumo1()
 }
 
 ExactSolutionFitzHughNagumo2::ExactSolutionFitzHughNagumo2(Mesh* mesh, double K)
-     : ExactSolutionScalar(mesh) 
+     : ExactSolutionScalar<double>(mesh) 
 {
   cef2 = new CustomExactFunction2(K);
 }
@@ -213,7 +213,7 @@ VectorFormVol<double>* CustomResidual2::clone()
   return new CustomResidual2(*this);
 }
 
-CustomWeakForm::CustomWeakForm(CustomRightHandSide1* g1, CustomRightHandSide2* g2) : WeakForm(2) 
+CustomWeakForm::CustomWeakForm(CustomRightHandSide1* g1, CustomRightHandSide2* g2) : WeakForm<double>(2) 
 {
   // Jacobian.
   add_matrix_form(new WeakFormsH1::DefaultJacobianDiffusion<double>(0, 0, Hermes::HERMES_ANY, new HermesFunction<double>(g1->d_u * g1->d_u)));

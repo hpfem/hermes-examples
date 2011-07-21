@@ -11,7 +11,7 @@ class CustomExactSolution : public ExactSolutionScalar<double>
 public:
   CustomExactSolution(Mesh* mesh, double x0, double x1, double y0, double y1, 
                       double* t_ptr, double s, double c)
-    : ExactSolutionScalar(mesh), x0(x0), x1(x1), y0(y0), y1(y1), t_ptr(t_ptr), s(s), c(c) {};
+    : ExactSolutionScalar<double>(mesh), x0(x0), x1(x1), y0(y0), y1(y1), t_ptr(t_ptr), s(s), c(c) {};
 
   virtual double value(double x, double y) const;
 
@@ -29,7 +29,7 @@ class CustomFunction: public HermesFunction<double>
 public:
   CustomFunction(double x0, double x1, double y0, double y1,
     double s, double c)
-    : HermesFunction(), x0(x0), x1(x1), y0(y0), y1(y1), s(s), c(c) {};
+    : HermesFunction<double>(), x0(x0), x1(x1), y0(y0), y1(y1), s(s), c(c) {};
 
   virtual double value(double x, double y, double t) const;
 

@@ -15,7 +15,7 @@ double CustomExactFunction::dduhat_dxx(double x)
   return -K*K * (exp(K*x) + exp(-K*x)) / (exp(K) + exp(-K));
 }
 
-CustomExactSolution::CustomExactSolution(Mesh* mesh, double K) : ExactSolutionScalar(mesh)
+CustomExactSolution::CustomExactSolution(Mesh* mesh, double K) : ExactSolutionScalar<double>(mesh)
 {
   cef = new CustomExactFunction(K);
 }
@@ -42,7 +42,7 @@ Ord CustomExactSolution::ord(Ord x, Ord y) const
 }
 
 
-CustomFunction::CustomFunction(double coeff1) : HermesFunction(), coeff1(coeff1) 
+CustomFunction::CustomFunction(double coeff1) : HermesFunction<double>(), coeff1(coeff1) 
 {
   cef = new CustomExactFunction(coeff1);
 }

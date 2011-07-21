@@ -134,7 +134,7 @@ VectorFormVol<double>* CustomVectorFormVol::clone()
 
 CustomWeakFormPoisson::CustomWeakFormPoisson(std::string area,
   HermesFunction<double>* coeff, HermesFunction<double>* f,
-  GeomType gt) : DefaultWeakFormPoisson()
+  GeomType gt) : WeakFormsH1::DefaultWeakFormPoisson<double>()
 {
   // Jacobian.
   // NOTE: The flag HERMES_NONSYM is important here.
