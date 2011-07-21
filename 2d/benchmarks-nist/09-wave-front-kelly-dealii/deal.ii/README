@@ -1,0 +1,1 @@
+Modified version of deal.II/examples/step-6/step-6.cc that implements benchmark 2.9 from the NISTIR 7668 collection and performs timing of its basic computation parts.
