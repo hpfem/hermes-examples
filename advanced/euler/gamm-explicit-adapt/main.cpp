@@ -30,13 +30,13 @@ bool SHOCK_CAPTURING = true;
 double DISCONTINUITY_DETECTOR_PARAM = 1.0;
 
 const int P_INIT = 0;                             // Initial polynomial degree.                      
-const int INIT_REF_NUM = 3;                             // Number of initial uniform mesh refinements.                       
+const int INIT_REF_NUM = 2;                             // Number of initial uniform mesh refinements.                       
 double CFL_NUMBER = 1.0;                                // CFL value.
 double time_step = 1E-6;                          // Initial time step.
 
 // Adaptivity.
 // Every UNREF_FREQth time step the mesh is unrefined.
-const int UNREF_FREQ = 5;
+const int UNREF_FREQ = 1;
 
 // Number of mesh refinements between two unrefinements.
 // The mesh is not unrefined unless there has been a refinement since
@@ -187,6 +187,7 @@ int main(int argc, char* argv[])
 
     // Adaptivity loop:
     int as = 1; 
+    int ndofs_prev = 0;
     bool done = false;
     do
     {
@@ -199,6 +200,14 @@ int main(int argc, char* argv[])
 
       Hermes::vector<Space<double> *>* ref_spaces = Space<double>::construct_refined_spaces(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
         &space_rho_v_y, &space_e), order_increase);
+
+      if(ndofs_prev != 0)
+        if(Space<double>::get_num_dofs(*ref_spaces) == ndofs_prev)
+          selector.set_error_weights(2.0 * selector.get_error_weight_h(), 1.0, 1.0);
+        else
+          selector.set_error_weights(1.0, 1.0, 1.0);
+
+      ndofs_prev = Space<double>::get_num_dofs(*ref_spaces);
 
       // Project the previous time level solution onto the new fine mesh.
       info("Projecting the previous time level solution onto the new fine mesh.");
