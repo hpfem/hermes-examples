@@ -1,0 +1,9 @@
+./step-6
+mkdir -p res
+for i in `seq 1 13`;
+do
+  convert -background white -flatten -geometry 800x800 -density 800 final_mesh-$i.eps final_mesh-$i.png
+  mv final_mesh-$i.png res/
+  rm final_mesh-$i.eps
+  mv conv_table-$i.dat res/
+done
