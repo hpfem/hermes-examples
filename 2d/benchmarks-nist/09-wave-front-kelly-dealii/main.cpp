@@ -28,7 +28,7 @@ int PARAM = 3;         // PARAM determines which parameter values you wish to us
                        // 3: well       50       0.5    0.5     0.25
 
 const int P_INIT = 2;                             // Initial polynomial degree of all mesh elements.
-const int INIT_REF_NUM = 1;                       // Number of initial uniform mesh refinements.
+const int INIT_REF_NUM = 2;                       // Number of initial uniform mesh refinements.
 const int MESH_REGULARITY = -1;                    // Maximum allowed level of hanging nodes:
                                                   // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
                                                   // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
