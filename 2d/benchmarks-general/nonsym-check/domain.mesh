@@ -1,0 +1,20 @@
+pi = 3.1415926535897931
+
+vertices = [
+  [ 0, 0 ],
+  [ pi, 0 ],
+  [ pi, pi ],
+  [ 0, pi ]
+]
+
+elements = [
+  [ 0, 1, 2, 3, "Mat" ]
+]
+
+boundaries = [
+  [ 0, 1, "Bottom" ],
+  [ 1, 2, "Right" ],
+  [ 2, 3, "Top" ],
+  [ 3, 0, "Left" ]
+]
+
