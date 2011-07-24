@@ -32,7 +32,7 @@ double CustomFunction::value(double x, double y) const
 		);
 }
 
-Ord CustomFunction::value(Ord x, Ord y) const 
+Ord CustomFunction::value_ord(Ord x, Ord y) const 
 {
   return Ord(20);
 }
