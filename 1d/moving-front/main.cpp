@@ -20,7 +20,7 @@ using namespace RefinementSelectors;
 //  The following parameters can be changed:
 
 const int INIT_REF_NUM = 1;                       // Number of initial uniform mesh refinements.
-const int P_INIT = 2;                             // Initial polynomial degree of all mesh elements.
+const int P_INIT = 1;                             // Initial polynomial degree of all mesh elements.
 const double time_step = 0.1;                     // Time step. 
 const double T_FINAL = 10.0;                      // Time interval length.
 
@@ -132,8 +132,8 @@ int main(int argc, char* argv[])
 
   // Visualize initial condition.
   char title[100];
-  Views::ScalarView<double> sview("Initial condition", new Views::WinGeom(0, 0, 440, 350));
-  Views::OrderView<double> oview("Initial mesh", new Views::WinGeom(445, 0, 410, 350));
+  Views::ScalarView<double> sview("Initial condition", new Views::WinGeom(0, 0, 1200, 200));
+  Views::OrderView<double> oview("Initial mesh", new Views::WinGeom(0, 260, 1200, 200));
   sview.show(&sln_time_prev);
   oview.show(&space);
   
