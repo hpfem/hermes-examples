@@ -1,17 +1,7 @@
 #define HERMES_REPORT_ALL
 #include "definitions.h"
 
-// This is an introductory example analogous to P01-linear/03-poisson 
-// in Hermes2D, that shows how 1D problems are handled in Hermes. 
-// Due to the triviality of the 1D setting, we use Hermes2D to solve 
-// 1D problems. A 1D mesh is transformed to a 2D mesh containing 
-// just one line of rectangular elements. The size of the mesh in
-// the y-direction is 1.0. A few things should be noted:
-//
-// (1) Use the parameter '2' when calling Mesh::refine_all_elements().
-//     This will refine elements in the x-direction only.
-// (2) Always use ANISO mode in adaptivity, because no refinements
-//     are needed in the y-direction.
+// This example is analogous to P01-linear/03-poisson.
 //
 // PDE: Poisson equation -(LAMBDA u')' - VOLUME_HEAT_SRC = 0.
 //

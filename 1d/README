@@ -1,0 +1,26 @@
+Due to the triviality of the 1D setting, we use Hermes2D to solve 
+1D problems. A 1D mesh needs to be replaced with a 2D mesh 
+containing just one line of rectangular elements. The size 
+of the mesh in the y-direction needs to be 1.0. The examples 
+in this section should illustrate everything sufficiently. 
+
+BASIC RULES:
+
+(1) Use the parameter '2' when calling Mesh::refine_all_elements().
+    This will refine elements in the x-direction only.
+(2) For the reference solution, only refine in the x-direction
+    (both in h and p).
+(3) Always use ANISO mode in adaptivity, because no refinements
+    are needed in the y-direction.
+
+WHERE TO START:
+
+It is recommended to start with example poisson (analogy to the
+2D tutorial example P01-linear/03-poisson). 
+
+TODO:
+
+(1) Write a 1D mesh reader that will convert the 1D mesh into 
+    a 2D mesh implicitly.
+(2) Visualization of solutions, meshes and polynomial orders
+    should be redone for 1D solutions.
