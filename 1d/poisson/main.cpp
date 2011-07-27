@@ -34,8 +34,8 @@ int main(int argc, char* argv[])
   mloader.load("domain.mesh", &mesh);
 
   // Perform initial mesh refinements (optional).
-  for (int i = 0; i < INIT_REF_NUM; i++)
-    mesh.refine_all_elements(2);
+  int refinement_type = 2;            // Split elements vertically.
+  for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements(refinement_type);
 
   // Show the mesh.
   Hermes::Hermes2D::Views::MeshView mview("Mesh", new Hermes::Hermes2D::Views::WinGeom(0, 0, 900, 250));

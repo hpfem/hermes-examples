@@ -146,8 +146,11 @@ int main(int argc, char* argv[])
     info("---- Adaptivity step %d:", as);
 
     // Construct globally refined reference mesh and setup reference space.
+    int order_increase = 1;          // FIXME: This should be increase in the x-direction only.
+    int refinement_type = 0;         // FIXME: This should be '2' but that leads to a segfault.
     Hermes::vector<Space<double> *>* ref_spaces = 
-      Space<double>::construct_refined_spaces(Hermes::vector<Space<double> *>(&u_space, &v_space));
+      Space<double>::construct_refined_spaces(Hermes::vector<Space<double> *>(&u_space, &v_space),
+                                              order_increase, refinement_type);
     Space<double>* u_ref_space = (*ref_spaces)[0];
     Space<double>* v_ref_space = (*ref_spaces)[1];
     int ndof_ref = Space<double>::get_num_dofs(*ref_spaces);

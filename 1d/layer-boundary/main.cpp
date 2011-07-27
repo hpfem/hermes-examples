@@ -62,7 +62,8 @@ int main(int argc, char* argv[])
   mloader.load("domain.mesh", &mesh);
 
   // Perform initial mesh refinement.
-  for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
+  int refinement_type = 2;            // Split elements vertically.
+  for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements(2);
   mesh.refine_towards_boundary("Bdy", INIT_REF_NUM_BDY);
 
   // Define exact solution.
@@ -107,7 +108,10 @@ int main(int argc, char* argv[])
     cpu_time.tick();
 
     // Construct globally refined reference mesh and setup reference space.
-    Space<double>* ref_space = Space<double>::construct_refined_space(&space);
+    int order_increase = 1;          // FIXME: This should be increase in the x-direction only.
+    int refinement_type = 0;         // FIXME: This should be '2' but that leads to a segfault.
+    Space<double>* ref_space = Space<double>::construct_refined_space(&space, 
+                                              order_increase, refinement_type);
     int ndof_ref = ref_space->get_num_dofs();
 
     info("---- Adaptivity step %d (%d DOF):", as, ndof_ref);

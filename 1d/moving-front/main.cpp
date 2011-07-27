@@ -105,7 +105,8 @@ int main(int argc, char* argv[])
   mloader.load("domain.mesh", &basemesh);
 
   // Perform initial mesh refinements.
-  for(int i = 0; i < INIT_REF_NUM; i++) basemesh.refine_all_elements(2, true);
+  int refinement_type = 2;            // Split elements vertically.
+  for(int i = 0; i < INIT_REF_NUM; i++) basemesh.refine_all_elements(refinement_type, true);
   mesh.copy(&basemesh);
   
   // Exact solution.
@@ -173,7 +174,10 @@ int main(int argc, char* argv[])
       info("Time step %d, adaptivity step %d:", ts, as);
 
       // Construct globally refined reference mesh and setup reference space.
-      Space<double>* ref_space = Space<double>::construct_refined_space(&space);
+      int order_increase = 1;          // FIXME: This should be increase in the x-direction only.
+      int refinement_type = 0;         // FIXME: This should be '2' but that leads to a segfault.
+      Space<double>* ref_space = Space<double>::construct_refined_space(&space, 
+                                                order_increase, refinement_type);
       int ndof_ref = ref_space->get_num_dofs();
 
       // Initialize discrete problem on reference mesh.
