@@ -47,7 +47,7 @@ Ord CustomResidual::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v,
   return Ord(20);
 }
 
-CustomWeakForm::CustomWeakForm(std::string marker_bdy_right) : WeakForm(1) 
+CustomWeakForm::CustomWeakForm(std::string marker_bdy_right) : WeakForm<double>(1) 
 {
   // Jacobian.
   add_matrix_form(new DefaultJacobianDiffusion<double>(0, 0));

@@ -10,7 +10,7 @@ class CustomExactSolution : public ExactSolutionScalar<double>
 {
 public:
   CustomExactSolution(Mesh* mesh, double slope)
-            : ExactSolutionScalar(mesh), slope(slope) {};
+            : ExactSolutionScalar<double>(mesh), slope(slope) {};
 
   virtual double value (double x, double y) const;
 
@@ -27,7 +27,7 @@ class CustomFunction: public HermesFunction<double>
 {
 public:
   CustomFunction(double slope)
-    : HermesFunction(), slope(slope) {};
+    : HermesFunction<double>(), slope(slope) {};
 
   virtual double value(double x, double y) const;
 
