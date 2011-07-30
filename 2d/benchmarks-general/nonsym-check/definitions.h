@@ -9,7 +9,7 @@ using Hermes::Ord;
 class CustomExactSolution : public ExactSolutionScalar<double>
 {
 public:
-  CustomExactSolution(Mesh* mesh) : ExactSolutionScalar(mesh) 
+  CustomExactSolution(Mesh* mesh) : ExactSolutionScalar<double>(mesh) 
   {
   }
 
@@ -25,7 +25,7 @@ public:
 class CustomJacobian : public MatrixFormVol<double>
 {
 public:
-  CustomJacobian(int i, int j) : MatrixFormVol(i, j) 
+  CustomJacobian(int i, int j) : MatrixFormVol<double>(i, j) 
   {
   }
 
@@ -39,7 +39,7 @@ public:
 class CustomResidual : public VectorFormVol<double>
 {
 public:
-  CustomResidual(int i) : VectorFormVol(i) 
+  CustomResidual(int i) : VectorFormVol<double>(i) 
   {
   }
 

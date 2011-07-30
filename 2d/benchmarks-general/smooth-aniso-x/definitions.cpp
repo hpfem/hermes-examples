@@ -28,7 +28,7 @@ Ord CustomFunction::value_ord(Ord x, Ord y) const
 }
 
 
-CustomWeakFormPoisson::CustomWeakFormPoisson(std::string bdy_marker_right) : WeakForm(1) 
+CustomWeakFormPoisson::CustomWeakFormPoisson(std::string bdy_marker_right) : WeakForm<double>(1) 
 {
   // Jacobian.
   add_matrix_form(new DefaultJacobianDiffusion<double>(0, 0));

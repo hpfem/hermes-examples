@@ -338,7 +338,8 @@ int main(int argc, char* argv[])
     rsln_e.own_mesh = false;
 
     // Visualization.
-    if((iteration - 1) % EVERY_NTH_STEP == 0) {
+    if((iteration - 1) % EVERY_NTH_STEP == 0)
+    {
       // Hermes visualization.
       if(HERMES_VISUALIZATION)
       {        
@@ -356,12 +357,8 @@ int main(int argc, char* argv[])
         Mach_number.reinit();
         Linearizer<double> lin;
         char filename[40];
-        sprintf(filename, "pressure-%i.vtk", iteration - 1);
-        lin.save_solution_vtk(&pressure, filename, "Pressure", false);
         sprintf(filename, "pressure-3D-%i.vtk", iteration - 1);
         lin.save_solution_vtk(&pressure, filename, "Pressure", true);
-        sprintf(filename, "Mach number-%i.vtk", iteration - 1);
-        lin.save_solution_vtk(&Mach_number, filename, "MachNumber", false);
         sprintf(filename, "Mach number-3D-%i.vtk", iteration - 1);
         lin.save_solution_vtk(&Mach_number, filename, "MachNumber", true);
       }
