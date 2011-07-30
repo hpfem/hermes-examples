@@ -189,9 +189,12 @@ int main(int argc, char* argv[])
       // Perform one Runge-Kutta time step according to the selected Butcher's table.
       info("Runge-Kutta time step (t = %g s, tau = %g s, stages: %d).",
            current_time, time_step, bt.get_size());
+      bool freeze_jacobian = true;
+      bool block_diagonal_jacobian = false;
       bool verbose = true;
       if (!runge_kutta.rk_time_step(current_time, time_step, &sln_time_prev, &sln_time_new, 
-                                    true, verbose, NEWTON_TOL, NEWTON_MAX_ITER)) 
+                                    freeze_jacobian, block_diagonal_jacobian,
+                                    verbose, NEWTON_TOL, NEWTON_MAX_ITER)) 
       {
         error("Runge-Kutta time step failed, try to decrease time step size.");
       }
