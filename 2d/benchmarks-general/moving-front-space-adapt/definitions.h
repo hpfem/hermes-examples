@@ -24,12 +24,12 @@ public:
 
 /* Custom function f */
 
-class CustomFunction: public HermesFunction<double>
+class CustomFunction: public Hermes2DFunction<double>
 {
 public:
   CustomFunction(double x0, double x1, double y0, double y1,
     double s, double c)
-    : HermesFunction<double>(), x0(x0), x1(x1), y0(y0), y1(y1), s(s), c(c) {};
+    : Hermes2DFunction<double>(), x0(x0), x1(x1), y0(y0), y1(y1), s(s), c(c) {};
 
   virtual double value(double x, double y, double t) const;
 
@@ -42,11 +42,11 @@ class CustomVectorFormVol : public VectorFormVol<double>
 {
 public:
   CustomVectorFormVol(int i = 0, std::string area = HERMES_ANY,
-    HermesFunction<double>* coeff = HERMES_ONE,
+    Hermes::Hermes2DFunction<double>* coeff = HERMES_ONE,
     GeomType gt = HERMES_PLANAR);
 
   CustomVectorFormVol(int i, Hermes::vector<std::string> areas,
-    HermesFunction<double>* coeff = HERMES_ONE,
+    Hermes::Hermes2DFunction<double>* coeff = HERMES_ONE,
     GeomType gt = HERMES_PLANAR);
 
   ~CustomVectorFormVol();
@@ -60,7 +60,7 @@ public:
   virtual VectorFormVol<double>* clone();
 
 private:
-  HermesFunction<double>* coeff;
+  Hermes::Hermes2DFunction<double>* coeff;
   GeomType gt;
 };
 
@@ -68,7 +68,7 @@ class CustomWeakFormPoisson : public WeakFormsH1::DefaultWeakFormPoisson<double>
 {
 public:
   CustomWeakFormPoisson(std::string area = HERMES_ANY, 
-    HermesFunction<double>* coeff = HERMES_ONE,
-    HermesFunction<double>* f = HERMES_ONE,
+    Hermes1DFunction<double>* coeff = HERMES_ONE,
+    Hermes2DFunction<double>* f = HERMES_ONE,
     GeomType gt = HERMES_PLANAR);
 };

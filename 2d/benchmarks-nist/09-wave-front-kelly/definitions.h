@@ -22,9 +22,9 @@ class CustomWeakForm : public WeakForm<double>
   
   class Residual : public VectorFormVol<double>
   {
-    const HermesFunction<double>* rhs;
+    const Hermes::Hermes2DFunction<double>* rhs;
   public:
-    Residual(const HermesFunction<double>* rhs) : VectorFormVol<double>(0), rhs(rhs) {};
+    Residual(const Hermes::Hermes2DFunction<double>* rhs) : VectorFormVol<double>(0), rhs(rhs) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
                          Geom<double> *e, ExtData<double> *ext) const;
@@ -34,18 +34,18 @@ class CustomWeakForm : public WeakForm<double>
   };
   
   public:
-    CustomWeakForm(const HermesFunction<double>* rhs)
+    CustomWeakForm(const Hermes::Hermes2DFunction<double>* rhs)
     {
       add_matrix_form(new Jacobian);
       add_vector_form(new Residual(rhs));
     }
 };
 
-class CustomRightHandSide : public HermesFunction<double>
+class CustomRightHandSide : public Hermes::Hermes2DFunction<double>
 {
 public:
   CustomRightHandSide(double alpha, double x_loc, double y_loc, double r_zero)
-    : HermesFunction<double>(), alpha(alpha), x_loc(x_loc), y_loc(y_loc), r_zero(r_zero) 
+    : Hermes::Hermes2DFunction<double>(), alpha(alpha), x_loc(x_loc), y_loc(y_loc), r_zero(r_zero) 
   { };
 
   virtual double value(double x, double y) const;

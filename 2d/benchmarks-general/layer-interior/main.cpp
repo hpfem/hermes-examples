@@ -73,7 +73,7 @@ int main(int argc, char* argv[])
   CustomFunction f(slope);
 
   // Initialize the weak formulation.
-  HermesFunction<double> lambda(1.0);
+  Hermes::Hermes1DFunction<double> lambda(1.0);
   DefaultWeakFormPoisson<double> wf(Hermes::HERMES_ANY, &lambda, &f);
   
   // Initialize boundary conditions

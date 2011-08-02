@@ -39,21 +39,21 @@ Ord CustomFunction::value_ord(Ord x, Ord y) const
 }
 
 CustomVectorFormVol::CustomVectorFormVol(int i, std::string area,
-					 HermesFunction<double>* coeff,
+					 Hermes::Hermes2DFunction<double>* coeff,
   GeomType gt)
   : VectorFormVol<double>(i, area), coeff(coeff), gt(gt)
 {
   // If coeff is HERMES_ONE, initialize it to be constant 1.0.
-  if (coeff == HERMES_ONE) this->coeff = new HermesFunction<double>(1.0);
+  if (coeff == HERMES_ONE) this->coeff = new Hermes::Hermes2DFunction<double>(1.0);
 }
 
 CustomVectorFormVol::CustomVectorFormVol(int i, Hermes::vector<std::string> areas,
-					 HermesFunction<double>* coeff,
+					 Hermes::Hermes2DFunction<double>* coeff,
   GeomType gt)
   : VectorFormVol<double>(i, areas), coeff(coeff), gt(gt)
 {
   // If coeff is HERMES_ONE, initialize it to be constant 1.0.
-  if (coeff == HERMES_ONE) this->coeff = new HermesFunction<double>(1.0);
+  if (coeff == HERMES_ONE) this->coeff = new Hermes::Hermes2DFunction<double>(1.0);
 }
 
 CustomVectorFormVol::~CustomVectorFormVol() 
@@ -117,7 +117,7 @@ VectorFormVol<double>* CustomVectorFormVol::clone()
 }
 
 CustomWeakFormPoisson::CustomWeakFormPoisson(std::string area,
-  HermesFunction<double>* coeff, HermesFunction<double>* f,
+  Hermes::Hermes1DFunction<double>* coeff, Hermes::Hermes2DFunction<double>* f,
   GeomType gt) : WeakFormsH1::DefaultWeakFormPoisson<double>()
 {
   // Jacobian.

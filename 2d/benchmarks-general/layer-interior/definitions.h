@@ -23,11 +23,11 @@ public:
 
 /* Custom function f */
 
-class CustomFunction: public HermesFunction<double>
+class CustomFunction: public Hermes::Hermes2DFunction<double>
 {
 public:
   CustomFunction(double slope)
-    : HermesFunction<double>(), slope(slope) {};
+    : Hermes::Hermes2DFunction<double>(), slope(slope) {};
 
   virtual double value(double x, double y) const;
 

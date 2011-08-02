@@ -146,14 +146,14 @@ int main(int argc, char* argv[])
   // Initialize solutions, set initial conditions.
   InitialSolutionEulerDensity sln_rho(&mesh_flow, RHO_EXT);
   InitialSolutionEulerDensityVelX sln_rho_v_x(&mesh_flow, RHO_EXT * V1_EXT);
-  InitialSolutionEulerDensityVelY_LShape sln_rho_v_y(&mesh_flow, RHO_EXT * V2_EXT);
-  InitialSolutionEulerDensityEnergy_LShape sln_e(&mesh_flow, &sln_rho, &sln_rho_v_x, &sln_rho_v_y, P_EXT, KAPPA);
+  InitialSolutionEulerDensityVelY sln_rho_v_y(&mesh_flow, RHO_EXT * V2_EXT);
+  InitialSolutionEulerDensityEnergy sln_e(&mesh_flow, &sln_rho, &sln_rho_v_x, &sln_rho_v_y, P_EXT, KAPPA);
   InitialSolutionConcentration sln_c(&mesh_concentration, 0.0);
 
   InitialSolutionEulerDensity prev_rho(&mesh_flow, RHO_EXT);
   InitialSolutionEulerDensityVelX prev_rho_v_x(&mesh_flow, RHO_EXT * V1_EXT);
-  InitialSolutionEulerDensityVelY_LShape prev_rho_v_y(&mesh_flow, RHO_EXT * V2_EXT);
-  InitialSolutionEulerDensityEnergy_LShape prev_e(&mesh_flow, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, P_EXT, KAPPA);
+  InitialSolutionEulerDensityVelY prev_rho_v_y(&mesh_flow, RHO_EXT * V2_EXT);
+  InitialSolutionEulerDensityEnergy prev_e(&mesh_flow, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, P_EXT, KAPPA);
   InitialSolutionConcentration prev_c(&mesh_concentration, 0.0);
 
   Solution<double> rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e, rsln_c;

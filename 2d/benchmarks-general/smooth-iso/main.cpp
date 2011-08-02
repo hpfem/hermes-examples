@@ -2,7 +2,9 @@
 #define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
 
-using namespace RefinementSelectors;
+using namespace Hermes;
+using namespace Hermes::Hermes2D;
+using namespace Hermes::Hermes2D::RefinementSelectors;
 
 //  This example shows that it makes sense to use anisotropic polynomial
 //  degrees in quadrilateral elements. The exact solution to this Poisson
@@ -66,7 +68,7 @@ int main(int argc, char* argv[])
   CustomExactSolution exact_sln(&mesh);  
 
   // Initialize the weak formulation.
-  HermesFunction<double> lambda(1.0);
+  Hermes1DFunction<double> lambda(1.0);
   CustomFunction f;
   DefaultWeakFormPoisson<double> wf(Hermes::HERMES_ANY, &lambda, &f);
 

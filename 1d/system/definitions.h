@@ -32,7 +32,7 @@ public:
 
 /* Right-hand side */
 
-class CustomRightHandSide1: public HermesFunction<double>
+class CustomRightHandSide1: public Hermes::Hermes2DFunction<double>
 {
 public:
   CustomRightHandSide1(double K, double d_u, double sigma);
@@ -48,7 +48,7 @@ public:
   double d_u, sigma;
 };
 
-class CustomRightHandSide2: public HermesFunction<double>
+class CustomRightHandSide2: public Hermes::Hermes2DFunction<double>
 {
 public:
   CustomRightHandSide2(double K, double d_v);

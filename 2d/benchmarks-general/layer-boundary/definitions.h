@@ -39,7 +39,7 @@ public:
 
 /* Custom function */
 
-class CustomFunction: public HermesFunction<double>
+class CustomFunction: public Hermes::Hermes2DFunction<double>
 {
 public:
   CustomFunction(double coeff1);
