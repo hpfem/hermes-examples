@@ -1,8 +1,5 @@
-#include "hermes2d.h"
 
-using namespace Hermes;
-using namespace Hermes::Hermes2D;
-
+#include "header.h"
 
 
 class InitialSolutionVoltage : public ExactSolutionScalar<double>

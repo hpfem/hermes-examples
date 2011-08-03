@@ -1,15 +1,4 @@
-#define HERMES_REPORT_WARN
-#define HERMES_REPORT_INFO
-#define HERMES_REPORT_VERBOSE
-#define HERMES_REPORT_FILE "application.log"
-
-#include "hermes2d.h"
-
-using namespace Hermes;
-using namespace Hermes::Hermes2D;
-using namespace Hermes::Hermes2D::Views;
-using namespace RefinementSelectors;
-
+#include "header.h"
 
 
 #include "timestep_controller.h"
@@ -59,6 +48,9 @@ using namespace RefinementSelectors;
 // Parameters to tweak the amount of output to the console.
 #define NOSCREENSHOT
 
+bool SCALED = true;  // true if scaled dimensionless variables are used, false otherwise
+
+
 /*** Fundamental coefficients ***/
 const double D = 10e-11; 	                        // [m^2/s] Diffusion coefficient.
 const double R = 8.31; 		                        // [J/mol*K] Gas constant.
@@ -69,7 +61,6 @@ const double mu = D / (R * T);                    // Mobility of ions.
 const double z = 1;		                            // Charge number.
 const double K = z * mu * F;                      // Constant for equation.
 const double L =  F / eps;	                      // Constant for equation.
-const double VOLTAGE = 1;	                        // [V] Applied voltage.
 const double C0 = 1200;	                          // [mol/m^3] Anion and counterion concentration.
 const double mech_E = 0.5e9;                      // [Pa]
 const double mech_nu = 0.487;                     // Poisson ratio
@@ -77,10 +68,25 @@ const double mech_mu = mech_E / (2 * (1 + mech_nu));
 const double mech_lambda = mech_E * mech_nu / ((1 + mech_nu) * (1 - 2 * mech_nu));
 const double lin_force_coup = 1e5;
 
+// Scaling constants
+const double l = 200e-6;                  // scaling const, domain thickness [m]
+double lambda = Hermes::sqrt((eps)*R*T/(2.0*F*F*C0)); //Debye length [m]
+double epsilon = lambda/l;
+
+const double VOLTAGE = 1;                         // [V] Applied voltage.
+const double SCALED_VOLTAGE = VOLTAGE*F/(R*T);
+
+
+
 /* Simulation parameters */
 const double T_FINAL = 0.5;
 double INIT_TAU = 0.05;
 double *TAU = &INIT_TAU;                          // Size of the time step
+
+// scaling time variables
+//double SCALED_INIT_TAU = INIT_TAU*D/(lambda * l);
+//double TIME_SCALING = lambda * l / D;
+
 const int P_INIT = 2;       	                    // Initial polynomial degree of all mesh elements.
 const int REF_INIT = 3;     	                    // Number of initial refinements.
 const bool MULTIMESH = true;	                    // Multimesh?
@@ -131,6 +137,24 @@ const std::string BDY_SIDE = "Side";
 const std::string BDY_TOP = "Top";
 const std::string BDY_BOT = "Bottom";
 
+// scaling methods
+
+double scaleTime(double t) {
+  return SCALED ?  t * D / (lambda * l) : t;
+}
+
+double scaleVoltage(double phi) {
+  return SCALED ? phi * F / (R * T) : phi;
+}
+
+double scaleConc(double C) {
+  return SCALED ? C / C0 : C;
+}
+
+double SCALED_INIT_TAU = scaleTime(INIT_TAU);
+
+
+
 int main (int argc, char* argv[]) {
 
 
@@ -139,6 +163,15 @@ int main (int argc, char* argv[]) {
   H2DReader mloader;
   mloader.load("small.mesh", &basemesh);
   
+  if (SCALED) {
+    bool ret = basemesh.rescale(l, l);
+    if (ret) {
+      info("SCALED mesh is used");
+    } else {
+      info("UNSCALED mesh is used");
+    }
+  }
+
   // When nonadaptive solution, refine the mesh.
   basemesh.refine_towards_boundary(BDY_TOP, REF_INIT);
   basemesh.refine_towards_boundary(BDY_BOT, REF_INIT - 1);
@@ -147,8 +180,8 @@ int main (int argc, char* argv[]) {
   C_mesh.copy(&basemesh);
   phi_mesh.copy(&basemesh);
 
-  DefaultEssentialBCConst<double> bc_phi_voltage(BDY_TOP, VOLTAGE);
-  DefaultEssentialBCConst<double> bc_phi_zero(BDY_BOT, 0.0);
+  DefaultEssentialBCConst<double> bc_phi_voltage(BDY_TOP, scaleVoltage(VOLTAGE));
+  DefaultEssentialBCConst<double> bc_phi_zero(BDY_BOT, scaleVoltage(0.0));
 
   EssentialBCs<double> bcs_phi(
       Hermes::vector<EssentialBoundaryCondition<double>* >(&bc_phi_voltage, &bc_phi_zero));
@@ -161,15 +194,28 @@ int main (int argc, char* argv[]) {
   Solution<double> phi_sln, phi_ref_sln;
 
   // Assign initial condition to mesh.
-  InitialSolutionConcentration C_prev_time(&C_mesh, C0);
+  InitialSolutionConcentration C_prev_time(&C_mesh, scaleConc(C0));
   InitialSolutionVoltage phi_prev_time(MULTIMESH ? &phi_mesh : &C_mesh);
+
+  // XXX not necessary probably
+  if (SCALED) {
+    TAU = &SCALED_INIT_TAU;
+  }
 
   // The weak form for 2 equations.
   WeakForm<double> *wf;
   if (TIME_DISCR == 2) {
-    wf = new CustomWeakFormNernstPlanckCranic(TAU, C0, lin_force_coup, mech_lambda, mech_mu, K, L, D, &C_prev_time, &phi_prev_time);
+    if (SCALED) {
+      wf = new ScaledWeakFormPNPCranic(TAU, epsilon, &C_prev_time, &phi_prev_time);
+      info("Scaled weak form, with time step %g and epsilon %g", *TAU, epsilon);
+    } else {
+      wf = new WeakFormPNPCranic(TAU, C0, lin_force_coup, mech_lambda,
+          mech_mu, K, L, D, &C_prev_time, &phi_prev_time);
+    }
   } else {
-    wf = new CustomWeakFormNernstPlanckEuler(TAU, C0, lin_force_coup, mech_lambda, mech_mu, K, L, D, &C_prev_time);
+    if (SCALED)
+      error("Forward Euler is not implemented for scaled problem");
+    wf = new WeakFormPNPEuler(TAU, C0, lin_force_coup, mech_lambda, mech_mu, K, L, D, &C_prev_time);
   }
 
   DiscreteProblem<double> dp_coarse(wf, Hermes::vector<Space<double> *>(&C_space, &phi_space));
@@ -203,8 +249,8 @@ int main (int argc, char* argv[]) {
   phiordview.show(&phi_space);
 
   // Newton's loop on the coarse mesh.
-  bool verbose = true;
-  bool jacobian_changed = true;
+
+  info("Solving initial coarse mesh");
   if (!solver_coarse->solve(coeff_vec_coarse, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))
     error("Newton's iteration failed.");
 
@@ -222,7 +268,7 @@ int main (int argc, char* argv[]) {
   delete[] coeff_vec_coarse;
   
   // Time stepping loop.
-  PidTimestepController pid(T_FINAL, true, INIT_TAU);
+  PidTimestepController pid(scaleTime(T_FINAL), true, scaleTime(INIT_TAU));
   TAU = pid.timestep;
   info("Starting time iteration with the step %g", *TAU);
 
