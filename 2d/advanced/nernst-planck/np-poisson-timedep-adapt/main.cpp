@@ -62,11 +62,6 @@ const double z = 1;		                            // Charge number.
 const double K = z * mu * F;                      // Constant for equation.
 const double L =  F / eps;	                      // Constant for equation.
 const double C0 = 1200;	                          // [mol/m^3] Anion and counterion concentration.
-const double mech_E = 0.5e9;                      // [Pa]
-const double mech_nu = 0.487;                     // Poisson ratio
-const double mech_mu = mech_E / (2 * (1 + mech_nu));
-const double mech_lambda = mech_E * mech_nu / ((1 + mech_nu) * (1 - 2 * mech_nu));
-const double lin_force_coup = 1e5;
 
 // Scaling constants
 const double l = 200e-6;                  // scaling const, domain thickness [m]
@@ -79,7 +74,7 @@ const double SCALED_VOLTAGE = VOLTAGE*F/(R*T);
 
 
 /* Simulation parameters */
-const double T_FINAL = 0.5;
+const double T_FINAL = 3;
 double INIT_TAU = 0.05;
 double *TAU = &INIT_TAU;                          // Size of the time step
 
@@ -151,6 +146,18 @@ double scaleConc(double C) {
   return SCALED ? C / C0 : C;
 }
 
+double physTime(double t) {
+  return SCALED ? lambda * l * t / D : t;
+}
+
+double physConc(double C) {
+  return SCALED ? C0 * C : C;
+}
+
+double physVoltage(double phi) {
+  return SCALED ? phi * R * T / F : phi;
+}
+
 double SCALED_INIT_TAU = scaleTime(INIT_TAU);
 
 
@@ -209,13 +216,12 @@ int main (int argc, char* argv[]) {
       wf = new ScaledWeakFormPNPCranic(TAU, epsilon, &C_prev_time, &phi_prev_time);
       info("Scaled weak form, with time step %g and epsilon %g", *TAU, epsilon);
     } else {
-      wf = new WeakFormPNPCranic(TAU, C0, lin_force_coup, mech_lambda,
-          mech_mu, K, L, D, &C_prev_time, &phi_prev_time);
+      wf = new WeakFormPNPCranic(TAU, C0, K, L, D, &C_prev_time, &phi_prev_time);
     }
   } else {
     if (SCALED)
       error("Forward Euler is not implemented for scaled problem");
-    wf = new WeakFormPNPEuler(TAU, C0, lin_force_coup, mech_lambda, mech_mu, K, L, D, &C_prev_time);
+    wf = new WeakFormPNPEuler(TAU, C0, K, L, D, &C_prev_time);
   }
 
   DiscreteProblem<double> dp_coarse(wf, Hermes::vector<Space<double> *>(&C_space, &phi_space));
@@ -381,22 +387,22 @@ int main (int argc, char* argv[]) {
       // Visualize the solution and mesh.
       info("Visualization procedures: C");
       char title[100];
-      sprintf(title, "Solution[C], time step# %d, step size %g, time %g",
-          pid.get_timestep_number(), *TAU, pid.get_time());
+      sprintf(title, "Solution[C], step# %d, step size %g, time %g, phys time %g",
+          pid.get_timestep_number(), *TAU, pid.get_time(), physTime(pid.get_time()));
       Cview.set_title(title);
       Cview.show(&C_ref_sln);
-      sprintf(title, "Mesh[C], time step# %d, step size %g, time %g",
-          pid.get_timestep_number(), *TAU, pid.get_time());
+      sprintf(title, "Mesh[C], step# %d, step size %g, time %g, phys time %g",
+          pid.get_timestep_number(), *TAU, pid.get_time(), physTime(pid.get_time()));
       Cordview.set_title(title);
       Cordview.show(&C_space);
       
       info("Visualization procedures: phi");
-      sprintf(title, "Solution[phi], time step# %d, step size %g, time %g",
-          pid.get_timestep_number(), *TAU, pid.get_time());
+      sprintf(title, "Solution[phi], step# %d, step size %g, time %g, phys time %g",
+          pid.get_timestep_number(), *TAU, pid.get_time(), physTime(pid.get_time()));
       phiview.set_title(title);
       phiview.show(&phi_ref_sln);
-      sprintf(title, "Mesh[phi], time step# %d, step size %g, time %g",
-          pid.get_timestep_number(), *TAU, pid.get_time());
+      sprintf(title, "Mesh[phi], step# %d, step size %g, time %g, phys time %g",
+          pid.get_timestep_number(), *TAU, pid.get_time(), physTime(pid.get_time()));
       phiordview.set_title(title);
       phiordview.show(&phi_space);
       //View::wait(HERMES_WAIT_KEYPRESS);
