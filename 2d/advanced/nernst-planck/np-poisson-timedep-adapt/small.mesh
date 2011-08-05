@@ -1,0 +1,22 @@
+
+hh=100e-6 
+w=1e-4
+
+vertices = [
+	[ 0, -100e-6 ],	#0
+	[ 0, 100e-6 ],	#1
+	[ 1e-4, 100e-6 ],	#2
+	[ 1e-4, -100e-6 ]	#3
+]
+
+elements = [
+	[ 0, 3, 2, 1, "Quad" ]	#quad 0
+]
+
+boundaries = [
+	[ 0, 1, "Side" ],	#sides
+	[ 3, 2, "Side" ],	#sides
+	[ 1, 2, "Top" ],	#top
+	[ 0, 3, "Bottom" ]	#bottom
+]
+
