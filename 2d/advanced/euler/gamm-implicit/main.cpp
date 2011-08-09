@@ -65,7 +65,7 @@ int main(int argc, char* argv[])
 {
   // Load the mesh.
   Mesh mesh;
-  H2DReader mloader;
+  MeshReaderH2D mloader;
   mloader.load("GAMM-channel.mesh", &mesh);
 
   // Perform initial mesh refinements.

@@ -120,7 +120,7 @@ int main(int argc, char* argv[])
 
   // Load the mesh.
   Mesh basemesh;
-  H2DReader mloader;
+  MeshReaderH2D mloader;
   mloader.load("GAMM-channel.mesh", &basemesh);
 
   // Initialize the meshes.

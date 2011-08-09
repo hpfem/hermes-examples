@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
 
   // Load the mesh.
   Mesh u_mesh, v_mesh;
-  H2DReader mloader;
+  MeshReaderH2D mloader;
   mloader.load("domain.mesh", &u_mesh);
   if (MULTI == false) u_mesh.refine_towards_boundary("Bdy", INIT_REF_BDY);
 

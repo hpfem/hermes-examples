@@ -101,7 +101,7 @@ int main(int argc, char* argv[])
 
   // Load the mesh.
   Mesh mesh, basemesh;
-  H2DReader mloader;
+  MeshReaderH2D mloader;
   mloader.load("domain.mesh", &basemesh);
 
   // Perform initial mesh refinements.

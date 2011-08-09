@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
 
   // Load the mesh.
   Mesh mesh, basemesh;
-  H2DReader mloader;
+  MeshReaderH2D mloader;
   mloader.load("domain.mesh", &basemesh);
 
   // Perform initial mesh refinements.
@@ -125,7 +125,7 @@ int main(int argc, char* argv[])
   CustomWeakFormPoisson wf(HERMES_ANY, new Hermes::Hermes1DFunction<double>(-1.0), &f);
 
   // Previous and next time level solution.
-  Solution<double> sln_time_prev(&mesh, 0);
+  ZeroInitialCondition<double> sln_time_prev(&mesh, 0);
   Solution<double> sln_time_new(&mesh);
 
   // Create a refinement selector.

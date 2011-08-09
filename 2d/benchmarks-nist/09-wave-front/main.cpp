@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
 
    // Load the mesh.
   Mesh mesh;
-  H2DReader mloader;
+  MeshReaderH2D mloader;
   mloader.load("square_quad.mesh", &mesh);     // quadrilaterals
   // mloader.load("square_tri.mesh", &mesh);   // triangles
 

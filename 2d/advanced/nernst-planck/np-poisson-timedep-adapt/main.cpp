@@ -167,7 +167,7 @@ int main (int argc, char* argv[]) {
 
   // Load the mesh file.
   Mesh C_mesh, phi_mesh, basemesh;
-  H2DReader mloader;
+  MeshReaderH2D mloader;
   mloader.load("small.mesh", &basemesh);
   
   if (SCALED) {

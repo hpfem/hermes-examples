@@ -144,3 +144,20 @@ CustomWeakFormPoisson::CustomWeakFormPoisson(std::string area,
   add_vector_form(new WeakFormsH1::DefaultResidualDiffusion<double>(0, area, coeff, gt));
   add_vector_form(new CustomVectorFormVol(0, area, f, gt));
 };
+
+ZeroInitialCondition::ZeroInitialCondition(Mesh* mesh) : ExactSolutionScalar<double>(mesh) 
+{
+}
+
+double ZeroInitialCondition::value (double x, double y) const {
+  return 0.0; 
+}
+
+void ZeroInitialCondition::derivatives (double x, double y, double& dx, double& dy) const {
+  dx = 0;
+  dy = 0;
+}
+
+Ord ZeroInitialCondition::ord(Ord x, Ord y) const {
+  return Ord(0);
+}
