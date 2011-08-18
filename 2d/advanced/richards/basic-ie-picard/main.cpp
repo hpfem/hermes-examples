@@ -1,12 +1,11 @@
 #define HERMES_REPORT_ALL
 #define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
-#include "function/function.h"
 
 using namespace RefinementSelectors;
 
 //  This example is similar to basic-ie-newton except it uses the 
-//  Picard's method in each time step (not Newton's method).
+//  Picard's method in each time step.
 //
 //  PDE: C(h)dh/dt - div(K(h)grad(h)) - (dK/dh)*(dh/dy) = 0
 //  where K(h) = K_S*exp(alpha*h)                          for h < 0,
@@ -38,9 +37,10 @@ MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESO
                                                   // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 
 // Picard's method.
-const double PICARD_TOL = 1e-6;                   // Stopping criterion for the Newton's method.
-const int PICARD_MAX_ITER = 100;                 // Maximum allowed number of Newton iterations.
-const double DAMPING_COEFF = 1.0;
+const int PICARD_NUM_LAST_ITER_USED = 3;          // Number of last iterations used.
+const double PICARD_ANDERSON_BETA = 1.0;          // Parameter for the Anderson acceleration. 
+const double PICARD_TOL = 1e-6;                   // Stopping criterion for the Picard's method.
+const int PICARD_MAX_ITER = 100;                  // Maximum allowed number of Picard iterations.
 
 int main(int argc, char* argv[])
 {
@@ -73,7 +73,7 @@ int main(int argc, char* argv[])
   Solution<double>::vector_to_solution(coeff_vec, &space, &h_iter_prev);
 
   // Initialize views.
-  ScalarView<double> view("", new WinGeom(0, 0, 600, 500));
+  ScalarView<double> view("Initial condition", new WinGeom(0, 0, 600, 500));
   view.fix_scale_width(80);
 
   // Visualize the initial condition.
@@ -97,20 +97,24 @@ int main(int argc, char* argv[])
     info("---- Time step %d, time %3.5f s", ts, current_time);
 
     // Perform the Picard's iteration (Anderson acceleration on by default).
-    if (!picard.solve(PICARD_TOL, PICARD_MAX_ITER)) error("Picard's iteration failed.");
+    if (!picard.solve(PICARD_TOL, PICARD_MAX_ITER, PICARD_NUM_LAST_ITER_USED, 
+                      PICARD_ANDERSON_BETA)) error("Picard's iteration failed.");
 
-    // Visualize the solution.
-    char title[100];
-    sprintf(title, "Time %3.2f s", current_time);
-    view.set_title(title);
-    view.show(&h_time_prev);
-
-    // Save the next time level solution.
-    h_time_prev.copy(&h_iter_prev);
+    // Translate the coefficient vector into a Solution. 
+    Solution<double>::vector_to_solution(picard.get_sln_vector(), &space, &h_iter_prev);
 
     // Increase current time and time step counter.
     current_time += time_step;
     ts++;
+
+    // Visualize the solution.
+    char title[100];
+    sprintf(title, "Time %g s", current_time);
+    view.set_title(title);
+    view.show(&h_iter_prev);
+
+    // Save the next time level solution.
+    h_time_prev.copy(&h_iter_prev);
   }
   while (current_time < T_FINAL);
 
