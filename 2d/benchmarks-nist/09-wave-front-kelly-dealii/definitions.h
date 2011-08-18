@@ -49,7 +49,7 @@ public:
   { };
 
   virtual double value(double x, double y) const;
-  virtual Ord value_ord (Ord x, Ord y) const { return Ord(8); }
+  virtual Ord value (Ord x, Ord y) const { return Ord(8); }
   
   double alpha, x_loc, y_loc, r_zero;
 };

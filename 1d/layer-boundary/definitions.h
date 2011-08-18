@@ -46,7 +46,7 @@ public:
 
   virtual double value(double x, double y) const;
 
-  virtual Ord value_ord(Ord x, Ord y) const;
+  virtual Ord value(Ord x, Ord y) const;
 
   ~CustomFunction();
 

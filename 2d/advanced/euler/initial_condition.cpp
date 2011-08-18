@@ -13,7 +13,7 @@ public:
   };
 
   virtual Ord ord(Ord x, Ord y) const {
-    return constant;
+    return Ord(constant);
   }
 
   // Value.
@@ -35,7 +35,7 @@ public:
   };
 
   virtual Ord ord(Ord x, Ord y) const {
-    return constant;
+    return Ord(constant);
   }
 
   // Value.
@@ -57,7 +57,7 @@ public:
   };
 
   virtual Ord ord(Ord x, Ord y) const {
-    return constant;
+    return Ord(constant);
   }
 
   // Value.
@@ -79,7 +79,7 @@ public:
   };
 
   virtual Ord ord(Ord x, Ord y) const {
-    return constant;
+    return Ord(constant);
   }
 
   // Value.
@@ -101,7 +101,7 @@ public:
   };
 
   virtual Ord ord(Ord x, Ord y) const {
-    return constant;
+    return Ord(constant);
   }
 
   // Value.

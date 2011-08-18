@@ -57,7 +57,7 @@ double CustomFunction::value(double x, double y) const
   return -(-cef->dduhat_dxx(x) + coeff1 * coeff1 * cef->uhat(x));
 }
 
-Ord CustomFunction::value_ord(Ord x, Ord y) const 
+Ord CustomFunction::value(Ord x, Ord y) const 
 {
   return Ord(5);
 }

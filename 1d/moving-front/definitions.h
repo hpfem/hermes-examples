@@ -33,7 +33,7 @@ public:
 
   virtual double value(double x, double y, double t) const;
 
-  virtual Ord value_ord(Ord x, Ord y) const;
+  virtual Ord value(Ord x, Ord y) const;
 
   double x0, x1, y0, y1, s, c, *t_ptr;
 };
@@ -71,4 +71,16 @@ public:
     Hermes::Hermes1DFunction<double>* coeff = HERMES_ONE,
     Hermes::Hermes2DFunction<double>* f = HERMES_ONE,
     GeomType gt = HERMES_PLANAR);
+};
+
+class ZeroInitialCondition : public ExactSolutionScalar<double>
+{
+public:
+  ZeroInitialCondition(Mesh* mesh);
+
+  virtual double value (double x, double y) const;
+
+  virtual void derivatives (double x, double y, double& dx, double& dy) const;
+
+  virtual Ord ord(Ord x, Ord y) const;
 };

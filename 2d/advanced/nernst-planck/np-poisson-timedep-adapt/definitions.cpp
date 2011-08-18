@@ -28,7 +28,7 @@ private:
     template<typename Real, typename Scalar>
     Real matrix_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u,
                        Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const {
-      Real result = 0;
+      Real result = Real(0);
       Func<Scalar>* prev_newton;
       switch(i * 10 + j) {
         case 0:
@@ -91,7 +91,7 @@ private:
         template<typename Real, typename Scalar>
         Real vector_form(int n, double *wt, Func<Scalar> *u_ext[],
                             Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const {
-          Real result = 0;
+          Real result = Real(0);
           Func<Scalar>* C_prev_time;
           Func<Scalar>* phi_prev_time;
           Func<Scalar>* C_prev_newton;
@@ -176,7 +176,7 @@ private:
     template<typename Real, typename Scalar>
     Real matrix_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u,
                        Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const {
-      Real result = 0;
+      Real result = Real(0);
       Func<Scalar>* prev_newton;
       switch(i * 10 + j) {
         case 0:
@@ -242,7 +242,7 @@ private:
       template<typename Real, typename Scalar>
       Real vector_form(int n, double *wt, Func<Scalar> *u_ext[],
                           Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const {
-        Real result = 0;
+        Real result = Real(0);
         Func<Scalar>* C_prev_time;
         Func<Scalar>* phi_prev_time;
         Func<Scalar>* C_prev_newton;
@@ -325,7 +325,7 @@ private:
     template<typename Real, typename Scalar>
     Real matrix_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u,
                        Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const {
-      Real result = 0;
+      Real result = Real(0);
 	    Func<Scalar>* prev_newton;
       switch(i * 10 + j) {
         case 0:
@@ -390,7 +390,7 @@ private:
     template<typename Real, typename Scalar>
     Real vector_form(int n, double *wt, Func<Scalar> *u_ext[],
                         Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const {
-      Real result = 0;
+      Real result = Real(0);
       Func<Scalar>* C_prev_time;
 	    Func<Scalar>* C_prev_newton;
 	    Func<Scalar>* phi_prev_newton;

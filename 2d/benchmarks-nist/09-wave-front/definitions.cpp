@@ -31,7 +31,7 @@ double CustomWeakForm::Residual::value(int n, double* wt, Func< double >* u_ext[
 Ord CustomWeakForm::Residual::ord(int n, double* wt, Func< Ord >* u_ext[], Func< Ord >* v, 
                                   Geom< Ord >* e, ExtData< Ord >* ext) const
 { 
-  return u_ext[0]->dx[0] * v->dx[0] + u_ext[0]->dy[0] * v->dy[0] + rhs->value_ord(e->x[0], e->y[0]) * v->val[0];
+  return u_ext[0]->dx[0] * v->dx[0] + u_ext[0]->dy[0] * v->dy[0] + rhs->value(e->x[0], e->y[0]) * v->val[0];
 }
 
 double CustomRightHandSide::value(double x, double y) const

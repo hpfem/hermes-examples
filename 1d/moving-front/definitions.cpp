@@ -33,7 +33,7 @@ double CustomFunction::value(double x, double y, double t) const
   return -f;
 }
 
-Ord CustomFunction::value_ord(Ord x, Ord y) const 
+Ord CustomFunction::value(Ord x, Ord y) const 
 {
   return Ord(20);
 }
@@ -89,21 +89,21 @@ double CustomVectorFormVol::value(int n, double *wt, Func<double> *u_ext[], Func
 Ord CustomVectorFormVol::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v,
   Geom<Ord> *e, ExtData<Ord> *ext) const 
 {
-  Ord result = 0;
+  Ord result = Ord(0);
   if (gt == HERMES_PLANAR) {
     for (int i = 0; i < n; i++) {
-      result += wt[i] * coeff->value_ord(e->x[i], e->y[i]) * v->val[i];
+      result += wt[i] * coeff->value(e->x[i], e->y[i]) * v->val[i];
     }
   }
   else {
     if (gt == HERMES_AXISYM_X) {
       for (int i = 0; i < n; i++) {
-        result += wt[i] * e->y[i] * coeff->value_ord(e->x[i], e->y[i]) * v->val[i];
+        result += wt[i] * e->y[i] * coeff->value(e->x[i], e->y[i]) * v->val[i];
       }
     }
     else {
       for (int i = 0; i < n; i++) {
-        result += wt[i] * e->x[i] * coeff->value_ord(e->x[i], e->y[i]) * v->val[i];
+        result += wt[i] * e->x[i] * coeff->value(e->x[i], e->y[i]) * v->val[i];
       }
     }
   }
@@ -128,3 +128,20 @@ CustomWeakFormPoisson::CustomWeakFormPoisson(std::string area,
   add_vector_form(new WeakFormsH1::DefaultResidualDiffusion<double>(0, area, coeff, gt));
   add_vector_form(new CustomVectorFormVol(0, area, f, gt));
 };
+
+ZeroInitialCondition::ZeroInitialCondition(Mesh* mesh) : ExactSolutionScalar<double>(mesh) 
+{
+}
+
+double ZeroInitialCondition::value (double x, double y) const {
+  return 0.0; 
+}
+
+void ZeroInitialCondition::derivatives (double x, double y, double& dx, double& dy) const {
+  dx = 0;
+  dy = 0;
+}
+
+Ord ZeroInitialCondition::ord(Ord x, Ord y) const {
+  return Ord(0);
+}

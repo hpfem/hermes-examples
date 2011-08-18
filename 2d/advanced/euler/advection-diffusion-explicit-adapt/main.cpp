@@ -255,6 +255,7 @@ int main(int argc, char* argv[])
       OGProjection<double>::project_global(*ref_spaces, Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_c), 
         Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_c), matrix_solver_type);
 
+      /*
       if(iteration == 1) {
         if(CAND_LIST_FLOW == H2D_HP_ANISO)
         {
@@ -265,6 +266,7 @@ int main(int argc, char* argv[])
         }
         prev_c.set_const((*ref_spaces)[4]->get_mesh(), 0.0);
       }
+      */
 
       if(as > 1) {
         delete rsln_rho.get_mesh();

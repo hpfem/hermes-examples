@@ -125,7 +125,7 @@ int main(int argc, char* argv[])
   CustomWeakFormPoisson wf(HERMES_ANY, new Hermes::Hermes1DFunction<double>(-1.0), &f);
 
   // Previous and next time level solution.
-  Solution<double> sln_time_prev(&mesh, 0);
+  ZeroInitialCondition sln_time_prev(&mesh);
   Solution<double> sln_time_new(&mesh);
 
   // Create a refinement selector.
