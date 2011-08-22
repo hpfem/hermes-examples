@@ -76,7 +76,7 @@ int main(int argc, char* argv[])
   Solution<double>::vector_to_solution(coeff_vec, &space, &h_time_prev);
 
   // Initialize views.
-  ScalarView<double> view("", new WinGeom(0, 0, 600, 500));
+  ScalarView<double> view("Initial condition", new WinGeom(0, 0, 600, 500));
   view.fix_scale_width(80);
 
   // Visualize the initial condition.
@@ -109,7 +109,7 @@ int main(int argc, char* argv[])
 
     // Visualize the solution.
     char title[100];
-    sprintf(title, "Time %3.2f s", current_time);
+    sprintf(title, "Time %g s", current_time);
     view.set_title(title);
     view.show(&h_time_prev);
 
