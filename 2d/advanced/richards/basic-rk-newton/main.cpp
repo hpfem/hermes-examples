@@ -1,11 +1,12 @@
 #define HERMES_REPORT_ALL
 #define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
+#include "function/function.h"
 
 using namespace RefinementSelectors;
 
-//  This example is similar to basic-ie-newton except it uses the 
-//  Picard's method in each time step.
+//  This example solves the Tracy problem with arbitrary Runge-Kutta 
+//  methods in time. 
 //
 //  PDE: C(h)dh/dt - div(K(h)grad(h)) - (dK/dh)*(dh/dy) = 0
 //  where K(h) = K_S*exp(alpha*h)                          for h < 0,
@@ -36,14 +37,36 @@ const double T_FINAL = 0.4;                       // Time interval length.
 MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
                                                   // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 
-// Picard's method.
-const int PICARD_NUM_LAST_ITER_USED = 3;          // Number of last iterations used.
-const double PICARD_ANDERSON_BETA = 1.0;          // Parameter for the Anderson acceleration. 
-const double PICARD_TOL = 1e-6;                   // Stopping criterion for the Picard's method.
-const int PICARD_MAX_ITER = 100;                  // Maximum allowed number of Picard iterations.
+// Newton's method.
+const double NEWTON_TOL = 1e-6;                   // Stopping criterion for the Newton's method.
+const int NEWTON_MAX_ITER = 100;                  // Maximum allowed number of Newton iterations.
+const double DAMPING_COEFF = 1.0;
+
+// Choose one of the following time-integration methods, or define your own Butcher's table. The last number 
+// in the name of each method is its order. The one before last, if present, is the number of stages.
+// Explicit methods:
+//   Explicit_RK_1, Explicit_RK_2, Explicit_RK_3, Explicit_RK_4.
+// Implicit methods: 
+//   Implicit_RK_1, Implicit_Crank_Nicolson_2_2, Implicit_SIRK_2_2, Implicit_ESIRK_2_2, Implicit_SDIRK_2_2, 
+//   Implicit_Lobatto_IIIA_2_2, Implicit_Lobatto_IIIB_2_2, Implicit_Lobatto_IIIC_2_2, Implicit_Lobatto_IIIA_3_4, 
+//   Implicit_Lobatto_IIIB_3_4, Implicit_Lobatto_IIIC_3_4, Implicit_Radau_IIA_3_5, Implicit_SDIRK_5_4.
+// Embedded explicit methods:
+//   Explicit_HEUN_EULER_2_12_embedded, Explicit_BOGACKI_SHAMPINE_4_23_embedded, Explicit_FEHLBERG_6_45_embedded,
+//   Explicit_CASH_KARP_6_45_embedded, Explicit_DORMAND_PRINCE_7_45_embedded.
+// Embedded implicit methods:
+//   Implicit_SDIRK_CASH_3_23_embedded, Implicit_ESDIRK_TRBDF2_3_23_embedded, Implicit_ESDIRK_TRX2_3_23_embedded, 
+//   Implicit_SDIRK_BILLINGTON_3_23_embedded, Implicit_SDIRK_CASH_5_24_embedded, Implicit_SDIRK_CASH_5_34_embedded, 
+//   Implicit_DIRK_ISMAIL_7_45_embedded. 
+ButcherTableType butcher_table_type = Implicit_RK_1;
 
 int main(int argc, char* argv[])
 {
+  // Choose a Butcher's table or define your own.
+  ButcherTable bt(butcher_table_type);
+  if (bt.is_explicit()) info("Using a %d-stage explicit R-K method.", bt.get_size());
+  if (bt.is_diagonally_implicit()) info("Using a %d-stage diagonally implicit R-K method.", bt.get_size());
+  if (bt.is_fully_implicit()) info("Using a %d-stage fully implicit R-K method.", bt.get_size());
+
   // Load the mesh.
   Mesh mesh;
   MeshReaderH2D mloader;
@@ -68,9 +91,9 @@ int main(int argc, char* argv[])
   memset(coeff_vec, 0, ndof*sizeof(double));
 
   // Convert initial condition into a Solution.
-  Solution<double> h_time_prev, h_iter_prev;
+  Solution<double> h_time_prev, h_time_new;
   Solution<double>::vector_to_solution(coeff_vec, &space, &h_time_prev);
-  Solution<double>::vector_to_solution(coeff_vec, &space, &h_iter_prev);
+  delete [] coeff_vec;
 
   // Initialize views.
   ScalarView<double> view("Initial condition", new WinGeom(0, 0, 600, 500));
@@ -80,41 +103,50 @@ int main(int argc, char* argv[])
   view.show(&h_time_prev);
 
   // Initialize the weak formulation.
-  double current_time = 0;
-  CustomWeakFormRichardsIEPicard wf(time_step, &h_time_prev, &h_iter_prev);
+  CustomWeakFormRichardsRK wf;
 
   // Initialize the FE problem.
   DiscreteProblem<double> dp(&wf, &space);
 
-  // Initialize the Picard solver.
-  PicardSolver<double> picard(&dp, &h_iter_prev, matrix_solver);
-  picard.set_verbose_output(true);
+  // Initialize Runge-Kutta time stepping.
+  RungeKutta<double> runge_kutta(&dp, &bt, matrix_solver);
 
   // Time stepping:
+  double current_time = 0;
   int ts = 1;
   do 
   {
     info("---- Time step %d, time %3.5f s", ts, current_time);
 
-    // Perform the Picard's iteration (Anderson acceleration on by default).
-    if (!picard.solve(PICARD_TOL, PICARD_MAX_ITER, PICARD_NUM_LAST_ITER_USED, 
-                      PICARD_ANDERSON_BETA)) error("Picard's iteration failed.");
+    // Perform one Runge-Kutta time step according to the selected Butcher's table.
+    info("Runge-Kutta time step (t = %g s, time step = %g s, stages: %d).", 
+         current_time, time_step, bt.get_size());
+    bool freeze_jacobian = false;
+    bool verbose = true;
+    double damping_coeff = 1.0;
+    double max_allowed_residual_norm = 1e10;
+    if (!runge_kutta.rk_time_step(current_time, time_step, &h_time_prev, 
+                                  &h_time_new, freeze_jacobian, verbose,
+                                  NEWTON_TOL, NEWTON_MAX_ITER, damping_coeff,
+                                  max_allowed_residual_norm)) 
+    {
+      error("Runge-Kutta time step failed, try to decrease time step size.");
+    }
 
-    // Translate the coefficient vector into a Solution. 
-    Solution<double>::vector_to_solution(picard.get_sln_vector(), &space, &h_iter_prev);
+    // Copy solution for the new time step.
+    h_time_prev.copy(&h_time_new);
 
-    // Increase current time and time step counter.
+    // Increase current time.
     current_time += time_step;
-    ts++;
 
     // Visualize the solution.
     char title[100];
-    sprintf(title, "Time %g s", current_time);
+    sprintf(title, "Time %3.2f s", current_time);
     view.set_title(title);
-    view.show(&h_iter_prev);
+    view.show(&h_time_prev);
 
-    // Save the next time level solution.
-    h_time_prev.copy(&h_iter_prev);
+    // Increase time step counter.
+    ts++;
   }
   while (current_time < T_FINAL);
 

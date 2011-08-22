@@ -41,18 +41,18 @@ public:
 
 /* Weak forms */
 
-class CustomWeakFormRichardsIE : public WeakForm<double>
+class CustomWeakFormRichardsRK : public WeakForm<double>
 {
 public:
-  CustomWeakFormRichardsIE(double time_step, Solution<double>* h_time_prev);
+  CustomWeakFormRichardsRK();
 
 private:
 
   class CustomJacobianFormVol : public MatrixFormVol<double>
   {
   public:
-    CustomJacobianFormVol(int i, int j, double time_step) 
-          : MatrixFormVol<double>(i, j), time_step(time_step) 
+    CustomJacobianFormVol(int i, int j) 
+          : MatrixFormVol<double>(i, j) 
     {
     }
 
@@ -63,15 +63,15 @@ private:
                     Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const;
 
     virtual MatrixFormVol<double>* clone();
-
-    double time_step;
   };
 
   class CustomResidualFormVol : public VectorFormVol<double>
   {
   public:
-    CustomResidualFormVol(int i, double time_step)
-          : VectorFormVol<double>(i), time_step(time_step) {};
+    CustomResidualFormVol(int i)
+          : VectorFormVol<double>(i) 
+    {
+    }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e,
                          ExtData<double> *ext) const;
@@ -80,8 +80,6 @@ private:
                     ExtData<Ord> *ext) const;
 
     virtual VectorFormVol<double>* clone();
-
-    double time_step;
   };
 };
 
