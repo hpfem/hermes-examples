@@ -20,6 +20,7 @@ const int P_INIT_PRESSURE = 1;
 
 // Reynolds number.
 const double RE = 200.0;
+const double TEMP_INIT = 20.0;
 
 // Inlet velocity (reached after STARTUP_TIME).
 const double VEL_INLET = 1.0;
@@ -33,7 +34,7 @@ const double T_FINAL = 30000.0;                   // Time interval length.
 const double NEWTON_TOL = 1e-4;                   // Stopping criterion for the Newton's method.
 const int NEWTON_MAX_ITER = 10;                   // Maximum allowed number of Newton iterations.
 const double H = 6;                               // Domain height (necessary to define the parabolic
-// velocity profile at inlet).
+                                                  // velocity profile at inlet).
 
 // Uniform polynomial degree of mesh elements.
 const int P_INIT = 2;
@@ -78,7 +79,7 @@ int main(int argc, char* argv[])
   Hermes::Hermes2D::EssentialBCs<double> bcs_pressure;
 
   // Temperature.
-  Hermes::Hermes2D::DefaultEssentialBCConst<double> bc_temperature(Hermes::vector<std::string>(BDY_INLET, BDY_OUTER), 0.0);
+  Hermes::Hermes2D::DefaultEssentialBCConst<double> bc_temperature(Hermes::vector<std::string>(BDY_INLET, BDY_OUTER), 20.0);
   EssentialBCs<double> bcs_temperature(&bc_temperature);
 
   // Spaces for velocity components and pressure.
@@ -107,7 +108,8 @@ int main(int argc, char* argv[])
 
   // Solutions for the Newton's iteration and time stepping.
   info("Setting initial conditions.");
-  ZeroInitialCondition xvel_prev_time(&mesh_without_hole), yvel_prev_time(&mesh_without_hole), p_prev_time(&mesh_without_hole), temperature_prev_time(&mesh_whole_domain); 
+  ZeroInitialCondition xvel_prev_time(&mesh_without_hole), yvel_prev_time(&mesh_without_hole), p_prev_time(&mesh_without_hole);
+  ConstInitialCondition  temperature_prev_time(&mesh_whole_domain, TEMP_INIT); 
 
   // Initialize weak formulation.
   CustomWeakFormHeatAndFlow wf(STOKES, RE, TAU, &xvel_prev_time, &yvel_prev_time, &temperature_prev_time);
@@ -121,7 +123,7 @@ int main(int argc, char* argv[])
   // Initialize views.
   Views::VectorView<double> vview("velocity [m/s]", new Views::WinGeom(0, 0, 500, 300));
   Views::ScalarView<double> pview("pressure [Pa]", new Views::WinGeom(0, 310, 500, 300));
-  Views::ScalarView<double> tempview("temperature [Pa]", new Views::WinGeom(510, 0, 500, 300));
+  Views::ScalarView<double> tempview("temperature [C]", new Views::WinGeom(510, 0, 500, 300));
   vview.set_min_max_range(0, 1.6);
   vview.fix_scale_width(80);
   //pview.set_min_max_range(-0.9, 1.0);
@@ -167,16 +169,20 @@ int main(int argc, char* argv[])
     }
     
     // Show the solution at the end of time step.
-    sprintf(title, "Velocity, time %g", current_time);
+    sprintf(title, "Velocity [m/s], time %g s", current_time);
     vview.set_title(title);
     vview.show(&xvel_prev_time, &yvel_prev_time, Views::HERMES_EPS_LOW);
-    sprintf(title, "Pressure, time %g", current_time);
+    sprintf(title, "Pressure [Pa], time %g s", current_time);
     pview.set_title(title);
     pview.show(&p_prev_time);
+    sprintf(title, "Temperature [C], time %g s", current_time);
+    tempview.set_title(title);
     tempview.show(&temperature_prev_time);
-    vview.save_numbered_screenshot("Velocity %i.bmp", ts);
-    pview.save_numbered_screenshot("Pressure %i.bmp", ts);
-    tempview.save_numbered_screenshot("Temperature %i.bmp", ts);
+
+    // Save numbered screenshots.
+    vview.save_numbered_screenshot("Velocity_%i.bmp", ts);
+    pview.save_numbered_screenshot("Pressure_%i.bmp", ts);
+    tempview.save_numbered_screenshot("Temperature_%i.bmp", ts);
   }
 
   delete [] coeff_vec;
