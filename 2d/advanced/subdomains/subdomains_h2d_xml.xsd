@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<schema targetNamespace="XMLSubdomains"
+	xmlns="http://www.w3.org/2001/XMLSchema"
+	xmlns:mesh="XMLMesh">
+	<import namespace="XMLMesh" 
+  schemaLocation="mesh_h2d_xml.xsd"/>	
+  <element name="domain">
+		<complexType>
+      <sequence>
+        <element minOccurs="0" maxOccurs="1" name="variables"
+        type="mesh:variables_type" />
+        <element minOccurs="1" maxOccurs="1" name="vertices"
+        type="mesh:vertices_type" />
+        <element minOccurs="1" maxOccurs="1" name="elements"
+        type="mesh:elements_type" />
+        <element minOccurs="1" maxOccurs="1" name="boundary_edges"
+        type="mesh:boundary_edges_type" />
+        <element minOccurs="0" maxOccurs="1" name="curves"
+        type="mesh:curves_type" />
+				<element name="subdomains">
+					<complexType>
+						<sequence>
+							<element minOccurs="1" maxOccurs="unbounded" name="subdomain">
+								<complexType mixed="true">
+									<sequence>
+										<element minOccurs="0" maxOccurs="unbounded" name="vertex_number">
+											<complexType>
+												<attribute name="number" type="integer" use="required" />
+											</complexType>
+										</element>
+										<element minOccurs="0" maxOccurs="unbounded" name="element_number">
+											<complexType>
+												<attribute name="number" type="integer" use="required" />
+											</complexType>
+										</element>										
+										<element minOccurs="0" maxOccurs="unbounded" name="boundary_edge_number">
+											<complexType>
+												<attribute name="number" type="integer" use="required" />
+											</complexType>
+										</element>
+                    <element minOccurs="0" maxOccurs="1" name="refinements" type="mesh:refinements_type" />
+									</sequence>
+									<attribute name="name" type="string" use="required" />
+								</complexType>
+							</element>
+						</sequence>
+					</complexType>
+				</element>
+      </sequence>
+    </complexType>
+  </element>
+</schema>
