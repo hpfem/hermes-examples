@@ -64,7 +64,7 @@ double CustomEssentialBCNonConst::value(double x, double y, double n_x, double n
 
 /* Custom weak forms */
 
-CustomWeakFormRichardsIEPicard::CustomWeakFormRichardsIEPicard(double time_step, Solution<double>* h_time_prev, Solution<double>* h_iter_prev) : WeakForm(1)
+CustomWeakFormRichardsIEPicard::CustomWeakFormRichardsIEPicard(double time_step, Solution<double>* h_time_prev, Solution<double>* h_iter_prev) : WeakForm<double>(1)
 {
   // Jacobian.
   CustomJacobian* matrix_form = new CustomJacobian(0, 0, time_step);
