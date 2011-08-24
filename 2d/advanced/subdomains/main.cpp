@@ -37,8 +37,11 @@ const double H = 6;                               // Domain height (necessary to
 
 // Uniform polynomial degree of mesh elements.
 const int P_INIT = 2;
-// Number of initial uniform mesh refinements.
-const int INIT_REF_NUM = 3;
+
+// Number of initial mesh refinements.
+const int INIT_REF_NUM = 3;   // Uniform.
+const int INIT_REF_NUM_HOLE = 3;   // Towards the hole.
+
 // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 Hermes::MatrixSolverType matrix_solver_type = Hermes::SOLVER_UMFPACK;  
@@ -61,6 +64,9 @@ int main(int argc, char* argv[])
     for(unsigned int meshes_i = 0; meshes_i < meshes.size(); meshes_i++)
       meshes[meshes_i]->refine_all_elements();
 
+  // Perform refinement towards the hole.
+  for(unsigned int meshes_i = 0; meshes_i < meshes.size(); meshes_i++)
+    meshes[meshes_i]->refine_towards_boundary("Inner", INIT_REF_NUM_HOLE);
 
   // Initialize boundary conditions.
   // Flow.
