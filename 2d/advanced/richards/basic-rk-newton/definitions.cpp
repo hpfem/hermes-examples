@@ -53,7 +53,7 @@ double ddCdhh(double h)
 
 EssentialBoundaryCondition<double>::EssentialBCValueType CustomEssentialBCNonConst::get_value_type() const
 { 
-  return EssentialBoundaryCondition::BC_FUNCTION; 
+  return EssentialBoundaryCondition<double>::BC_FUNCTION; 
 }
 
 double CustomEssentialBCNonConst::value(double x, double y, double n_x, double n_y, 
@@ -64,7 +64,7 @@ double CustomEssentialBCNonConst::value(double x, double y, double n_x, double n
 
 /* Custom weak forms */
 
-CustomWeakFormRichardsRK::CustomWeakFormRichardsRK() : WeakForm(1)
+CustomWeakFormRichardsRK::CustomWeakFormRichardsRK() : WeakForm<double>(1)
 {
   // Jacobian volumetric part.
   CustomJacobianFormVol* jac_form_vol = new CustomJacobianFormVol(0, 0);
