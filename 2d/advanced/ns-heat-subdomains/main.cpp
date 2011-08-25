@@ -4,7 +4,7 @@
 using namespace Hermes;
 using namespace Hermes::Hermes2D;
 
-// This test makes sure that subdomains work correctly.
+// This example shows the use of subdomains.
 
 const bool STOKES = false;
 
@@ -25,6 +25,9 @@ const double TEMP_INIT = 20.0;
 // Inlet velocity (reached after STARTUP_TIME).
 const double VEL_INLET = 1.0;
 
+// Domain length.
+const double L = 10;
+
 // During this time, inlet velocity increases gradually
 // from 0 to VEL_INLET, then it stays constant.
 const double STARTUP_TIME = 1.0;
@@ -35,6 +38,30 @@ const double NEWTON_TOL = 1e-4;                   // Stopping criterion for the 
 const int NEWTON_MAX_ITER = 10;                   // Maximum allowed number of Newton iterations.
 const double H = 6;                               // Domain height (necessary to define the parabolic
                                                   // velocity profile at inlet).
+
+// Heat source inside of the inner circle.
+const double HEAT_SOURCE = 1;
+
+// Specific heat outside of the inner circle.
+const double SPECIFIC_HEAT_OUTER = 711;
+
+// Specific heat inside of the inner circle.
+const double SPECIFIC_HEAT_INNER = 4190;
+
+// Density outside of the inner circle.
+const double RHO_OUTER = 1000;
+
+// Density in the inner circle.
+const double RHO_INNER = 1800;
+
+// Thermal diffusivity ouside of the inner circle.
+const double THERMAL_DIFFUSIVITY_OUTER = 1.4E-7;
+
+// Thermal diffusivity in the inner circle.
+const double THERMAL_DIFFUSIVITY_INNER = 1.22E-3;
+
+// Viscosity of the media outside of the inner circle.
+const double VISCOSITY_OUTER = 8.9e-4;
 
 // Uniform polynomial degree of mesh elements.
 const int P_INIT = 2;
@@ -112,7 +139,8 @@ int main(int argc, char* argv[])
   ConstInitialCondition  temperature_prev_time(&mesh_whole_domain, TEMP_INIT); 
 
   // Initialize weak formulation.
-  CustomWeakFormHeatAndFlow wf(STOKES, RE, TAU, &xvel_prev_time, &yvel_prev_time, &temperature_prev_time);
+  CustomWeakFormHeatAndFlow wf(STOKES, RE, TAU, &xvel_prev_time, &yvel_prev_time, &temperature_prev_time, 
+    HEAT_SOURCE, SPECIFIC_HEAT_OUTER, SPECIFIC_HEAT_INNER, RHO_OUTER, RHO_INNER, THERMAL_DIFFUSIVITY_OUTER, THERMAL_DIFFUSIVITY_INNER, RE * VISCOSITY_OUTER / (RHO_OUTER * L));
   
   // Initialize the FE problem.
   DiscreteProblem<double> dp(&wf, Hermes::vector<Space<double> *>(&xvel_space, &yvel_space, &p_space, &temperature_space));
@@ -178,11 +206,6 @@ int main(int argc, char* argv[])
     sprintf(title, "Temperature [C], time %g s", current_time);
     tempview.set_title(title);
     tempview.show(&temperature_prev_time);
-
-    // Save numbered screenshots.
-    vview.save_numbered_screenshot("Velocity_%i.bmp", ts);
-    pview.save_numbered_screenshot("Pressure_%i.bmp", ts);
-    tempview.save_numbered_screenshot("Temperature_%i.bmp", ts);
   }
 
   delete [] coeff_vec;
