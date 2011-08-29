@@ -9,6 +9,7 @@ xmlns="http://www.w3.org/2001/XMLSchema">
         <element minOccurs="2" maxOccurs="unbounded" name="vertex" >
           <complexType>
             <attribute name="x" type="string" use="required"/>
+            <attribute name="marker" type="string"/>
           </complexType>
         </element>
       </sequence>

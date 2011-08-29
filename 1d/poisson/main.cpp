@@ -30,8 +30,8 @@ int main(int argc, char* argv[])
 {
   // Load the mesh.
   Hermes::Hermes2D::Mesh mesh;
-  Hermes::Hermes2D::MeshReaderH2D mloader;
-  mloader.load("domain.mesh", &mesh);
+  Hermes::Hermes2D::MeshReaderH1DXML mloader;
+  mloader.load("domain.xml", &mesh);
 
   // Perform initial mesh refinements (optional).
   int refinement_type = 2;            // Split elements vertically.
@@ -41,7 +41,7 @@ int main(int argc, char* argv[])
   Hermes::Hermes2D::Views::MeshView mview("Mesh", new Hermes::Hermes2D::Views::WinGeom(0, 0, 900, 250));
   if (HERMES_VISUALIZATION) {
     mview.show(&mesh);
-    //mview.wait();
+    mview.wait();
   }
 
   // Initialize the weak formulation.
@@ -57,7 +57,7 @@ int main(int argc, char* argv[])
   Hermes::Hermes2D::H1Space<double> space(&mesh, &bcs, P_INIT);
   int ndof = space.get_num_dofs();
   info("ndof = %d", ndof);
-
+  
   // Initialize the FE problem.
   Hermes::Hermes2D::DiscreteProblem<double> dp(&wf, &space);
 
