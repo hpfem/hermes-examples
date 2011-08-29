@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mesh:mesh xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:mesh="XMLMesh1D"
+	xmlns:element="XMLMesh1D"
+	xsi:schemaLocation="XMLMesh1D ../xml_schemas/mesh_h1d_xml.xsd">
+  <variables>
+    <variable name="a" value="0.0" />
+    <variable name="b" value="3.141592654" />
+		<variable name="c" value="6.283185307" />		
+  </variables>
+
+  <vertex x="a" marker="Cu"/>
+  <vertex x="b" marker="Al"/>
+  <vertex x="c" />
+</mesh:mesh>
