@@ -2,7 +2,7 @@
 <domain:domain xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:domain="XMLSubdomains"
 	xmlns:element="XMLMesh"
-	xsi:schemaLocation="XMLSubdomains subdomains_h2d_xml.xsd">
+	xsi:schemaLocation="XMLSubdomains ../../xml_schemas/subdomains_h2d_xml.xsd">
   <vertices>
     <vertex x="0" y="0" />
     <vertex x="10" y="0" />
