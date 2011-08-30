@@ -64,7 +64,7 @@ const double CONV_EXP = 1;                        // Default value is 1.0. This 
                                                   // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
 const double ERR_STOP = 0.1;                      // Stopping criterion for adaptivity (rel. error tolerance between the
                                                   // fine mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 60000;                      // Adaptivity process stops when the number of degrees of freedom grows over
+const int NDOF_STOP = 1000;                       // Adaptivity process stops when the number of degrees of freedom grows over
                                                   // this limit. This is mainly to prevent h-adaptivity to go on forever.
  Hermes::MatrixSolverType matrix_solver = Hermes::SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
                                                   // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
@@ -85,15 +85,23 @@ int main(int argc, char* argv[])
 
   // Load the mesh.
   Mesh u_mesh, v_mesh;
-  MeshReaderH2D mloader;
-  mloader.load("domain.mesh", &u_mesh);
-  if (MULTI == false) u_mesh.refine_towards_boundary("Bdy", INIT_REF_BDY);
+  MeshReaderH1DXML mloader;
+  mloader.load("domain.xml", &u_mesh);
+  if (MULTI == false) 
+  {
+    u_mesh.refine_towards_boundary("Left", INIT_REF_BDY);
+    if (INIT_REF_BDY > 1) u_mesh.refine_towards_boundary("Right", INIT_REF_BDY - 1);  // Minus one for the sake of mesh symmetry. 
+  }
 
   // Create initial mesh (master mesh).
   v_mesh.copy(&u_mesh);
 
   // Initial mesh refinements in the v_mesh towards the boundary.
-  if (MULTI == true) v_mesh.refine_towards_boundary("Bdy", INIT_REF_BDY);
+  if (MULTI == true) 
+  {
+    v_mesh.refine_towards_boundary("Left", INIT_REF_BDY);
+    if (INIT_REF_BDY > 1) v_mesh.refine_towards_boundary("Right", INIT_REF_BDY - 1);  // Minus one for the sake of mesh symmetry. 
+  }
 
 #ifdef WITH_EXACT_SOLUTION
   // Set exact solutions.
@@ -109,9 +117,9 @@ int main(int argc, char* argv[])
   CustomWeakForm wf(&g1, &g2);
   
   // Initialize boundary conditions
-  DefaultEssentialBCConst<double> bc_u("Bdy", 0.0);
+  DefaultEssentialBCConst<double> bc_u(Hermes::vector<std::string>("Left", "Right"), 0.0);
   EssentialBCs<double> bcs_u(&bc_u);
-  DefaultEssentialBCConst<double> bc_v("Bdy", 0.0);
+  DefaultEssentialBCConst<double> bc_v(Hermes::vector<std::string>("Left", "Right"), 0.0);
   EssentialBCs<double> bcs_v(&bc_v);
 
   // Create H1 spaces with default shapeset for both displacement components.
