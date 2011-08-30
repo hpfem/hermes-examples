@@ -54,7 +54,7 @@ const double CONV_EXP = 1.0;                      // Default value is 1.0. This 
                                                   // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
 const double ERR_STOP = 1.0;                      // Stopping criterion for adaptivity (rel. error tolerance between the
                                                   // fine mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 60000;                      // Adaptivity process stops when the number of degrees of freedom grows
+const int NDOF_STOP = 1000;                       // Adaptivity process stops when the number of degrees of freedom grows
                                                   // over this limit. This is to prevent h-adaptivity to go on forever.
 MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
                                                   // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
@@ -78,7 +78,7 @@ const int NEWTON_MAX_ITER = 20;                   // Maximum allowed number of N
 //   Implicit_SDIRK_CASH_3_23_embedded, Implicit_ESDIRK_TRBDF2_3_23_embedded, Implicit_ESDIRK_TRX2_3_23_embedded,
 //   Implicit_SDIRK_BILLINGTON_3_23_embedded, Implicit_SDIRK_CASH_5_24_embedded, Implicit_SDIRK_CASH_5_34_embedded,
 //   Implicit_DIRK_ISMAIL_7_45_embedded.
-ButcherTableType butcher_table_type = Implicit_RK_1;
+ButcherTableType butcher_table_type = Implicit_SDIRK_2_2;
 
 // Problem parameters.
 double x_0 = 0.0;
@@ -101,11 +101,11 @@ int main(int argc, char* argv[])
 
   // Load the mesh.
   Mesh mesh, basemesh;
-  MeshReaderH2D mloader;
-  mloader.load("domain.mesh", &basemesh);
+  MeshReaderH1DXML mloader;
+  mloader.load("domain.xml", &basemesh);
 
   // Perform initial mesh refinements.
-  int refinement_type = 2;            // Split elements vertically.
+  int refinement_type = 2;                        // Split elements vertically.
   for(int i = 0; i < INIT_REF_NUM; i++) basemesh.refine_all_elements(refinement_type, true);
   mesh.copy(&basemesh);
   
@@ -113,7 +113,7 @@ int main(int argc, char* argv[])
   CustomExactSolution exact_sln(&mesh, x_0, x_1, y_0, y_1, &current_time, s, c);
 
   // Initialize boundary conditions.
-  DefaultEssentialBCConst<double> bc_essential("Bdy", 0);
+  DefaultEssentialBCConst<double> bc_essential(Hermes::vector<std::string>("Left", "Right"), 0);
   EssentialBCs<double> bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.

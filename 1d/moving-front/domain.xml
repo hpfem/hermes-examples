@@ -5,13 +5,11 @@
   xsi:schemaLocation="XMLMesh1D ../xml_schemas/mesh_h1d_xml.xsd">
 
   <variables>
-    <variable name="a" value="-1.0" />
-    <variable name="b" value="0.0" />		
-    <variable name="c" value="1.0" />		
+    <variable name="a" value="0.0" />
+    <variable name="b" value="10.0" />				
   </variables>
 
   <vertex x="a" marker="Material" />
-  <vertex x="b" marker="Material" />
-  <vertex x="c"  />
+  <vertex x="b" />
 
 </mesh:mesh>
