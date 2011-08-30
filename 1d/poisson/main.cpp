@@ -39,20 +39,13 @@ int main(int argc, char* argv[])
   int refinement_type = 2;            // Split elements vertically.
   for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements(refinement_type);
 
-  // Show the mesh.
-  Views::MeshView mview("Mesh", new Views::WinGeom(0, 0, 900, 250));
-  if (HERMES_VISUALIZATION) {
-    mview.show(&mesh);
-    mview.wait();
-  }
-
   // Initialize the weak formulation.
   CustomWeakFormPoisson wf("Al", new Hermes::Hermes1DFunction<double>(LAMBDA_AL), "Cu", 
-    new Hermes::Hermes1DFunction<double>(LAMBDA_CU), new Hermes::Hermes2DFunction<double>(-VOLUME_HEAT_SRC));
+                           new Hermes::Hermes1DFunction<double>(LAMBDA_CU), 
+                           new Hermes::Hermes2DFunction<double>(-VOLUME_HEAT_SRC));
 
   // Initialize essential boundary conditions.
-  DefaultEssentialBCConst<double> bc_essential(Hermes::vector<std::string>("Left", "Right"), 
-    FIXED_BDY_TEMP);
+  DefaultEssentialBCConst<double> bc_essential(Hermes::vector<std::string>("Left", "Right"), FIXED_BDY_TEMP);
   EssentialBCs<double> bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.
@@ -60,6 +53,10 @@ int main(int argc, char* argv[])
   int ndof = space.get_num_dofs();
   info("ndof = %d", ndof);
   
+  // Show the mesh and poly degrees.
+  Views::OrderView<double> oview("Mesh", new Views::WinGeom(0, 0, 900, 250));
+  if (HERMES_VISUALIZATION) oview.show(&space);
+
   // Initialize the FE problem.
   DiscreteProblem<double> dp(&wf, &space);
 

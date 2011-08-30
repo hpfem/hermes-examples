@@ -19,7 +19,7 @@ using namespace RefinementSelectors;
 //  The following parameters can be changed:
 
 const int P_INIT = 1;                             // Initial polynomial degree of all mesh elements.
-const int INIT_REF_NUM = 0;                       // Number of initial mesh refinements (the original mesh is just one element).
+const int INIT_REF_NUM = 1;                       // Number of initial mesh refinements (the original mesh is just one element).
 const int INIT_REF_NUM_BDY = 5;                   // Number of initial mesh refinements towards the boundary.
 const double THRESHOLD = 0.3;                     // This is a quantitative parameter of the adapt(...) function and
                                                   // it has different meanings for various adaptive strategies (see below).
@@ -44,9 +44,9 @@ const int MESH_REGULARITY = -1;                   // Maximum allowed level of ha
                                                   // their notoriously bad performance.
 const double CONV_EXP = 0.5;                      // Default value is 1.0. This parameter influences the selection of
                                                   // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-const double ERR_STOP = 1.0;                      // Stopping criterion for adaptivity (rel. error tolerance between the
+const double ERR_STOP = 1e-3;                      // Stopping criterion for adaptivity (rel. error tolerance between the
                                                   // reference mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 100000;                     // Adaptivity process stops when the number of degrees of freedom grows
+const int NDOF_STOP = 1000;                       // Adaptivity process stops when the number of degrees of freedom grows
                                                   // over this limit. This is to prevent h-adaptivity to go on forever.
 Hermes::MatrixSolverType matrix_solver = Hermes::SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
                                                   // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
@@ -58,13 +58,14 @@ int main(int argc, char* argv[])
 {
   // Load the mesh.
   Mesh mesh;
-  MeshReaderH2D mloader;
-  mloader.load("domain.mesh", &mesh);
+  MeshReaderH1DXML mloader;
+  mloader.load("domain.xml", &mesh);
 
   // Perform initial mesh refinement.
-  int refinement_type = 2;            // Split elements vertically.
-  for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements(2);
-  mesh.refine_towards_boundary("Bdy", INIT_REF_NUM_BDY);
+  int refinement_type = 2;                        // Split elements vertically.
+  for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements(refinement_type);
+  mesh.refine_towards_boundary("Left", INIT_REF_NUM_BDY);
+  mesh.refine_towards_boundary("Right", INIT_REF_NUM_BDY);
 
   // Define exact solution.
   CustomExactSolution exact_sln(&mesh, K);
@@ -76,12 +77,12 @@ int main(int argc, char* argv[])
   CustomWeakForm wf(&f);
   
   // Initialize boundary conditions.
-  DefaultEssentialBCConst<double> bc_essential("Bdy", 0.0);
+  DefaultEssentialBCConst<double> bc_essential(Hermes::vector<std::string>("Left", "Right"), 0.0);
   EssentialBCs<double> bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.
   H1Space<double> space(&mesh, &bcs, P_INIT);
-  
+
   // Initialize approximate solution.
   Solution<double> sln;
 
