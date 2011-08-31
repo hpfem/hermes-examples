@@ -90,7 +90,7 @@ int main(int argc, char* argv[])
   H1ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Initialize views.
-  Views::ScalarView<double> sview("Solution", new Views::WinGeom(0, 0, 600, 360));
+  Views::ScalarView sview("Solution", new Views::WinGeom(0, 0, 600, 360));
   sview.show_mesh(false);
   sview.fix_scale_width(50);
   Views::OrderView<double> oview("Polynomial orders", new Views::WinGeom(0, 420, 600, 270));

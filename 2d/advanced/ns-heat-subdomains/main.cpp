@@ -131,9 +131,9 @@ int main(int argc, char* argv[])
   NewtonSolver<double> newton(&dp, matrix_solver_type);
 
   // Initialize views.
-  Views::VectorView<double> vview("velocity [m/s]", new Views::WinGeom(0, 0, 500, 300));
-  Views::ScalarView<double> pview("pressure [Pa]", new Views::WinGeom(0, 310, 500, 300));
-  Views::ScalarView<double> tempview("temperature [C]", new Views::WinGeom(510, 0, 500, 300));
+  Views::VectorView vview("velocity [m/s]", new Views::WinGeom(0, 0, 500, 300));
+  Views::ScalarView pview("pressure [Pa]", new Views::WinGeom(0, 310, 500, 300));
+  Views::ScalarView tempview("temperature [C]", new Views::WinGeom(510, 0, 500, 300));
   vview.set_min_max_range(0, 1.6);
   vview.fix_scale_width(80);
   //pview.set_min_max_range(-0.9, 1.0);

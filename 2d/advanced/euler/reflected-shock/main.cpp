@@ -112,8 +112,8 @@ int main(int argc, char* argv[])
   MachNumberFilter Mach_number(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA);
   PressureFilter pressure(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA);
 
-  ScalarView<double> pressure_view("Pressure", new WinGeom(0, 0, 600, 300));
-  ScalarView<double> Mach_number_view("Mach number", new WinGeom(700, 0, 600, 300));
+  ScalarView pressure_view("Pressure", new WinGeom(0, 0, 600, 300));
+  ScalarView Mach_number_view("Mach number", new WinGeom(700, 0, 600, 300));
 
   // Set up the solver, matrix, and rhs according to the solver selection.
   SparseMatrix<double>* matrix = create_matrix<double>(matrix_solver_type);
@@ -182,12 +182,13 @@ int main(int argc, char* argv[])
       {
         pressure.reinit();
         Mach_number.reinit();
-        Linearizer<double> lin;
+        Linearizer lin_pressure(&pressure);
         char filename[40];
         sprintf(filename, "pressure-3D-%i.vtk", iteration - 1);
-        lin.save_solution_vtk(&pressure, filename, "Pressure", true);
+        lin_pressure.save_solution_vtk(filename, "Pressure", true);
+        Linearizer lin_mach(&Mach_number);
         sprintf(filename, "Mach number-3D-%i.vtk", iteration - 1);
-        lin.save_solution_vtk(&Mach_number, filename, "MachNumber", true);
+        lin_mach.save_solution_vtk(filename, "MachNumber", true);
       }
     }
   }

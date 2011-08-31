@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
   delete [] coeff_vec;
 
   // Initialize views.
-  ScalarView<double> view("Initial condition", new WinGeom(0, 0, 600, 500));
+  ScalarView view("Initial condition", new WinGeom(0, 0, 600, 500));
   view.fix_scale_width(80);
 
   // Visualize the initial condition.

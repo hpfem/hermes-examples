@@ -79,9 +79,9 @@ int main(int argc, char* argv[])
   if (VTK_VISUALIZATION)
   {
     // Output solution in VTK format.
-    Views::Linearizer<double> lin;
+    Views::Linearizer lin(&sln);
     bool mode_3D = true;
-    lin.save_solution_vtk(&sln, "sln.vtk", "Temperature", mode_3D);
+    lin.save_solution_vtk("sln.vtk", "Temperature", mode_3D);
     info("Solution in VTK format saved to file %s.", "sln.vtk");
 
     // Output mesh and element orders in VTK format.
@@ -93,7 +93,7 @@ int main(int argc, char* argv[])
   // Visualize the solution.
   if (HERMES_VISUALIZATION)
   {
-    Views::ScalarView<double> view("Solution", new Views::WinGeom(0, 300, 900, 350));
+    Views::ScalarView view("Solution", new Views::WinGeom(0, 300, 900, 350));
     // Hermes uses adaptive FEM to approximate higher-order FE solutions with linear
     // triangles for OpenGL. The second parameter of View::show() sets the error 
     // tolerance for that. Options are HERMES_EPS_LOW, HERMES_EPS_NORMAL (default), 

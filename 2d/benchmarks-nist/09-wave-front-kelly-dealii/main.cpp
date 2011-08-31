@@ -215,7 +215,7 @@ int main(int argc, char* argv[])
   Solution<double> sln;
   
   // Initialize views.
-  Views::ScalarView<double> sview("Solution", new Views::WinGeom(800, 0, 400, 400));
+  Views::ScalarView sview("Solution", new Views::WinGeom(800, 0, 400, 400));
   sview.show_mesh(false);
   sview.set_3d_mode();
   sview.set_palette(Views::H2DV_PT_HUESCALE);

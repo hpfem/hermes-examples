@@ -133,7 +133,7 @@ int main(int argc, char* argv[])
 
   // Visualize initial condition.
   char title[100];
-  Views::ScalarView<double> sview("Initial condition", new Views::WinGeom(0, 0, 1200, 200));
+  Views::ScalarView sview("Initial condition", new Views::WinGeom(0, 0, 1200, 200));
   Views::OrderView<double> oview("Initial mesh", new Views::WinGeom(0, 260, 1200, 200));
   sview.show(&sln_time_prev);
   oview.show(&space);
@@ -250,7 +250,6 @@ int main(int argc, char* argv[])
     // Copy last reference solution into sln_time_prev.
     sln_time_prev.copy(&sln_time_new);
 
-    // Add entry to DOF convergence graph.
     dof_history_graph.add_values(current_time, space.get_num_dofs());
     dof_history_graph.save("dof_history.dat");
 

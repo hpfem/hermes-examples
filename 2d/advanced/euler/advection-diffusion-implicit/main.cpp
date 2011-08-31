@@ -155,17 +155,17 @@ int main(int argc, char* argv[])
   EntropyFilter entropy(Hermes::vector<MeshFunction<double>*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y, &sln_e), KAPPA, RHO_EXT, P_EXT);
 
   /*
-  ScalarView<double> pressure_view("Pressure", new WinGeom(0, 0, 600, 300));
-  ScalarView<double> Mach_number_view("Mach number", new WinGeom(700, 0, 600, 300));
-  ScalarView<double> entropy_production_view("Entropy estimate", new WinGeom(0, 400, 600, 300));
-  ScalarView<double> s5("Concentration", new WinGeom(700, 400, 600, 300));
+  ScalarView pressure_view("Pressure", new WinGeom(0, 0, 600, 300));
+  ScalarView Mach_number_view("Mach number", new WinGeom(700, 0, 600, 300));
+  ScalarView entropy_production_view("Entropy estimate", new WinGeom(0, 400, 600, 300));
+  ScalarView s5("Concentration", new WinGeom(700, 400, 600, 300));
   */
 
-  ScalarView<double> s1("1", new WinGeom(0, 0, 600, 300));
-  ScalarView<double> s2("2", new WinGeom(700, 0, 600, 300));
-  ScalarView<double> s3("3", new WinGeom(0, 400, 600, 300));
-  ScalarView<double> s4("4", new WinGeom(700, 400, 600, 300));
-  ScalarView<double> s5("Concentration", new WinGeom(350, 200, 600, 300));
+  ScalarView s1("1", new WinGeom(0, 0, 600, 300));
+  ScalarView s2("2", new WinGeom(700, 0, 600, 300));
+  ScalarView s3("3", new WinGeom(0, 400, 600, 300));
+  ScalarView s4("4", new WinGeom(700, 400, 600, 300));
+  ScalarView s5("Concentration", new WinGeom(350, 200, 600, 300));
 
   // Initialize NOX solver.
   NoxSolver<double> solver(&dp);
@@ -244,7 +244,7 @@ int main(int argc, char* argv[])
       {
         pressure.reinit();
         Mach_number.reinit();
-        Linearizer<double> lin;
+        Linearizer lin;
         char filename[40];
         sprintf(filename, "pressure-%i.vtk", iteration - 1);
         lin.save_solution_vtk(&pressure, filename, "Pressure", false);

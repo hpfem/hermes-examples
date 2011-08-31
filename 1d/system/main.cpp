@@ -133,10 +133,10 @@ int main(int argc, char* argv[])
   H1ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Initialize views.
-  Views::ScalarView<double> s_view_0("Solution[0]", new Views::WinGeom(0, 0, 440, 350));
+  Views::ScalarView s_view_0("Solution[0]", new Views::WinGeom(0, 0, 440, 350));
   s_view_0.show_mesh(false);
   Views::OrderView<double>  o_view_0("Mesh[0]", new Views::WinGeom(450, 0, 420, 350));
-  Views::ScalarView<double> s_view_1("Solution[1]", new Views::WinGeom(880, 0, 440, 350));
+  Views::ScalarView s_view_1("Solution[1]", new Views::WinGeom(880, 0, 440, 350));
   s_view_1.show_mesh(false);
   Views::OrderView<double> o_view_1("Mesh[1]", new Views::WinGeom(1330, 0, 420, 350));
 

@@ -244,8 +244,8 @@ int main (int argc, char* argv[]) {
 
   // Visualization windows.
   char title[1000];
-  ScalarView<double> Cview("Concentration [mol/m3]", new WinGeom(0, 0, 800, 800));
-  ScalarView<double> phiview("Voltage [V]", new WinGeom(650, 0, 600, 600));
+  ScalarView Cview("Concentration [mol/m3]", new WinGeom(0, 0, 800, 800));
+  ScalarView phiview("Voltage [V]", new WinGeom(650, 0, 600, 600));
   OrderView<double> Cordview("C order", new WinGeom(0, 300, 600, 600));
   OrderView<double> phiordview("Phi order", new WinGeom(600, 300, 600, 600));
 

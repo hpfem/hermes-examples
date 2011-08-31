@@ -76,7 +76,7 @@ int main(int argc, char* argv[])
   Solution<double>::vector_to_solution(coeff_vec, &space, &h_time_prev);
 
   // Initialize views.
-  ScalarView<double> view("Initial condition", new WinGeom(0, 0, 600, 500));
+  ScalarView view("Initial condition", new WinGeom(0, 0, 600, 500));
   view.fix_scale_width(80);
 
   // Visualize the initial condition.

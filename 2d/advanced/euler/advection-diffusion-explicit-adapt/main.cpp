@@ -187,9 +187,9 @@ int main(int argc, char* argv[])
   PressureFilter pressure(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA);
   EntropyFilter entropy(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA, RHO_EXT, P_EXT);
 
-  ScalarView<double> pressure_view("Pressure", new WinGeom(0, 0, 600, 400));
-  ScalarView<double> Mach_number_view("Mach number", new WinGeom(700, 0, 600, 400));
-  ScalarView<double> s5("Concentration", new WinGeom(700, 400, 600, 400));
+  ScalarView pressure_view("Pressure", new WinGeom(0, 0, 600, 400));
+  ScalarView Mach_number_view("Mach number", new WinGeom(700, 0, 600, 400));
+  ScalarView s5("Concentration", new WinGeom(700, 400, 600, 400));
 
   OrderView<double> order_view_flow("Orders - flow", new WinGeom(700, 350, 600, 400));
   OrderView<double> order_view_conc("Orders - concentration", new WinGeom(700, 700, 600, 400));
@@ -473,20 +473,16 @@ int main(int argc, char* argv[])
       {
         pressure.reinit();
         Mach_number.reinit();
-        Linearizer<double> lin;
+        Linearizer lin_pressure(&pressure);
         char filename[40];
-        //sprintf(filename, "pressure-%i.vtk", iteration - 1);
-        //lin.save_solution_vtk(&pressure, filename, "Pressure", false);
         sprintf(filename, "pressure-3D-%i.vtk", iteration - 1);
-        lin.save_solution_vtk(&pressure, filename, "Pressure", true);
-        //sprintf(filename, "Mach number-%i.vtk", iteration - 1);
-        //lin.save_solution_vtk(&Mach_number, filename, "MachNumber", false);
+        lin_pressure.save_solution_vtk(filename, "Pressure", true);
+        Linearizer lin_mach(&Mach_number);
         sprintf(filename, "Mach number-3D-%i.vtk", iteration - 1);
-        lin.save_solution_vtk(&Mach_number, filename, "MachNumber", true);
-        //sprintf(filename, "Concentration-%i.vtk", iteration - 1);
-        //lin.save_solution_vtk(&prev_c, filename, "Concentration", true);
-        sprintf(filename, "Concentration-3D-%i.vtk", iteration - 1);
-        lin.save_solution_vtk(&prev_c, filename, "Concentration", true);
+        lin_mach.save_solution_vtk(filename, "MachNumber", true);
+        Linearizer lin_concentration(&prev_c);
+        sprintf(filename, "Concentration-%i.vtk", iteration - 1);
+        lin_concentration.save_solution_vtk(filename, "Concentration", true);
 
       }
     }
