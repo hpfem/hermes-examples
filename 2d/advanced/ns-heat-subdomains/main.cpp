@@ -40,35 +40,35 @@ const double H = 6;                               // Domain height (necessary to
                                                   // velocity profile at inlet).
 
 // Heat source inside of the inner circle.
-const double HEAT_SOURCE = 1;
+const double HEAT_SOURCE = 1e8;                   // Not realistic, but we want this thing to heat up quickly.
 
 // Specific heat outside of the inner circle.
-const double SPECIFIC_HEAT_OUTER = 711;
+const double SPECIFIC_HEAT_OUTER = 711;           // Water.
 
 // Specific heat inside of the inner circle.
-const double SPECIFIC_HEAT_INNER = 4190;
+const double SPECIFIC_HEAT_INNER = 4190;          // Graphite.
 
 // Density outside of the inner circle.
-const double RHO_OUTER = 1000;
+const double RHO_OUTER = 1000;                    // Water.
 
 // Density in the inner circle.
-const double RHO_INNER = 1800;
+const double RHO_INNER = 1800;                    // Graphite.
 
 // Thermal diffusivity ouside of the inner circle.
-const double THERMAL_DIFFUSIVITY_OUTER = 1.4E-7;
+const double THERMAL_DIFFUSIVITY_OUTER = 1.4E-7;  // Water.
 
 // Thermal diffusivity in the inner circle.
-const double THERMAL_DIFFUSIVITY_INNER = 1.22E-3;
+const double THERMAL_DIFFUSIVITY_INNER = 1.22E-3; // Graphite.
 
 // Viscosity of the media outside of the inner circle.
-const double VISCOSITY_OUTER = 8.9e-4;
+const double VISCOSITY_OUTER = 8.9e-4;            // Water.
 
 // Uniform polynomial degree of mesh elements.
 const int P_INIT = 2;
 
 // Number of initial mesh refinements.
-const int INIT_REF_NUM = 3;   // Uniform.
-const int INIT_REF_NUM_HOLE = 3;   // Towards the hole.
+const int INIT_REF_NUM = 3;        // Uniform.
+const int INIT_REF_NUM_HOLE = 4;   // Towards the hole.
 
 // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
