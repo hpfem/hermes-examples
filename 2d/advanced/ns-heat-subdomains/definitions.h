@@ -10,8 +10,8 @@ class CustomWeakFormHeatAndFlow : public WeakForm<double>
 {
 public:
   CustomWeakFormHeatAndFlow(bool Stokes, double Reynolds, double time_step, Solution<double>* x_vel_previous_time, 
-    Solution<double>* y_vel_previous_time, Solution<double>* T_prev_time, double heat_source, double specific_heat_inner, 
-    double specific_heat_outer, double rho_inner, double rho_outer, double thermal_diffusivity_outer, double thermal_diffusivity_inner, double velocity_factor);
+    Solution<double>* y_vel_previous_time, Solution<double>* T_prev_time, double heat_source, double specific_heat_graphite, 
+    double specific_heat_water, double rho_graphite, double rho_water, double thermal_conductivity_water, double thermal_conductivity_graphite);
 
   class BilinearFormTime: public MatrixFormVol<double>
   {
@@ -70,7 +70,7 @@ public:
   class CustomJacobianAdvection : public MatrixFormVol<double>
   {
   public:
-    CustomJacobianAdvection(int i, int j, std::string area, double velocity_factor) : MatrixFormVol<double>(i, j, area), velocity_factor(velocity_factor) {}
+    CustomJacobianAdvection(int i, int j, std::string area) : MatrixFormVol<double>(i, j, area) {}
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<double> *ext) const{
       double result = 0;
@@ -78,7 +78,7 @@ public:
       Func<double>* yvel_prev_newton = u_ext[1];
       for (int i = 0; i < n; i++)
         result += wt[i] * (u->dx[i] * v->val[i] * xvel_prev_newton->val[i] + u->dy[i] * v->val[i] * yvel_prev_newton->val[i]);
-    return result * velocity_factor;
+    return result;
     }
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const
@@ -90,8 +90,6 @@ public:
         result += wt[i] * (u->dx[i] * v->val[i] * xvel_prev_newton->val[i] + u->dy[i] * v->val[i] * yvel_prev_newton->val[i]);
       return result;
     }
-  protected:
-    double velocity_factor;
   };
 
   class BilinearFormUnSymVel_0_0 : public MatrixFormVol<double>
@@ -286,7 +284,7 @@ public:
   class CustomResidualAdvection : public VectorFormVol<double>
   {
   public:
-    CustomResidualAdvection(int i, std::string area, double velocity_factor) : VectorFormVol<double>(i, area), velocity_factor(velocity_factor) {}
+    CustomResidualAdvection(int i, std::string area) : VectorFormVol<double>(i, area) {}
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, ExtData<double> *ext) const{
       double result = 0;
@@ -294,7 +292,7 @@ public:
       Func<double>* yvel_prev_newton = u_ext[1];
       for (int i = 0; i < n; i++)
         result += wt[i] * (u_ext[3]->dx[i] * v->val[i] * xvel_prev_newton->val[i] + u_ext[3]->dy[i] * v->val[i] * yvel_prev_newton->val[i]);
-    return result * velocity_factor;
+    return result;
     }
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const
@@ -306,9 +304,6 @@ public:
         result += wt[i] * (u_ext[3]->dx[i] * v->val[i] * xvel_prev_newton->val[i] + u_ext[3]->dy[i] * v->val[i] * yvel_prev_newton->val[i]);
       return result;
     }
-
-  protected:
-    double velocity_factor;
   };
 
   class VectorFormNS_0 : public VectorFormVol<double>

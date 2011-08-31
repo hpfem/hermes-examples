@@ -4,80 +4,56 @@
 using namespace Hermes;
 using namespace Hermes::Hermes2D;
 
-// This example shows the use of subdomains.
+// This example shows the use of subdomains. It models a round graphite object that is 
+// heated through internal heat sources and cooled with water flowing past it. This 
+// model is semi-realistic, double-check all parameter values and equations before 
+// using it for your applications.
 
-const bool STOKES = false;
+const bool STOKES = false;         // If true, then just Stokes equation will be considered,
+                                   // not Navier-Stokes.
+#define PRESSURE_IN_L2             // If defined, pressure elements will be discontinuous (L2),
+                                   // otherwise continuous (H1).                 
+const int P_INIT_VEL = 2;          // Initial polynomial degree for velocity components.
+const int P_INIT_PRESSURE = 1;     // Initial polynomial degree for pressure.
+                                   // Note: P_INIT_VEL should always be greater than
+                                   // P_INIT_PRESSURE because of the inf-sup condition.
+const int P_INIT_TEMP = 2;         // Initial polynomial degree for temperature.
+const int INIT_REF_NUM = 3;        // Number of initial uniform mesh refinements.
+const int INIT_REF_NUM_HOLE = 4;   // Number of initial mesh refinements towards the hole.
 
-#define PRESSURE_IN_L2                      
 
-// Initial polynomial degree for velocity components.
-const int P_INIT_VEL = 2;                         
+// Domain sizes (need to be compatible with mesh file).
+const double H = 6;                               // Domain height (necessary to define the parabolic
+                                                  // velocity profile at inlet).
+const double OBSTACLE_DIAMETER = 2.8284;          // For the calculation of Reynolds number
 
-// Initial polynomial degree for pressure.
-// Note: P_INIT_VEL should always be greater than
-// P_INIT_PRESSURE because of the inf-sup condition.
-const int P_INIT_PRESSURE = 1;
 
-// Reynolds number.
-const double RE = 200.0;
-const double TEMP_INIT = 20.0;
-
-// Inlet velocity (reached after STARTUP_TIME).
-const double VEL_INLET = 1.0;
-
-// Domain length.
-const double L = 10;
-
-// During this time, inlet velocity increases gradually
-// from 0 to VEL_INLET, then it stays constant.
-const double STARTUP_TIME = 1.0;
-
-const double TAU = 0.1;                           // Time step.
+// Problem parameters.
+const double VEL_INLET = 1.0;                        // Inlet velocity (reached after STARTUP_TIME).
+const double TEMP_INIT = 20.0;                       // Initial temperature.
+const double KINEMATIC_VISCOSITY_WATER = 1.004e-2;   // Correct is 1.004e-6 (at 20 deg Celsius) but then RE = 2.81713e+06 which 
+                                                     // is too much for this simple model, so we use a larger viscosity. Note
+                                                     // that kinematic viscosity decreases with rising temperature.
+const double THERMAL_CONDUCTIVITY_GRAPHITE = 450;    // We found a range of 25 - 470, but this is another 
+                                                     // number that one needs to be careful about.
+const double THERMAL_CONDUCTIVITY_WATER = 0.6;       // At 25 deg Celsius.
+const double RHO_GRAPHITE = 2220;                    // Density of graphite from Wikipedia, one should be 
+                                                     // careful about this number.      
+const double RHO_WATER = 1000;      
+const double SPECIFIC_HEAT_GRAPHITE = 711;        // Also found on Wikipedia.
+const double SPECIFIC_HEAT_WATER = 4187;            
+const double HEAT_SOURCE_GRAPHITE = 1e7;          // Heat source inside of the inner circle. This value is not 
+                                                  // realistic - we just want this thing to heat up quickly.
+const double STARTUP_TIME = 1.0;                  // During this time, inlet velocity increases gradually
+                                                  // from 0 to VEL_INLET, then it stays constant.
+const double time_step = 0.1;                     // Time step.
 const double T_FINAL = 30000.0;                   // Time interval length.
 const double NEWTON_TOL = 1e-4;                   // Stopping criterion for the Newton's method.
 const int NEWTON_MAX_ITER = 10;                   // Maximum allowed number of Newton iterations.
-const double H = 6;                               // Domain height (necessary to define the parabolic
-                                                  // velocity profile at inlet).
-
-// Heat source inside of the inner circle.
-const double HEAT_SOURCE = 1e8;                   // Not realistic, but we want this thing to heat up quickly.
-
-// Specific heat outside of the inner circle.
-const double SPECIFIC_HEAT_OUTER = 711;           // Water.
-
-// Specific heat inside of the inner circle.
-const double SPECIFIC_HEAT_INNER = 4190;          // Graphite.
-
-// Density outside of the inner circle.
-const double RHO_OUTER = 1000;                    // Water.
-
-// Density in the inner circle.
-const double RHO_INNER = 1800;                    // Graphite.
-
-// Thermal diffusivity ouside of the inner circle.
-const double THERMAL_DIFFUSIVITY_OUTER = 1.4E-7;  // Water.
-
-// Thermal diffusivity in the inner circle.
-const double THERMAL_DIFFUSIVITY_INNER = 1.22E-3; // Graphite.
-
-// Viscosity of the media outside of the inner circle.
-const double VISCOSITY_OUTER = 8.9e-4;            // Water.
-
-// Uniform polynomial degree of mesh elements.
-const int P_INIT = 2;
-
-// Number of initial mesh refinements.
-const int INIT_REF_NUM = 3;        // Uniform.
-const int INIT_REF_NUM_HOLE = 4;   // Towards the hole.
 
 // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 Hermes::MatrixSolverType matrix_solver_type = Hermes::SOLVER_UMFPACK;  
-
-// Boundary markers.
-const std::string BDY_INLET = "Inlet";
-const std::string BDY_OUTER = "Outer";
-const std::string BDY_INNER = "Inner";
 
 int main(int argc, char* argv[])
 {
@@ -98,15 +74,15 @@ int main(int argc, char* argv[])
 
   // Initialize boundary conditions.
   // Flow.
-  EssentialBCNonConst bc_inlet_vel_x(BDY_INLET, VEL_INLET, H, STARTUP_TIME);
-  Hermes::Hermes2D::DefaultEssentialBCConst<double> bc_other_vel_x(Hermes::vector<std::string>(BDY_OUTER, BDY_INNER), 0.0);
-  Hermes::Hermes2D::EssentialBCs<double> bcs_vel_x(Hermes::vector<EssentialBoundaryCondition<double> *>(&bc_inlet_vel_x, &bc_other_vel_x));
-  Hermes::Hermes2D::DefaultEssentialBCConst<double> bc_vel_y(Hermes::vector<std::string>(BDY_INLET, BDY_OUTER, BDY_INNER), 0.0);
-  Hermes::Hermes2D::EssentialBCs<double> bcs_vel_y(&bc_vel_y);
-  Hermes::Hermes2D::EssentialBCs<double> bcs_pressure;
+  EssentialBCNonConst bc_inlet_vel_x("Inlet", VEL_INLET, H, STARTUP_TIME);
+  DefaultEssentialBCConst<double> bc_other_vel_x(Hermes::vector<std::string>("Outer", "Inner"), 0.0);
+  EssentialBCs<double> bcs_vel_x(Hermes::vector<EssentialBoundaryCondition<double> *>(&bc_inlet_vel_x, &bc_other_vel_x));
+  DefaultEssentialBCConst<double> bc_vel_y(Hermes::vector<std::string>("Inlet", "Outer", "Inner"), 0.0);
+  EssentialBCs<double> bcs_vel_y(&bc_vel_y);
+  EssentialBCs<double> bcs_pressure;
 
   // Temperature.
-  Hermes::Hermes2D::DefaultEssentialBCConst<double> bc_temperature(Hermes::vector<std::string>(BDY_INLET, BDY_OUTER), 20.0);
+  DefaultEssentialBCConst<double> bc_temperature(Hermes::vector<std::string>("Inlet", "Outer"), 20.0);
   EssentialBCs<double> bcs_temperature(&bc_temperature);
 
   // Spaces for velocity components and pressure.
@@ -118,7 +94,7 @@ int main(int argc, char* argv[])
   H1Space<double> p_space(&mesh_without_hole, &bcs_pressure, P_INIT_PRESSURE);
 #endif
   // Space for temperature.
-  H1Space<double> temperature_space(&mesh_whole_domain, &bcs_temperature, P_INIT);
+  H1Space<double> temperature_space(&mesh_whole_domain, &bcs_temperature, P_INIT_TEMP);
 
   // Calculate and report the number of degrees of freedom.
   int ndof = Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&xvel_space, &yvel_space, &p_space, &temperature_space));
@@ -135,18 +111,24 @@ int main(int argc, char* argv[])
 
   // Solutions for the Newton's iteration and time stepping.
   info("Setting initial conditions.");
-  ZeroInitialCondition xvel_prev_time(&mesh_without_hole), yvel_prev_time(&mesh_without_hole), p_prev_time(&mesh_without_hole);
+  ZeroInitialCondition xvel_prev_time(&mesh_without_hole), yvel_prev_time(&mesh_without_hole), 
+                                      p_prev_time(&mesh_without_hole);
   ConstInitialCondition  temperature_prev_time(&mesh_whole_domain, TEMP_INIT); 
 
+  // Calculate Reynolds number.
+  double reynolds_number = VEL_INLET * OBSTACLE_DIAMETER / KINEMATIC_VISCOSITY_WATER;
+  info("RE = %g", reynolds_number);
+
   // Initialize weak formulation.
-  CustomWeakFormHeatAndFlow wf(STOKES, RE, TAU, &xvel_prev_time, &yvel_prev_time, &temperature_prev_time, 
-    HEAT_SOURCE, SPECIFIC_HEAT_OUTER, SPECIFIC_HEAT_INNER, RHO_OUTER, RHO_INNER, THERMAL_DIFFUSIVITY_OUTER, THERMAL_DIFFUSIVITY_INNER, RE * VISCOSITY_OUTER / (RHO_OUTER * L));
+  CustomWeakFormHeatAndFlow wf(STOKES, reynolds_number, time_step, &xvel_prev_time, &yvel_prev_time, &temperature_prev_time, 
+                               HEAT_SOURCE_GRAPHITE, SPECIFIC_HEAT_WATER, SPECIFIC_HEAT_GRAPHITE, RHO_WATER, RHO_GRAPHITE, 
+                               THERMAL_CONDUCTIVITY_WATER, THERMAL_CONDUCTIVITY_GRAPHITE);
   
   // Initialize the FE problem.
   DiscreteProblem<double> dp(&wf, Hermes::vector<Space<double> *>(&xvel_space, &yvel_space, &p_space, &temperature_space));
 
   // Initialize the Newton solver.
-  Hermes::Hermes2D::NewtonSolver<double> newton(&dp, matrix_solver_type);
+  NewtonSolver<double> newton(&dp, matrix_solver_type);
 
   // Initialize views.
   Views::VectorView<double> vview("velocity [m/s]", new Views::WinGeom(0, 0, 500, 300));
@@ -169,18 +151,19 @@ int main(int argc, char* argv[])
 
   // Time-stepping loop:
   char title[100];
-  int num_time_steps = T_FINAL / TAU;
+  int num_time_steps = T_FINAL / time_step;
   double current_time = 0.0;
   for (int ts = 1; ts <= num_time_steps; ts++)
   {
-    current_time += TAU;
+    current_time += time_step;
     info("---- Time step %d, time = %g:", ts, current_time);
 
     // Update time-dependent essential BCs.
     if (current_time <= STARTUP_TIME) 
     {
       info("Updating time-dependent essential BC.");
-      Space<double>::update_essential_bc_values(Hermes::vector<Space<double> *>(&xvel_space, &yvel_space, &p_space, &temperature_space), current_time);
+      Space<double>::update_essential_bc_values(Hermes::vector<Space<double> *>(&xvel_space, &yvel_space, &p_space, 
+                                                &temperature_space), current_time);
     }
 
     // Perform Newton's iteration.
@@ -193,7 +176,8 @@ int main(int argc, char* argv[])
     else
     {
       Hermes::vector<Solution<double> *> tmp(&xvel_prev_time, &yvel_prev_time, &p_prev_time, &temperature_prev_time);
-      Hermes::Hermes2D::Solution<double>::vector_to_solutions(newton.get_sln_vector(), Hermes::vector<Space<double> *>(&xvel_space, &yvel_space, &p_space, &temperature_space), tmp);
+      Solution<double>::vector_to_solutions(newton.get_sln_vector(), Hermes::vector<Space<double> *>(&xvel_space, 
+                                            &yvel_space, &p_space, &temperature_space), tmp);
     }
     
     // Show the solution at the end of time step.
