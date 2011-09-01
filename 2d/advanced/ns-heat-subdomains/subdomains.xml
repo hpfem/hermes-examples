@@ -1,38 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <domain:domain xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:domain="XMLSubdomains"
-	xmlns:element="XMLMesh"
-	xsi:schemaLocation="XMLSubdomains ../../xml_schemas/subdomains_h2d_xml.xsd">
-
+  xsi:schemaLocation="XMLSubdomains ../../xml_schemas/subdomains_h2d_xml.xsd">
   <vertices>
-    <vertex x="0" y="0" i="0" />
-    <vertex x="10" y="0" i="1" />
-    <vertex x="10" y="6" i="2" />
-    <vertex x="0" y="6" i="3" />
-    <vertex x="2" y="2" i="4" />
-    <vertex x="4" y="2" i="5" />
-    <vertex x="4" y="4" i="6" />
-    <vertex x="2" y="4" i="7" />
+    <vertex x="0" y="0" i="0"/>
+    <vertex x="10" y="0" i="1"/>
+    <vertex x="10" y="6" i="2"/>
+    <vertex x="0" y="6" i="3"/>
+    <vertex x="2" y="2" i="4"/>
+    <vertex x="4" y="2" i="5"/>
+    <vertex x="4" y="4" i="6"/>
+    <vertex x="2" y="4" i="7"/>
   </vertices>
 
   <elements>
-    <element:quad v1="0" v2="1" v3="5" v4="4" marker="Outside" />
-    <element:quad v1="1" v2="2" v3="6" v4="5" marker="Outside" />
-    <element:quad v1="2" v2="3" v3="7" v4="6" marker="Outside" />
-    <element:quad v1="3" v2="0" v3="4" v4="7" marker="Outside" />
-    <element:quad v1="4" v2="5" v3="6" v4="7" marker="Inner Circle" />
+    <domain:quad v1="0" v2="1" v3="5" v4="4" marker="Outside" i="0"/>
+    <domain:quad v1="1" v2="2" v3="6" v4="5" marker="Outside" i="1"/>
+    <domain:quad v1="2" v2="3" v3="7" v4="6" marker="Outside" i="2"/>
+    <domain:quad v1="3" v2="0" v3="4" v4="7" marker="Outside" i="3"/>
+    <domain:quad v1="4" v2="5" v3="6" v4="7" marker="Inner Circle" i="4"/>
   </elements>
 
-  <boundary_edges>
-    <boundary_edge v1="0" v2="1" marker="Outer" />
-    <boundary_edge v1="1" v2="2" marker="Outlet" />
-    <boundary_edge v1="2" v2="3" marker="Outer" />
-    <boundary_edge v1="3" v2="0" marker="Inlet" />
-    <boundary_edge v1="4" v2="5" marker="Inner" />
-    <boundary_edge v1="5" v2="6" marker="Inner" />
-    <boundary_edge v1="6" v2="7" marker="Inner" />
-    <boundary_edge v1="7" v2="4" marker="Inner" />
-  </boundary_edges> 
+  <edges>
+    <edge v1="0" v2="1" marker="Outer" i="0"/>
+    <edge v1="1" v2="2" marker="Outlet" i="1"/>
+    <edge v1="2" v2="3" marker="Outer" i="2"/>
+    <edge v1="3" v2="0" marker="Inlet" i="3"/>
+
+    <edge v1="4" v2="5" marker="Inner" i="4"/>
+    <edge v1="5" v2="6" marker="Inner" i="5"/>
+    <edge v1="6" v2="7" marker="Inner" i="6"/>
+    <edge v1="7" v2="4" marker="Inner" i="7"/>
+  </edges> 
   
   <curves>
     <arc v1="4" v2="5" angle="90" />
@@ -44,10 +43,12 @@
   <subdomains>
     <subdomain name="Whole domain" />
     <subdomain name="The inner circle">
-      <element_number number="0" />
-      <element_number number="1" />
-      <element_number number="2" />
-      <element_number number="3" />
+      <elements>
+        <i>0</i>
+        <i>1</i>
+        <i>2</i>
+        <i>3</i>
+      </elements>
     </subdomain>
   </subdomains>
 </domain:domain>
