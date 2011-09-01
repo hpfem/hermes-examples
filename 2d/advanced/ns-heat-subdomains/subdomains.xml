@@ -42,8 +42,8 @@
   </curves>
   
   <subdomains>
-    <subdomain name="Whole domain" />
-    <subdomain name="The inner circle">
+    <subdomain i="0" name="Whole domain" />
+    <subdomain i="1" name="The inner circle">
       <element_number number="0" />
       <element_number number="1" />
       <element_number number="2" />

@@ -121,8 +121,8 @@ int main(int argc, char* argv[])
 
   // Initialize weak formulation.
   CustomWeakFormHeatAndFlow wf(STOKES, reynolds_number, time_step, &xvel_prev_time, &yvel_prev_time, &temperature_prev_time, 
-                               HEAT_SOURCE_GRAPHITE, SPECIFIC_HEAT_WATER, SPECIFIC_HEAT_GRAPHITE, RHO_WATER, RHO_GRAPHITE, 
-                               THERMAL_CONDUCTIVITY_WATER, THERMAL_CONDUCTIVITY_GRAPHITE);
+                               HEAT_SOURCE_GRAPHITE, SPECIFIC_HEAT_GRAPHITE, SPECIFIC_HEAT_WATER, RHO_GRAPHITE, RHO_WATER, 
+                               THERMAL_CONDUCTIVITY_GRAPHITE, THERMAL_CONDUCTIVITY_WATER);
   
   // Initialize the FE problem.
   DiscreteProblem<double> dp(&wf, Hermes::vector<Space<double> *>(&xvel_space, &yvel_space, &p_space, &temperature_space));
