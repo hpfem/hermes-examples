@@ -244,20 +244,16 @@ int main(int argc, char* argv[])
       {
         pressure.reinit();
         Mach_number.reinit();
-        Linearizer lin;
+        Linearizer lin_pressure(&pressure);
         char filename[40];
-        sprintf(filename, "pressure-%i.vtk", iteration - 1);
-        lin.save_solution_vtk(&pressure, filename, "Pressure", false);
         sprintf(filename, "pressure-3D-%i.vtk", iteration - 1);
-        lin.save_solution_vtk(&pressure, filename, "Pressure", true);
-        sprintf(filename, "Mach number-%i.vtk", iteration - 1);
-        lin.save_solution_vtk(&Mach_number, filename, "MachNumber", false);
+        lin_pressure.save_solution_vtk(filename, "Pressure", true);
+        Linearizer lin_mach(&Mach_number);
         sprintf(filename, "Mach number-3D-%i.vtk", iteration - 1);
-        lin.save_solution_vtk(&Mach_number, filename, "MachNumber", true);
+        lin_mach.save_solution_vtk(filename, "MachNumber", true);
+        Linearizer lin_concentration(&prev_c);
         sprintf(filename, "Concentration-%i.vtk", iteration - 1);
-        lin.save_solution_vtk(&prev_c, filename, "Concentration", true);
-        sprintf(filename, "Concentration-3D-%i.vtk", iteration - 1);
-        lin.save_solution_vtk(&prev_c, filename, "Concentration", true);
+        lin_concentration.save_solution_vtk(filename, "Concentration", true);
 
       }
     }
