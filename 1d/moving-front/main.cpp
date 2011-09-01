@@ -192,7 +192,7 @@ int main(int argc, char* argv[])
       bool freeze_jacobian = true;
       bool block_diagonal_jacobian = false;
       bool verbose = true;
-      if (!runge_kutta.rk_time_step(current_time, time_step, &sln_time_prev, &sln_time_new, 
+      if (!runge_kutta.rk_time_step_newton(current_time, time_step, &sln_time_prev, &sln_time_new, 
                                     freeze_jacobian, block_diagonal_jacobian,
                                     verbose, NEWTON_TOL, NEWTON_MAX_ITER)) 
       {

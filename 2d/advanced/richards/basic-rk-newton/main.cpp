@@ -126,7 +126,7 @@ int main(int argc, char* argv[])
     bool verbose = true;
     double damping_coeff = 1.0;
     double max_allowed_residual_norm = 1e10;
-    if (!runge_kutta.rk_time_step(current_time, time_step, &h_time_prev, 
+    if (!runge_kutta.rk_time_step_newton(current_time, time_step, &h_time_prev, 
                                   &h_time_new, freeze_jacobian, block_diagonal_jacobian, verbose,
                                   NEWTON_TOL, NEWTON_MAX_ITER, damping_coeff,
                                   max_allowed_residual_norm)) 
