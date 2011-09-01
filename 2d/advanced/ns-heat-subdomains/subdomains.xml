@@ -5,14 +5,14 @@
 	xsi:schemaLocation="XMLSubdomains ../../xml_schemas/subdomains_h2d_xml.xsd">
 
   <vertices>
-    <vertex x="0" y="0" />
-    <vertex x="10" y="0" />
-    <vertex x="10" y="6" />
-    <vertex x="0" y="6" />
-    <vertex x="2" y="2" />
-    <vertex x="4" y="2" />
-    <vertex x="4" y="4" />
-    <vertex x="2" y="4" />
+    <vertex x="0" y="0" i="0" />
+    <vertex x="10" y="0" i="1" />
+    <vertex x="10" y="6" i="2" />
+    <vertex x="0" y="6" i="3" />
+    <vertex x="2" y="2" i="4" />
+    <vertex x="4" y="2" i="5" />
+    <vertex x="4" y="4" i="6" />
+    <vertex x="2" y="4" i="7" />
   </vertices>
 
   <elements>
