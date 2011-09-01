@@ -126,7 +126,7 @@ int main(int argc, char* argv[])
   solver.set_conv_rel_resid(1.00);
 
   // Select preconditioner.
-  RCP<Precond<double> > pc = rcp(new Preconditioners::MlPrecond<double>("sa"));
+  Preconditioners::MlPrecond<double> pc("sa");
   solver.set_precond(pc);
 
   int iteration = 0; double t = 0;

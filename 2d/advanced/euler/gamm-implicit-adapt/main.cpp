@@ -164,7 +164,7 @@ int main(int argc, char* argv[])
   L2ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Select preconditioner.
-  RCP<Precond<double> > pc = rcp(new Preconditioners::IfpackPrecond<double>("point-relax"));
+  Preconditioners::IfpackPrecond<double> pc("point-relax");
 
   int iteration = 0; double t = 0;
   for(t = 0.0; t < 3.0; t += time_step)
@@ -211,7 +211,7 @@ int main(int argc, char* argv[])
       DiscreteProblem<double> dp(&wf, *ref_spaces);
 
       // Initialize NOX solver.
-      NoxSolver<double> solver(&dp, NOX_MESSAGE_TYPE);
+      NoxSolver<double> solver(&dp);
       solver.set_ls_tolerance(NOX_LINEAR_TOLERANCE);
       solver.disable_abs_resid();
       solver.set_conv_rel_resid(NOX_NONLINEAR_TOLERANCE);

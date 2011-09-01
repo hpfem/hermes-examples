@@ -129,13 +129,13 @@ int main(int argc, char* argv[])
   */
 
   // Initialize NOX solver.
-  NoxSolver<double> solver(&dp, NOX_MESSAGE_TYPE);
+  NoxSolver<double> solver(&dp);
   solver.set_ls_tolerance(NOX_LINEAR_TOLERANCE);
   solver.disable_abs_resid();
   solver.set_conv_rel_resid(NOX_NONLINEAR_TOLERANCE);
   if(PRECONDITIONING)
   {
-    RCP<Precond<double> > pc = rcp(new Preconditioners::MlPrecond<double>("sa"));
+    Preconditioners::MlPrecond<double> pc("sa");
     solver.set_precond(pc);
   }
 

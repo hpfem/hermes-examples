@@ -182,7 +182,7 @@ int main(int argc, char* argv[])
   // Select preconditioner.
   if(PRECONDITIONING)
   {
-    RCP<Precond<double> > pc = rcp(new Preconditioners::MlPrecond<double>("sa"));
+    Preconditioners::MlPrecond<double> pc = ("sa");
     solver.set_precond(pc);
   }
 
