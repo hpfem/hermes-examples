@@ -220,7 +220,7 @@ int main(int argc, char* argv[])
   sview.set_3d_mode();
   sview.set_palette(Views::H2DV_PT_HUESCALE);
   sview.fix_scale_width(50);
-  Views::OrderView<double>  oview("Mesh", new Views::WinGeom(0, 0, 800, 800));
+  Views::OrderView  oview("Mesh", new Views::WinGeom(0, 0, 800, 800));
   oview.set_palette(Views::H2DV_PT_INVGRAYSCALE);
 
   // DOF and CPU convergence graphs.

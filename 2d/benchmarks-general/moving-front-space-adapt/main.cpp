@@ -134,7 +134,7 @@ int main(int argc, char* argv[])
   // Visualize initial condition.
   char title[100];
   Views::ScalarView sview("Initial condition", new Views::WinGeom(0, 0, 440, 350));
-  Views::OrderView<double> oview("Initial mesh", new Views::WinGeom(445, 0, 410, 350));
+  Views::OrderView oview("Initial mesh", new Views::WinGeom(445, 0, 410, 350));
   sview.show(&sln_time_prev);
   oview.show(&space);
   

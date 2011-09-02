@@ -246,8 +246,8 @@ int main (int argc, char* argv[]) {
   char title[1000];
   ScalarView Cview("Concentration [mol/m3]", new WinGeom(0, 0, 800, 800));
   ScalarView phiview("Voltage [V]", new WinGeom(650, 0, 600, 600));
-  OrderView<double> Cordview("C order", new WinGeom(0, 300, 600, 600));
-  OrderView<double> phiordview("Phi order", new WinGeom(600, 300, 600, 600));
+  OrderView Cordview("C order", new WinGeom(0, 300, 600, 600));
+  OrderView phiordview("Phi order", new WinGeom(600, 300, 600, 600));
 
   Cview.show(&C_prev_time);
   Cordview.show(&C_space);

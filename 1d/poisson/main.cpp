@@ -54,7 +54,7 @@ int main(int argc, char* argv[])
   info("ndof = %d", ndof);
   
   // Show the mesh and poly degrees.
-  Views::OrderView<double> oview("Mesh", new Views::WinGeom(0, 0, 900, 250));
+  Views::OrderView oview("Mesh", new Views::WinGeom(0, 0, 900, 250));
   if (HERMES_VISUALIZATION) oview.show(&space);
 
   // Initialize the FE problem.

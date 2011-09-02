@@ -129,7 +129,7 @@ int main(int argc, char* argv[])
   Views::ScalarView sview("Solution", new Views::WinGeom(0, 0, 440, 350));
   sview.show_mesh(false);
   sview.fix_scale_width(50);
-  Views::OrderView<double>  oview("Polynomial orders", new Views::WinGeom(450, 0, 420, 350));
+  Views::OrderView  oview("Polynomial orders", new Views::WinGeom(450, 0, 420, 350));
 
   // DOF and CPU convergence graphs.
   SimpleGraph graph_dof, graph_cpu, graph_dof_exact, graph_cpu_exact;

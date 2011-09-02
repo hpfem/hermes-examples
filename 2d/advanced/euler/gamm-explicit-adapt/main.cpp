@@ -158,8 +158,8 @@ int main(int argc, char* argv[])
   ScalarView Mach_number_view("Mach number", new WinGeom(700, 0, 600, 300));
   ScalarView entropy_production_view("Entropy estimate", new WinGeom(0, 400, 600, 300));
 
-  //OrderView<double> order_view_coarse("Orders - coarse", new WinGeom(700, 350, 600, 300));
-  //OrderView<double> order_view_fine("Orders - fine", new WinGeom(700, 700, 600, 300));
+  //OrderView order_view_coarse("Orders - coarse", new WinGeom(700, 350, 600, 300));
+  //OrderView order_view_fine("Orders - fine", new WinGeom(700, 700, 600, 300));
 
   // Initialize refinement selector.
   L2ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, MAX_P_ORDER);

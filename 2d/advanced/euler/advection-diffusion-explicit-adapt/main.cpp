@@ -191,8 +191,8 @@ int main(int argc, char* argv[])
   ScalarView Mach_number_view("Mach number", new WinGeom(700, 0, 600, 400));
   ScalarView s5("Concentration", new WinGeom(700, 400, 600, 400));
 
-  OrderView<double> order_view_flow("Orders - flow", new WinGeom(700, 350, 600, 400));
-  OrderView<double> order_view_conc("Orders - concentration", new WinGeom(700, 700, 600, 400));
+  OrderView order_view_flow("Orders - flow", new WinGeom(700, 350, 600, 400));
+  OrderView order_view_conc("Orders - concentration", new WinGeom(700, 700, 600, 400));
 
   // Initialize refinement selector.
   L2ProjBasedSelector<double> l2selector_flow(CAND_LIST_FLOW, CONV_EXP, H2DRS_DEFAULT_ORDER);
