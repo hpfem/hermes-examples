@@ -1,4 +1,5 @@
 add_subdirectory(forward-step)
+add_subdirectory(forward-step-adapt)
 add_subdirectory(reflected-shock)
 add_subdirectory(gamm-explicit-adapt)
 add_subdirectory(gamm-explicit)

@@ -29,9 +29,9 @@ bool SHOCK_CAPTURING = false;
 // Quantitative parameter of the discontinuity detector.
 double DISCONTINUITY_DETECTOR_PARAM = 1.0;
 
-const int P_INIT = 0;                                   // Initial polynomial degree.                      
-const int INIT_REF_NUM = 4;                             // Number of initial uniform mesh refinements.                       
-double CFL_NUMBER = 1.0;                                // CFL value.
+const int P_INIT = 1;                                   // Initial polynomial degree.                      
+const int INIT_REF_NUM = 3;                             // Number of initial uniform mesh refinements.                       
+double CFL_NUMBER = 0.1;                                // CFL value.
 double time_step = 1E-4;                                // Initial time step.
 const MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
@@ -134,15 +134,7 @@ int main(int argc, char* argv[])
     // Assemble the stiffness matrix and rhs.
     info("Assembling the stiffness matrix and right-hand side vector.");
     dp.assemble(matrix, rhs);
-
-    std::ofstream out("out");
-    for(int i = 0; i < matrix->get_size(); i++)
-      for(int j = 0; j < matrix->get_size(); j++)
-        out << matrix->get(i, j) << std::endl;
-    out.close();
-
-    dp.get_last_profiling_output(std::cout);
-
+    
     // Solve the matrix problem.
     info("Solving the matrix problem.");
     if(solver->solve())

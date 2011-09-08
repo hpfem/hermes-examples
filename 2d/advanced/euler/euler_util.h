@@ -107,7 +107,7 @@ class KuzminDiscontinuityDetector : public DiscontinuityDetector
 public:
   /// Constructor.
   KuzminDiscontinuityDetector(Hermes::vector<Space<double> *> spaces, 
-                        Hermes::vector<Solution<double> *> solutions);
+                        Hermes::vector<Solution<double> *> solutions, bool limit_all_orders_independently = false);
 
   /// Destructor.
    ~KuzminDiscontinuityDetector();
@@ -118,6 +118,8 @@ public:
   /// Return a reference to the inner structures.
   std::set<int>& get_second_order_discontinuous_element_ids();
 
+  /// Returns info about the method.
+  bool get_limit_all_orders_independently();
 protected:
   /// Center.
   void find_centroid_values(Hermes::Hermes2D::Element* e, double u_c[4]);
@@ -141,6 +143,7 @@ protected:
 private:
   /// For limiting of second order terms.
   std::set<int> second_order_discontinuous_element_ids;
+  bool limit_all_orders_independently;
 };
 
 class FluxLimiter
@@ -154,7 +157,7 @@ public:
     Kuzmin
   };
   /// Constructor.
-  FluxLimiter(LimitingType type, double* solution_vector, Hermes::vector<Space<double> *> spaces);
+  FluxLimiter(LimitingType type, double* solution_vector, Hermes::vector<Space<double> *> spaces, bool Kuzmin_limit_all_orders_independently = false);
 
   /// Destructor.
    ~FluxLimiter();
@@ -163,8 +166,16 @@ public:
   /// With the possibility to also limit the spaces from which the spaces in the constructors are refined.
   virtual void limit_according_to_detector(Hermes::vector<Space<double> *> coarse_spaces_to_limit = Hermes::vector<Space<double> *>());
   
+  /// Do the limiting.
+  /// For when having one common space.
+  virtual void limit_according_to_detector(Space<double> * coarse_space_to_limit);
+  
   /// For Kuzmin's detector.
   virtual void limit_second_orders_according_to_detector(Hermes::vector<Space<double> *> coarse_spaces_to_limit = Hermes::vector<Space<double> *>());
+  
+  /// For Kuzmin's detector.
+  /// For when having one common space.
+  virtual void limit_second_orders_according_to_detector(Space<double> * coarse_space_to_limit);
 
   void get_limited_solutions(Hermes::vector<Solution<double>*> solutions_to_limit);
 protected:

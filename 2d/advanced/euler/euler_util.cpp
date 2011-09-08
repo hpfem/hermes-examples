@@ -492,7 +492,7 @@ void KrivodonovaDiscontinuityDetector::calculate_norms(Element* e, int edge_i, d
 };
 
 KuzminDiscontinuityDetector::KuzminDiscontinuityDetector(Hermes::vector<Space<double>*> spaces, 
-  Hermes::vector<Solution<double>*> solutions) : DiscontinuityDetector(spaces, solutions)
+  Hermes::vector<Solution<double>*> solutions, bool limit_all_orders_independently) : DiscontinuityDetector(spaces, solutions), limit_all_orders_independently(limit_all_orders_independently)
 {
   // A check that all meshes are the same in the spaces.
   unsigned int mesh0_seq = spaces[0]->get_mesh()->get_seq();
@@ -511,8 +511,9 @@ std::set<int>& KuzminDiscontinuityDetector::get_discontinuous_element_ids()
 
   for_all_active_elements(e, mesh)
   {
-    if(this->second_order_discontinuous_element_ids.find(e->id) == this->second_order_discontinuous_element_ids.end())
-      continue;
+    if(!limit_all_orders_independently)
+      if(this->second_order_discontinuous_element_ids.find(e->id) == this->second_order_discontinuous_element_ids.end())
+        continue;
     if(e->is_triangle())
       error("So far this limiter is implemented just for quads.");
     double u_c[4], u_dx_c[4], u_dy_c[4];
@@ -541,7 +542,11 @@ std::set<int>& KuzminDiscontinuityDetector::get_discontinuous_element_ids()
     // measure.
     for(unsigned int i = 0; i < 4; i++)
       if(1.0 > alpha_i_first_order[i])
-        discontinuous_element_ids.insert(e->id);
+      {
+        // check for sanity.
+        if(std::abs(u_c[i]) > 1E-12 && (std::abs(u_dx_c[i]) > 1E-12 || std::abs(u_dy_c[i]) > 1E-12))
+          discontinuous_element_ids.insert(e->id);
+      }
   }
 
   return discontinuous_element_ids;
@@ -582,10 +587,19 @@ std::set<int>& KuzminDiscontinuityDetector::get_second_order_discontinuous_eleme
     // measure.
     for(unsigned int i = 0; i < 4; i++)
       if(1.0 > alpha_i_second_order[i])
-        second_order_discontinuous_element_ids.insert(e->id);
+      {
+        // check for sanity.
+        if((std::abs(u_dx_c[i]) > 1E-12 || std::abs(u_dy_c[i]) > 1E-12) && (std::abs(u_dxx_c[i]) > 1E-12 || std::abs(u_dxy_c[i]) > 1E-12 || std::abs(u_dyy_c[i]) > 1E-12))
+          second_order_discontinuous_element_ids.insert(e->id);
+      }
   }
 
   return second_order_discontinuous_element_ids;
+}
+
+bool KuzminDiscontinuityDetector::get_limit_all_orders_independently()
+{
+  return this->limit_all_orders_independently;
 }
 
 void KuzminDiscontinuityDetector::find_centroid_values(Hermes::Hermes2D::Element* e, double u_c[4])
@@ -594,13 +608,13 @@ void KuzminDiscontinuityDetector::find_centroid_values(Hermes::Hermes2D::Element
   double c_ref_x, c_ref_y;
   if(e->nvert == 3)
   {
-      c_x = (1/3) * (e->vn[0]->x + e->vn[1]->x + e->vn[2]->x);
-      c_y = (1/3) * (e->vn[0]->y + e->vn[1]->y + e->vn[2]->y);
+      c_x = (0.33333333333333333) * (e->vn[0]->x + e->vn[1]->x + e->vn[2]->x);
+      c_y = (0.33333333333333333) * (e->vn[0]->y + e->vn[1]->y + e->vn[2]->y);
   }
   else
   {
-      c_x = (1/4) * (e->vn[0]->x + e->vn[1]->x + e->vn[2]->x + e->vn[3]->x);
-      c_y = (1/4) * (e->vn[0]->y + e->vn[1]->y + e->vn[2]->y + e->vn[3]->y);
+      c_x = (0.25) * (e->vn[0]->x + e->vn[1]->x + e->vn[2]->x + e->vn[3]->x);
+      c_y = (0.25) * (e->vn[0]->y + e->vn[1]->y + e->vn[2]->y + e->vn[3]->y);
   }
 
   for(unsigned int i = 0; i < this->solutions.size(); i++)
@@ -617,13 +631,13 @@ void KuzminDiscontinuityDetector::find_centroid_derivatives(Hermes::Hermes2D::El
   double c_ref_x, c_ref_y;
   if(e->nvert == 3)
   {
-      c_x = (1/3) * (e->vn[0]->x + e->vn[1]->x + e->vn[2]->x);
-      c_y = (1/3) * (e->vn[0]->y + e->vn[1]->y + e->vn[2]->y);
+      c_x = (0.33333333333333333) * (e->vn[0]->x + e->vn[1]->x + e->vn[2]->x);
+      c_y = (0.33333333333333333) * (e->vn[0]->y + e->vn[1]->y + e->vn[2]->y);
   }
   else
   {
-      c_x = (1/4) * (e->vn[0]->x + e->vn[1]->x + e->vn[2]->x + e->vn[3]->x);
-      c_y = (1/4) * (e->vn[0]->y + e->vn[1]->y + e->vn[2]->y + e->vn[3]->y);
+      c_x = (0.25) * (e->vn[0]->x + e->vn[1]->x + e->vn[2]->x + e->vn[3]->x);
+      c_y = (0.25) * (e->vn[0]->y + e->vn[1]->y + e->vn[2]->y + e->vn[3]->y);
   }
 
   for(unsigned int i = 0; i < this->solutions.size(); i++)
@@ -641,13 +655,13 @@ void KuzminDiscontinuityDetector::find_second_centroid_derivatives(Hermes::Herme
   double c_ref_x, c_ref_y;
   if(e->nvert == 3)
   {
-      c_x = (1/3) * (e->vn[0]->x + e->vn[1]->x + e->vn[2]->x);
-      c_y = (1/3) * (e->vn[0]->y + e->vn[1]->y + e->vn[2]->y);
+      c_x = (0.33333333333333333) * (e->vn[0]->x + e->vn[1]->x + e->vn[2]->x);
+      c_y = (0.33333333333333333) * (e->vn[0]->y + e->vn[1]->y + e->vn[2]->y);
   }
   else
   {
-      c_x = (1/4) * (e->vn[0]->x + e->vn[1]->x + e->vn[2]->x + e->vn[3]->x);
-      c_y = (1/4) * (e->vn[0]->y + e->vn[1]->y + e->vn[2]->y + e->vn[3]->y);
+      c_x = (0.25) * (e->vn[0]->x + e->vn[1]->x + e->vn[2]->x + e->vn[3]->x);
+      c_y = (0.25) * (e->vn[0]->y + e->vn[1]->y + e->vn[2]->y + e->vn[3]->y);
   }
 
   for(unsigned int i = 0; i < this->solutions.size(); i++)
@@ -942,7 +956,7 @@ void KuzminDiscontinuityDetector::find_alpha_i_second_order_real(Hermes::Hermes2
 }
 
 
-FluxLimiter::FluxLimiter(FluxLimiter::LimitingType type, double* solution_vector, Hermes::vector<Space<double>*> spaces) : solution_vector(solution_vector), spaces(spaces)
+FluxLimiter::FluxLimiter(FluxLimiter::LimitingType type, double* solution_vector, Hermes::vector<Space<double>*> spaces, bool Kuzmin_limit_all_orders_independently) : solution_vector(solution_vector), spaces(spaces)
 {
   for(unsigned int sol_i = 0; sol_i < spaces.size(); sol_i++)
     limited_solutions.push_back(new Hermes::Hermes2D::Solution<double>(spaces[sol_i]->get_mesh()));
@@ -954,19 +968,30 @@ FluxLimiter::FluxLimiter(FluxLimiter::LimitingType type, double* solution_vector
       this->detector = new KrivodonovaDiscontinuityDetector(spaces, limited_solutions);
       break;
     case Kuzmin:
-      this->detector = new KuzminDiscontinuityDetector(spaces, limited_solutions);
+      this->detector = new KuzminDiscontinuityDetector(spaces, limited_solutions, Kuzmin_limit_all_orders_independently);
       break;
   }
 };
 
 FluxLimiter::~FluxLimiter()
-{};
+{
+  delete detector;
+  for(unsigned int sol_i = 0; sol_i < spaces.size(); sol_i++)
+    delete limited_solutions[sol_i];
+};
 
 void FluxLimiter::get_limited_solutions(Hermes::vector<Solution<double>*> solutions_to_limit)
 {
   for(unsigned int i = 0; i < solutions_to_limit.size(); i++)
     solutions_to_limit[i]->copy(this->limited_solutions[i]);
 }
+
+void FluxLimiter::limit_according_to_detector(Space<double> * coarse_space_to_limit)
+{
+  Hermes::vector<Space<double> *> coarse_spaces_to_limit;
+  coarse_spaces_to_limit.push_back(coarse_space_to_limit);
+  this->limit_according_to_detector(coarse_spaces_to_limit);
+};
 
 void FluxLimiter::limit_according_to_detector(Hermes::vector<Space<double> *> coarse_spaces_to_limit)
 {
@@ -992,24 +1017,22 @@ void FluxLimiter::limit_according_to_detector(Hermes::vector<Space<double> *> co
       for_all_elements(e, spaces[0]->get_mesh())
         e->visited = false;
 
-      for(unsigned int space_i = 0; space_i < spaces.size(); space_i++) {
-        for(std::set<int>::iterator it = discontinuous_elements.begin(); it != discontinuous_elements.end(); it++) {
-          AsmList<double> al;
-          spaces[space_i]->get_element_assembly_list(spaces[space_i]->get_mesh()->get_element(*it), &al);
-          for(unsigned int shape_i = 0; shape_i < al.cnt; shape_i++) {
-            if(H2D_GET_H_ORDER(spaces[space_i]->get_shapeset()->get_order(al.idx[shape_i])) > 0 || H2D_GET_V_ORDER(spaces[space_i]->get_shapeset()->get_order(al.idx[shape_i])) > 0) {
-              spaces[space_i]->get_mesh()->get_element(*it)->visited = true;
-              bool all_sons_visited = true;
-              for(unsigned int son_i = 0; son_i < 4; son_i++)
-                if(!spaces[space_i]->get_mesh()->get_element(*it)->parent->sons[son_i]->visited)
-                {
-                  all_sons_visited = false;
-                  break;
-                }
-                if(all_sons_visited)
-                  coarse_spaces_to_limit[space_i]->set_element_order_internal(spaces[space_i]->get_mesh()->get_element(*it)->parent->id, 0);
+      for(std::set<int>::iterator it = discontinuous_elements.begin(); it != discontinuous_elements.end(); it++) {
+        AsmList<double> al;
+        spaces[0]->get_element_assembly_list(spaces[0]->get_mesh()->get_element(*it), &al);
+        for(unsigned int shape_i = 0; shape_i < al.cnt; shape_i++) {
+          if(H2D_GET_H_ORDER(spaces[0]->get_shapeset()->get_order(al.idx[shape_i])) > 0 || H2D_GET_V_ORDER(spaces[0]->get_shapeset()->get_order(al.idx[shape_i])) > 0) {
+            spaces[0]->get_mesh()->get_element(*it)->visited = true;
+            bool all_sons_visited = true;
+            for(unsigned int son_i = 0; son_i < 4; son_i++)
+              if(!spaces[0]->get_mesh()->get_element(*it)->parent->sons[son_i]->visited)
+              {
+                all_sons_visited = false;
                 break;
-            }
+              }
+              if(all_sons_visited)
+                for(unsigned int space_i = 0; space_i < spaces.size(); space_i++) 
+                  coarse_spaces_to_limit[space_i]->set_element_order_internal(spaces[space_i]->get_mesh()->get_element(*it)->parent->id, 0);
           }
         }
       }
@@ -1040,8 +1063,9 @@ void FluxLimiter::limit_second_orders_according_to_detector(Hermes::vector<Space
     Solution<double>::vector_to_solutions(solution_vector, spaces, limited_solutions);
     if(dynamic_cast<KuzminDiscontinuityDetector*>(this->detector))
     {
+      bool Kuzmin_limit_all_orders_independently = dynamic_cast<KuzminDiscontinuityDetector*>(this->detector)->get_limit_all_orders_independently();
       delete detector;
-      this->detector = new KuzminDiscontinuityDetector(spaces, limited_solutions);
+      this->detector = new KuzminDiscontinuityDetector(spaces, limited_solutions, Kuzmin_limit_all_orders_independently);
     }
     else
     {
@@ -1056,30 +1080,35 @@ void FluxLimiter::limit_second_orders_according_to_detector(Hermes::vector<Space
       for_all_elements(e, spaces[0]->get_mesh())
         e->visited = false;
 
-      for(unsigned int space_i = 0; space_i < spaces.size(); space_i++) {
-        for(std::set<int>::iterator it = discontinuous_elements.begin(); it != discontinuous_elements.end(); it++) {
-          AsmList<double> al;
-          spaces[space_i]->get_element_assembly_list(spaces[space_i]->get_mesh()->get_element(*it), &al);
-          for(unsigned int shape_i = 0; shape_i < al.cnt; shape_i++) {
-            if(H2D_GET_H_ORDER(spaces[space_i]->get_shapeset()->get_order(al.idx[shape_i])) > 1 || H2D_GET_V_ORDER(spaces[space_i]->get_shapeset()->get_order(al.idx[shape_i])) > 1) {
-              spaces[space_i]->get_mesh()->get_element(*it)->visited = true;
-              bool all_sons_visited = true;
-              for(unsigned int son_i = 0; son_i < 4; son_i++)
-                if(!spaces[space_i]->get_mesh()->get_element(*it)->parent->sons[son_i]->visited)
-                {
-                  all_sons_visited = false;
-                  break;
-                }
-                if(all_sons_visited)
-                  coarse_spaces_to_limit[space_i]->set_element_order_internal(spaces[space_i]->get_mesh()->get_element(*it)->parent->id, 1);
+      for(std::set<int>::iterator it = discontinuous_elements.begin(); it != discontinuous_elements.end(); it++) {
+        AsmList<double> al;
+        spaces[0]->get_element_assembly_list(spaces[0]->get_mesh()->get_element(*it), &al);
+        for(unsigned int shape_i = 0; shape_i < al.cnt; shape_i++) {
+          if(H2D_GET_H_ORDER(spaces[0]->get_shapeset()->get_order(al.idx[shape_i])) > 1 || H2D_GET_V_ORDER(spaces[0]->get_shapeset()->get_order(al.idx[shape_i])) > 1) {
+            spaces[0]->get_mesh()->get_element(*it)->visited = true;
+            bool all_sons_visited = true;
+            for(unsigned int son_i = 0; son_i < 4; son_i++)
+              if(!spaces[0]->get_mesh()->get_element(*it)->parent->sons[son_i]->visited)
+              {
+                all_sons_visited = false;
                 break;
-            }
+              }
+              if(all_sons_visited)
+                for(unsigned int space_i = 0; space_i < spaces.size(); space_i++) 
+                  coarse_spaces_to_limit[space_i]->set_element_order_internal(spaces[space_i]->get_mesh()->get_element(*it)->parent->id, 1);
           }
         }
       }
 
       Space<double>::assign_dofs(coarse_spaces_to_limit);
     }
+};
+
+void FluxLimiter::limit_second_orders_according_to_detector(Space<double> * coarse_space_to_limit)
+{
+  Hermes::vector<Space<double> *> coarse_spaces_to_limit;
+  coarse_spaces_to_limit.push_back(coarse_space_to_limit);
+  this->limit_second_orders_according_to_detector(coarse_spaces_to_limit);
 };
 
 void MachNumberFilter::filter_fn(int n, Hermes::vector<double*> values, double* result) 

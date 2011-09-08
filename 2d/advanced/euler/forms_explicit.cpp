@@ -710,7 +710,7 @@ protected:
     }
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const {
-      return v->val[0] * v->val[0] * v->val[0] * v->val[0];
+      return v->val[0] * v->val[0] * Ord(2);
     }
 
     double kappa;
@@ -853,7 +853,7 @@ protected:
     }
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const {
-      return v->val[0];
+      return v->val[0] * v->val[0] * Ord(2);
     }
 
     // Members.
@@ -895,7 +895,7 @@ protected:
     }
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const {
-      return v->val[0];
+      return v->val[0] * v->val[0] * Ord(2);
     }
 
     // Members.
@@ -946,7 +946,7 @@ protected:
     }
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const {
-      return v->val[0];
+      return v->val[0] * v->val[0] * Ord(2);
     }
 
     // Members.
@@ -989,7 +989,7 @@ protected:
     }
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const {
-      return v->val[0];
+      return v->val[0] * v->val[0] * Ord(2);
     }
 
     // Members.

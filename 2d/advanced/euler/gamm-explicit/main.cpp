@@ -29,8 +29,10 @@ bool SHOCK_CAPTURING = true;
 // Quantitative parameter of the discontinuity detector.
 double DISCONTINUITY_DETECTOR_PARAM = 1.0;
 
+bool REUSE_SOLUTION = false;
+
 const int P_INIT = 1;                                   // Initial polynomial degree.                      
-const int INIT_REF_NUM = 2;                             // Number of initial uniform mesh refinements.                       
+const int INIT_REF_NUM = 3;                             // Number of initial uniform mesh refinements.                       
 double CFL_NUMBER = 1.0;                                // CFL value.
 double time_step = 1E-4;                                // Initial time step.
 const MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
@@ -83,17 +85,6 @@ int main(int argc, char* argv[])
   // Numerical flux.
   OsherSolomonNumericalFlux num_flux(KAPPA);
 
-  // Initialize weak formulation.
-  EulerEquationsWeakFormSemiImplicitMultiComponent wf(&num_flux, KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, BDY_SOLID_WALL_BOTTOM, BDY_SOLID_WALL_TOP, 
-    BDY_INLET, BDY_OUTLET, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, (P_INIT == 0));
-
-  // Initialize the FE problem.
-  DiscreteProblem<double> dp(&wf, Hermes::vector<Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
-
-  // If the FE problem is in fact a FV problem.
-  if(P_INIT == 0) 
-    dp.set_fvm();  
-
   // Filters for visualization of Mach number, pressure and entropy.
   MachNumberFilter Mach_number(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA);
   PressureFilter pressure(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA);
@@ -111,8 +102,36 @@ int main(int argc, char* argv[])
   // Set up CFL calculation class.
   CFLCalculation CFL(CFL_NUMBER, KAPPA);
 
+  // Look for a saved solution on the disk.
+  Continuity<double> continuity(Continuity<double>::onlyTime);
   int iteration = 0; double t = 0;
-  for(t = 0.0; t < 3.0; t += time_step)
+
+  if(REUSE_SOLUTION && continuity.have_record_available())
+  {
+    continuity.get_last_record()->load_mesh(&mesh);
+    continuity.get_last_record()->load_spaces(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
+        &space_rho_v_y, &space_e), Hermes::vector<SpaceType>(HERMES_L2_SPACE, HERMES_L2_SPACE, HERMES_L2_SPACE, HERMES_L2_SPACE), Hermes::vector<Mesh *>(&mesh, &mesh, 
+        &mesh, &mesh));
+    continuity.get_last_record()->load_solutions(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), Hermes::vector<Mesh *>(&mesh, &mesh, 
+        &mesh, &mesh));
+    continuity.get_last_record()->load_time_step_length(time_step);
+    t = continuity.get_last_record()->get_time();
+    iteration = continuity.get_num();
+  }
+
+  // Initialize weak formulation.
+  EulerEquationsWeakFormExplicitMultiComponent wf(&num_flux, KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, BDY_SOLID_WALL_BOTTOM, BDY_SOLID_WALL_TOP, 
+    BDY_INLET, BDY_OUTLET, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, (P_INIT == 0));
+
+  // Initialize the FE problem.
+  DiscreteProblem<double> dp(&wf, Hermes::vector<Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
+  
+  // If the FE problem is in fact a FV problem.
+  if(P_INIT == 0) 
+    dp.set_fvm();
+
+  // Time stepping loop.
+  for(; t < 3.0; t += time_step)
   {
     info("---- Time step %d, time %3.5f.", iteration++, t);
 
@@ -122,8 +141,6 @@ int main(int argc, char* argv[])
     // Assemble the stiffness matrix and rhs.
     info("Assembling the stiffness matrix and right-hand side vector.");
     dp.assemble(matrix, rhs);
-
-    dp.get_last_profiling_output(std::cout);
 
     // Solve the matrix problem.
     info("Solving the matrix problem.");
@@ -145,7 +162,7 @@ int main(int argc, char* argv[])
     else
       error ("Matrix solver failed.\n");
 
-    CFL.calculate_semi_implicit(Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), &mesh, time_step);
+    CFL.calculate(Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), &mesh, time_step);
 
     // Visualization.
 
@@ -175,6 +192,13 @@ int main(int argc, char* argv[])
         lin_mach.save_solution_vtk(filename, "MachNumber", true);
       }
     }
+    // Save a current state on the disk.
+    continuity.add_record(t);
+    continuity.get_last_record()->save_mesh(&mesh);
+    continuity.get_last_record()->save_spaces(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
+      &space_rho_v_y, &space_e));
+    continuity.get_last_record()->save_solutions(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
+    continuity.get_last_record()->save_time_step_length(time_step);
   }
 
   pressure_view.close();
