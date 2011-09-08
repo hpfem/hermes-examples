@@ -79,9 +79,9 @@ int main(int argc, char* argv[])
   if (VTK_VISUALIZATION)
   {
     // Output solution in VTK format.
-    Views::Linearizer lin(&sln);
+    Views::Linearizer lin;
     bool mode_3D = true;
-    lin.save_solution_vtk("sln.vtk", "Temperature", mode_3D);
+    lin.save_solution_vtk(&sln, "sln.vtk", "Temperature", mode_3D);
     info("Solution in VTK format saved to file %s.", "sln.vtk");
 
     // Output mesh and element orders in VTK format.

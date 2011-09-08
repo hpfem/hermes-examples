@@ -390,13 +390,13 @@ int main(int argc, char* argv[])
       {
         pressure.reinit();
         Mach_number.reinit();
-        Linearizer lin_pressure(&pressure);
+        Linearizer lin_pressure;
         char filename[40];
         sprintf(filename, "pressure-3D-%i.vtk", iteration - 1);
-        lin_pressure.save_solution_vtk(filename, "Pressure", true);
-        Linearizer lin_mach(&Mach_number);
+        lin_pressure.save_solution_vtk(&pressure, filename, "Pressure", true);
+        Linearizer lin_mach;
         sprintf(filename, "Mach number-3D-%i.vtk", iteration - 1);
-        lin_mach.save_solution_vtk(filename, "MachNumber", true);
+        lin_mach.save_solution_vtk(&Mach_number, filename, "MachNumber", true);
       }
     }
   }
