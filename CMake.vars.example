@@ -1,9 +1,20 @@
-set(DEP_ROOT "d:/hpfem/hermes/dependencies")    # Root of a directory with dependecies. This line has to be modified. Don't forget to replace all backslashes '\' with slashes '/'.
+# This is a sample CMake.vars file for Hermes.
+# Search paths.
+set(GLUT_ROOT "d:/hpfem/hermes/dependencies/glut")
+set(GLEW_ROOT "d:/hpfem/hermes/dependencies/glew")
+set(PTHREAD_ROOT "d:/hpfem/hermes/dependencies/pthread")
+set(UMFPACK_ROOT "d:/hpfem/hermes/dependencies/umfpack")
+set(CLAPACK_ROOT "d:/hpfem/hermes/dependencies/clapack")
+set(TRILINOS_ROOT "d:/hpfem/hermes/dependencies/trilinos")
 
-set(PTHREAD_ROOT ${DEP_ROOT})
-set(HERMES_DIRECTORY "${DEP_ROOT}/lib")
-set(HERMES_INCLUDE_PATH "${DEP_ROOT}/include")
-set(DEP_INCLUDE_PATHS "${DEP_ROOT}/include")
+# Target (installation) path.
+set(TARGET_ROOT "d:/hpfem/hermes/dependencies")
+
+# Turn off Python.
+set(WITH_PYTHON NO)
+
+# Turn on Trilinos
+SET(WITH_TRILINOS YES)
 
 # Experimental
 # Turn on Zoltan AND MPI
