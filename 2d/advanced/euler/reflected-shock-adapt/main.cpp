@@ -7,17 +7,17 @@ using namespace Hermes::Hermes2D;
 using namespace Hermes::Hermes2D::Views;
 using namespace Hermes::Hermes2D::RefinementSelectors;
 
-// This example solves the compressible Euler equations using FVM and automatic h-adaptivity.
+// This example solves the compressible Euler equations using a basic
+// piecewise-constant finite volume method.
 //
 // Equations: Compressible Euler equations, perfect gas state equation.
 //
-// Domain: forward facing step, see mesh file ffs.mesh
+// Domain: channel.
 //
-// BC: Normal velocity component is zero on solid walls.
-//     Full supersonic state prescribed at inlet.
-//     Pressure given at outlet, but used only if outlet flow is subsonic/
+// BC: essential boundary conditions at the left and the top boundaries
+//     slip condition at the bottom part, no condition on the right.
 //
-// IC: Constant supersonic state identical to inlet. 
+// IC: Exact solution.
 //
 // The following parameters can be changed:
 // Visualization.
@@ -33,14 +33,13 @@ double DISCONTINUITY_DETECTOR_PARAM = 1.0;
 bool REUSE_SOLUTION = true;
 
 const int P_INIT = 0;                             // Initial polynomial degree.                      
-const int INIT_REF_NUM = 1;                       // Number of initial uniform mesh refinements.                       
-const int INIT_REF_NUM_STEP = 1;                   // Number of initial localized mesh refinements.                       
-double CFL_NUMBER = 0.5;                         // CFL value.
+const int INIT_REF_NUM = 2;                       // Number of initial uniform mesh refinements.                       
+double CFL_NUMBER = 0.1;                         // CFL value.
 double time_step = 1E-6;                          // Initial time step.
 
 // Adaptivity.
 // Every UNREF_FREQth time step the mesh is unrefined.
-int UNREF_FREQ = 5;
+const int UNREF_FREQ = 5;
 
 // Number of mesh refinements between two unrefinements.
 // The mesh is not unrefined unless there has been a refinement since
@@ -85,11 +84,11 @@ const double CONV_EXP = 1;
 
 // Stopping criterion for adaptivity (rel. error tolerance between the
 // fine mesh and coarse mesh solution in percent).
-double ERR_STOP = 2.5;                     
+double ERR_STOP = 2.0;                     
 
 // Adaptivity process stops when the number of degrees of freedom grows over
 // this limit. This is mainly to prevent h-adaptivity to go on forever.
-const int NDOF_STOP = 100000;                   
+const int NDOF_STOP = 100000;
 
 // Matrix solver for orthogonal projections.
 // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
@@ -97,17 +96,30 @@ const int NDOF_STOP = 100000;
 MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
 
 // Equation parameters.
-const double P_EXT = 1.0;         // Exterior pressure (dimensionless).
-const double RHO_EXT = 1.4;       // Inlet density (dimensionless).   
-const double V1_EXT = 3.0;        // Inlet x-velocity (dimensionless).
-const double V2_EXT = 0.0;                        // Inlet y-velocity (dimensionless).
 const double KAPPA = 1.4;                         // Kappa.
+const double RHO_LEFT = 1.0;
+const double RHO_TOP = 1.7;
+
+const double V1_LEFT = 2.9;
+const double V1_TOP = 2.619334;
+
+const double V2_LEFT = 0.0;
+const double V2_TOP = -0.5063;
+
+const double PRESSURE_LEFT = 0.714286;
+const double PRESSURE_TOP = 1.52819;
+
+// Initial values
+const double RHO_INIT = 1.0;
+const double V1_INIT = 2.9;
+const double V2_INIT = 0.0;
+const double PRESSURE_INIT = 0.714286;
 
 // Boundary markers.
-const std::string BDY_SOLID_WALL_BOTTOM = "1";
+const std::string BDY_SOLID_WALL = "1";
 const std::string BDY_OUTLET = "2";
-const std::string BDY_SOLID_WALL_TOP = "3";
-const std::string BDY_INLET = "4";
+const std::string BDY_INLET_TOP = "3";
+const std::string BDY_INLET_LEFT = "4";
 
 // Weak forms.
 #include "../forms_explicit.cpp"
@@ -115,68 +127,55 @@ const std::string BDY_INLET = "4";
 // Initial condition.
 #include "../initial_condition.cpp"
 
-// Criterion for mesh refinement.
-int refinement_criterion(Element* e)
-{
-  if(e->vn[2]->y <= 0.4 && e->vn[1]->x <= 0.6)
-    return 0;
-  else
-    return -1;
-}
-
 int main(int argc, char* argv[])
 {
   // Load the mesh.
-  Mesh mesh, base_mesh;
+  Mesh mesh;
   MeshReaderH2D mloader;
-  mloader.load("ffs.mesh", &base_mesh);
-  
-  base_mesh.refine_by_criterion(refinement_criterion, INIT_REF_NUM_STEP);
-  
+  mloader.load("channel.mesh", &mesh);
+
   // Perform initial mesh refinements.
-  for (int i = 0; i < INIT_REF_NUM; i++)
-    base_mesh.refine_all_elements(0, true);
-
-  mesh.copy(&base_mesh);
-
+  for (int i = 0; i < INIT_REF_NUM; i++) 
+    mesh.refine_all_elements(0, true);
+  
   // Initialize boundary condition types and spaces with default shapesets.
-  L2Space<double>space_rho(&mesh, P_INIT);
-  L2Space<double>space_rho_v_x(&mesh, P_INIT);
-  L2Space<double>space_rho_v_y(&mesh, P_INIT);
-  L2Space<double>space_e(&mesh, P_INIT);
+  L2Space<double> space_rho(&mesh, P_INIT);
+  L2Space<double> space_rho_v_x(&mesh, P_INIT);
+  L2Space<double> space_rho_v_y(&mesh, P_INIT);
+  L2Space<double> space_e(&mesh, P_INIT);
 
   // Initialize solutions, set initial conditions.
-  InitialSolutionEulerDensity sln_rho(&mesh, RHO_EXT);
-  InitialSolutionEulerDensityVelX sln_rho_v_x(&mesh, RHO_EXT * V1_EXT);
-  InitialSolutionEulerDensityVelY sln_rho_v_y(&mesh, RHO_EXT * V2_EXT);
-  InitialSolutionEulerDensityEnergy sln_e(&mesh, QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA));
+  InitialSolutionEulerDensity sln_rho(&mesh, RHO_INIT);
+  InitialSolutionEulerDensityVelX sln_rho_v_x(&mesh, RHO_INIT * V1_INIT);
+  InitialSolutionEulerDensityVelY sln_rho_v_y(&mesh, RHO_INIT * V2_INIT);
+  InitialSolutionEulerDensityEnergy sln_e(&mesh, QuantityCalculator::calc_energy(RHO_INIT, RHO_INIT * V1_INIT, RHO_INIT * V2_INIT, PRESSURE_INIT, KAPPA));
 
-  InitialSolutionEulerDensity prev_rho(&mesh, RHO_EXT);
-  InitialSolutionEulerDensityVelX prev_rho_v_x(&mesh, RHO_EXT * V1_EXT);
-  InitialSolutionEulerDensityVelY prev_rho_v_y(&mesh, RHO_EXT * V2_EXT);
-  InitialSolutionEulerDensityEnergy prev_e(&mesh, QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA));
+  InitialSolutionEulerDensity prev_rho(&mesh, RHO_INIT);
+  InitialSolutionEulerDensityVelX prev_rho_v_x(&mesh, RHO_INIT * V1_INIT);
+  InitialSolutionEulerDensityVelY prev_rho_v_y(&mesh, RHO_INIT * V2_INIT);
+  InitialSolutionEulerDensityEnergy prev_e(&mesh, QuantityCalculator::calc_energy(RHO_INIT, RHO_INIT * V1_INIT, RHO_INIT * V2_INIT, PRESSURE_INIT, KAPPA));
 
   Solution<double> rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e;
 
   // Numerical flux.
   OsherSolomonNumericalFlux num_flux(KAPPA);
-  
+
   // For saving to the disk.
   Continuity<double> continuity(Continuity<double>::onlyNumber);
 
   // Initialize weak formulation.
-  EulerEquationsWeakFormSemiImplicitMultiComponent wf(&num_flux, KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, BDY_SOLID_WALL_BOTTOM, BDY_SOLID_WALL_TOP, 
-    BDY_INLET, BDY_OUTLET, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e);
+  EulerEquationsWeakFormSemiImplicitMultiComponentTwoInflows wf(&num_flux, KAPPA, RHO_LEFT, V1_LEFT, V2_LEFT, PRESSURE_LEFT, RHO_TOP, V1_TOP, V2_TOP, PRESSURE_TOP, BDY_SOLID_WALL, BDY_INLET_LEFT, BDY_INLET_TOP, BDY_OUTLET,
+    &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e);
 
   // Filters for visualization of Mach number, pressure and entropy.
   MachNumberFilter Mach_number(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA);
   PressureFilter pressure(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA);
-  EntropyFilter entropy(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA, RHO_EXT, P_EXT);
+  EntropyFilter entropy(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA, RHO_INIT, P_INIT);
 
   ScalarView pressure_view("Pressure", new WinGeom(0, 0, 600, 300));
   ScalarView Mach_number_view("Mach number", new WinGeom(700, 0, 600, 300));
   ScalarView entropy_production_view("Entropy estimate", new WinGeom(0, 400, 600, 300));
-  
+
   // Initialize refinement selector.
   L2ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, MAX_P_ORDER);
   selector.set_error_weights(1.0, 1.0, 1.0);
@@ -186,7 +185,7 @@ int main(int argc, char* argv[])
 
   // Time stepping loop.
   int iteration = 0; double t = 0;
-  for(; t < 4.5; t += time_step)
+  for(; t < 5.0; t += time_step)
   {
     info("---- Time step %d, time %3.5f.", iteration++, t);
 
@@ -244,30 +243,30 @@ int main(int argc, char* argv[])
       Vector<double>* rhs = create_vector<double>(matrix_solver_type);
       LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver_type, matrix, rhs);
 
-      wf.set_time_step(time_step);
+    wf.set_time_step(time_step);
 
-      dp.assemble(matrix, rhs);
-
-     // Solve the matrix problem.
-      info("Solving the matrix problem.");
-      if(solver->solve())
-        if(!SHOCK_CAPTURING)
+    dp.assemble(matrix, rhs);
+    
+    // Solve the matrix problem.
+    info("Solving the matrix problem.");
+    if(solver->solve())
+      if(!SHOCK_CAPTURING)
           Solution<double>::vector_to_solutions(solver->get_sln_vector(), *ref_spaces, 
           Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e));
-        else
+      else
         {      
           FluxLimiter flux_limiter(FluxLimiter::Kuzmin, solver->get_sln_vector(), *ref_spaces, true);
           
           flux_limiter.limit_second_orders_according_to_detector(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
             &space_rho_v_y, &space_e));
-          
+
           flux_limiter.limit_according_to_detector(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
             &space_rho_v_y, &space_e));
 
           flux_limiter.get_limited_solutions(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e));
         }
-      else
-        error ("Matrix solver failed.\n");
+    else
+      error ("Matrix solver failed.\n");
 
       // Project the fine mesh solution onto the coarse mesh.
       info("Projecting reference solution on coarse mesh.");
@@ -332,7 +331,7 @@ int main(int argc, char* argv[])
     rsln_e.own_mesh = false;
 
     // Visualization and saving on disk.
-    if((iteration - 1) % EVERY_NTH_STEP == 0)
+    if((iteration - 1) % EVERY_NTH_STEP == 0) 
     {
       continuity.add_record((unsigned int)(iteration - 1));
       continuity.get_last_record()->save_mesh(prev_rho.get_mesh());
@@ -340,8 +339,8 @@ int main(int argc, char* argv[])
       continuity.get_last_record()->save_time_step_length(time_step);
 
       // Hermes visualization.
-      if(HERMES_VISUALIZATION)
-      {        
+      if(HERMES_VISUALIZATION) 
+      {
         Mach_number.reinit();
         pressure.reinit();
         entropy.reinit();
@@ -353,7 +352,7 @@ int main(int argc, char* argv[])
         Mach_number_view.save_numbered_screenshot("Mach no %i.bmp", iteration);
       }
       // Output solution in VTK format.
-      if(VTK_VISUALIZATION)
+      if(VTK_VISUALIZATION) 
       {
         pressure.reinit();
         Mach_number.reinit();

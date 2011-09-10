@@ -5,19 +5,28 @@
 // Calculates energy from other quantities.
 double QuantityCalculator::calc_energy(double rho, double rho_v_x, double rho_v_y, double pressure, double kappa)
 {
-  return pressure/(kappa - 1.0) + (rho_v_x*rho_v_x+rho_v_y*rho_v_y) / (2.0*rho);
+  double to_return = pressure/(kappa - 1.0) + (rho_v_x*rho_v_x+rho_v_y*rho_v_y) / (2.0*rho);
+  if(std::abs(to_return) < 1E-12 || to_return < 0.0)
+    return 1E-12;
+  return to_return;
 }
 
 // Calculates pressure from other quantities.
 double QuantityCalculator::calc_pressure(double rho, double rho_v_x, double rho_v_y, double energy, double kappa)
 {
-  return (kappa - 1.0) * (energy - (rho_v_x*rho_v_x + rho_v_y*rho_v_y) / (2.0*rho));
+  double to_return = (kappa - 1.0) * (energy - (rho_v_x*rho_v_x + rho_v_y*rho_v_y) / (2.0*rho));
+  if(std::abs(to_return) < 1E-12 || to_return < 0.0)
+    return 1E-12;
+  return to_return;
 }
 
 // Calculates speed of sound.
 double QuantityCalculator::calc_sound_speed(double rho, double rho_v_x, double rho_v_y, double energy, double kappa)
 {
-  return std::sqrt(kappa * calc_pressure(rho, rho_v_x, rho_v_y, energy, kappa) / rho);
+  double to_return = std::sqrt(kappa * calc_pressure(rho, rho_v_x, rho_v_y, energy, kappa) / rho);
+  if(std::abs(to_return) < 1E-12 || to_return < 0.0)
+    return 1E-12;
+  return to_return;
 }
 
 CFLCalculation::CFLCalculation(double CFL_number, double kappa) : CFL_number(CFL_number), kappa(kappa)
@@ -804,7 +813,6 @@ void KuzminDiscontinuityDetector::find_alpha_i_first_order_real(Hermes::Hermes2D
         alpha_i_real[sol_i] = (u_i[sol_i][vertex_i] - u_c[sol_i]) / (u_dx_c[sol_i] * (e->vn[vertex_i]->x - c_x) + u_dy_c[sol_i] * (e->vn[vertex_i]->y - c_y));
 }
 
-
 void KuzminDiscontinuityDetector::find_u_i_min_max_second_order(Hermes::Hermes2D::Element* e, double u_d_i_min[4][4][2], double u_d_i_max[4][4][2])
 {
   for(unsigned int j = 0; j < e->nvert; j++)
@@ -986,13 +994,6 @@ void FluxLimiter::get_limited_solutions(Hermes::vector<Solution<double>*> soluti
     solutions_to_limit[i]->copy(this->limited_solutions[i]);
 }
 
-void FluxLimiter::limit_according_to_detector(Space<double> * coarse_space_to_limit)
-{
-  Hermes::vector<Space<double> *> coarse_spaces_to_limit;
-  coarse_spaces_to_limit.push_back(coarse_space_to_limit);
-  this->limit_according_to_detector(coarse_spaces_to_limit);
-};
-
 void FluxLimiter::limit_according_to_detector(Hermes::vector<Space<double> *> coarse_spaces_to_limit)
 {
   std::set<int> discontinuous_elements = this->detector->get_discontinuous_element_ids();
@@ -1085,6 +1086,8 @@ void FluxLimiter::limit_second_orders_according_to_detector(Hermes::vector<Space
         spaces[0]->get_element_assembly_list(spaces[0]->get_mesh()->get_element(*it), &al);
         for(unsigned int shape_i = 0; shape_i < al.cnt; shape_i++) {
           if(H2D_GET_H_ORDER(spaces[0]->get_shapeset()->get_order(al.idx[shape_i])) > 1 || H2D_GET_V_ORDER(spaces[0]->get_shapeset()->get_order(al.idx[shape_i])) > 1) {
+            int h_order_to_set = std::min(1, H2D_GET_H_ORDER(spaces[0]->get_shapeset()->get_order(al.idx[shape_i])));
+            int v_order_to_set = std::min(1, H2D_GET_V_ORDER(spaces[0]->get_shapeset()->get_order(al.idx[shape_i])));
             spaces[0]->get_mesh()->get_element(*it)->visited = true;
             bool all_sons_visited = true;
             for(unsigned int son_i = 0; son_i < 4; son_i++)
@@ -1095,20 +1098,13 @@ void FluxLimiter::limit_second_orders_according_to_detector(Hermes::vector<Space
               }
               if(all_sons_visited)
                 for(unsigned int space_i = 0; space_i < spaces.size(); space_i++) 
-                  coarse_spaces_to_limit[space_i]->set_element_order_internal(spaces[space_i]->get_mesh()->get_element(*it)->parent->id, 1);
+                  coarse_spaces_to_limit[space_i]->set_element_order_internal(spaces[space_i]->get_mesh()->get_element(*it)->parent->id, H2D_MAKE_QUAD_ORDER(h_order_to_set, v_order_to_set));
           }
         }
       }
 
       Space<double>::assign_dofs(coarse_spaces_to_limit);
     }
-};
-
-void FluxLimiter::limit_second_orders_according_to_detector(Space<double> * coarse_space_to_limit)
-{
-  Hermes::vector<Space<double> *> coarse_spaces_to_limit;
-  coarse_spaces_to_limit.push_back(coarse_space_to_limit);
-  this->limit_second_orders_according_to_detector(coarse_spaces_to_limit);
 };
 
 void MachNumberFilter::filter_fn(int n, Hermes::vector<double*> values, double* result) 

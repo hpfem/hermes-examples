@@ -20,9 +20,9 @@ using namespace Hermes::Hermes2D::RefinementSelectors;
 //
 // The following parameters can be changed:
 // Visualization.
-const bool HERMES_VISUALIZATION = true;           // Set to "true" to enable Hermes OpenGL visualization. 
-const bool VTK_VISUALIZATION = false;              // Set to "true" to enable VTK output.
-const unsigned int EVERY_NTH_STEP = 1;            // Set visual output for every nth step.
+const bool HERMES_VISUALIZATION = false;           // Set to "true" to enable Hermes OpenGL visualization. 
+const bool VTK_VISUALIZATION = true;              // Set to "true" to enable VTK output.
+const unsigned int EVERY_NTH_STEP = 10;            // Set visual output for every nth step.
 
 // Shock capturing.
 bool SHOCK_CAPTURING = true;
@@ -32,7 +32,7 @@ double DISCONTINUITY_DETECTOR_PARAM = 1.0;
 bool REUSE_SOLUTION = true;
 
 const int P_INIT = 0;                             // Initial polynomial degree.                      
-const int INIT_REF_NUM = 2;                             // Number of initial uniform mesh refinements.                       
+const int INIT_REF_NUM = 1;                             // Number of initial uniform mesh refinements.                       
 double CFL_NUMBER = 1.0;                                // CFL value.
 double time_step = 1E-6;                          // Initial time step.
 
@@ -83,7 +83,7 @@ const double CONV_EXP = 1;
 
 // Stopping criterion for adaptivity (rel. error tolerance between the
 // fine mesh and coarse mesh solution in percent).
-const double ERR_STOP = 1.0;                     
+const double ERR_STOP = 0.5;                     
 
 // Adaptivity process stops when the number of degrees of freedom grows over
 // this limit. This is mainly to prevent h-adaptivity to go on forever.
@@ -116,14 +116,13 @@ const std::string BDY_SOLID_WALL_TOP = "4";
 int main(int argc, char* argv[])
 {
   // Load the mesh.
-  Mesh mesh, prev_mesh;
+  Mesh mesh;
   MeshReaderH2D mloader;
   mloader.load("GAMM-channel.mesh", &mesh);
 
   // Perform initial mesh refinements.
   for (int i = 0; i < INIT_REF_NUM; i++) 
     mesh.refine_all_elements(0, true);
-  //mesh.refine_towards_boundary(BDY_SOLID_WALL_BOTTOM, 2);
 
   // Initialize boundary condition types and spaces with default shapesets.
   L2Space<double>space_rho(&mesh, P_INIT);
@@ -147,22 +146,8 @@ int main(int argc, char* argv[])
   // Numerical flux.
   OsherSolomonNumericalFlux num_flux(KAPPA);
   
-  // Look for a saved solution on the disk.
-  Continuity<double> continuity(Continuity<double>::onlyTime);
-
-  // If we are about to continue, we need to load all necessary objects.
-  int iteration = 0; double t = 0;
-  if(REUSE_SOLUTION && continuity.have_record_available())
-  {
-    continuity.get_last_record()->load_meshes(Hermes::vector<Mesh*>(&mesh, &prev_mesh));
-    continuity.get_last_record()->load_spaces(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-        &space_rho_v_y, &space_e), Hermes::vector<SpaceType>(HERMES_L2_SPACE, HERMES_L2_SPACE, HERMES_L2_SPACE, HERMES_L2_SPACE), Hermes::vector<Mesh *>(&mesh, &mesh, 
-        &mesh, &mesh));
-    continuity.get_last_record()->load_solutions(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), Hermes::vector<Mesh *>(&prev_mesh, &prev_mesh, 
-        &prev_mesh, &prev_mesh));
-    continuity.get_last_record()->load_time_step_length(time_step);
-    t = continuity.get_last_record()->get_time();
-  }
+  // For saving to the disk.
+  Continuity<double> continuity(Continuity<double>::onlyNumber);
 
   // Initialize weak formulation.
   EulerEquationsWeakFormSemiImplicitMultiComponent wf(&num_flux, KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, BDY_SOLID_WALL_BOTTOM, BDY_SOLID_WALL_TOP, 
@@ -185,6 +170,7 @@ int main(int argc, char* argv[])
   CFLCalculation CFL(CFL_NUMBER, KAPPA);
 
   // Time stepping loop.
+  int iteration = 0; double t = 0;
   for(; t < 3.0; t += time_step)
   {
     info("---- Time step %d, time %3.5f.", iteration++, t);
@@ -197,11 +183,7 @@ int main(int argc, char* argv[])
       
       space_rho.unrefine_all_mesh_elements(true);
       
-      if(CAND_LIST == H2D_HP_ANISO)
-        space_rho.adjust_element_order(-1, P_INIT);
-      else
-        space_rho.set_uniform_order(P_INIT);
-      
+      space_rho.adjust_element_order(-1, P_INIT);
       space_rho_v_x.copy_orders(&space_rho);
       space_rho_v_y.copy_orders(&space_rho);
       space_e.copy_orders(&space_rho);
@@ -216,9 +198,7 @@ int main(int argc, char* argv[])
       info("---- Adaptivity step %d:", as);
 
       // Construct globally refined reference mesh and setup reference space.
-      int order_increase = 0;
-      if(CAND_LIST == H2D_HP_ANISO)
-        order_increase = 1;
+      int order_increase = 1;
 
       Hermes::vector<Space<double> *>* ref_spaces = Space<double>::construct_refined_spaces(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
         &space_rho_v_y, &space_e), order_increase);
@@ -295,28 +275,7 @@ int main(int argc, char* argv[])
 
       // If err_est too large, adapt the mesh.
       if (err_est_rel_total < ERR_STOP)
-      {
         done = true;
-
-        // Visualization of the refined space before it gets deleted.
-        if((iteration - 1) % EVERY_NTH_STEP == 0) {
-          // Hermes visualization.
-          if(HERMES_VISUALIZATION)
-          {
-            //order_view_coarse.show(&space_rho);
-            // order_view_fine.show((*ref_spaces)[0]);
-          }
-          if(VTK_VISUALIZATION)
-          {            
-            Orderizer ord;
-            char filename[40];
-            sprintf(filename, "Orders-coarse-%i.vtk", iteration - 1);
-            ord.save_orders_vtk(&space_rho, filename);
-            sprintf(filename, "Orders-fine-%i.vtk", iteration - 1);
-            ord.save_orders_vtk((*ref_spaces)[0], filename);
-          }
-        }
-      }
       else
       {
         info("Adapting coarse mesh.");
@@ -328,7 +287,6 @@ int main(int argc, char* argv[])
           &space_rho_v_y, &space_e)) >= NDOF_STOP) 
           done = true;
         else
-          // Increase the counter of performed adaptivity steps.
           as++;
       }
 
@@ -349,17 +307,6 @@ int main(int argc, char* argv[])
     prev_rho_v_y.copy(&rsln_rho_v_y);
     prev_e.copy(&rsln_e);
     
-    // Save a current state on the disk.
-    if(t > 0)
-    {
-      continuity.add_record(t);
-      continuity.get_last_record()->save_meshes(Hermes::vector<Mesh*>(&mesh, prev_rho.get_mesh()));
-      continuity.get_last_record()->save_spaces(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-        &space_rho_v_y, &space_e));
-      continuity.get_last_record()->save_solutions(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
-      continuity.get_last_record()->save_time_step_length(time_step);
-    }
-    
     delete rsln_rho.get_mesh();
     rsln_rho.own_mesh = false;
     delete rsln_rho_v_x.get_mesh();
@@ -369,9 +316,14 @@ int main(int argc, char* argv[])
     delete rsln_e.get_mesh();
     rsln_e.own_mesh = false;
 
-    // Visualization.
+    // Visualization and saving on disk.
     if((iteration - 1) % EVERY_NTH_STEP == 0)
     {
+      continuity.add_record((unsigned int)(iteration - 1));
+      continuity.get_last_record()->save_mesh(prev_rho.get_mesh());
+      continuity.get_last_record()->save_space(prev_rho.get_space());
+      continuity.get_last_record()->save_time_step_length(time_step);
+
       // Hermes visualization.
       if(HERMES_VISUALIZATION)
       {        
@@ -390,13 +342,15 @@ int main(int argc, char* argv[])
       {
         pressure.reinit();
         Mach_number.reinit();
-        Linearizer lin_pressure;
+        entropy.reinit();
+        Linearizer lin;
         char filename[40];
-        sprintf(filename, "pressure-3D-%i.vtk", iteration - 1);
-        lin_pressure.save_solution_vtk(&pressure, filename, "Pressure", true);
-        Linearizer lin_mach;
-        sprintf(filename, "Mach number-3D-%i.vtk", iteration - 1);
-        lin_mach.save_solution_vtk(&Mach_number, filename, "MachNumber", true);
+        sprintf(filename, "Pressure-%i.vtk", iteration - 1);
+        lin.save_solution_vtk(&pressure, filename, "Pressure");
+        sprintf(filename, "Mach number-%i.vtk", iteration - 1);
+        lin.save_solution_vtk(&Mach_number, filename, "MachNumber");
+        sprintf(filename, "Entropy-%i.vtk", iteration - 1);
+        lin.save_solution_vtk(&entropy, filename, "Entropy");
       }
     }
   }

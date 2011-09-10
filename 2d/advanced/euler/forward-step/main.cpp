@@ -22,7 +22,7 @@ using namespace Hermes::Hermes2D::Views;
 // The following parameters can be changed:
 // Visualization.
 const bool HERMES_VISUALIZATION = true;           // Set to "true" to enable Hermes OpenGL visualization. 
-const bool VTK_VISUALIZATION = false;              // Set to "true" to enable VTK output.
+const bool VTK_VISUALIZATION = false;             // Set to "true" to enable VTK output.
 const unsigned int EVERY_NTH_STEP = 1;            // Set visual output for every nth step.
 
 // Shock capturing.
@@ -33,9 +33,9 @@ double DISCONTINUITY_DETECTOR_PARAM = 1.0;
 bool REUSE_SOLUTION = false;
 
 const int P_INIT = 1;                                   // Initial polynomial degree.                      
-const int INIT_REF_NUM = 1;                       // Number of initial uniform mesh refinements.                       
-const int INIT_REF_NUM_STEP = 0;                  // Number of initial localized mesh refinements.                       
-double CFL_NUMBER = 0.1;                                // CFL value.
+const int INIT_REF_NUM = 2;                             // Number of initial uniform mesh refinements.                       
+const int INIT_REF_NUM_STEP = 0;                        // Number of initial localized mesh refinements.                       
+double CFL_NUMBER = 0.5;                                // CFL value.
 double time_step = 1E-6;                                // Initial time step.
 const MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
@@ -124,7 +124,7 @@ int main(int argc, char* argv[])
   for(; t < 3.0; t += time_step)
   {
     info("---- Time step %d, time %3.5f.", iteration++, t);
-    
+
     // Initialize the FE problem.
     DiscreteProblem<double> dp(&wf, Hermes::vector<Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
 
