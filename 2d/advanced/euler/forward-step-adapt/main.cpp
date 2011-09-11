@@ -85,7 +85,7 @@ const double CONV_EXP = 1;
 
 // Stopping criterion for adaptivity (rel. error tolerance between the
 // fine mesh and coarse mesh solution in percent).
-double ERR_STOP = 2.5;                     
+double ERR_STOP = 5.0;                     
 
 // Adaptivity process stops when the number of degrees of freedom grows over
 // this limit. This is mainly to prevent h-adaptivity to go on forever.
@@ -188,6 +188,9 @@ int main(int argc, char* argv[])
   int iteration = 0; double t = 0;
   for(; t < 4.5; t += time_step)
   {
+    if(t > 0.3)
+      ERR_STOP = 2.5;
+
     info("---- Time step %d, time %3.5f.", iteration++, t);
 
     // Periodic global derefinements.
