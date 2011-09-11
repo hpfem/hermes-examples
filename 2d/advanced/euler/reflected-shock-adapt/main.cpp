@@ -84,7 +84,7 @@ const double CONV_EXP = 1;
 
 // Stopping criterion for adaptivity (rel. error tolerance between the
 // fine mesh and coarse mesh solution in percent).
-double ERR_STOP = 2.0;                     
+double ERR_STOP = 3.0;                     
 
 // Adaptivity process stops when the number of degrees of freedom grows over
 // this limit. This is mainly to prevent h-adaptivity to go on forever.
@@ -363,8 +363,11 @@ int main(int argc, char* argv[])
         lin.save_solution_vtk(&pressure, filename, "Pressure");
         sprintf(filename, "Mach number-%i.vtk", iteration - 1);
         lin.save_solution_vtk(&Mach_number, filename, "MachNumber");
-        sprintf(filename, "Entropy-%i.vtk", iteration - 1);
-        lin.save_solution_vtk(&entropy, filename, "Entropy");
+        if((iteration - 1) % (EVERY_NTH_STEP * EVERY_NTH_STEP) == 0) 
+        {
+          sprintf(filename, "Entropy-%i.vtk", iteration - 1);
+          lin.save_solution_vtk(&entropy, filename, "Entropy");
+        }
       }
     }
   }

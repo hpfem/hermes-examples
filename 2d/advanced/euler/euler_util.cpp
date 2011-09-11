@@ -717,7 +717,7 @@ void KuzminDiscontinuityDetector::find_u_i_min_max_first_order(Hermes::Hermes2D:
   for(unsigned int j = 0; j < e->nvert; j++)
   {
     Hermes::Hermes2D::NeighborSearch<double> ns(e, mesh);
-    if(e->en[j]->bnd || e->en[(j - 1) % e->nvert]->bnd)
+    if(e->en[j]->bnd)
       continue;
     ns.set_active_edge(j);
 
@@ -735,15 +735,12 @@ void KuzminDiscontinuityDetector::find_u_i_min_max_first_order(Hermes::Hermes2D:
     // Second end neighbors on every edge.
     ns.set_active_segment(ns.get_num_neighbors() - 1);
     find_centroid_values(ns.get_neighb_el(), u_c);
-    if(!e->en[(j + 1) % e->nvert]->bnd)
-    {
-      for(unsigned int min_i = 0; min_i < 4; min_i++)
-        if(u_i_min[min_i][(j + 1) % e->nvert] > u_c[min_i])
-          u_i_min[min_i][(j + 1) % e->nvert] = u_c[min_i];
-      for(unsigned int max_i = 0; max_i < 4; max_i++)
-        if(u_i_max[max_i][(j + 1) % e->nvert] < u_c[max_i])
-          u_i_max[max_i][(j + 1) % e->nvert] = u_c[max_i];
-    }
+    for(unsigned int min_i = 0; min_i < 4; min_i++)
+      if(u_i_min[min_i][(j + 1) % e->nvert] > u_c[min_i])
+        u_i_min[min_i][(j + 1) % e->nvert] = u_c[min_i];
+    for(unsigned int max_i = 0; max_i < 4; max_i++)
+      if(u_i_max[max_i][(j + 1) % e->nvert] < u_c[max_i])
+        u_i_max[max_i][(j + 1) % e->nvert] = u_c[max_i];
 
     // Now the hard part, neighbors' neighbors.
     /// \todo This is where it fails for triangles, where it is much more complicated to look for elements sharing a vertex.
@@ -818,7 +815,7 @@ void KuzminDiscontinuityDetector::find_u_i_min_max_second_order(Hermes::Hermes2D
   for(unsigned int j = 0; j < e->nvert; j++)
   {
     Hermes::Hermes2D::NeighborSearch<double> ns(e, mesh);
-    if(e->en[j]->bnd || e->en[(j - 1) % e->nvert]->bnd)
+    if(e->en[j]->bnd)
       continue;
 
     ns.set_active_edge(j);
@@ -844,22 +841,19 @@ void KuzminDiscontinuityDetector::find_u_i_min_max_second_order(Hermes::Hermes2D
     // Second end neighbors on every edge.
     ns.set_active_segment(ns.get_num_neighbors() - 1);
     find_centroid_derivatives(ns.get_neighb_el(), u_dx_c, u_dy_c);
-    if(!e->en[(j + 1) % e->nvert]->bnd)
+    for(unsigned int min_i = 0; min_i < 4; min_i++)
     {
-      for(unsigned int min_i = 0; min_i < 4; min_i++)
-      {
-        if(u_d_i_min[min_i][(j + 1) % e->nvert][0] > u_dx_c[min_i])
-          u_d_i_min[min_i][(j + 1) % e->nvert][0] = u_dx_c[min_i];
-        if(u_d_i_min[min_i][(j + 1) % e->nvert][1] > u_dy_c[min_i])
-          u_d_i_min[min_i][(j + 1) % e->nvert][1] = u_dy_c[min_i];
-      }
-      for(unsigned int max_i = 0; max_i < 4; max_i++)
-      {
-        if(u_d_i_max[max_i][(j + 1) % e->nvert][0] < u_dx_c[max_i])
-          u_d_i_max[max_i][(j + 1) % e->nvert][0] = u_dx_c[max_i];
-        if(u_d_i_max[max_i][(j + 1) % e->nvert][1] < u_dy_c[max_i])
-          u_d_i_max[max_i][(j + 1) % e->nvert][1] = u_dy_c[max_i];
-      }
+      if(u_d_i_min[min_i][(j + 1) % e->nvert][0] > u_dx_c[min_i])
+        u_d_i_min[min_i][(j + 1) % e->nvert][0] = u_dx_c[min_i];
+      if(u_d_i_min[min_i][(j + 1) % e->nvert][1] > u_dy_c[min_i])
+        u_d_i_min[min_i][(j + 1) % e->nvert][1] = u_dy_c[min_i];
+    }
+    for(unsigned int max_i = 0; max_i < 4; max_i++)
+    {
+      if(u_d_i_max[max_i][(j + 1) % e->nvert][0] < u_dx_c[max_i])
+        u_d_i_max[max_i][(j + 1) % e->nvert][0] = u_dx_c[max_i];
+      if(u_d_i_max[max_i][(j + 1) % e->nvert][1] < u_dy_c[max_i])
+        u_d_i_max[max_i][(j + 1) % e->nvert][1] = u_dy_c[max_i];
     }
 
     // Now the hard part, neighbors' neighbors.
