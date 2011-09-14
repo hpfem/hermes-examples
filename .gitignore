@@ -19,6 +19,7 @@ tutorial.*
 *.bmp
 *.user
 *make*
+*.bak
 
 # top-level files
 CMake.vars
