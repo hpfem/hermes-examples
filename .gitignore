@@ -59,6 +59,7 @@ CMake.vars
 *.lib
 Debug/
 *.sdf
+*.suo
 
 # kdevelop project files
 *.kdev*
