@@ -20,9 +20,9 @@ using namespace Hermes::Hermes2D::RefinementSelectors;
 //
 // The following parameters can be changed:
 // Visualization.
-const bool HERMES_VISUALIZATION = false;           // Set to "true" to enable Hermes OpenGL visualization. 
-const bool VTK_VISUALIZATION = true;              // Set to "true" to enable VTK output.
-const unsigned int EVERY_NTH_STEP = 10;            // Set visual output for every nth step.
+const bool HERMES_VISUALIZATION = true;           // Set to "true" to enable Hermes OpenGL visualization. 
+const bool VTK_VISUALIZATION = false;              // Set to "true" to enable VTK output.
+const unsigned int EVERY_NTH_STEP = 1;            // Set visual output for every nth step.
 
 // Shock capturing.
 bool SHOCK_CAPTURING = true;
@@ -83,7 +83,7 @@ const double CONV_EXP = 1;
 
 // Stopping criterion for adaptivity (rel. error tolerance between the
 // fine mesh and coarse mesh solution in percent).
-const double ERR_STOP = 0.5;                     
+const double ERR_STOP = 1.0;                     
 
 // Adaptivity process stops when the number of degrees of freedom grows over
 // this limit. This is mainly to prevent h-adaptivity to go on forever.
@@ -241,7 +241,7 @@ int main(int argc, char* argv[])
           Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e));
         else
         {      
-          FluxLimiter flux_limiter(FluxLimiter::Kuzmin, solver->get_sln_vector(), *ref_spaces, true);
+          FluxLimiter flux_limiter(FluxLimiter::Kuzmin, solver->get_sln_vector(), *ref_spaces);
           
           flux_limiter.limit_second_orders_according_to_detector(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
             &space_rho_v_y, &space_e));
