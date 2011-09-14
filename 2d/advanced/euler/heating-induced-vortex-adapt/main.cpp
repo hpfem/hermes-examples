@@ -31,11 +31,13 @@ double DISCONTINUITY_DETECTOR_PARAM = 1.0;
 bool REUSE_SOLUTION = true;
 
 const int P_INIT = 0;                             // Initial polynomial degree.                      
-const int INIT_REF_NUM = 2;                             // Number of initial uniform mesh refinements.                       
-double CFL_NUMBER = 0.1;                                // CFL value.
+const int INIT_REF_NUM = 1;                             // Number of initial uniform mesh refinements.                       
+double CFL_NUMBER = 0.5;                                // CFL value.
 double time_step = 1E-6;                          // Initial time step.
 
 // Adaptivity.
+const int NDOFS_MIN = 4000;
+
 // Every UNREF_FREQth time step the mesh is unrefined.
 const int UNREF_FREQ = 5;
 
@@ -82,7 +84,7 @@ const double CONV_EXP = 1;
 
 // Stopping criterion for adaptivity (rel. error tolerance between the
 // fine mesh and coarse mesh solution in percent).
-double ERR_STOP = 3.0;                     
+double ERR_STOP = 5.0;                     
 
 // Adaptivity process stops when the number of degrees of freedom grows over
 // this limit. This is mainly to prevent h-adaptivity to go on forever.
@@ -152,7 +154,7 @@ int main(int argc, char* argv[])
   InitialSolutionLinearProgress rsln_e(&mesh, QuantityCalculator::calc_energy(RHO_INITIAL_HIGH, RHO_INITIAL_HIGH * V1_EXT, RHO_INITIAL_HIGH * V2_EXT, P_INITIAL_HIGH, KAPPA), QuantityCalculator::calc_energy(RHO_INITIAL_LOW, RHO_INITIAL_LOW * V1_EXT, RHO_INITIAL_LOW * V2_EXT, P_INITIAL_LOW, KAPPA), MESH_SIZE);
 
   // Numerical flux.
-  OsherSolomonNumericalFlux num_flux(KAPPA);
+  VijayasundaramNumericalFlux num_flux(KAPPA);
   
   // For saving to the disk.
   Continuity<double> continuity(Continuity<double>::onlyNumber);
@@ -182,8 +184,8 @@ int main(int argc, char* argv[])
   int iteration = 0; double t = 0;
   for(; t < 3.0; t += time_step)
   {
-    if(t > 0.1)
-      ERR_STOP = 2.0;
+    if(t > 0.25)
+      ERR_STOP = 2.5;
 
     info("---- Time step %d, time %3.5f.", iteration++, t);
 
@@ -228,6 +230,17 @@ int main(int argc, char* argv[])
       OGProjection<double>::project_global(*ref_spaces, Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), 
         Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), matrix_solver_type, Hermes::vector<Hermes::Hermes2D::ProjNormType>(), iteration > 1);
 
+      if(as > 1)
+      {
+        delete rsln_rho.get_mesh();
+        rsln_rho.own_mesh = false;
+        delete rsln_rho_v_x.get_mesh();
+        rsln_rho_v_x.own_mesh = false;
+        delete rsln_rho_v_y.get_mesh();
+        rsln_rho_v_y.own_mesh = false;
+        delete rsln_e.get_mesh();
+        rsln_e.own_mesh = false;
+      }
       // Report NDOFs.
       info("ndof_coarse: %d, ndof_fine: %d.", 
         Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
@@ -286,7 +299,7 @@ int main(int argc, char* argv[])
       info("err_est_rel: %g%%", err_est_rel_total);
 
       // If err_est too large, adapt the mesh.
-      if (err_est_rel_total < ERR_STOP)
+      if (err_est_rel_total < ERR_STOP && Space<double>::get_num_dofs(*ref_spaces) > NDOFS_MIN)
         done = true;
       else
       {
@@ -362,8 +375,6 @@ int main(int argc, char* argv[])
     rsln_rho_v_y.own_mesh = false;
     delete rsln_e.get_mesh();
     rsln_e.own_mesh = false;
-
-    
   }
 
   pressure_view.close();
