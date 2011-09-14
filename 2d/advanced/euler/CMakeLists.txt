@@ -6,11 +6,3 @@ add_subdirectory(gamm-explicit)
 add_subdirectory(gamm-explicit-adapt)
 add_subdirectory(advection-diffusion-explicit)
 add_subdirectory(advection-diffusion-explicit-adapt)
-
-if(WITH_TRILINOS)
-# Work on NOX etc. needed.
-#	add_subdirectory(gamm-implicit)
-#	add_subdirectory(forward-step-implicit)
-#	add_subdirectory(gamm-implicit-adapt)
-#	add_subdirectory(advection-diffusion-implicit)
-endif(WITH_TRILINOS)
