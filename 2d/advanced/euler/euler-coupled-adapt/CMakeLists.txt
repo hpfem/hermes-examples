@@ -1,4 +1,4 @@
-project(advection-diffusion-explicit)
+project(euler-coupled-adapt)
 
 add_executable(${PROJECT_NAME} main.cpp ../euler_util.cpp ../numerical_flux.cpp)
 
