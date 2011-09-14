@@ -7,17 +7,15 @@ using namespace Hermes::Hermes2D;
 using namespace Hermes::Hermes2D::Views;
 
 // This example solves the compressible Euler equations using a basic
-// piecewise-constant finite volume method.
+// piecewise-constant finite volume method, or Discontinuous Galerkin method of higher order with no adaptivity.
 //
 // Equations: Compressible Euler equations, perfect gas state equation.
 //
 // Domain: forward facing step, see mesh file ffs.mesh
 //
-// BC: Normal velocity component is zero on solid walls.
-//     Full supersonic state prescribed at inlet.
-//     Pressure given at outlet, but used only if outlet flow is subsonic/
+// BC: Solid walls, inlet, no outlet.
 //
-// IC: Constant supersonic state identical to inlet. 
+// IC: Constant state identical to inlet.
 //
 // The following parameters can be changed:
 // Visualization.

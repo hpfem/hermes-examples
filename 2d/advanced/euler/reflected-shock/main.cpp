@@ -7,16 +7,15 @@ using namespace Hermes::Hermes2D;
 using namespace Hermes::Hermes2D::Views;
 
 // This example solves the compressible Euler equations using a basic
-// piecewise-constant finite volume method.
+// piecewise-constant finite volume method, or Discontinuous Galerkin method of higher order with no adaptivity.
 //
 // Equations: Compressible Euler equations, perfect gas state equation.
 //
-// Domain: channel.
+// Domain: A rectangular channel, see channel.mesh.
 //
-// BC: essential boundary conditions at the left and the top boundaries
-//     slip condition at the bottom part, no condition on the right.
+// BC: Solid walls, inlet / outlet. In this case there are two inlets (the left, and the upper wall).
 //
-// IC: Exact solution.
+// IC: Constant state.
 //
 // The following parameters can be changed:
 // Visualization.

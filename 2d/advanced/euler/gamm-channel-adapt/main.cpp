@@ -7,16 +7,15 @@ using namespace Hermes::Hermes2D;
 using namespace Hermes::Hermes2D::Views;
 using namespace Hermes::Hermes2D::RefinementSelectors;
 
-// This example solves the compressible Euler equations using FVM and automatic h-adaptivity.
+// This example solves the compressible Euler equations using Discontinuous Galerkin method of higher order with adaptivity.
 //
 // Equations: Compressible Euler equations, perfect gas state equation.
 //
 // Domain: GAMM channel, see mesh file GAMM-channel.mesh
 //
-// BC: Normal velocity component is zero on solid walls.
-//     Subsonic state prescribed on inlet and outlet.
+// BC: Solid walls, inlet, no outlet.
 //
-// IC: Constant subsonic state identical to inlet. 
+// IC: Constant state identical to inlet.
 //
 // The following parameters can be changed:
 // Visualization.
