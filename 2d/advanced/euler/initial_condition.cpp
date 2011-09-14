@@ -1,115 +1,4 @@
-class InitialSolutionEulerDensity : public ExactSolutionScalar<double>
-{
-public:
-  InitialSolutionEulerDensity(Mesh* mesh, double constant) : ExactSolutionScalar<double>(mesh), constant(constant) {};
-
-  virtual double value (double x, double y) const {
-    return constant; 
-  };
-
-  virtual void derivatives (double x, double y, double& dx, double& dy) const {
-    dx = 0;
-    dy = 0;
-  };
-
-  virtual Ord ord(Ord x, Ord y) const {
-    return Ord(constant);
-  }
-
-  // Value.
-  double constant;
-};
-
-class InitialSolutionEulerDensityVelX : public ExactSolutionScalar<double>
-{
-public:
-  InitialSolutionEulerDensityVelX(Mesh* mesh, double constant) : ExactSolutionScalar<double>(mesh), constant(constant) {};
-
-  virtual double value (double x, double y) const {
-    return constant; 
-  };
-
-  virtual void derivatives (double x, double y, double& dx, double& dy) const {
-    dx = 0;
-    dy = 0;
-  };
-
-  virtual Ord ord(Ord x, Ord y) const {
-    return Ord(constant);
-  }
-
-  // Value.
-  double constant;
-};
-
-class InitialSolutionEulerDensityVelY : public ExactSolutionScalar<double>
-{
-public:
-  InitialSolutionEulerDensityVelY(Mesh* mesh, double constant) : ExactSolutionScalar<double>(mesh), constant(constant) {};
-
-  virtual double value (double x, double y) const {
-    return constant; 
-  };
-
-  virtual void derivatives (double x, double y, double& dx, double& dy) const {
-    dx = 0;
-    dy = 0;
-  };
-
-  virtual Ord ord(Ord x, Ord y) const {
-    return Ord(constant);
-  }
-
-  // Value.
-  double constant;
-};
-
-class InitialSolutionEulerDensityEnergy : public ExactSolutionScalar<double>
-{
-public:
-  InitialSolutionEulerDensityEnergy(Mesh* mesh, double constant) : ExactSolutionScalar<double>(mesh), constant(constant) {};
-
-  virtual double value (double x, double y) const {
-    return constant; 
-  };
-
-  virtual void derivatives (double x, double y, double& dx, double& dy) const {
-    dx = 0;
-    dy = 0;
-  };
-
-  virtual Ord ord(Ord x, Ord y) const {
-    return Ord(constant);
-  }
-
-  // Value.
-  double constant;
-};
-
-class InitialSolutionConcentration : public ExactSolutionScalar<double>
-{
-public:
-  InitialSolutionConcentration(Mesh* mesh, double constant) : ExactSolutionScalar<double>(mesh), constant(constant) {};
-
-  virtual double value (double x, double y) const {
-    return constant; 
-  };
-
-  virtual void derivatives (double x, double y, double& dx, double& dy) const {
-    dx = 0;
-    dy = 0;
-  };
-
-  virtual Ord ord(Ord x, Ord y) const {
-    return Ord(constant);
-  }
-
-  // Value.
-  double constant;
-};
-
-/* Essential boundary condition for the coupled problem. */
-
+/// Essential boundary condition for the coupled problem.
 class ConcentrationTimedepEssentialBC : public EssentialBoundaryCondition<double> {
 public:
   ConcentrationTimedepEssentialBC(std::string marker, double constant, double startup_time) 
@@ -137,4 +26,27 @@ public:
 
   double startup_time;
   double constant;
+};
+
+/// Class for Heating induced vortex, linear initial condition.
+class InitialSolutionLinearProgress : public ExactSolutionScalar<double>
+{
+public:
+  InitialSolutionLinearProgress(Mesh* mesh, double max, double min, double size) : ExactSolutionScalar<double>(mesh), max(max), min(min), size(size) {};
+
+  virtual double value (double x, double y) const {
+    return min + ((max - min) * (size - y) / size); 
+  };
+
+  virtual void derivatives (double x, double y, double& dx, double& dy) const {
+    dx = 0;
+    dy = - (max - min) / size;
+  };
+
+  virtual Ord ord(Ord x, Ord y) const {
+    return Ord(1);
+  }
+
+  // Value.
+  double max, min, size;
 };

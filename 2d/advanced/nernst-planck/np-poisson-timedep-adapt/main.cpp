@@ -124,9 +124,6 @@ MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESO
 // Weak forms
 #include "definitions.cpp"
 
-// Initial conditions.
-#include "initial_conditions.cpp"
-
 // Boundary markers.
 const std::string BDY_SIDE = "Side";
 const std::string BDY_TOP = "Top";
@@ -201,8 +198,8 @@ int main (int argc, char* argv[]) {
   Solution<double> phi_sln, phi_ref_sln;
 
   // Assign initial condition to mesh.
-  InitialSolutionConcentration C_prev_time(&C_mesh, scaleConc(C0));
-  InitialSolutionVoltage phi_prev_time(MULTIMESH ? &phi_mesh : &C_mesh);
+  ConstantSolution<double> C_prev_time(&C_mesh, scaleConc(C0));
+  ConstantSolution<double> phi_prev_time(MULTIMESH ? &phi_mesh : &C_mesh, 0.0);
 
   // XXX not necessary probably
   if (SCALED) {

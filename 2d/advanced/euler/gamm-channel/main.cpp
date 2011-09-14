@@ -77,10 +77,10 @@ int main(int argc, char* argv[])
   info("ndof: %d", ndof);
 
   // Initialize solutions, set initial conditions.
-  InitialSolutionEulerDensity prev_rho(&mesh, RHO_EXT);
-  InitialSolutionEulerDensityVelX prev_rho_v_x(&mesh, RHO_EXT * V1_EXT);
-  InitialSolutionEulerDensityVelY prev_rho_v_y(&mesh, RHO_EXT * V2_EXT);
-  InitialSolutionEulerDensityEnergy prev_e(&mesh, QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA));
+  ConstantSolution<double> prev_rho(&mesh, RHO_EXT);
+  ConstantSolution<double> prev_rho_v_x(&mesh, RHO_EXT * V1_EXT);
+  ConstantSolution<double> prev_rho_v_y(&mesh, RHO_EXT * V2_EXT);
+  ConstantSolution<double> prev_e(&mesh, QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA));
 
   // Numerical flux.
   OsherSolomonNumericalFlux num_flux(KAPPA);

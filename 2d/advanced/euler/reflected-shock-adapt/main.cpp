@@ -145,15 +145,15 @@ int main(int argc, char* argv[])
   L2Space<double> space_e(&mesh, P_INIT);
 
   // Initialize solutions, set initial conditions.
-  InitialSolutionEulerDensity sln_rho(&mesh, RHO_INIT);
-  InitialSolutionEulerDensityVelX sln_rho_v_x(&mesh, RHO_INIT * V1_INIT);
-  InitialSolutionEulerDensityVelY sln_rho_v_y(&mesh, RHO_INIT * V2_INIT);
-  InitialSolutionEulerDensityEnergy sln_e(&mesh, QuantityCalculator::calc_energy(RHO_INIT, RHO_INIT * V1_INIT, RHO_INIT * V2_INIT, PRESSURE_INIT, KAPPA));
+  ConstantSolution<double> sln_rho(&mesh, RHO_INIT);
+  ConstantSolution<double> sln_rho_v_x(&mesh, RHO_INIT * V1_INIT);
+  ConstantSolution<double> sln_rho_v_y(&mesh, RHO_INIT * V2_INIT);
+  ConstantSolution<double> sln_e(&mesh, QuantityCalculator::calc_energy(RHO_INIT, RHO_INIT * V1_INIT, RHO_INIT * V2_INIT, PRESSURE_INIT, KAPPA));
 
-  InitialSolutionEulerDensity prev_rho(&mesh, RHO_INIT);
-  InitialSolutionEulerDensityVelX prev_rho_v_x(&mesh, RHO_INIT * V1_INIT);
-  InitialSolutionEulerDensityVelY prev_rho_v_y(&mesh, RHO_INIT * V2_INIT);
-  InitialSolutionEulerDensityEnergy prev_e(&mesh, QuantityCalculator::calc_energy(RHO_INIT, RHO_INIT * V1_INIT, RHO_INIT * V2_INIT, PRESSURE_INIT, KAPPA));
+  ConstantSolution<double> prev_rho(&mesh, RHO_INIT);
+  ConstantSolution<double> prev_rho_v_x(&mesh, RHO_INIT * V1_INIT);
+  ConstantSolution<double> prev_rho_v_y(&mesh, RHO_INIT * V2_INIT);
+  ConstantSolution<double> prev_e(&mesh, QuantityCalculator::calc_energy(RHO_INIT, RHO_INIT * V1_INIT, RHO_INIT * V2_INIT, PRESSURE_INIT, KAPPA));
 
   Solution<double> rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e;
 
