@@ -32,7 +32,7 @@ bool REUSE_SOLUTION = true;
 
 const int P_INIT = 0;                                   // Initial polynomial degree.                      
 const int INIT_REF_NUM = 4;                             // Number of initial uniform mesh refinements.                       
-double CFL_NUMBER = 0.1;                                // CFL value.
+double CFL_NUMBER = 1.0;                                // CFL value.
 double time_step = 1E-4;                                // Initial time step.
 const MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
@@ -111,14 +111,14 @@ int main(int argc, char* argv[])
   int iteration = 0; double t = 0;
 
   // Initialize weak formulation.
-  EulerEquationsWeakFormExplicitMultiComponent wf(&num_flux, KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, BDY_SOLID_WALL, BDY_SOLID_WALL, 
+  EulerEquationsWeakFormSemiImplicitMultiComponent wf(&num_flux, KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, BDY_SOLID_WALL, BDY_SOLID_WALL, 
     BDY_INLET, "Outlet marker not used", &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e);
 
   // Initialize the FE problem.
   DiscreteProblem<double> dp(&wf, Hermes::vector<Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
   
   // Time stepping loop.
-  for(; t < 3.0; t += time_step)
+  for(; t < 10.0; t += time_step)
   {
     info("---- Time step %d, time %3.5f.", iteration++, t);
 
@@ -133,10 +133,8 @@ int main(int argc, char* argv[])
     info("Solving the matrix problem.");
     if(solver->solve())
       if(!SHOCK_CAPTURING)
-      {
         Solution<double>::vector_to_solutions(solver->get_sln_vector(), Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
          &space_rho_v_y, &space_e), Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
-      }
       else
       {      
         FluxLimiter flux_limiter(FluxLimiter::Kuzmin, solver->get_sln_vector(), Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
@@ -160,12 +158,8 @@ int main(int argc, char* argv[])
       // Hermes visualization.
       if(HERMES_VISUALIZATION) 
       {
-        Mach_number.reinit();
         pressure.reinit();
-        entropy.reinit();
         pressure_view.show(&pressure);
-        entropy_production_view.show(&entropy);
-        Mach_number_view.show(&Mach_number);
         velocity_view.show(&prev_rho_v_x, &prev_rho_v_y);
       }
       // Output solution in VTK format.
@@ -173,13 +167,15 @@ int main(int argc, char* argv[])
       {
         pressure.reinit();
         Mach_number.reinit();
-        Linearizer lin_pressure;
+        entropy.reinit();
+        Linearizer lin;
         char filename[40];
-        sprintf(filename, "pressure-3D-%i.vtk", iteration - 1);
-        lin_pressure.save_solution_vtk(&pressure, filename, "Pressure", true);
-        Linearizer lin_mach;
-        sprintf(filename, "Mach number-3D-%i.vtk", iteration - 1);
-        lin_mach.save_solution_vtk(&Mach_number, filename, "MachNumber", true);
+        sprintf(filename, "Pressure-%i.vtk", iteration - 1);
+        lin.save_solution_vtk(&pressure, filename, "Pressure");
+        sprintf(filename, "Mach number-%i.vtk", iteration - 1);
+        lin.save_solution_vtk(&Mach_number, filename, "MachNumber");
+        sprintf(filename, "Entropy-%i.vtk", iteration - 1);
+        lin.save_solution_vtk(&entropy, filename, "Entropy");
       }
     }
   }
