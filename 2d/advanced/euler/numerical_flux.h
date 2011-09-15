@@ -43,18 +43,6 @@ public:
   double kappa;
 };
 
-class VijayasundaramNumericalFlux : public NumericalFlux
-{
-public:
-  VijayasundaramNumericalFlux();
-
-  virtual void numerical_flux(double result[4], double w_L[4], double w_R[4],
-          double nx, double ny);
-  
-  virtual double numerical_flux_i(int component, double w_L[4], double w_R[4],
-          double nx, double ny);
-};
-
 class StegerWarmingNumericalFlux : public NumericalFlux
 {
 public:
@@ -128,6 +116,16 @@ protected:
   // x-velocity, y-velocity, magnitude.
   double u, v, V;
 };
+
+class VijayasundaramNumericalFlux : public StegerWarmingNumericalFlux
+{
+public:
+  VijayasundaramNumericalFlux(double kappa);
+
+  virtual void numerical_flux(double result[4], double w_L[4], double w_R[4],
+          double nx, double ny);
+};
+
 
 class OsherSolomonNumericalFlux : public NumericalFlux
 {

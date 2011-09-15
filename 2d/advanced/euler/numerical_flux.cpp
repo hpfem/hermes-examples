@@ -33,21 +33,23 @@ void NumericalFlux::f_1(double result[4], double state[4])
 }
 
 
-VijayasundaramNumericalFlux::VijayasundaramNumericalFlux() : NumericalFlux(0)
+VijayasundaramNumericalFlux::VijayasundaramNumericalFlux(double kappa) : StegerWarmingNumericalFlux(kappa)
 {
 }
 
 void VijayasundaramNumericalFlux::numerical_flux(double result[4], double w_L[4], double w_R[4],
           double nx, double ny)
 {
-  error("Not done yet.");
-}
-  
-double VijayasundaramNumericalFlux::numerical_flux_i(int component, double w_L[4], double w_R[4],
-          double nx, double ny)
-{
-  error("Not done yet.");
-  return 0.0;
+  double result_temp[4];
+  double w_mean[4];
+  w_mean[0] = w_L[0] + w_R[0];
+  w_mean[1] = w_L[1] + w_R[1];
+  w_mean[2] = w_L[2] + w_R[2];
+  w_mean[3] = w_L[3] + w_R[3];
+  P_plus(result_temp, w_mean, w_L, nx, ny);
+  P_minus(result, w_mean, w_R, nx, ny);
+  for(unsigned int i = 0; i < 4; i++)
+    result[i] += result_temp[i];
 }
 
 StegerWarmingNumericalFlux::StegerWarmingNumericalFlux(double kappa) : NumericalFlux(kappa) {};
@@ -57,18 +59,8 @@ void StegerWarmingNumericalFlux::numerical_flux(double result[4], double w_L[4],
         double nx, double ny)
 {
   double result_temp[4];
-  double w_L_temp[4];
-  w_L_temp[0] = w_L[0];
-  w_L_temp[1] = w_L[1];
-  w_L_temp[2] = w_L[2];
-  w_L_temp[3] = w_L[3];
-  double w_R_temp[4];
-  w_R_temp[0] = w_R[0];
-  w_R_temp[1] = w_R[1];
-  w_R_temp[2] = w_R[2];
-  w_R_temp[3] = w_R[3];
-  P_plus(result_temp, w_L, w_L_temp, nx, ny);
-  P_minus(result, w_R, w_R_temp, nx, ny);
+  P_plus(result_temp, w_L, w_L, nx, ny);
+  P_minus(result, w_R, w_R, nx, ny);
   for(unsigned int i = 0; i < 4; i++)
     result[i] += result_temp[i];
 }
