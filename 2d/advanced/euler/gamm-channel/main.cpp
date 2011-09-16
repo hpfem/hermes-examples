@@ -82,7 +82,7 @@ int main(int argc, char* argv[])
   ConstantSolution<double> prev_e(&mesh, QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA));
 
   // Numerical flux.
-  OsherSolomonNumericalFlux num_flux(KAPPA);
+ VijayasundaramNumericalFlux num_flux(KAPPA);
 
   // Filters for visualization of Mach number, pressure and entropy.
   MachNumberFilter Mach_number(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA);

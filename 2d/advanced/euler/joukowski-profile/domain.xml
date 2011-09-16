@@ -422,6 +422,10 @@
     <edge v1="81" v2="82" marker="Inlet" />
     <edge v1="82" v2="77" marker="Inlet" />
   </edges>
+  <curves>
+    <arc v1="13" v2="15" angle="10" />
+    <arc v1="15" v2="17" angle="20" />
+  </curves>
 </mesh:mesh>
 
     

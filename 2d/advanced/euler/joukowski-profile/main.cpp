@@ -31,17 +31,17 @@ double DISCONTINUITY_DETECTOR_PARAM = 1.0;
 bool REUSE_SOLUTION = false;
 
 const int P_INIT = 1;                                   // Initial polynomial degree.                      
-const int INIT_REF_NUM = 1;                             // Number of initial uniform mesh refinements.
+const int INIT_REF_NUM = 0;                             // Number of initial uniform mesh refinements.
 const int INIT_REF_NUM_BOUNDARY = 6;                    // Number of initial mesh refinements towards the profile.
-double CFL_NUMBER = 1.0;                                // CFL value.
+double CFL_NUMBER = 10.0;                                // CFL value.
 double time_step = 1E-4;                                // Initial time step.
 const MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 
 // Equation parameters.
-const double P_EXT = 2.5;         // Exterior pressure (dimensionless).
+const double P_EXT = 3.65978e7;         // Exterior pressure (dimensionless).
 const double RHO_EXT = 1.0;       // Inlet density (dimensionless).   
-const double V1_EXT = 1.870828693386971e-4;       // Inlet x-velocity (dimensionless).
+const double V1_EXT = 0.7158;       // Inlet x-velocity (dimensionless).
 const double V2_EXT = 0.0;        // Inlet y-velocity (dimensionless).
 const double KAPPA = 1.4;         // Kappa.
 
@@ -72,11 +72,15 @@ int main(int argc, char* argv[])
   Mesh mesh;
   MeshReaderH2DXML mloader;
   mloader.load("domain.xml", &mesh);
+
   
   // Perform initial mesh refinements.
   mesh.refine_towards_boundary(BDY_SOLID_WALL_PROFILE, INIT_REF_NUM_BOUNDARY, true);
   mesh.refine_by_criterion(refinement_criterion, INIT_REF_NUM, true);
-
+  
+  MeshView m;
+  m.show(&mesh);
+  m.wait_for_close();
   // Initialize boundary condition types and spaces with default shapesets.
   L2Space<double> space_rho(&mesh, P_INIT);
   L2Space<double> space_rho_v_x(&mesh, P_INIT);
@@ -84,10 +88,6 @@ int main(int argc, char* argv[])
   L2Space<double> space_e(&mesh, P_INIT);
   int ndof = Space<double>::get_num_dofs(Hermes::vector<Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
   info("ndof: %d", ndof);
-  
-  MeshView m;
-  m.show(&mesh);
-  m.wait_for_close();
 
   // Initialize solutions, set initial conditions.
   ConstantSolution<double> prev_rho(&mesh, RHO_EXT);
@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
   ConstantSolution<double> prev_e(&mesh, QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA));
 
   // Numerical flux.
-  VijayasundaramNumericalFlux num_flux(KAPPA);
+  StegerWarmingNumericalFlux num_flux(KAPPA);
 
   // Filters for visualization of Mach number, pressure and entropy.
   MachNumberFilter Mach_number(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA);
