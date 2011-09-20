@@ -100,9 +100,15 @@ int main(int argc, char* argv[])
     info("---- Time step %d, time %3.5f s", ts, current_time);
 
     // Perform Newton's iteration.
-    bool freeze_jacobian = false;
-    if (!newton.solve(coeff_vec, NEWTON_TOL, NEWTON_MAX_ITER, freeze_jacobian)) 
+    try
+    {
+      newton.solve(coeff_vec, NEWTON_TOL, NEWTON_MAX_ITER);
+    }
+    catch(Hermes::Exceptions::Exception e)
+    {
+      e.printMsg();
       error("Newton's iteration failed.");
+    };
 
     // Translate the resulting coefficient vector into the Solution sln.
     Solution<double>::vector_to_solution(coeff_vec, &space, &h_time_prev);

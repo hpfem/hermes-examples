@@ -255,17 +255,22 @@ int main(int argc, char* argv[])
     newton.attach_timer(&wall_clock);
 
     // Setup time continues in NewtonSolver::solve().
-    if (!newton.solve(coeff_vec)) 
-      error("Newton's iteration failed.");
-    else
+    try
     {
-      setup_time += newton.get_setup_time();
-      assemble_time += newton.get_assemble_time();
-      solve_time += newton.get_solve_time();
-     
-      wall_clock.tick();  // Start counting time for adaptation.
-      Solution<double>::vector_to_solution(newton.get_sln_vector(), &space, &sln);
+      newton.solve(coeff_vec);
     }
+    catch(Hermes::Exceptions::Exception e)
+    {
+      e.printMsg();
+      error("Newton's iteration failed.");
+    };
+
+    setup_time += newton.get_setup_time();
+    assemble_time += newton.get_assemble_time();
+    solve_time += newton.get_solve_time();
+     
+    wall_clock.tick();  // Start counting time for adaptation.
+    Solution<double>::vector_to_solution(newton.get_sln_vector(), &space, &sln);
     
     double err_exact = Global<double>::calc_abs_error(&sln, &exact, HERMES_H1_NORM);
    

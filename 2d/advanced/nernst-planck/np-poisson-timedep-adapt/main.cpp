@@ -252,10 +252,16 @@ int main (int argc, char* argv[]) {
   phiordview.show(&phi_space);
 
   // Newton's loop on the coarse mesh.
-
   info("Solving initial coarse mesh");
-  if (!solver_coarse->solve(coeff_vec_coarse, NEWTON_TOL_COARSE, NEWTON_MAX_ITER))
+  try
+  {
+    solver_coarse->solve(coeff_vec_coarse, NEWTON_TOL_COARSE, NEWTON_MAX_ITER);
+  }
+  catch(Hermes::Exceptions::Exception e)
+  {
+    e.printMsg();
     error("Newton's iteration failed.");
+  };
 
   //View::wait(HERMES_WAIT_KEYPRESS);
 
@@ -333,8 +339,15 @@ int main (int argc, char* argv[]) {
 
       // Newton's loop on the fine mesh.
       info("Solving on fine mesh:");
-      if (!solver->solve(coeff_vec, NEWTON_TOL_FINE, NEWTON_MAX_ITER))
-          error("Newton's iteration failed.");
+       try
+      {
+        solver->solve(coeff_vec, NEWTON_TOL_FINE, NEWTON_MAX_ITER);
+      }
+      catch(Hermes::Exceptions::Exception e)
+      {
+        e.printMsg();
+        error("Newton's iteration failed.");
+      };
 
       // Store the result in ref_sln.
       Solution<double>::vector_to_solutions(coeff_vec, *ref_spaces,

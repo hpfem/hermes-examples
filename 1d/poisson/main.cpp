@@ -67,10 +67,16 @@ int main(int argc, char* argv[])
   // Perform Newton's iteration and translate the resulting coefficient vector into a Solution.
   Solution<double> sln;
   NewtonSolver<double> newton(&dp, matrix_solver_type);
-  if (!newton.solve(coeff_vec)) 
+  try
+  {
+    newton.solve(coeff_vec);
+  }
+  catch(Hermes::Exceptions::Exception e)
+  {
+    e.printMsg();
     error("Newton's iteration failed.");
-  else
-    Solution<double>::vector_to_solution(newton.get_sln_vector(), &space, &sln);
+  };
+  Solution<double>::vector_to_solution(newton.get_sln_vector(), &space, &sln);
 
   // Get info about time spent during assembling in its respective parts.
   dp.get_all_profiling_output(std::cout);

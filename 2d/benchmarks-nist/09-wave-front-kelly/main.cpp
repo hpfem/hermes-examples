@@ -155,10 +155,17 @@ int main(int argc, char* argv[])
     NewtonSolver<double> newton(&dp, matrix_solver_type);
     newton.set_verbose_output(false);
 
-    if (!newton.solve(coeff_vec)) 
+    try
+    {
+      newton.solve(coeff_vec);
+    }
+    catch(Hermes::Exceptions::Exception e)
+    {
+      e.printMsg();
       error("Newton's iteration failed.");
-    else
-      Solution<double>::vector_to_solution(newton.get_sln_vector(), &space, &sln);
+    };
+
+    Solution<double>::vector_to_solution(newton.get_sln_vector(), &space, &sln);
     
     cpu_time.tick();
     verbose("Solution: %g s", cpu_time.last());

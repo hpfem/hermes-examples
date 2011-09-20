@@ -178,11 +178,17 @@ int main(int argc, char* argv[])
     memset(coeff_vec, 0, ndof_ref * sizeof(double));
 
     // Perform Newton's iteration.
-    if (!newton.solve(coeff_vec)) 
+    try
+    {
+      newton.solve(coeff_vec);
+    }
+    catch(Hermes::Exceptions::Exception e)
+    {
+      e.printMsg();
       error("Newton's iteration failed.");
-    else
-      // Translate the resulting coefficient vector into the instance of Solution.
-      Solution<double>::vector_to_solutions(newton.get_sln_vector(), *ref_spaces, 
+    };
+    // Translate the resulting coefficient vector into the instance of Solution.
+    Solution<double>::vector_to_solutions(newton.get_sln_vector(), *ref_spaces, 
                                             Hermes::vector<Solution<double> *>(&u_ref_sln, &v_ref_sln));
 
     // Translate the resulting coefficient vector into the Solution sln.

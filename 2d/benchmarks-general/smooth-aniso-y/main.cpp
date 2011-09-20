@@ -113,11 +113,17 @@ int main(int argc, char* argv[])
     newton.set_verbose_output(false);
     
     Solution<double> ref_sln;
-    if (!newton.solve(coeff_vec)) 
+    try
+    {
+      newton.solve(coeff_vec);
+    }
+    catch(Hermes::Exceptions::Exception e)
+    {
+      e.printMsg();
       error("Newton's iteration failed.");
-    else
-      // Translate the resulting coefficient vector into the instance of Solution.
-      Solution<double>::vector_to_solution(newton.get_sln_vector(), ref_space, &ref_sln);
+    };
+    // Translate the resulting coefficient vector into the instance of Solution.
+    Solution<double>::vector_to_solution(newton.get_sln_vector(), ref_space, &ref_sln);
     
     cpu_time.tick();
     verbose("Solution: %g s", cpu_time.last());
