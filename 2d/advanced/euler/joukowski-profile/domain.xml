@@ -14,16 +14,25 @@
     <vertex x="-5.6768" y="1.22545" i="7"/>
     <vertex x="-5.84247" y="1.07581" i="8"/>
     <vertex x="-5.98221" y="0.92768" i="9"/>
-    <vertex x="-6.09785" y="0.781542" i="10"/>
-    <vertex x="-6.19064" y="0.637888" i="11"/>
-    <vertex x="-6.26139" y="0.497219" i="12"/>
-    <vertex x="-6.31048" y="0.360068" i="13"/>
     
-    <vertex x="-6.34343" y="0.0987181" i="15"/>
-    
-    <vertex x="-6.28505" y="-0.140501" i="17"/>
-    <vertex x="-6.21823" y="-0.249497" i="18"/>
-    <vertex x="-6.12325" y="-0.349785" i="19"/>
+    <vertex x="-6.02472" y="-0.422679" i="216" />
+    <vertex x="-6.1006" y="-0.368663"  i="215" />
+    <vertex x="-6.16482" y="-0.310809"  i="214" />
+    <vertex x="-6.21823" y="-0.249497" i="213" />
+    <vertex x="-6.26152" y="-0.185056" i="212" />
+    <vertex x="-6.29526" y="-0.117774"  i="211" />
+    <vertex x="-6.31993" y="-0.0479046" i="210" />
+    <vertex x="-6.33588" y="0.0243267" i="209" />
+    <vertex x="-6.34343" y="0.0987181" i="208" />
+    <vertex x="-6.34281" y="0.175087" i="207" />
+    <vertex x="-6.33419" y="0.253269" i="206" />
+    <vertex x="-6.31771" y="0.33311" i="205" />
+    <vertex x="-6.29344" y="0.41447" i="204" />
+    <vertex x="-6.26139" y="0.497219" i="203" />
+    <vertex x="-6.22156" y="0.581233" i="202" />
+    <vertex x="-6.17387" y="0.666397" i="201" />
+    <vertex x="-6.1182" y="0.752597"  i="200" />
+
     <vertex x="-5.99665" y="-0.439756" i="20"/>
     <vertex x="-5.83351" y="-0.517329" i="21"/>
     <vertex x="-5.62666" y="-0.579715" i="22"/>
@@ -101,17 +110,10 @@
     <vertex x="-5.6768" y="10" i="90" />
     <vertex x="-5.84247" y="10" i="91" />
     <vertex x="-5.98221" y="10" i="92" />
-    <vertex x="-6.09785" y="10" i="93" />
-    <vertex x="-6.19064" y="10" i="94" />
-    <vertex x="-6.26139" y="10" i="95" />
-    <vertex x="-6.31048" y="10" i="96" />
     
-    <vertex x="-6.34343" y="10" i="98" />
-    <vertex x="-6.34343" y="-10" i="99" />
+    <vertex x="-6.1182" y="10"  i="250" />
+    <vertex x="-6.02472" y="-10" i="251" />
     
-    <vertex x="-6.28505" y="-10" i="101" />
-    <vertex x="-6.21823" y="-10" i="102" />
-    <vertex x="-6.12325" y="-10" i="103" />
     <vertex x="-5.99665" y="-10" i="104" />
     <vertex x="-5.83351" y="-10" i="105" />
     <vertex x="-5.62666" y="-10" i="106" />
@@ -171,14 +173,31 @@
     <vertex x="-2.68495" y="10" i="160" />
     <vertex x="-2.84618" y="10" i="161" />
 
+    <vertex x="-10" y="-0.422679" i="316" />
+    <vertex x="-10" y="-0.368663"  i="315" />
+    <vertex x="-10" y="-0.310809"  i="314" />
+    <vertex x="-10" y="-0.249497" i="313" />
+    <vertex x="-10" y="-0.185056" i="312" />
+    <vertex x="-10" y="-0.117774"  i="311" />
+    <vertex x="-10" y="-0.0479046" i="310" />
+    <vertex x="-10" y="0.0243267" i="309" />
+    <vertex x="-10" y="0.0987181" i="308" />
+    <vertex x="-10" y="0.175087" i="307" />
+    <vertex x="-10" y="0.253269" i="306" />
+    <vertex x="-10" y="0.33311" i="305" />
+    <vertex x="-10" y="0.41447" i="304" />
+    <vertex x="-10" y="0.497219" i="303" />
+    <vertex x="-10" y="0.581233" i="302" />
+    <vertex x="-10" y="0.666397" i="301" />
+    <vertex x="-10" y="0.752597"  i="300" />
   </vertices>
   
   <elements>
     <!-- Outer elements -->
-    <element:quad v1="77" v2="99" v3="15" v4="82" marker="Air" />
+    <element:quad v1="77" v2="251" v3="216" v4="316" marker="Air" />
     <element:quad v1="130" v2="78" v3="79" v4="46" marker="Air" />
     <element:quad v1="46" v2="79" v3="80" v4="131" marker="Air" />
-    <element:quad v1="82" v2="15" v3="98" v4="81" marker="Air" />
+    <element:quad v1="300" v2="200" v3="250" v4="81" marker="Air" />
     
     <!-- Inner elements -->
     <element:quad v2="0" v3="83" v4="84" v1="1" marker="Air" />
@@ -190,17 +209,26 @@
     <element:quad v2="6" v3="89" v4="90" v1="7" marker="Air" />
     <element:quad v2="7" v3="90" v4="91" v1="8" marker="Air" />
     <element:quad v2="8" v3="91" v4="92" v1="9" marker="Air" />
-    <element:quad v2="9" v3="92" v4="93" v1="10" marker="Air" />
-    <element:quad v2="10" v3="93" v4="94" v1="11" marker="Air" />
-    <element:quad v2="11" v3="94" v4="95" v1="12" marker="Air" />
-    <element:quad v2="12" v3="95" v4="96" v1="13" marker="Air" />
-    <element:quad v2="13" v3="96" v4="98" v1="15" marker="Air" />
+    <element:quad v2="9" v3="92" v4="250" v1="200" marker="Air" />
     
-    <element:quad v4="15" v1="99" v2="101" v3="17" marker="Air" />
+    <element:quad v1="301" v2="201" v3="200" v4="300" marker="Air" />
+    <element:quad v1="302" v2="202" v3="201" v4="301" marker="Air" />
+    <element:quad v1="303" v2="203" v3="202" v4="302" marker="Air" />
+    <element:quad v1="304" v2="204" v3="203" v4="303" marker="Air" />
+    <element:quad v1="305" v2="205" v3="204" v4="304" marker="Air" />
+    <element:quad v1="306" v2="206" v3="205" v4="305" marker="Air" />
+    <element:quad v1="307" v2="207" v3="206" v4="306" marker="Air" />
+    <element:quad v1="308" v2="208" v3="207" v4="307" marker="Air" />
+    <element:quad v1="309" v2="209" v3="208" v4="308" marker="Air" />
+    <element:quad v1="310" v2="210" v3="209" v4="309" marker="Air" />
+    <element:quad v1="311" v2="211" v3="210" v4="310" marker="Air" />
+    <element:quad v1="312" v2="212" v3="211" v4="311" marker="Air" />
+    <element:quad v1="313" v2="213" v3="212" v4="312" marker="Air" />
+    <element:quad v1="314" v2="214" v3="213" v4="313" marker="Air" />
+    <element:quad v1="315" v2="215" v3="214" v4="314" marker="Air" />
+    <element:quad v1="316" v2="216" v3="215" v4="315" marker="Air" />
     
-    <element:quad v4="17" v1="101" v2="102" v3="18" marker="Air" />
-    <element:quad v4="18" v1="102" v2="103" v3="19" marker="Air" />
-    <element:quad v4="19" v1="103" v2="104" v3="20" marker="Air" />
+    <element:quad v2="216" v3="251" v4="104" v1="20" marker="Air" />
     <element:quad v4="20" v1="104" v2="105" v3="21" marker="Air" />
     <element:quad v4="21" v1="105" v2="106" v3="22" marker="Air" />
     <element:quad v4="22" v1="106" v2="107" v3="23" marker="Air" />
@@ -271,15 +299,24 @@
     <edge v1="6" v2="7" marker="Solid Profile"/>	
     <edge v1="7" v2="8" marker="Solid Profile"/>	
     <edge v1="8" v2="9" marker="Solid Profile"/>	
-    <edge v1="9" v2="10" marker="Solid Profile"/>	
-    <edge v1="10" v2="11" marker="Solid Profile"/>	
-    <edge v1="11" v2="12" marker="Solid Profile"/>	
-    <edge v1="12" v2="13" marker="Solid Profile"/>	
-    <edge v1="13" v2="15" marker="Solid Profile"/>
-    <edge v1="15" v2="17" marker="Solid Profile"/>	
-    <edge v1="17" v2="18" marker="Solid Profile"/>	
-    <edge v1="18" v2="19" marker="Solid Profile"/>	
-    <edge v1="19" v2="20" marker="Solid Profile"/>	
+    <edge v1="9" v2="200" marker="Solid Profile"/>	
+    <edge v1="200" v2="201" marker="Solid Profile"/>
+    <edge v1="201" v2="202" marker="Solid Profile"/>
+    <edge v1="202" v2="203" marker="Solid Profile"/>
+    <edge v1="203" v2="204" marker="Solid Profile"/>
+    <edge v1="204" v2="205" marker="Solid Profile"/>
+    <edge v1="205" v2="206" marker="Solid Profile"/>
+    <edge v1="206" v2="207" marker="Solid Profile"/>
+    <edge v1="207" v2="208" marker="Solid Profile"/>
+    <edge v1="208" v2="209" marker="Solid Profile"/>
+    <edge v1="209" v2="210" marker="Solid Profile"/>
+    <edge v1="210" v2="211" marker="Solid Profile"/>
+    <edge v1="211" v2="212" marker="Solid Profile"/>
+    <edge v1="212" v2="213" marker="Solid Profile"/>
+    <edge v1="213" v2="214" marker="Solid Profile"/>
+    <edge v1="214" v2="215" marker="Solid Profile"/>
+    <edge v1="215" v2="216" marker="Solid Profile"/>
+    <edge v1="216" v2="20" marker="Solid Profile"/>	
     <edge v1="20" v2="21" marker="Solid Profile"/>	
     <edge v1="21" v2="22" marker="Solid Profile"/>	
     <edge v1="22" v2="23" marker="Solid Profile"/>	
@@ -345,16 +382,8 @@
     <edge v1="89" v2="90" marker="Solid" />
     <edge v1="90" v2="91" marker="Solid" />
     <edge v1="91" v2="92" marker="Solid" />
-    <edge v1="92" v2="93" marker="Solid" />
-    <edge v1="93" v2="94" marker="Solid" />
-    <edge v1="94" v2="95" marker="Solid" />
-    <edge v1="95" v2="96" marker="Solid" />
-    <edge v1="96" v2="98" marker="Solid" />
-    
-    <edge v1="99" v2="101" marker="Solid" />
-    <edge v1="101" v2="102" marker="Solid" />
-    <edge v1="102" v2="103" marker="Solid" />
-    <edge v1="103" v2="104" marker="Solid" />
+    <edge v1="92" v2="250" marker="Solid" />
+    <edge v1="251" v2="104" marker="Solid" />
     <edge v1="104" v2="105" marker="Solid" />
     <edge v1="105" v2="106" marker="Solid" />
     <edge v1="106" v2="107" marker="Solid" />
@@ -413,19 +442,31 @@
     
     <edge v1="161" v2="83" marker="Solid" />
 
-    <edge v1="77" v2="99" marker="Solid" />
+    <edge v1="77" v2="251" marker="Solid" />
     <edge v1="130" v2="78" marker="Solid" />
     <edge v1="78" v2="79" marker="Outlet" />
     <edge v1="79" v2="80" marker="Outlet" />
     <edge v1="80" v2="131" marker="Solid" />
-    <edge v1="98" v2="81" marker="Solid" />
-    <edge v1="81" v2="82" marker="Inlet" />
-    <edge v1="82" v2="77" marker="Inlet" />
+    <edge v1="250" v2="81" marker="Solid" />
+    <edge v1="81" v2="300" marker="Inlet" />
+    <edge v1="300" v2="301" marker="Inlet"/>
+    <edge v1="301" v2="302" marker="Inlet"/>
+    <edge v1="302" v2="303" marker="Inlet"/>
+    <edge v1="303" v2="304" marker="Inlet"/>
+    <edge v1="304" v2="305" marker="Inlet"/>
+    <edge v1="305" v2="306" marker="Inlet"/>
+    <edge v1="306" v2="307" marker="Inlet"/>
+    <edge v1="307" v2="308" marker="Inlet"/>
+    <edge v1="308" v2="309" marker="Inlet"/>
+    <edge v1="309" v2="310" marker="Inlet"/>
+    <edge v1="310" v2="311" marker="Inlet"/>
+    <edge v1="311" v2="312" marker="Inlet"/>
+    <edge v1="312" v2="313" marker="Inlet"/>
+    <edge v1="313" v2="314" marker="Inlet"/>
+    <edge v1="314" v2="315" marker="Inlet"/>
+    <edge v1="315" v2="316" marker="Inlet"/>
+    <edge v1="316" v2="77" marker="Inlet" />
   </edges>
-  <curves>
-    <arc v1="13" v2="15" angle="10" />
-    <arc v1="15" v2="17" angle="20" />
-  </curves>
 </mesh:mesh>
 
     

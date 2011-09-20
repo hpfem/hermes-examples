@@ -30,18 +30,18 @@ double DISCONTINUITY_DETECTOR_PARAM = 1.0;
 
 bool REUSE_SOLUTION = false;
 
-const int P_INIT = 1;                                   // Initial polynomial degree.                      
+const int P_INIT = 4;                                   // Initial polynomial degree.                      
 const int INIT_REF_NUM = 0;                             // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM_BOUNDARY = 6;                    // Number of initial mesh refinements towards the profile.
-double CFL_NUMBER = 10.0;                                // CFL value.
+const int INIT_REF_NUM_BOUNDARY = 7;                    // Number of initial mesh refinements towards the profile.
+double CFL_NUMBER = 1000.0;                                // CFL value.
 double time_step = 1E-4;                                // Initial time step.
 const MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 
 // Equation parameters.
-const double P_EXT = 3.65978e7;         // Exterior pressure (dimensionless).
+const double P_EXT = 7142.8571428571428571428571428571;         // Exterior pressure (dimensionless).
 const double RHO_EXT = 1.0;       // Inlet density (dimensionless).   
-const double V1_EXT = 0.7158;       // Inlet x-velocity (dimensionless).
+const double V1_EXT = 0.01;       // Inlet x-velocity (dimensionless).
 const double V2_EXT = 0.0;        // Inlet y-velocity (dimensionless).
 const double KAPPA = 1.4;         // Kappa.
 
@@ -60,7 +60,7 @@ const std::string BDY_SOLID_WALL = "Solid";
 // Criterion for mesh refinement.
 int refinement_criterion(Element* e)
 {
-  if(e->vn[1]->x < -6.343429 || e->vn[0]->x > 5.999189)
+  if((e->vn[1]->x - e->vn[0]->x) > 0.25 && (e->vn[2]->y - e->vn[1]->y) > 0.25)
     return 0;
   else
     return -1;
@@ -71,16 +71,15 @@ int main(int argc, char* argv[])
   // Load the mesh.
   Mesh mesh;
   MeshReaderH2DXML mloader;
-  mloader.load("domain.xml", &mesh);
-
+  mloader.load("domain-nurbs.xml", &mesh);
   
   // Perform initial mesh refinements.
-  mesh.refine_towards_boundary(BDY_SOLID_WALL_PROFILE, INIT_REF_NUM_BOUNDARY, true);
-  mesh.refine_by_criterion(refinement_criterion, INIT_REF_NUM, true);
-  
+  mesh.refine_towards_boundary(BDY_SOLID_WALL_PROFILE, INIT_REF_NUM_BOUNDARY);
+
   MeshView m;
   m.show(&mesh);
   m.wait_for_close();
+
   // Initialize boundary condition types and spaces with default shapesets.
   L2Space<double> space_rho(&mesh, P_INIT);
   L2Space<double> space_rho_v_x(&mesh, P_INIT);
