@@ -108,7 +108,7 @@ AsmList<double> al;
     SurfPos surf_pos;
     surf_pos.marker = e->marker;
     surf_pos.surf_num = edge_i;
-    int eo = solutions[1]->get_quad_2d()->get_edge_points(surf_pos.surf_num, 5);
+    int eo = solutions[1]->get_quad_2d()->get_edge_points(surf_pos.surf_num, 20);
     Geom<double>* geom = init_geom_surf(solutions[1]->get_refmap(), &surf_pos, eo);
     int np = solutions[1]->get_quad_2d()->get_num_points(eo);
 
@@ -303,7 +303,7 @@ double KrivodonovaDiscontinuityDetector::calculate_relative_flow_direction(Eleme
   surf_pos.marker = e->marker;
   surf_pos.surf_num = edge_i;
 
-  int eo = solutions[1]->get_quad_2d()->get_edge_points(surf_pos.surf_num, 5);
+  int eo = solutions[1]->get_quad_2d()->get_edge_points(surf_pos.surf_num, 20);
   double3* pt = solutions[1]->get_quad_2d()->get_points(eo);
   int np = solutions[1]->get_quad_2d()->get_num_points(eo);
 

@@ -1136,7 +1136,7 @@ protected:
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, 
             ExtData<Ord> *ext) const {
-      return int_u_v<Ord, Ord>(n, wt, u, v);
+      return Ord(24);
     }
   };
 
@@ -1291,7 +1291,7 @@ protected:
     }
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const {
-      return u->val[0] * v->dx[0] * v->dy[0] * ext->fn[0]->val[0] * ext->fn[1]->val[0] * ext->fn[2]->val[0] * ext->fn[3]->val[0];
+      return Ord(24);
     }
 
     double kappa;
@@ -1398,12 +1398,7 @@ protected:
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
             Geom<Ord> *e, ExtData<Ord> *ext) const {
-      Ord result = Ord(0);
-      for (int i = 0;i < n;i++) {
-        result += wt[i] * u->get_val_central(i) * v->get_val_central(i);
-        result += wt[i] * u->get_val_neighbor(i) * v->get_val_neighbor(i);
-      }
-      return result + Ord(2);
+      return Ord(24);
     }
 
     StegerWarmingNumericalFlux* num_flux;
@@ -1511,12 +1506,7 @@ protected:
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
             Geom<Ord> *e, ExtData<Ord> *ext) const {
-      Ord result = Ord(0);
-      for (int i = 0;i < n;i++) {
-        result += wt[i] * u->get_val_central(i) * v->get_val_central(i);
-        result += wt[i] * u->get_val_neighbor(i) * v->get_val_neighbor(i);
-      }
-      return result + Ord(2);
+      return Ord(24);
     }
 
     StegerWarmingNumericalFlux* num_flux;
@@ -1686,7 +1676,7 @@ protected:
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
             Geom<Ord> *e, ExtData<Ord> *ext) const {
-      return u->val[0] * v->val[0] * Ord(2);
+      return Ord(24);
     }
 
     StegerWarmingNumericalFlux* num_flux;
@@ -1798,7 +1788,7 @@ protected:
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, 
             Geom<Ord> *e, ExtData<Ord> *ext) const {
-      return v->val[0] * v->val[0] * Ord(2);
+      return Ord(24);
     }
 
     StegerWarmingNumericalFlux* num_flux;
@@ -1820,15 +1810,7 @@ protected:
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
             ExtData<Ord> *ext) const {
-      Ord result = int_u_v<Ord, Ord>(n, wt, ext->fn[0], v);
-      if(int_u_v<Ord, Ord>(n, wt, ext->fn[1], v) > result)
-        result = int_u_v<Ord, Ord>(n, wt, ext->fn[1], v);
-      if(int_u_v<Ord, Ord>(n, wt, ext->fn[2], v) > result)
-        result = int_u_v<Ord, Ord>(n, wt, ext->fn[1], v);
-      if(int_u_v<Ord, Ord>(n, wt, ext->fn[3], v) > result)
-        result = int_u_v<Ord, Ord>(n, wt, ext->fn[1], v);
-
-      return result + Ord(2);
+      return Ord(24);
     }
   };
 
@@ -1926,7 +1908,7 @@ protected:
     }
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const {
-      return u->val[0] * v->val[0] * Ord(6);
+      return Ord(24);
     }
 
     // Members.
@@ -3191,72 +3173,6 @@ protected:
       return vector_form<Ord, Ord>(n, wt, u_ext, v, e, ext);
     }
   };
-  /*
-  class MatrixFormConcentrationAdvection : public MatrixFormVol<double>
-  {
-  public:
-    MatrixFormConcentrationAdvection(int i, int j) : MatrixFormVol<double>(i, j) {}
-
-    template<typename Real, typename Scalar>
-    Scalar matrix_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, 
-                       Geom<Real> *e, ExtData<Scalar> *ext) const {
-      Func<Real>* density_prev = ext->fn[0];
-      Func<Real>* density_vel_x_prev = ext->fn[1];
-      Func<Real>* density_vel_y_prev = ext->fn[2];
-
-      Scalar result = Scalar(0);
-      for (int i = 0;i < n;i++)
-        result += wt[i] * (u->dx[i] * density_vel_x_prev->val[i] * v->val[i] / density_prev->val[i] + u->dy[i] * density_vel_y_prev->val[i] * v->val[i] / density_prev->val[i]);
-
-      return result * static_cast<EulerEquationsWeakFormExplicit*>(wf)->get_tau();
-    }
-
-    double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
-                 Geom<double> *e, ExtData<double> *ext) const {
-      return vector_form<double, double>(n, wt, u_ext, v, e, ext);
-    }
-
-    Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
-            ExtData<Ord> *ext) const {
-      return vector_form<Ord, Ord>(n, wt, u_ext, v, e, ext);
-    }
-  };
-
-  class VectorFormConcentrationNatural : public VectorFormSurf<double>
-  {
-  public:
-    VectorFormConcentrationNatural(int i, std::string marker) 
-          : VectorFormSurf<double>(i, marker) {}
-
-    template<typename Real, typename Scalar>
-    Scalar vector_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, 
-                       Geom<Real> *e, ExtData<Scalar> *ext) const {
-      Func<Real>* density_prev = ext->fn[0];
-      Func<Real>* density_vel_x_prev = ext->fn[1];
-      Func<Real>* density_vel_y_prev = ext->fn[2];
-      Func<Real>* concentration_prev = ext->fn[4];
-
-      Scalar result = Scalar(0);
-      for (int i = 0;i < n;i++)
-        result += wt[i] * v->val[i] * concentration_prev->val[i] 
-                  * (density_vel_x_prev->val[i] * e->nx[i] + density_vel_y_prev->val[i] * e->ny[i])
-                  / density_prev->val[i];
-        // (OR: for inlet/outlet) result += wt[i] * v->val[i] * concentration_prev->val[i] 
-        //      * (V1_EXT * e->nx[i] + V2_EXT * e->ny[i]);
-      return - result * static_cast<EulerEquationsWeakFormExplicit*>(wf)->get_tau();
-    }
-
-    double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
-                 Geom<double> *e, ExtData<double> *ext) const {
-      return vector_form<double, double>(n, wt, u_ext, v, e, ext);
-    }
-
-    Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
-            ExtData<Ord> *ext) const {
-      return Ord(5);
-    }
-  };
-  */
 };
 
 class EulerEquationsWeakFormSemiImplicitCoupled : public EulerEquationsWeakFormSemiImplicitMultiComponent

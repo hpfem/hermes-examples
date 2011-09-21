@@ -11,9 +11,9 @@ using namespace Hermes::Hermes2D::Views;
 //
 // Equations: Compressible Euler equations, perfect gas state equation.
 //
-// Domain: GAMM channel, see mesh file GAMM-channel.mesh
+// Domain: Joukowski profile, see file domain-nurbs.xml.
 //
-// BC: Solid walls, inlet, no outlet.
+// BC: Solid walls, inlet, outlet.
 //
 // IC: Constant state identical to inlet.
 //
@@ -30,10 +30,11 @@ double DISCONTINUITY_DETECTOR_PARAM = 1.0;
 
 bool REUSE_SOLUTION = false;
 
-const int P_INIT = 4;                                   // Initial polynomial degree.                      
+const int P_INIT = 0;                                   // Initial polynomial degree.                      
 const int INIT_REF_NUM = 0;                             // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM_BOUNDARY = 7;                    // Number of initial mesh refinements towards the profile.
-double CFL_NUMBER = 1000.0;                                // CFL value.
+const int INIT_REF_NUM_BOUNDARY = 2;                    // Number of initial mesh refinements towards the profile.
+const int INIT_REF_NUM_VERTEX = 2;                      // Number of initial mesh refinements towards the tip of the profile.
+double CFL_NUMBER = 10.0;                             // CFL value.
 double time_step = 1E-4;                                // Initial time step.
 const MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
@@ -57,15 +58,6 @@ const std::string BDY_SOLID_WALL = "Solid";
 // Initial condition.
 #include "../initial_condition.cpp"
 
-// Criterion for mesh refinement.
-int refinement_criterion(Element* e)
-{
-  if((e->vn[1]->x - e->vn[0]->x) > 0.25 && (e->vn[2]->y - e->vn[1]->y) > 0.25)
-    return 0;
-  else
-    return -1;
-}
-
 int main(int argc, char* argv[])
 {
   // Load the mesh.
@@ -74,8 +66,9 @@ int main(int argc, char* argv[])
   mloader.load("domain-nurbs.xml", &mesh);
   
   // Perform initial mesh refinements.
-  mesh.refine_towards_boundary(BDY_SOLID_WALL_PROFILE, INIT_REF_NUM_BOUNDARY);
-
+  mesh.refine_towards_boundary(BDY_SOLID_WALL_PROFILE, INIT_REF_NUM_BOUNDARY, false, true);
+  mesh.refine_towards_vertex(0, INIT_REF_NUM_VERTEX);
+  
   MeshView m;
   m.show(&mesh);
   m.wait_for_close();
@@ -105,6 +98,10 @@ int main(int argc, char* argv[])
   ScalarView pressure_view("Pressure", new WinGeom(0, 0, 600, 300));
   ScalarView Mach_number_view("Mach number", new WinGeom(700, 0, 600, 300));
   ScalarView entropy_production_view("Entropy estimate", new WinGeom(0, 400, 600, 300));
+  ScalarView s1("prev_rho", new WinGeom(0, 0, 600, 300));
+  ScalarView s2("prev_rho_v_x", new WinGeom(700, 0, 600, 300));
+  ScalarView s3("prev_rho_v_y", new WinGeom(0, 400, 600, 300));
+  ScalarView s4("prev_e", new WinGeom(0, 400, 600, 300));
 
   // Set up the solver, matrix, and rhs according to the solver selection.
   SparseMatrix<double>* matrix = create_matrix<double>(matrix_solver_type);
@@ -133,14 +130,10 @@ int main(int argc, char* argv[])
 
   // Initialize weak formulation.
   EulerEquationsWeakFormSemiImplicitMultiComponent wf(&num_flux, KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, BDY_SOLID_WALL, BDY_SOLID_WALL_PROFILE, 
-    BDY_INLET, BDY_OUTLET, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, (P_INIT == 0));
+    BDY_INLET, BDY_OUTLET, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e);
 
   // Initialize the FE problem.
   DiscreteProblem<double> dp(&wf, Hermes::vector<Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
-  
-  // If the FE problem is in fact a FV problem.
-  if(P_INIT == 0) 
-    dp.set_fvm();
 
   // Time stepping loop.
   for(; t < 10.0; t += time_step)
@@ -171,7 +164,7 @@ int main(int argc, char* argv[])
 
           flux_limiter.get_limited_solutions(Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
         }
-    else
+    else  
       error ("Matrix solver failed.\n");
 
     CFL.calculate_semi_implicit(Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), &mesh, time_step);
@@ -183,13 +176,20 @@ int main(int argc, char* argv[])
       // Hermes visualization.
       if(HERMES_VISUALIZATION) 
       {
+        /*
         Mach_number.reinit();
         pressure.reinit();
         pressure_view.show(&pressure);
         Mach_number_view.show(&Mach_number);
-
         pressure_view.save_numbered_screenshot("Pressure-%u.bmp", iteration - 1, true);
         Mach_number_view.save_numbered_screenshot("Mach-%u.bmp", iteration - 1, true);
+        Mach_number_view.wait_for_keypress();
+        */
+        s1.show(&prev_rho);
+        s2.show(&prev_rho_v_x);
+        s3.show(&prev_rho_v_y);
+        s4.show(&prev_e);
+        s4.wait_for_close();
       }
       // Output solution in VTK format.
       if(VTK_VISUALIZATION) 
@@ -217,9 +217,7 @@ int main(int argc, char* argv[])
     }
   }
 
-  pressure_view.close();
-  entropy_production_view.close();
-  Mach_number_view.close();
+  View::wait();
 
   return 0;
 }
