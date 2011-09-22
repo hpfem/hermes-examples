@@ -710,7 +710,7 @@ protected:
     }
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const {
-      return v->val[0] * v->val[0] * Ord(2);
+      return Ord(24);
     }
 
     double kappa;
@@ -766,81 +766,6 @@ protected:
         double flux[4];
         num_flux->numerical_flux(flux, w_L, w_R, e->nx[i], e->ny[i]);
 
-#ifdef H2D_EULER_NUM_FLUX_TESTING
-        double flux_testing_num_flux[4];
-        double flux_testing_num_flux_conservativity_1[4];
-        double flux_testing_num_flux_conservativity_2[4];
-        double flux_testing_flux_1[4];
-        double flux_testing_flux_2[4];
-        double flux_testing_flux[4];
-
-        num_flux->numerical_flux(flux_testing_num_flux, w_L, w_L, e->nx[i], e->ny[i]);
-
-        num_flux->numerical_flux(flux_testing_num_flux_conservativity_1, w_L, w_R, e->nx[i], e->ny[i]);
-        num_flux->numerical_flux(flux_testing_num_flux_conservativity_2, w_R, w_L, -e->nx[i], -e->ny[i]);
-
-       for(unsigned int flux_i = 0;flux_i < 4;flux_i++)
-          if(std::abs(flux_testing_num_flux_conservativity_1[flux_i] + flux_testing_num_flux_conservativity_2[flux_i]) > 1E-4)
-            if(std::abs((flux_testing_num_flux_conservativity_1[flux_i] + flux_testing_num_flux_conservativity_2[flux_i]) / flux_testing_num_flux_conservativity_1[flux_i]) > 1E-6)
-              info("Flux is not conservative.");
-
-        //num_flux->Q(w_L, w_L, e->nx[i], e->ny[i]);
-        
-        EulerEquationsLinearForm form(Hermes::vector<unsigned int>(), num_flux->kappa);
-        flux_testing_flux_1[0] = form.(static_cast<EulerEquationsWeakFormExplicitMultiComponent*>(wf))->euler_fluxes->A_1_0_0<double>(w_L[0], w_L[1], w_L[2], w_L[3]) * w_L[0]
-          + form.(static_cast<EulerEquationsWeakFormExplicitMultiComponent*>(wf))->euler_fluxes->A_1_0_1<double>(w_L[0], w_L[1], w_L[2], w_L[3]) * w_L[1]
-          + form.(static_cast<EulerEquationsWeakFormExplicitMultiComponent*>(wf))->euler_fluxes->A_1_0_2<double>(w_L[0], w_L[1], w_L[2], w_L[3]) * w_L[2]
-          + form.(static_cast<EulerEquationsWeakFormExplicitMultiComponent*>(wf))->euler_fluxes->A_1_0_3<double>(w_L[0], w_L[1], w_L[2], w_L[3]) * w_L[3];
-
-        flux_testing_flux_1[1] = form.(static_cast<EulerEquationsWeakFormExplicitMultiComponent*>(wf))->euler_fluxes->A_1_1_0<double>(w_L[0], w_L[1], w_L[2], w_L[3]) * w_L[0]
-          + form.(static_cast<EulerEquationsWeakFormExplicitMultiComponent*>(wf))->euler_fluxes->A_1_1_1<double>(w_L[0], w_L[1], w_L[2], w_L[3]) * w_L[1]
-          + form.(static_cast<EulerEquationsWeakFormExplicitMultiComponent*>(wf))->euler_fluxes->A_1_1_2<double>(w_L[0], w_L[1], w_L[2], w_L[3]) * w_L[2]
-          + form.(static_cast<EulerEquationsWeakFormExplicitMultiComponent*>(wf))->euler_fluxes->A_1_1_3<double>(w_L[0], w_L[1], w_L[2], w_L[3]) * w_L[3];
-
-        flux_testing_flux_1[2] = form.(static_cast<EulerEquationsWeakFormExplicitMultiComponent*>(wf))->euler_fluxes->A_1_2_0<double>(w_L[0], w_L[1], w_L[2], w_L[3]) * w_L[0]
-          + form.(static_cast<EulerEquationsWeakFormExplicitMultiComponent*>(wf))->euler_fluxes->A_1_2_1<double>(w_L[0], w_L[1], w_L[2], w_L[3]) * w_L[1]
-          + form.(static_cast<EulerEquationsWeakFormExplicitMultiComponent*>(wf))->euler_fluxes->A_1_2_2<double>(w_L[0], w_L[1], w_L[2], w_L[3]) * w_L[2]
-          + form.(static_cast<EulerEquationsWeakFormExplicitMultiComponent*>(wf))->euler_fluxes->A_1_2_3<double>(w_L[0], w_L[1], w_L[2], w_L[3]) * w_L[3];
-
-        flux_testing_flux_1[3] = form.(static_cast<EulerEquationsWeakFormExplicitMultiComponent*>(wf))->euler_fluxes->A_1_3_0<double>(w_L[0], w_L[1], w_L[2], w_L[3]) * w_L[0]
-          + form.(static_cast<EulerEquationsWeakFormExplicitMultiComponent*>(wf))->euler_fluxes->A_1_3_1<double>(w_L[0], w_L[1], w_L[2], w_L[3]) * w_L[1]
-          + form.(static_cast<EulerEquationsWeakFormExplicitMultiComponent*>(wf))->euler_fluxes->A_1_3_2<double>(w_L[0], w_L[1], w_L[2], w_L[3]) * w_L[2]
-          + form.(static_cast<EulerEquationsWeakFormExplicitMultiComponent*>(wf))->euler_fluxes->A_1_3_3<double>(w_L[0], w_L[1], w_L[2], w_L[3]) * w_L[3];
-
-        flux_testing_flux_2[0] = form.(static_cast<EulerEquationsWeakFormExplicitMultiComponent*>(wf))->euler_fluxes->A_2_0_0<double>(w_L[0], w_L[1], w_L[2], w_L[3]) * w_L[0]
-          + form.(static_cast<EulerEquationsWeakFormExplicitMultiComponent*>(wf))->euler_fluxes->A_2_0_1<double>(w_L[0], w_L[1], w_L[2], w_L[3]) * w_L[1]
-          + form.(static_cast<EulerEquationsWeakFormExplicitMultiComponent*>(wf))->euler_fluxes->A_2_0_2<double>(w_L[0], w_L[1], w_L[2], w_L[3]) * w_L[2]
-          + form.(static_cast<EulerEquationsWeakFormExplicitMultiComponent*>(wf))->euler_fluxes->A_2_0_3<double>(w_L[0], w_L[1], w_L[2], w_L[3]) * w_L[3];
-
-        flux_testing_flux_2[1] = form.(static_cast<EulerEquationsWeakFormExplicitMultiComponent*>(wf))->euler_fluxes->A_2_1_0<double>(w_L[0], w_L[1], w_L[2], w_L[3]) * w_L[0]
-          + form.(static_cast<EulerEquationsWeakFormExplicitMultiComponent*>(wf))->euler_fluxes->A_2_1_1<double>(w_L[0], w_L[1], w_L[2], w_L[3]) * w_L[1]
-          + form.(static_cast<EulerEquationsWeakFormExplicitMultiComponent*>(wf))->euler_fluxes->A_2_1_2<double>(w_L[0], w_L[1], w_L[2], w_L[3]) * w_L[2]
-          + form.(static_cast<EulerEquationsWeakFormExplicitMultiComponent*>(wf))->euler_fluxes->A_2_1_3<double>(w_L[0], w_L[1], w_L[2], w_L[3]) * w_L[3];
-
-        flux_testing_flux_2[2] = form.(static_cast<EulerEquationsWeakFormExplicitMultiComponent*>(wf))->euler_fluxes->A_2_2_0<double>(w_L[0], w_L[1], w_L[2], w_L[3]) * w_L[0]
-          + form.(static_cast<EulerEquationsWeakFormExplicitMultiComponent*>(wf))->euler_fluxes->A_2_2_1<double>(w_L[0], w_L[1], w_L[2], w_L[3]) * w_L[1]
-          + form.(static_cast<EulerEquationsWeakFormExplicitMultiComponent*>(wf))->euler_fluxes->A_2_2_2<double>(w_L[0], w_L[1], w_L[2], w_L[3]) * w_L[2]
-          + form.(static_cast<EulerEquationsWeakFormExplicitMultiComponent*>(wf))->euler_fluxes->A_2_2_3<double>(w_L[0], w_L[1], w_L[2], w_L[3]) * w_L[3];
-
-        flux_testing_flux_2[3] = form.(static_cast<EulerEquationsWeakFormExplicitMultiComponent*>(wf))->euler_fluxes->A_2_3_0<double>(w_L[0], w_L[1], w_L[2], w_L[3]) * w_L[0]
-          + form.(static_cast<EulerEquationsWeakFormExplicitMultiComponent*>(wf))->euler_fluxes->A_2_3_1<double>(w_L[0], w_L[1], w_L[2], w_L[3]) * w_L[1]
-          + form.(static_cast<EulerEquationsWeakFormExplicitMultiComponent*>(wf))->euler_fluxes->A_2_3_2<double>(w_L[0], w_L[1], w_L[2], w_L[3]) * w_L[2]
-          + form.(static_cast<EulerEquationsWeakFormExplicitMultiComponent*>(wf))->euler_fluxes->A_2_3_3<double>(w_L[0], w_L[1], w_L[2], w_L[3]) * w_L[3];
-
-
-          flux_testing_flux[0] = flux_testing_flux_1[0] * e->nx[i] + flux_testing_flux_2[0] * e->ny[i];
-          flux_testing_flux[1] = flux_testing_flux_1[1] * e->nx[i] + flux_testing_flux_2[1] * e->ny[i];
-          flux_testing_flux[2] = flux_testing_flux_1[2] * e->nx[i] + flux_testing_flux_2[2] * e->ny[i];
-          flux_testing_flux[3] = flux_testing_flux_1[3] * e->nx[i] + flux_testing_flux_2[3] * e->ny[i];
-
-        //num_flux->Q_inv(flux_testing_flux_1, flux_testing_flux_1, e->nx[i], e->ny[i]);
-
-        for(unsigned int flux_i = 0;flux_i < 4;flux_i++)
-          if(std::abs(flux_testing_num_flux[flux_i] - flux_testing_flux[flux_i]) > 1E-8)
-            if(std::abs((flux_testing_num_flux[flux_i] - flux_testing_flux[flux_i]) / flux_testing_num_flux[flux_i]) > 1E-6)
-              info("Flux is not consistent.");
-#endif
-
         result_0 -= wt[i] * v->val[i] * flux[0];
         result_1 -= wt[i] * v->val[i] * flux[1];
         result_2 -= wt[i] * v->val[i] * flux[2];
@@ -853,7 +778,7 @@ protected:
     }
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const {
-      return v->val[0] * v->val[0] * Ord(2);
+      return Ord(24);
     }
 
     // Members.
@@ -895,7 +820,7 @@ protected:
     }
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const {
-      return v->val[0] * v->val[0] * Ord(2);
+      return Ord(24);
     }
 
     // Members.
@@ -946,7 +871,7 @@ protected:
     }
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const {
-      return v->val[0] * v->val[0] * Ord(2);
+      return Ord(24);
     }
 
     // Members.
@@ -989,7 +914,7 @@ protected:
     }
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const {
-      return v->val[0] * v->val[0] * Ord(2);
+      return Ord(24);
     }
 
     // Members.
@@ -1135,7 +1060,7 @@ protected:
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, 
             ExtData<Ord> *ext) const {
-      return Ord(24);
+      return int_u_v<Ord, Ord>(n, wt, u, v);
     }
   };
 
@@ -1713,7 +1638,7 @@ protected:
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
             ExtData<Ord> *ext) const {
-      return Ord(24);
+      return int_u_v<Ord, Ord>(n, wt, ext->fn[0], v);
     }
   };
 
