@@ -30,10 +30,10 @@ double DISCONTINUITY_DETECTOR_PARAM = 1.0;
 
 bool REUSE_SOLUTION = false;
 
-const int P_INIT = 0;                                   // Initial polynomial degree.                      
+const int P_INIT = 1;                                   // Initial polynomial degree.                      
 const int INIT_REF_NUM = 0;                             // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM_BOUNDARY = 2;                    // Number of initial mesh refinements towards the profile.
-const int INIT_REF_NUM_VERTEX = 2;                      // Number of initial mesh refinements towards the tip of the profile.
+const int INIT_REF_NUM_BOUNDARY = 1;                    // Number of initial mesh refinements towards the profile.
+const int INIT_REF_NUM_VERTEX = 0;                      // Number of initial mesh refinements towards the tip of the profile.
 double CFL_NUMBER = 10.0;                             // CFL value.
 double time_step = 1E-4;                                // Initial time step.
 const MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
@@ -57,6 +57,14 @@ const std::string BDY_SOLID_WALL = "Solid";
 
 // Initial condition.
 #include "../initial_condition.cpp"
+
+int criterion(Element* e)
+{
+  if(e->is_curved())
+    return 0;
+  else
+    return -1;
+}
 
 int main(int argc, char* argv[])
 {
@@ -101,7 +109,7 @@ int main(int argc, char* argv[])
   ScalarView s1("prev_rho", new WinGeom(0, 0, 600, 300));
   ScalarView s2("prev_rho_v_x", new WinGeom(700, 0, 600, 300));
   ScalarView s3("prev_rho_v_y", new WinGeom(0, 400, 600, 300));
-  ScalarView s4("prev_e", new WinGeom(0, 400, 600, 300));
+  ScalarView s4("prev_e", new WinGeom(700, 400, 600, 300));
 
   // Set up the solver, matrix, and rhs according to the solver selection.
   SparseMatrix<double>* matrix = create_matrix<double>(matrix_solver_type);
@@ -129,8 +137,8 @@ int main(int argc, char* argv[])
   }
 
   // Initialize weak formulation.
-  EulerEquationsWeakFormSemiImplicitMultiComponent wf(&num_flux, KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, BDY_SOLID_WALL, BDY_SOLID_WALL_PROFILE, 
-    BDY_INLET, BDY_OUTLET, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e);
+  EulerEquationsWeakFormExplicitMultiComponent wf(&num_flux, KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, BDY_SOLID_WALL, BDY_SOLID_WALL_PROFILE, 
+    BDY_INLET, BDY_OUTLET, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, P_INIT == 0);
 
   // Initialize the FE problem.
   DiscreteProblem<double> dp(&wf, Hermes::vector<Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));

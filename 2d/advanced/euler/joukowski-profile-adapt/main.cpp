@@ -31,7 +31,7 @@ double DISCONTINUITY_DETECTOR_PARAM = 1.0;
 bool REUSE_SOLUTION = false;
 
 const int P_INIT = 0;                             // Initial polynomial degree.                      
-const int INIT_REF_NUM_BOUNDARY = 3;              // Number of initial uniform mesh refinements.                       
+const int INIT_REF_NUM_BOUNDARY = 1;              // Number of initial uniform mesh refinements.                       
 double CFL_NUMBER = 1.0;                         // CFL value.
 double time_step = 1E-6;                          // Initial time step.
 
@@ -128,7 +128,7 @@ int main(int argc, char* argv[])
   mloader.load("domain-nurbs.xml", &mesh);
 
   // Perform initial mesh refinements.
-  //mesh.refine_by_criterion(criterion, 1);
+  mesh.refine_by_criterion(criterion, 2);
   mesh.refine_towards_boundary(BDY_SOLID_WALL_PROFILE, INIT_REF_NUM_BOUNDARY, true, true);
 
   MeshView m;
