@@ -586,7 +586,7 @@ protected:
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, 
             ExtData<Ord> *ext) const {
-      return int_u_v<Ord, Ord>(n, wt, u, v);
+      return Ord(24);
     }
   };
 
@@ -732,7 +732,7 @@ protected:
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
             ExtData<Ord> *ext) const {
-      return int_u_v<Ord, Ord>(n, wt, v, v);
+      return Ord(24);
     }
   };
 
@@ -1060,7 +1060,7 @@ protected:
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, 
             ExtData<Ord> *ext) const {
-      return int_u_v<Ord, Ord>(n, wt, u, v);
+      return Ord(24);
     }
   };
 
@@ -1255,10 +1255,10 @@ protected:
       double w[4];
 
       for (int i = 0;i < n;i++) {
-        w[0] = (ext->fn[0]->get_val_central(i) + ext->fn[0]->get_val_neighbor(i)) / 2;
-        w[1] = (ext->fn[1]->get_val_central(i) + ext->fn[1]->get_val_neighbor(i)) / 2;
-        w[2] = (ext->fn[2]->get_val_central(i) + ext->fn[2]->get_val_neighbor(i)) / 2;
-        w[3] = (ext->fn[3]->get_val_central(i) + ext->fn[3]->get_val_neighbor(i)) / 2;
+        w[0] = ext->fn[0]->get_val_central(i);
+        w[1] = ext->fn[1]->get_val_central(i);
+        w[2] = ext->fn[2]->get_val_central(i);
+        w[3] = ext->fn[3]->get_val_central(i);
 
         double e_1_1[4] = {1, 0, 0, 0};
         double e_2_1[4] = {0, 1, 0, 0};
@@ -1274,6 +1274,11 @@ protected:
         num_flux->P_plus(P_plus_2, w, e_2_1, e->nx[i], e->ny[i]);
         num_flux->P_plus(P_plus_3, w, e_3_1, e->nx[i], e->ny[i]);
         num_flux->P_plus(P_plus_4, w, e_4_1, e->nx[i], e->ny[i]);
+
+        w[0] = ext->fn[0]->get_val_neighbor(i);
+        w[1] = ext->fn[1]->get_val_neighbor(i);
+        w[2] = ext->fn[2]->get_val_neighbor(i);
+        w[3] = ext->fn[3]->get_val_neighbor(i);
 
         double e_1_2[4] = {1, 0, 0, 0};
         double e_2_2[4] = {0, 1, 0, 0};
@@ -1638,7 +1643,7 @@ protected:
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
             ExtData<Ord> *ext) const {
-      return int_u_v<Ord, Ord>(n, wt, ext->fn[0], v);
+      return Ord(24);
     }
   };
 

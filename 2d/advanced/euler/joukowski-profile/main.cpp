@@ -30,11 +30,10 @@ double DISCONTINUITY_DETECTOR_PARAM = 1.0;
 
 bool REUSE_SOLUTION = false;
 
-const int P_INIT = 1;                                   // Initial polynomial degree.                      
-const int INIT_REF_NUM = 0;                             // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM_BOUNDARY = 1;                    // Number of initial mesh refinements towards the profile.
-const int INIT_REF_NUM_VERTEX = 0;                      // Number of initial mesh refinements towards the tip of the profile.
-double CFL_NUMBER = 10.0;                             // CFL value.
+const int P_INIT = 2;                                   // Initial polynomial degree.                      
+const int INIT_REF_NUM_VERTEX = 1;                      // Number of initial uniform mesh refinements.
+const int INIT_REF_NUM_BOUNDARY_ANISO = 4;              // Number of initial mesh refinements towards the profile.
+double CFL_NUMBER = 0.5;                                // CFL value.
 double time_step = 1E-4;                                // Initial time step.
 const MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
@@ -58,14 +57,6 @@ const std::string BDY_SOLID_WALL = "Solid";
 // Initial condition.
 #include "../initial_condition.cpp"
 
-int criterion(Element* e)
-{
-  if(e->is_curved())
-    return 0;
-  else
-    return -1;
-}
-
 int main(int argc, char* argv[])
 {
   // Load the mesh.
@@ -73,10 +64,9 @@ int main(int argc, char* argv[])
   MeshReaderH2DXML mloader;
   mloader.load("domain-nurbs.xml", &mesh);
   
-  // Perform initial mesh refinements.
-  mesh.refine_towards_boundary(BDY_SOLID_WALL_PROFILE, INIT_REF_NUM_BOUNDARY, false, true);
+  mesh.refine_towards_boundary(BDY_SOLID_WALL_PROFILE, INIT_REF_NUM_BOUNDARY_ANISO);
   mesh.refine_towards_vertex(0, INIT_REF_NUM_VERTEX);
-  
+
   MeshView m;
   m.show(&mesh);
   m.wait_for_close();
@@ -96,7 +86,7 @@ int main(int argc, char* argv[])
   ConstantSolution<double> prev_e(&mesh, QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA));
 
   // Numerical flux.
-  StegerWarmingNumericalFlux num_flux(KAPPA);
+  VijayasundaramNumericalFlux num_flux(KAPPA);
 
   // Filters for visualization of Mach number, pressure and entropy.
   MachNumberFilter Mach_number(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA);
@@ -137,14 +127,18 @@ int main(int argc, char* argv[])
   }
 
   // Initialize weak formulation.
-  EulerEquationsWeakFormExplicitMultiComponent wf(&num_flux, KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, BDY_SOLID_WALL, BDY_SOLID_WALL_PROFILE, 
-    BDY_INLET, BDY_OUTLET, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, P_INIT == 0);
+  EulerEquationsWeakFormSemiImplicitMultiComponent wf(&num_flux, KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, BDY_SOLID_WALL, BDY_SOLID_WALL_PROFILE, 
+    BDY_INLET, BDY_OUTLET, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, (P_INIT == 0));
 
   // Initialize the FE problem.
   DiscreteProblem<double> dp(&wf, Hermes::vector<Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
 
+  // If the FE problem is in fact a FV problem.
+  if(P_INIT == 0) 
+    dp.set_fvm();
+
   // Time stepping loop.
-  for(; t < 10.0; t += time_step)
+  for(; t < 3.0; t += time_step)
   {
     info("---- Time step %d, time %3.5f.", iteration++, t);
 
@@ -164,7 +158,7 @@ int main(int argc, char* argv[])
       else
         {      
           FluxLimiter flux_limiter(FluxLimiter::Kuzmin, solver->get_sln_vector(), Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-            &space_rho_v_y, &space_e), true);
+            &space_rho_v_y, &space_e));
 
           flux_limiter.limit_second_orders_according_to_detector();
 
@@ -184,20 +178,12 @@ int main(int argc, char* argv[])
       // Hermes visualization.
       if(HERMES_VISUALIZATION) 
       {
-        /*
         Mach_number.reinit();
         pressure.reinit();
         pressure_view.show(&pressure);
         Mach_number_view.show(&Mach_number);
         pressure_view.save_numbered_screenshot("Pressure-%u.bmp", iteration - 1, true);
         Mach_number_view.save_numbered_screenshot("Mach-%u.bmp", iteration - 1, true);
-        Mach_number_view.wait_for_keypress();
-        */
-        s1.show(&prev_rho);
-        s2.show(&prev_rho_v_x);
-        s3.show(&prev_rho_v_y);
-        s4.show(&prev_e);
-        s4.wait_for_close();
       }
       // Output solution in VTK format.
       if(VTK_VISUALIZATION) 

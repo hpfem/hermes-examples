@@ -19,8 +19,9 @@ using namespace Hermes::Hermes2D::RefinementSelectors;
 //
 // The following parameters can be changed:
 // Visualization.
-const bool HERMES_VISUALIZATION = true;           // Set to "true" to enable Hermes OpenGL visualization. 
-const bool VTK_VISUALIZATION = false;              // Set to "true" to enable VTK output.
+const bool HERMES_VISUALIZATION = false;           // Set to "true" to enable Hermes OpenGL visualization. 
+const bool VTK_VISUALIZATION = true;              // Set to "true" to enable VTK output.
+const bool SAVE_SPACES = true;              // Set to "true" to enable VTK output.
 const unsigned int EVERY_NTH_STEP = 1;            // Set visual output for every nth step.
 
 // Shock capturing.
@@ -31,8 +32,9 @@ double DISCONTINUITY_DETECTOR_PARAM = 1.0;
 bool REUSE_SOLUTION = false;
 
 const int P_INIT = 0;                             // Initial polynomial degree.                      
-const int INIT_REF_NUM_BOUNDARY = 1;              // Number of initial uniform mesh refinements.                       
-double CFL_NUMBER = 1.0;                         // CFL value.
+const int INIT_REF_NUM_VERTEX = 0;                // Number of initial uniform mesh refinements.
+const int INIT_REF_NUM_BOUNDARY_ANISO = 3;        // Number of initial mesh refinements towards the profile.
+double CFL_NUMBER = 0.1;                          // CFL value.
 double time_step = 1E-6;                          // Initial time step.
 
 // Adaptivity.
@@ -74,7 +76,7 @@ const int MAX_P_ORDER = -1;
 // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
 // Note that regular meshes are not supported, this is due to
 // their notoriously bad performance.
-const int MESH_REGULARITY = -1;                   
+const int MESH_REGULARITY = 1;                   
 
 // Default value is 1.0. This parameter influences the selection of
 // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
@@ -82,7 +84,7 @@ const double CONV_EXP = 1;
 
 // Stopping criterion for adaptivity (rel. error tolerance between the
 // fine mesh and coarse mesh solution in percent).
-const double ERR_STOP = 1E-10;                     
+const double ERR_STOP = 1E-2;                     
 
 // Adaptivity process stops when the number of degrees of freedom grows over
 // this limit. This is mainly to prevent h-adaptivity to go on forever.
@@ -112,28 +114,15 @@ const std::string BDY_SOLID_WALL = "Solid";
 // Initial condition.
 #include "../initial_condition.cpp"
 
-int criterion(Element* e)
-{
-  if(e->is_curved())
-    return 0;
-  else
-    return -1;
-}
-
 int main(int argc, char* argv[])
 {
   // Load the mesh.
   Mesh mesh;
   MeshReaderH2DXML mloader;
-  mloader.load("domain-nurbs.xml", &mesh);
+  mloader.load("domain-arcs.xml", &mesh);
 
-  // Perform initial mesh refinements.
-  mesh.refine_by_criterion(criterion, 2);
-  mesh.refine_towards_boundary(BDY_SOLID_WALL_PROFILE, INIT_REF_NUM_BOUNDARY, true, true);
-
-  MeshView m;
-  m.show(&mesh);
-  m.wait_for_close();
+  mesh.refine_towards_boundary(BDY_SOLID_WALL_PROFILE, INIT_REF_NUM_BOUNDARY_ANISO, true, true);
+  mesh.refine_towards_vertex(0, INIT_REF_NUM_VERTEX, true);
 
   // Initialize boundary condition types and spaces with default shapesets.
   L2Space<double>space_rho(&mesh, P_INIT);
@@ -154,10 +143,7 @@ int main(int argc, char* argv[])
   ConstantSolution<double> prev_rho_v_y(&mesh, RHO_EXT * V2_EXT);
   ConstantSolution<double> prev_e(&mesh, QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA));
 
-  ConstantSolution<double> rsln_rho(&mesh, RHO_EXT);
-  ConstantSolution<double> rsln_rho_v_x(&mesh, RHO_EXT * V1_EXT);
-  ConstantSolution<double> rsln_rho_v_y(&mesh, RHO_EXT * V2_EXT);
-  ConstantSolution<double> rsln_e(&mesh, QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA));
+  Solution<double> rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e;
 
   // Numerical flux.
   VijayasundaramNumericalFlux num_flux(KAPPA);
@@ -167,9 +153,9 @@ int main(int argc, char* argv[])
     BDY_INLET, BDY_OUTLET, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e);
 
   // Filters for visualization of Mach number, pressure and entropy.
-  MachNumberFilter Mach_number(Hermes::vector<MeshFunction<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), KAPPA);
-  PressureFilter pressure(Hermes::vector<MeshFunction<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), KAPPA);
-  EntropyFilter entropy(Hermes::vector<MeshFunction<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), KAPPA, RHO_EXT, P_EXT);
+  MachNumberFilter Mach_number(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA);
+  PressureFilter pressure(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA);
+  EntropyFilter entropy(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA, RHO_EXT, P_EXT);
 
   ScalarView pressure_view("Pressure", new WinGeom(0, 0, 600, 300));
   ScalarView Mach_number_view("Mach number", new WinGeom(700, 0, 600, 300));
@@ -268,13 +254,13 @@ int main(int argc, char* argv[])
       else
         error ("Matrix solver failed.\n");
       
-      if(HERMES_VISUALIZATION)
+      if(SAVE_SPACES)
       {        
-        Mach_number.reinit();
-        pressure.reinit();
-        pressure_view.show(&pressure);
-        Mach_number_view.show(&Mach_number);
-        space_view.show((*ref_spaces)[0]);
+        char filename[40];
+        sprintf(filename, "Mesh-time-%i-adaptivity-%i.xml", iteration - 1, as);
+        mloader.save(filename, (*ref_spaces)[0]->get_mesh());
+        sprintf(filename, "Space-time-%i-adaptivity-%i.xml", iteration - 1, as);
+        (*ref_spaces)[0]->save(filename);
       }
 
       // Project the fine mesh solution onto the coarse mesh.
@@ -356,11 +342,11 @@ int main(int argc, char* argv[])
         Linearizer lin;
         char filename[40];
         sprintf(filename, "Pressure-%i.vtk", iteration - 1);
-        lin.save_solution_vtk(&pressure, filename, "Pressure");
+        lin.save_solution_vtk(&pressure, filename, "Pressure", false);
         sprintf(filename, "Mach number-%i.vtk", iteration - 1);
-        lin.save_solution_vtk(&Mach_number, filename, "MachNumber");
+        lin.save_solution_vtk(&Mach_number, filename, "MachNumber", false);
         sprintf(filename, "Entropy-%i.vtk", iteration - 1);
-        lin.save_solution_vtk(&entropy, filename, "Entropy");
+        lin.save_solution_vtk(&entropy, filename, "Entropy", false);
       }
     }
   }
