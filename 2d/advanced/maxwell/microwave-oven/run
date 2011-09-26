@@ -1,0 +1,4 @@
+rm *~ 
+./microwave-oven
+python plot_graph.py &
+

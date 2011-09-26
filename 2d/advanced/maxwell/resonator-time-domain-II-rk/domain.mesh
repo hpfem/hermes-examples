@@ -1,0 +1,18 @@
+vertices = [
+  [ -1.570796327, -1.570796327 ],
+  [ 1.570796327, -1.570796327 ],
+  [ 1.570796327, 1.570796327 ],
+  [ -1.570796327, 1.570796327 ]
+]
+
+elements = [
+  [ 0, 1, 2, 3, "Vacuum" ]
+]
+
+boundaries = [
+  [ 0, 1, "Perfect conductor" ],
+  [ 1, 2, "Perfect conductor" ],
+  [ 2, 3, "Perfect conductor" ],
+  [ 3, 0, "Perfect conductor" ]
+]
+

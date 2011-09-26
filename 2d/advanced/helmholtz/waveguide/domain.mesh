@@ -1,0 +1,17 @@
+vertices = [
+  [ 0, -0.05 ],
+  [ 0.5, -0.05 ],
+  [ 0.5, 0.05 ],
+  [ 0, 0.05 ]
+]
+
+elements = [
+  [ 0, 1, 2, 3, "Mat" ]
+]
+
+boundaries = [
+  [ 0, 1, "Bdy_perfect" ],
+  [ 1, 2, "Bdy_impedance" ],
+  [ 2, 3, "Bdy_perfect" ],
+  [ 3, 0, "Bdy_left" ]
+]

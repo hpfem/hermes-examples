@@ -1,0 +1,69 @@
+ax = 1.48
+bx = 2.42
+cx = 3.4
+ay = 1.585
+by = 9.515 #ay + 7.93
+cy = 10.7 #by + 1.185
+
+vertices = [
+  [ 0, 0 ],
+  [ ax, 0 ],
+  [ bx, 0 ],
+  [ cx, 0 ],
+  [ 0, ay ],
+  [ ax, ay ],
+  [ bx, ay ],
+  [ cx, ay ],
+  [ 0, by ],
+  [ ax, by ],
+  [ bx, by ],
+  [ cx, by ],
+  [ 0, cy ],
+  [ ax, cy ],
+  [ bx, cy ],
+  [ cx, cy ]
+]
+
+elements = [
+  [ 0, 1, 5, 4,     "reflector" ],
+  [ 1, 2, 6, 5,     "reflector" ],
+  [ 2, 3, 7, 6,     "reflector" ],
+  [ 4, 5, 9, 8,     "reflector" ],
+  [ 5, 6, 10, 9,    "core"      ],
+  [ 6, 7, 11, 10,   "reflector" ],
+  [ 8, 9, 13, 12,   "reflector" ],
+  [ 9, 10, 14, 13,  "reflector" ],
+  [ 10, 11, 15, 14, "reflector" ]
+]
+
+boundaries = [
+  [  0,  1, "vacuum boundary" ],
+  [  1,  2, "vacuum boundary" ],
+  [  2,  3, "vacuum boundary" ],
+  [  3,  7, "vacuum boundary" ],
+  [  7, 11, "vacuum boundary" ],
+  [ 11, 15, "vacuum boundary" ],
+  [ 15, 14, "vacuum boundary" ],
+  [ 14, 13, "vacuum boundary" ],
+  [ 13, 12, "vacuum boundary" ],
+  [ 12,  8, "symmetry plane"  ],
+  [  8,  4, "symmetry plane"  ],
+  [  4,  0, "symmetry plane"  ],
+
+  [ 5, 6, "b-1" ],
+  [ 6, 10, "b-1" ],
+  [ 10, 9, "b-1" ],
+  [ 9, 5, "b-1" ]
+]
+
+refinements = [
+  [ 3, 1 ],
+  [ 4, 1 ],
+  [ 5, 1 ],
+  [ 9, 1 ],
+  [ 10, 1 ],
+  [ 11, 1 ],
+  [ 12, 1 ],
+  [ 13, 1 ],
+  [ 14, 1 ]
+]

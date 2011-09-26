@@ -1,0 +1,5 @@
+add_subdirectory(optimal-meshes)
+add_subdirectory(singular-perturbation)
+if(H2D_WITH_GLUT)
+  add_subdirectory(view)
+endif(H2D_WITH_GLUT)

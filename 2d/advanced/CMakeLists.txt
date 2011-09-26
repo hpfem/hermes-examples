@@ -1,4 +1,22 @@
+add_subdirectory(acoustics)
+add_subdirectory(advection-diffusion-reaction)
 add_subdirectory(euler)
+add_subdirectory(heat-transfer)
+add_subdirectory(helmholtz)
+add_subdirectory(linear-elasticity)
+add_subdirectory(maxwell)
+add_subdirectory(miscellaneous)
+add_subdirectory(navier-stokes)
 add_subdirectory(nernst-planck)
+
+if((NOT NMAKE) AND (NOT MSVC))
+add_subdirectory(neutronics)
+endif((NOT NMAKE) AND (NOT MSVC))
+
+add_subdirectory(poisson)
 add_subdirectory(richards)
-add_subdirectory(ns-heat-subdomains)
+add_subdirectory(schroedinger)
+add_subdirectory(flame-propagation)
+add_subdirectory(thermoelasticity)
+add_subdirectory(wave-equation)
+
