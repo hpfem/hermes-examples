@@ -59,7 +59,7 @@ EssentialBoundaryCondition<double>::EssentialBCValueType CustomEssentialBCNonCon
 double CustomEssentialBCNonConst::value(double x, double y, double n_x, double n_y, 
                                         double t_x, double t_y) const 
 {
-  return x*(100 - x)/2.5 * pow(y/100, 10) - 1000 + H_OFFSET;
+  return x*(100 - x)/2.5 * std::pow(y/100, 10) - 1000 + H_OFFSET;
 }
 
 /* Custom weak forms */
