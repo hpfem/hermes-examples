@@ -1,6 +1,12 @@
 #include "hermes2d.h"
 
-#include <integrals/h1.h>
+
+/* Namespaces used */
+
+using namespace Hermes;
+using namespace Hermes::Hermes2D;
+using namespace Hermes::Hermes2D::Views;
+using namespace Hermes::Hermes2D::RefinementSelectors;
 
 
 class EssentialBCNonConst : public EssentialBoundaryCondition 

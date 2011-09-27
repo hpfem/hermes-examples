@@ -1,9 +1,11 @@
 #include "hermes2d.h"
-#include "runge_kutta.h"
-#include "weakform/weakform.h"
-#include "integrals/h1.h"
-#include "boundaryconditions/essential_bcs.h"
-#include "weakform_library/weakforms_h1.h"
+
+/* Namespaces used */
+
+using namespace Hermes;
+using namespace Hermes::Hermes2D;
+using namespace Hermes::Hermes2D::Views;
+using namespace Hermes::Hermes2D::RefinementSelectors;
 
 // K (Gardner).
 scalar K(double h);

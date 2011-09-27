@@ -1,8 +1,11 @@
 #include "hermes2d.h"
-#include "weakform/weakform.h"
-#include "integrals/hcurl.h"
-#include "boundaryconditions/essential_bcs.h"
-#include "weakform_library/weakforms_hcurl.h"
+
+/* Namespaces used */
+
+using namespace Hermes;
+using namespace Hermes::Hermes2D;
+using namespace Hermes::Hermes2D::Views;
+using namespace Hermes::Hermes2D::RefinementSelectors;
 
 /* Weak forms */
 

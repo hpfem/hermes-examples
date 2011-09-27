@@ -1,10 +1,11 @@
 #include "hermes2d.h"
-#include "runge_kutta.h"
 
-/* Weak forms */
+/* Namespaces used */
 
 using namespace Hermes;
 using namespace Hermes::Hermes2D;
+using namespace Hermes::Hermes2D::Views;
+using namespace Hermes::Hermes2D::RefinementSelectors;
 
 class CustomWeakFormHeatAndFlow : public WeakForm<double>
 {

@@ -1,6 +1,11 @@
 #include "hermes2d.h"
 
-using namespace WeakFormsH1;
+/* Namespaces used */
+
+using namespace Hermes;
+using namespace Hermes::Hermes2D;
+using namespace Hermes::Hermes2D::Views;
+using namespace Hermes::Hermes2D::RefinementSelectors;
 
 class WeakFormNSNewton : public WeakForm
 {

@@ -1,8 +1,11 @@
 #include "hermes2d.h"
-#include "function/function.h"
-#include "weakform/weakform.h"
-#include "integrals/h1.h"
-#include "boundaryconditions/essential_bcs.h"
+
+/* Namespaces used */
+
+using namespace Hermes;
+using namespace Hermes::Hermes2D;
+using namespace Hermes::Hermes2D::Views;
+using namespace Hermes::Hermes2D::RefinementSelectors;
 
 // Right-hand side for the 2D equation -Laplace u = f with Dirichlet BC.
 class CustomRightHandSide
