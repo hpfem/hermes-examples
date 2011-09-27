@@ -1,3 +1,3 @@
 project(saphir)
-add_executable(${PROJECT_NAME} main.cpp definitions.cpp definitions.h)
+add_executable(${PROJECT_NAME} main.cpp)
 set_common_target_properties(${PROJECT_NAME} "HERMES2D")
