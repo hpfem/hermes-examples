@@ -2,7 +2,7 @@
 #include "definitions.h"
 #include "problem_data.h"
 
-using namespace RefinementSelectors;
+
 
 // This example uses automatic adaptivity to solve a 4-group neutron diffusion equation in the reactor core.
 // The eigenproblem is solved using power interations.

@@ -2,7 +2,7 @@
 #define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
 
-using namespace RefinementSelectors;
+
 
 // The time-dependent laminar incompressible Navier-Stokes equations are
 // discretized in time via the implicit Euler method. The Newton's method 

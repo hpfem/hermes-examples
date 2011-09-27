@@ -3,7 +3,7 @@
 #include "definitions.h"
 #include "function/function.h"
 
-using namespace RefinementSelectors;
+
 
 //  This example solves the Tracy problem with arbitrary Runge-Kutta 
 //  methods in time. 

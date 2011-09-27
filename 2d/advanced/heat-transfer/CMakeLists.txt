@@ -1,3 +1,3 @@
 #add_subdirectory(heat-and-moisture-adapt)
-#add_subdirectory(wall-on-fire-adapt-time-only)
-#add_subdirectory(wall-on-fire-adapt-space-and-time)
+add_subdirectory(wall-on-fire-adapt-time-only)
+add_subdirectory(wall-on-fire-adapt-space-and-time)

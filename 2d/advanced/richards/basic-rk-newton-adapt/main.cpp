@@ -3,7 +3,7 @@
 #include "definitions.h"
 #include "function/function.h"
 
-using namespace RefinementSelectors;
+
 
 //  This example uses adaptivity with dynamical meshes to solve
 //  the Tracy problem with arbitrary Runge-Kutta methods in time. 

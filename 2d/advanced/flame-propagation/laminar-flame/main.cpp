@@ -2,7 +2,7 @@
 #define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
 
-using namespace RefinementSelectors;
+
 
 //  This example is a very simple flame propagation model (laminar flame,
 //  zero flow velocity), and its purpose is to show how the Newton's method

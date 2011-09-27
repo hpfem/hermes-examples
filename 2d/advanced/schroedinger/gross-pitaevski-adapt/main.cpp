@@ -2,7 +2,7 @@
 #define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
 
-using namespace RefinementSelectors;
+
 
 //  This example shows how to combine automatic adaptivity with the Newton's
 //  method for a nonlinear complex-valued time-dependent PDE (the Gross-Pitaevski

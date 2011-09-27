@@ -1,8 +1,8 @@
 #define HERMES_REPORT_ALL
 #define HERMES_REPORT_FILE "application.log"
-#include "hermes2d.h"
+#include "definitions.h"
 
-using namespace RefinementSelectors;
+
 
 //  This is the IAEA EIR-2 benchmark problem. Note the way of handling different material
 //  parameters. This is an alternative to how this is done in tutorial examples 07 and 12

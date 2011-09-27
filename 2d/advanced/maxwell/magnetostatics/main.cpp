@@ -2,7 +2,7 @@
 #define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
 
-using namespace RefinementSelectors;
+
 
 //  This example shows how to set an arbitrary initial guess for the
 //  Newton's method, and nonzero Dirichlet boundary conditions.

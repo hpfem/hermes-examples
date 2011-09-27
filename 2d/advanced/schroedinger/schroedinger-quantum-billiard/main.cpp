@@ -3,7 +3,7 @@
 #define HERMES_REPORT_VERBOSE
 #define HERMES_REPORT_FILE "application.log"
 #define DEBUG_ORDER
-#include "hermes2d.h"
+#include "definitions.h"
 
 //  This is a simple version of the quantum billiard problem, described with 
 //  a complex-valued linear time-dependent wave equation. The equation is converted 

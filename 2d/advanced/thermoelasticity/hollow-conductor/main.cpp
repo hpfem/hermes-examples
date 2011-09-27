@@ -2,9 +2,9 @@
 #define HERMES_REPORT_INFO
 #define HERMES_REPORT_VERBOSE
 #define HERMES_REPORT_FILE "application.log"
-#include "hermes2d.h"
+#include "definitions.h"
 
-using namespace RefinementSelectors;
+
 
 // A massive hollow conductor is heated by induction and cooled by water running inside.
 // We will model this problem using linear thermoelasticity equations, where the x-displacement,

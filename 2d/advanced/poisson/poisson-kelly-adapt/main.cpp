@@ -1,5 +1,5 @@
 #define HERMES_REPORT_ALL
-#include "hermes2d.h"
+#include "definitions.h"
 
 // This example shows how to use the automatic h-adaptivity based on a Kelly-type error estimator for an elliptic
 // problem with all types of standard boundary conditions.

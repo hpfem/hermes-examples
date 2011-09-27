@@ -2,7 +2,7 @@
 #define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
 
-using namespace RefinementSelectors;
+
 
 // This example solves adaptively the electric field in a simplified microwave oven.
 // The waves are generated using a harmonic surface current on the right-most edge.

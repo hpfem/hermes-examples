@@ -2,7 +2,7 @@
 #define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
 
-using namespace RefinementSelectors;
+
 
 //  This example is similar to basic-ie-newton except it uses the 
 //  Picard's method in each time step.

@@ -1,7 +1,7 @@
-#include "weakform/weakform.h"
-#include "integrals/h1.h"
-#include "boundaryconditions/essential_bcs.h"
-#include "weakform/weakform.h"
+
+
+
+
 #include "adapt/kelly_type_adapt.h"
 
 class WeakFormPoisson : public WeakForm

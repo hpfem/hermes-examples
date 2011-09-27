@@ -1,6 +1,6 @@
 #define HERMES_REPORT_ALL
 #define HERMES_REPORT_FILE "application.log"
-#include "hermes2d.h"
+#include "definitions.h"
 
 // This example solves the Rayleigh-Benard convection problem
 // http://en.wikipedia.org/wiki/Rayleigh%E2%80%93B%C3%A9nard_convection.

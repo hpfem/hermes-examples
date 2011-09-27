@@ -16,7 +16,7 @@
 //				
 //  The following parameters can be changed:
 
-using namespace RefinementSelectors;
+
 
 const int INIT_REF = 2;                           // Number of initial uniform mesh refinements.
 const int P_INIT = 0;                             // Initial polynomial degrees of mesh elements in vertical and horizontal

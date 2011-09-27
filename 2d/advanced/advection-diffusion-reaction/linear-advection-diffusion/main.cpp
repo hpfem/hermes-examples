@@ -2,7 +2,7 @@
 #define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
 
-using namespace RefinementSelectors;
+
 
 //  This example solves a linear advection diffusion problem using optional
 //  variational multiscale stabilization. To use the stabilization, you must

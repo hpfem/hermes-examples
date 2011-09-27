@@ -2,9 +2,9 @@
 #define HERMES_REPORT_INFO
 #define HERMES_REPORT_VERBOSE
 #define HERMES_REPORT_FILE "application.log"
-#include "hermes2d.h"
+#include "definitions.h"
 
-using namespace RefinementSelectors;
+
 
 //  This example uses adaptivity with dynamical meshes to solve
 //  the time-dependent Richard's equation. The time discretization 

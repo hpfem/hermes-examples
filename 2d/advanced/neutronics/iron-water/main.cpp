@@ -1,8 +1,8 @@
 #define HERMES_REPORT_ALL
 #define HERMES_REPORT_FILE "application.log"
-#include "hermes2d.h"
+#include "definitions.h"
 
-using namespace RefinementSelectors;
+
 
 //  This example is a standard nuclear engineering benchmark describing an external-force-driven
 //  configuration without fissile materials present, using one-group neutron diffusion approximation.

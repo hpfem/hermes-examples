@@ -3,7 +3,7 @@
 #include "definitions.h"
 #include "runge_kutta.h"
 
-using namespace RefinementSelectors;
+
 
 //  This example models a nonstationary distribution of temperature within a wall
 //  exposed to ISO fire. Spatial adaptivity is ON by default, adaptivity in time 

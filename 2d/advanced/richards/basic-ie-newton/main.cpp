@@ -3,7 +3,7 @@
 #include "definitions.h"
 #include "function/function.h"
 
-using namespace RefinementSelectors;
+
 
 //  This example solves a simple version of the time-dependent
 //  Richard's equation using the backward Euler method in time 

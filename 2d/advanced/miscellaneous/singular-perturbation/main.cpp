@@ -1,9 +1,9 @@
 #define HERMES_REPORT_ALL
 #define HERMES_REPORT_FILE "application.log"
-#include "hermes2d.h"
+#include "definitions.h"
 #include "definitions.h"
 
-using namespace RefinementSelectors;
+
 
 //  With large K, this is a singularly perturbed problem that exhibits an extremely
 //  thin and steep boundary layer. Singularly perturbed problems are considered to

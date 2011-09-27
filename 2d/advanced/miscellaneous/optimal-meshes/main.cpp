@@ -2,10 +2,10 @@
 #define HERMES_REPORT_INFO
 #define HERMES_REPORT_VERBOSE
 #define HERMES_REPORT_FILE "application.log"
-#include "hermes2d.h"
+#include "definitions.h"
 #include "definitions.h"
 
-using namespace RefinementSelectors;
+
 
 
 //  This example is part of a research project on the design of 

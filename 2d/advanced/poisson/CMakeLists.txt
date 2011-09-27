@@ -1,1 +1,1 @@
-#add_subdirectory(poisson-kelly-adapt)
+add_subdirectory(poisson-kelly-adapt)

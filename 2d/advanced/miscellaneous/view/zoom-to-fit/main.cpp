@@ -1,4 +1,4 @@
-#include "hermes2d.h"
+#include "definitions.h"
 #include <GL/glew.h>
 #include <GL/freeglut.h>
 

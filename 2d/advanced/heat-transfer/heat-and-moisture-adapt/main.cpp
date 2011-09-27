@@ -1,8 +1,8 @@
 #define HERMES_REPORT_ALL
 #define HERMES_REPORT_FILE "application.log"
-#include "hermes2d.h"
+#include "definitions.h"
 
-using namespace RefinementSelectors;
+
 
 // This example solves adaptively a time-dependent coupled problem of heat and moisture 
 // transfer in massive concrete walls of a nuclear reactor vessel (simplified axi-symmetric 

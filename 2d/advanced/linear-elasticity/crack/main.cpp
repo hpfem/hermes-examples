@@ -2,9 +2,9 @@
 #define HERMES_REPORT_INFO
 #define HERMES_REPORT_VERBOSE
 #define HERMES_REPORT_FILE "application.log"
-#include "hermes2d.h"
+#include "definitions.h"
 
-using namespace RefinementSelectors;
+
 
 // This example uses adaptive multimesh hp-FEM to solve a simple problem
 // of linear elasticity. Note that since both displacement components
@@ -69,7 +69,7 @@ const double rho = 8000;                          // Material density in kg / m^
 const std::string BDY_LEFT = "1";
 
 // Weak forms.
-#include "weakform_library/elasticity.h"
+
 
 int main(int argc, char* argv[])
 {
