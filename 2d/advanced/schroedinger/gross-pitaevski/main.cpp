@@ -26,7 +26,7 @@ double time_step = 0.005;                         // Time step.
 const double T_FINAL = 2;                         // Time interval length.
 const double NEWTON_TOL = 1e-5;                   // Stopping criterion for the Newton's method.
 const int NEWTON_MAX_ITER = 100;                  // Maximum allowed number of Newton iterations.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
                                                   // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 // Choose one of the following time-integration methods, or define your own Butcher's table. The last number 
 // in the name of each method is its order. The one before last, if present, is the number of stages.
@@ -62,15 +62,15 @@ int main(int argc, char* argv[])
 
   // Load the mesh.
   Mesh mesh;
-  H2DReader mloader;
+  MeshReaderH2D mloader;
   mloader.load("square.mesh", &mesh);
 
   // Initial mesh refinements.
   for(int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
 
-  // Convert initial condition into a Solution.
+  // Coget_num_surf() initial condition into a Solution<std::complex<double> >.
   CustomInitialCondition psi_time_prev(&mesh);
-  Solution psi_time_new(&mesh);
+  Solution<std::complex<double> > psi_time_new(&mesh);
 
   // Initialize the weak formulation.
   double current_time = 0;
@@ -78,23 +78,25 @@ int main(int argc, char* argv[])
   CustomWeakFormGPRK wf(h, m, g, omega);
   
   // Initialize boundary conditions.
-  DefaultEssentialBCConst bc_essential("Bdy", 0.0);
-  EssentialBCs bcs(&bc_essential);
+  DefaultEssentialBCConst<std::complex<double> > bc_essential("Bdy", 0.0);
+  EssentialBCs<std::complex<double> > bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.
-  H1Space space(&mesh, &bcs, P_INIT);
+  H1Space<std::complex<double> > space(&mesh, &bcs, P_INIT);
   int ndof = space.get_num_dofs();
   info("ndof = %d", ndof);
  
   // Initialize the FE problem.
-  DiscreteProblem dp(&wf, &space);
+  DiscreteProblem<std::complex<double> > dp(&wf, &space);
 
   // Initialize views.
-  ScalarView view("", new WinGeom(0, 0, 600, 500));
-  view.fix_scale_width(80);
+  ScalarView sview_real("Solution - real part", new WinGeom(0, 0, 600, 500));
+  ScalarView sview_imag("Solution - imaginary part", new WinGeom(610, 0, 600, 500));
+  sview_real.fix_scale_width(80);
+  sview_imag.fix_scale_width(80);
 
   // Initialize Runge-Kutta time stepping.
-  RungeKutta runge_kutta(&dp, &bt, matrix_solver);
+  RungeKutta<std::complex<double> > runge_kutta(&dp, &bt, matrix_solver_type);
   
   // Time stepping:
   int ts = 1;
@@ -106,16 +108,21 @@ int main(int argc, char* argv[])
          current_time, time_step, bt.get_size());
     bool jacobian_changed = false;
     bool verbose = true;
-    if (!runge_kutta.rk_time_step(current_time, time_step, &psi_time_prev, 
-                                  &psi_time_new, jacobian_changed, verbose)) {
+    if (!runge_kutta.rk_time_step_newton(current_time, time_step, &psi_time_prev, 
+                                  &psi_time_new, !jacobian_changed, false, verbose)) {
       error("Runge-Kutta time step failed, try to decrease time step size.");
     }
 
     // Show the new time level solution.
     char title[100];
-    sprintf(title, "Time %3.2f s", current_time);
-    view.set_title(title);
-    view.show(&psi_time_new);
+    sprintf(title, "Solution - real part, Time %3.2f s", current_time);
+    sview_real.set_title(title);
+    sprintf(title, "Solution - imaginary part, Time %3.2f s", current_time);
+    sview_imag.set_title(title);
+    RealFilter real(&psi_time_new);
+    ImagFilter imag(&psi_time_new);
+    sview_real.show(&real);
+    sview_imag.show(&imag);
 
     // Copy solution for the new time step.
     psi_time_prev.copy(&psi_time_new);

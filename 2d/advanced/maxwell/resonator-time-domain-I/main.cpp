@@ -3,7 +3,7 @@
 #include "definitions.h"
 
 // This example shows how to discretize the first-order time-domain Maxwell's equations 
-// with vector-valued E (an Hcurl function) and scalar B (an H1 function). Time integration 
+// with vector-valued E (an Hcurl function) and double B (an H1 function). Time integration 
 // is done using an arbitrary R-K method (see below).
 //
 // PDE: \partial E / \partial t - SPEED_OF_LIGHT**2 * curl B = 0,
@@ -22,7 +22,7 @@ const int P_INIT = 6;                              // Initial polynomial degree 
 const int INIT_REF_NUM = 1;                        // Number of initial uniform mesh refinements.
 const double time_step = 0.05;                     // Time step.
 const double T_FINAL = 35.0;                       // Final time.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;   // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;   // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
                                                    // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 
 // Choose one of the following time-integration methods, or define your own Butcher's table. The last number 
@@ -57,7 +57,7 @@ int main(int argc, char* argv[])
 
   // Load the mesh.
   Mesh mesh;
-  H2DReader mloader;
+  MeshReaderH2D mloader;
   mloader.load("domain.mesh", &mesh);
 
   // Perform initial mesh refinemets.
@@ -65,26 +65,26 @@ int main(int argc, char* argv[])
 
   // Initialize solutions.
   CustomInitialConditionWave E_sln(&mesh);
-  Solution B_sln(&mesh, 0.0);
-  Hermes::vector<Solution*> slns(&E_sln, &B_sln);
+  ZeroSolution B_sln(&mesh);
+  Hermes::vector<Solution<double>*> slns(&E_sln, &B_sln);
 
   // Initialize the weak formulation.
   CustomWeakFormWave wf(C_SQUARED);
   
   // Initialize boundary conditions
-  DefaultEssentialBCConst bc_essential("Perfect conductor", 0.0);
-  EssentialBCs bcs_E(&bc_essential);
-  EssentialBCs bcs_B;
+  DefaultEssentialBCConst<double> bc_essential("Perfect conductor", 0.0);
+  EssentialBCs<double> bcs_E(&bc_essential);
+  EssentialBCs<double> bcs_B;
 
   // Create x- and y- displacement space using the default H1 shapeset.
-  HcurlSpace E_space(&mesh, &bcs_E, P_INIT);
-  H1Space B_space(&mesh, &bcs_B, P_INIT);
-  //L2Space B_space(&mesh, P_INIT);
-  Hermes::vector<Space *> spaces = Hermes::vector<Space *>(&E_space, &B_space);
-  info("ndof = %d.", Space::get_num_dofs(spaces));
+  HcurlSpace<double> E_space(&mesh, &bcs_E, P_INIT);
+  H1Space<double> B_space(&mesh, &bcs_B, P_INIT);
+  //L2Space<double> B_space(&mesh, P_INIT);
+  Hermes::vector<Space<double> *> spaces = Hermes::vector<Space<double> *>(&E_space, &B_space);
+  info("ndof = %d.", Space<double>::get_num_dofs(spaces));
 
   // Initialize the FE problem.
-  DiscreteProblem dp(&wf, spaces);
+  DiscreteProblem<double> dp(&wf, spaces);
 
   // Initialize views.
   ScalarView E1_view("Solution E1", new WinGeom(0, 0, 400, 350));
@@ -95,7 +95,7 @@ int main(int argc, char* argv[])
   B_view.fix_scale_width(50);
 
   // Initialize Runge-Kutta time stepping.
-  RungeKutta runge_kutta(&dp, &bt, matrix_solver);
+  RungeKutta<double> runge_kutta(&dp, &bt, matrix_solver_type);
 
   // Time stepping loop.
   double current_time = time_step; int ts = 1;
@@ -106,7 +106,7 @@ int main(int argc, char* argv[])
          current_time, time_step, bt.get_size());
     bool jacobian_changed = false;
     bool verbose = true;
-    if (!runge_kutta.rk_time_step(current_time, time_step, slns, slns, jacobian_changed, verbose))
+    if (!runge_kutta.rk_time_step_newton(current_time, time_step, slns, slns, jacobian_changed, verbose))
       error("Runge-Kutta time step failed, try to decrease time step size.");
 
     // Visualize the solutions.

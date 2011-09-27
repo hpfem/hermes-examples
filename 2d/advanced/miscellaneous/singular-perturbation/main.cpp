@@ -1,9 +1,6 @@
 #define HERMES_REPORT_ALL
 #define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
-#include "definitions.h"
-
-
 
 //  With large K, this is a singularly perturbed problem that exhibits an extremely
 //  thin and steep boundary layer. Singularly perturbed problems are considered to
@@ -48,7 +45,7 @@ const double ERR_STOP = 0.1;                      // Stopping criterion for adap
                                                   // reference mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 100000;                     // Adaptivity process stops when the number of degrees of freedom grows
                                                   // over this limit. This is to prevent h-adaptivity to go on forever.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
                                                   // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 
 // Problem parameters.
@@ -56,12 +53,9 @@ const double K_squared = 1e4;
 
 int main(int argc, char* argv[])
 {
-  // Instantiate a class with global functions.
-  Hermes2D hermes2d;
-
   // Load the mesh.
   Mesh mesh;
-  H2DReader mloader;
+  MeshReaderH2D mloader;
   mloader.load("square.mesh", &mesh);
 
   // Perform initial mesh refinements.
@@ -69,20 +63,20 @@ int main(int argc, char* argv[])
   mesh.refine_towards_boundary("Bdy", INIT_REF_NUM_BDY);
 
   // Initialize boundary conditions.
-  DefaultEssentialBCConst bc_essential("Bdy", 0);
-  EssentialBCs bcs(&bc_essential);
+  DefaultEssentialBCConst<double> bc_essential("Bdy", 0);
+  EssentialBCs<double> bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.
-  H1Space space(&mesh, &bcs, P_INIT);
+  H1Space<double> space(&mesh, &bcs, P_INIT);
 
   // Initialize the weak formulation.
   CustomWeakForm wf(K_squared);
 
   // Initialize coarse and reference mesh solution.
-  Solution sln, ref_sln;
+  Solution<double> sln, ref_sln;
   
   // Initialize refinement selector.
-  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
+  H1ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Initialize views.
   ScalarView sview("Solution", new WinGeom(0, 0, 440, 350));
@@ -104,34 +98,37 @@ int main(int argc, char* argv[])
     info("---- Adaptivity step %d:", as);
 
     // Construct globally refined reference mesh and setup reference space.
-    Space* ref_space = Space::construct_refined_space(&space);
-    int ndof_ref = Space::get_num_dofs(ref_space);
-
-    // Initialize matrix solver.
-    SparseMatrix* matrix = create_matrix(matrix_solver);
-    Vector* rhs = create_vector(matrix_solver);
-    Solver* solver = create_linear_solver(matrix_solver, matrix, rhs);
-
+    Space<double>* ref_space = Space<double>::construct_refined_space(&space);
+    int ndof_ref = Space<double>::get_num_dofs(ref_space);
     // Initialize reference problem.
     info("Solving on reference mesh.");
-    DiscreteProblem* dp = new DiscreteProblem(&wf, ref_space);
+    DiscreteProblem<double> dp(&wf, ref_space);
 
     // Time measurement.
     cpu_time.tick();
 
     // Initial coefficient vector for the Newton's method.  
-    scalar* coeff_vec = new scalar[ndof_ref];
-    memset(coeff_vec, 0, ndof_ref * sizeof(scalar));
+    double* coeff_vec = new double[ndof_ref];
+    memset(coeff_vec, 0, ndof_ref * sizeof(double));
 
     // Perform Newton's iteration.
-    if (!hermes2d.solve_newton(coeff_vec, dp, solver, matrix, rhs)) error("Newton's iteration failed.");
+    Hermes::Hermes2D::NewtonSolver<double> newton(&dp, matrix_solver_type);
+    try
+    {
+      newton.solve(coeff_vec);
+    }
+    catch(Hermes::Exceptions::Exception e)
+    {
+      e.printMsg();
+      error("Newton's iteration failed.");
+    };
 
-    // Translate the resulting coefficient vector into the Solution sln.
-    Solution::vector_to_solution(coeff_vec, ref_space, &ref_sln);
+    // Translate the resulting coefficient vector into the Solution<double> sln.
+    Solution<double>::vector_to_solution(coeff_vec, ref_space, &ref_sln);
 
     // Project the fine mesh solution onto the coarse mesh.
     info("Projecting reference solution on coarse mesh.");
-    OGProjection::project_global(&space, &ref_sln, &sln, matrix_solver); 
+    OGProjection<double>::project_global(&space, &ref_sln, &sln, matrix_solver_type); 
    
     // View the coarse mesh solution and polynomial orders.
     sview.show(&sln);
@@ -139,18 +136,18 @@ int main(int argc, char* argv[])
 
     // Calculate element errors and total error estimate.
     info("Calculating error estimate."); 
-    Adapt* adaptivity = new Adapt(&space);
+    Adapt<double>* adaptivity = new Adapt<double>(&space);
     double err_est_rel = adaptivity->calc_err_est(&sln, &ref_sln) * 100;
 
     // Report results.
     info("ndof_coarse: %d, ndof_fine: %d, err_est_rel: %g%%", 
-      Space::get_num_dofs(&space), Space::get_num_dofs(ref_space), err_est_rel);
+      Space<double>::get_num_dofs(&space), Space<double>::get_num_dofs(ref_space), err_est_rel);
 
     // Time measurement.
     cpu_time.tick();
 
     // Add entry to DOF and CPU convergence graphs.
-    graph_dof.add_values(Space::get_num_dofs(&space), err_est_rel);
+    graph_dof.add_values(Space<double>::get_num_dofs(&space), err_est_rel);
     graph_dof.save("conv_dof_est.dat");
     graph_cpu.add_values(cpu_time.accumulated(), err_est_rel);
     graph_cpu.save("conv_cpu_est.dat");
@@ -162,18 +159,14 @@ int main(int argc, char* argv[])
       info("Adapting coarse mesh.");
       done = adaptivity->adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
     }
-    if (Space::get_num_dofs(&space) >= NDOF_STOP) done = true;
+    if (Space<double>::get_num_dofs(&space) >= NDOF_STOP) done = true;
 
     // Clean up.
     delete [] coeff_vec;
-    delete solver;
-    delete matrix;
-    delete rhs;
     delete adaptivity;
     if (done == false)
       delete ref_space->get_mesh();
     delete ref_space;
-    delete dp;
     
     // Increase counter.
     as++;

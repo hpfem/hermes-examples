@@ -9,7 +9,7 @@ using namespace Hermes::Hermes2D::RefinementSelectors;
 
 /* Weak form */
 
-class CustomWeakForm : public WeakForm
+class CustomWeakForm : public WeakForm<double>
 {
 public:
   CustomWeakForm(double K_squared);

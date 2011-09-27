@@ -8,7 +8,7 @@
 // Runge-Kutta methods entered via their Butcher's tables.
 // For a list of available R-K methods see the file hermes_common/tables.h.
 //
-// The function rk_time_step() needs more optimisation, see a todo list at 
+// The function rk_time_step_newton() needs more optimisation, see a todo list at 
 // the beginning of file src/runge-kutta.h.
 //
 // PDE: \frac{1}{C_SQUARED}\frac{\partial^2 u}{\partial t^2} - \Delta u = 0,
@@ -27,7 +27,7 @@
 const int P_INIT = 6;                              // Initial polynomial degree of all elements.
 const double time_step = 0.01;                     // Time step.
 const double T_FINAL = 2.0;                        // Final time.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;   // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;   // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 
 // Choose one of the following time-integration methods, or define your own Butcher's table. The last number 
 // in the name of each method is its order. The one before last, if present, is the number of stages.
@@ -59,10 +59,10 @@ int main(int argc, char* argv[])
 
   // Load the mesh.
   Mesh mesh;
-  H2DReader mloader;
+  MeshReaderH2D mloader;
   mloader.load("domain.mesh", &mesh);
 
-  // Convert to quadrilaterals.
+  // Coget_num_surf() to quadrilaterals.
   mesh.convert_triangles_to_quads();
 
   // Refine towards boundary.
@@ -73,23 +73,23 @@ int main(int argc, char* argv[])
 
   // Initialize solutions.
   CustomInitialConditionWave u_sln(&mesh);
-  Solution v_sln(&mesh, 0.0);
-  Hermes::vector<Solution*> slns(&u_sln, &v_sln);
+  ZeroSolution v_sln(&mesh);
+  Hermes::vector<Solution<double>*> slns(&u_sln, &v_sln);
 
   // Initialize the weak formulation.
   CustomWeakFormWave wf(time_step, C_SQUARED, &u_sln, &v_sln);
   
   // Initialize boundary conditions
-  DefaultEssentialBCConst bc_essential("Bdy", 0.0);
-  EssentialBCs bcs(&bc_essential);
+  DefaultEssentialBCConst<double> bc_essential("Bdy", 0.0);
+  EssentialBCs<double> bcs(&bc_essential);
 
   // Create x- and y- displacement space using the default H1 shapeset.
-  H1Space u_space(&mesh, &bcs, P_INIT);
-  H1Space v_space(&mesh, &bcs, P_INIT);
-  info("ndof = %d.", Space::get_num_dofs(Hermes::vector<Space *>(&u_space, &v_space)));
+  H1Space<double> u_space(&mesh, &bcs, P_INIT);
+  H1Space<double> v_space(&mesh, &bcs, P_INIT);
+  info("ndof = %d.", Space<double>::get_num_dofs(Hermes::vector<Space<double>*>(&u_space, &v_space)));
 
   // Initialize the FE problem.
-  DiscreteProblem dp(&wf, Hermes::vector<Space *>(&u_space, &v_space));
+  DiscreteProblem<double> dp(&wf, Hermes::vector<Space<double>*>(&u_space, &v_space));
 
   // Initialize views.
   ScalarView u_view("Solution u", new WinGeom(0, 0, 500, 400));
@@ -100,7 +100,7 @@ int main(int argc, char* argv[])
   v_view.fix_scale_width(50);
 
   // Initialize Runge-Kutta time stepping.
-  RungeKutta runge_kutta(&dp, &bt, matrix_solver);
+  RungeKutta<double> runge_kutta(&dp, &bt, matrix_solver_type);
 
   // Time stepping loop.
   double current_time = 0; int ts = 1;
@@ -112,8 +112,8 @@ int main(int argc, char* argv[])
     bool jacobian_changed = false;
     bool verbose = true;
 
-    if (!runge_kutta.rk_time_step(current_time, time_step, slns, 
-                                  slns, jacobian_changed, verbose))
+    if (!runge_kutta.rk_time_step_newton(current_time, time_step, slns, 
+                                  slns, !jacobian_changed, false, verbose))
       error("Runge-Kutta time step failed, try to decrease time step size.");
 
     // Visualize the solutions.

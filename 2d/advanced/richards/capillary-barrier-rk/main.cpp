@@ -47,7 +47,7 @@ const int INIT_REF_NUM = 2;                       // Number of initial uniform m
 const int INIT_REF_NUM_BDY_TOP = 1;               // Number of initial mesh refinements towards the top edge.
 
 // Matrix solver.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
                                                   // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 
 // Choose one of the following time-integration methods, or define your own Butcher's table. The last number 
@@ -162,7 +162,7 @@ double init_cond(double x, double y, double& dx, double& dy) {
 }
 
 // Essential (Dirichlet) boundary condition values.
-scalar essential_bc_values(double x, double y, double time)
+double essential_bc_values(double x, double y, double time)
 {
   if (time < STARTUP_TIME)
     return H_INIT + time/STARTUP_TIME*(H_ELEVATION-H_INIT);
@@ -212,7 +212,7 @@ int main(int argc, char* argv[])
 
   // Load the mesh.
   Mesh mesh, basemesh;
-  H2DReader mloader;
+  MeshReaderH2D mloader;
   mloader.load(mesh_file, &basemesh);
   
   // Perform initial mesh refinements.
@@ -231,13 +231,13 @@ int main(int argc, char* argv[])
 
   // Create an H1 space with default shapeset.
   H1Space* space = new H1Space(&mesh, &bc_types, &bc_values, P_INIT);
-  int ndof = Space::get_num_dofs(space);
+  int ndof = Space<double>::get_num_dofs(space);
   info("ndof = %d.", ndof);
 
-  // Solution (initialized by the initial condition) and error function.
-  Solution* sln_time_prev = new Solution(&mesh, init_cond);
-  Solution* sln_time_new = new Solution(&mesh);
-  Solution* time_error_fn = new Solution(&mesh, 0.0);
+  // Solution<double> (initialized by the initial condition) and error function.
+  Solution<double>* sln_time_prev = new Solution(&mesh, init_cond);
+  Solution<double>* sln_time_new = new Solution(&mesh);
+  Solution<double>* time_error_fn = new Solution(&mesh, 0.0);
   
   // Initialize the weak formulation.
   WeakForm wf;
@@ -247,7 +247,7 @@ int main(int argc, char* argv[])
 
   // Initialize the FE problem.
   bool is_linear = false;
-  DiscreteProblem dp(&wf, space, is_linear);
+  DiscreteProblem<double> dp(&wf, space, is_linear);
 
   // Visualize the projection and mesh.
   ScalarView sview("Initial condition", new WinGeom(0, 0, 400, 350));
@@ -272,7 +272,7 @@ int main(int argc, char* argv[])
          current_time, time_step, bt.get_size());
     bool verbose = true;
     bool is_linear = false;
-    if (!rk_time_step(current_time, time_step, &bt, sln_time_prev, sln_time_new, time_error_fn, &dp, matrix_solver,
+    if (!rk_time_step_newton(current_time, time_step, &bt, sln_time_prev, sln_time_new, time_error_fn, &dp, matrix_solver_type,
 		      verbose, is_linear, NEWTON_TOL, NEWTON_MAX_ITER)) {
       info("Runge-Kutta time step failed, decreasing time step size from %g to %g days.", 
            time_step, time_step * time_step_dec);

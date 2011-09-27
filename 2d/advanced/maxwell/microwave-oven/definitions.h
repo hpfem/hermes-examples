@@ -9,19 +9,19 @@ using namespace Hermes::Hermes2D::RefinementSelectors;
 
 /* Weak forms */
 
-class CustomMatrixForm : public WeakForm::MatrixFormVol
+class CustomMatrixForm : public MatrixFormVol<std::complex<double> >
 {
 public:
   CustomMatrixForm(int i, int j, double e_0, double mu_0, double mu_r, double kappa, double omega, double J, bool align_mesh) 
-        : WeakForm::MatrixFormVol(i, j, HERMES_ANY, HERMES_SYM), e_0(e_0), mu_0(mu_0), 
+        : MatrixFormVol<std::complex<double> >(i, j, HERMES_ANY, HERMES_SYM), e_0(e_0), mu_0(mu_0), 
           mu_r(mu_r), kappa(kappa), omega(omega), J(J), align_mesh(align_mesh) {};
 
   template<typename Real, typename Scalar>
   Scalar matrix_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u,
                      Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const;
 
-  virtual scalar value(int n, double *wt, Func<scalar> *u_ext[], Func<double> *u, 
-                       Func<double> *v, Geom<double> *e, ExtData<scalar> *ext) const;
+  virtual std::complex<double>  value(int n, double *wt, Func<std::complex<double> > *u_ext[], Func<double> *u, 
+                       Func<double> *v, Geom<double> *e, ExtData<std::complex<double> > *ext) const;
 
   virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, 
                   Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const;
@@ -44,19 +44,19 @@ public:
   bool align_mesh;
 };
 
-class CustomResidualForm : public WeakForm::VectorFormVol
+class CustomResidualForm : public VectorFormVol<std::complex<double> >
 {
 public:
   CustomResidualForm(int i, double e_0, double mu_0, double mu_r, double kappa, double omega, double J, bool align_mesh) 
-        : WeakForm::VectorFormVol(i), e_0(e_0), mu_0(mu_0), 
+        : VectorFormVol<std::complex<double> >(i), e_0(e_0), mu_0(mu_0), 
           mu_r(mu_r), kappa(kappa), omega(omega), J(J), align_mesh(align_mesh) {};
 
   template<typename Real, typename Scalar>
   Scalar vector_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v,
                      Geom<Real> *e, ExtData<Scalar> *ext) const;
 
-  virtual scalar value(int n, double *wt, Func<scalar> *u_ext[], Func<double> *v, Geom<double> *e,
-                       ExtData<scalar> *ext) const;
+  virtual std::complex<double>  value(int n, double *wt, Func<std::complex<double> > *u_ext[], Func<double> *v, Geom<double> *e,
+                       ExtData<std::complex<double> > *ext) const;
 
   virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
                   ExtData<Ord> *ext) const;
@@ -80,18 +80,18 @@ public:
 };
 
 
-class CustomVectorFormSurf : public WeakForm::VectorFormSurf
+class CustomVectorFormSurf : public VectorFormSurf<std::complex<double> >
 {
 public:
   CustomVectorFormSurf(double omega, double J) 
-        : WeakForm::VectorFormSurf(0), omega(omega), J(J) {};
+        : VectorFormSurf<std::complex<double> >(0), omega(omega), J(J) {};
 
   template<typename Scalar, typename Real>
   Scalar vector_form_surf(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, 
                           Geom<Real> *e, ExtData<Scalar> *ext) const;
 
-  virtual scalar value(int n, double *wt, Func<scalar> *u_ext[], 
-                       Func<double> *v, Geom<double> *e, ExtData<scalar> *ext) const;
+  virtual std::complex<double>  value(int n, double *wt, Func<std::complex<double> > *u_ext[], 
+                       Func<double> *v, Geom<double> *e, ExtData<std::complex<double> > *ext) const;
 
   virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, 
                   Geom<Ord> *e, ExtData<Ord> *ext) const;
@@ -99,7 +99,7 @@ public:
   double omega, J;
 };
 
-class CustomWeakForm : public WeakForm
+class CustomWeakForm : public WeakForm<std::complex<double> >
 {
 public:
   CustomWeakForm(double e_0, double mu_0, double mu_r, double kappa, double omega, 

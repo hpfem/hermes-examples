@@ -1,8 +1,5 @@
-#define HERMES_REPORT_WARN
-#define HERMES_REPORT_INFO
-#define HERMES_REPORT_VERBOSE
+#define HERMES_REPORT_ALL
 #define HERMES_REPORT_FILE "application.log"
-#include "definitions.h"
 #include "definitions.h"
 
 
@@ -48,7 +45,7 @@ const double ERR_STOP = 0.01;                      // Stopping criterion for ada
                                                   // reference mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;                      // Adaptivity process stops when the number of degrees of freedom grows
                                                   // over this limit. This is to prevent h-adaptivity to go on forever.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
                                                   // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 
 // Problem parameters.
@@ -60,20 +57,18 @@ const std::string BDY_TOP_BOTTOM = "Bdy top bottom";
 
 int main(int argc, char* argv[])
 {
-  // Initialize the library's global functions.
-  Hermes2D hermes2D;
 
   // Load the mesh.
   Mesh mesh;
-  H2DReader mloader;
+  MeshReaderH2D mloader;
   mloader.load("square_2_elem.mesh", &mesh);
 
   // Perform initial mesh refinements.
   for(int i = 0; i < UNIFORM_REF_LEVEL; i++) mesh.refine_all_elements();
 
   // Create an H1 space with default shapeset.
-  H1Space space(&mesh, P_INIT);
-  int ndof = Space::get_num_dofs(&space);
+  H1Space<double> space(&mesh, P_INIT);
+  int ndof = Space<double>::get_num_dofs(&space);
   info("ndof = %d", ndof);
 
   // Initialize the right-hand side.
@@ -82,23 +77,23 @@ int main(int argc, char* argv[])
   // Initialize the weak formulation.
   CustomWeakForm wf(&rhs_value, BDY_LEFT_RIGHT, K);
 
-  Solution sln; 
+  Solution<double> sln; 
 
   // NON-ADAPTIVE VERSION
   
   // Initialize the linear problem.
-  DiscreteProblem* dp = new DiscreteProblem(&wf, &space);
+  DiscreteProblem<double> dp(&wf, &space);
 
   // Select matrix solver.
-  SparseMatrix* matrix = create_matrix(matrix_solver);
-  Vector* rhs = create_vector(matrix_solver);
-  Solver* solver = create_linear_solver(matrix_solver, matrix, rhs);
+  SparseMatrix<double>* matrix = create_matrix<double>(matrix_solver_type);
+  Vector<double>* rhs = create_vector<double>(matrix_solver_type);
+  LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver_type, matrix, rhs);
 
   // Assemble stiffness matrix and rhs.
-  dp->assemble(matrix, rhs);
+  dp.assemble(matrix, rhs);
  
   // Solve the linear system of the reference problem. If successful, obtain the solutions.
-  if(solver->solve()) Solution::vector_to_solution(solver->get_solution(), &space, &sln);
+  if(solver->solve()) Solution<double>::vector_to_solution(solver->get_sln_vector(), &space, &sln);
   else error ("Matrix solver failed.\n");
 
   // Visualize the solution.
@@ -107,7 +102,7 @@ int main(int argc, char* argv[])
 
   // Calculate error wrt. exact solution.
   CustomExactSolution sln_exact(&mesh, K);
-  double err = hermes2D.calc_abs_error(&sln, &sln_exact, HERMES_H1_NORM);
+  double err = Global<double>::calc_abs_error(&sln, &sln_exact, HERMES_H1_NORM);
   printf("err = %g, err_squared = %g\n\n", err, err*err);
  
   // Wait for all views to be closed.

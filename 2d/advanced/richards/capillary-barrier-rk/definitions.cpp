@@ -1,3 +1,5 @@
+#include "definitions.h"
+
 // Weak forms for the Newton's method. 
 
 // Jacobian matrix - volumetric part

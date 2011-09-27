@@ -1,4 +1,5 @@
 #define HERMES_REPORT_ALL
+#define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
 
 // This example shows how to use the automatic h-adaptivity based on a Kelly-type error estimator for an elliptic
@@ -39,31 +40,15 @@ const double ERR_STOP = 0.1;                      // Stopping criterion for adap
 
 const int NDOF_STOP = 60000;                      // Adaptivity process stops when the number of degrees of freedom grows
                                                   // over this limit. This is to prevent h-adaptivity to go on forever.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
                                                   // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 
-// Element material markers and associated diffusion coefficients.
-const std::string MATERIAL_1 = "e1"; const double EPS_1 = 1.0;
-const std::string MATERIAL_2 = "e2"; const double EPS_2 = 10.0;
-
-// Boundary markers and boundary condition data.
-const std::string BDY_BOTTOM = "b1", BDY_OUTER = "b2", BDY_LEFT = "b3", BDY_INNER = "b4";
-const double T1 = 30.0;                   // Prescribed temperature on Gamma_left.
-const double T0 = 20.0;                   // Outer temperature on Gamma_bottom.
-const double H  = 0.05;                   // Heat flux on Gamma_bottom.
-const double CONST_GAMMA_OUTER = 1.00;    // Heat flux on Gamma_inner.
-
-// Right-hand side.
-const double CONST_F = -1.0;              
-
-// Weak forms.
-#include "definitions.cpp"
 
 int main(int argc, char* argv[])
 {
   // Load the mesh.
   Mesh mesh;
-  H2DReader mloader;
+  MeshReaderH2D mloader;
   mloader.load("domain.mesh", &mesh);
 
   // Perform initial mesh refinements.
@@ -71,19 +56,19 @@ int main(int argc, char* argv[])
   mesh.refine_towards_vertex(3, CORNER_REF_LEVEL);
 
   // Initialize boundary conditions
-  DefaultEssentialBCConst bc_essential(BDY_LEFT, T1);
-  EssentialBCs bcs(&bc_essential);
+  DefaultEssentialBCConst<double> bc_essential(BDY_LEFT, T1);
+  EssentialBCs<double> bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.
-  H1Space space(&mesh, &bcs, P_INIT);
-  int ndof = Space::get_num_dofs(&space);
+  H1Space<double> space(&mesh, &bcs, P_INIT);
+  int ndof = Space<double>::get_num_dofs(&space);
   info("ndof = %d", ndof);
 
   // Initialize the weak formulation.
-  WeakFormPoisson wf(EPS_1, EPS_2, H, T0);
+  WeakFormPoisson wf(EPS_1, EPS_2, H, T0, MATERIAL_1, MATERIAL_2, BDY_BOTTOM, BDY_OUTER, CONST_GAMMA_OUTER);
 
   // Initialize coarse and reference mesh solution.
-  Solution sln;
+  Solution<double> sln;
   
   // Initialize views.
   ScalarView sview("Solution", new WinGeom(0, 0, 410, 600));
@@ -99,9 +84,9 @@ int main(int argc, char* argv[])
   cpu_time.tick();
   
   // Initialize matrix solver.
-  SparseMatrix* matrix = create_matrix(matrix_solver);
-  Vector* rhs = create_vector(matrix_solver);
-  Solver* solver = create_linear_solver(matrix_solver, matrix, rhs);
+  SparseMatrix<double>* matrix = create_matrix<double>(matrix_solver_type);
+  Vector<double>* rhs = create_vector<double>(matrix_solver_type);
+  LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver_type, matrix, rhs);
   
   // Adaptivity loop:
   int as = 1; 
@@ -112,7 +97,7 @@ int main(int argc, char* argv[])
        
     // Assemble reference problem.
     info("Solving on reference mesh.");
-    DiscreteProblem* dp = new DiscreteProblem(&wf, &space);
+    DiscreteProblem<double>* dp = new DiscreteProblem<double>(&wf, &space);
     dp->assemble(matrix, rhs);
     
     // Time measurement.
@@ -120,7 +105,7 @@ int main(int argc, char* argv[])
     
     // Solve the linear system of the reference problem. 
     // If successful, obtain the solution.
-    if(solver->solve()) Solution::vector_to_solution(solver->get_solution(), &space, &sln);
+    if(solver->solve()) Solution<double>::vector_to_solution(solver->get_sln_vector(), &space, &sln);
     else error ("Matrix solver failed.\n");
     
     // Time measurement.
@@ -137,10 +122,10 @@ int main(int argc, char* argv[])
     info("Calculating error estimate."); 
 
     // FIXME
-    Hermes::vector<Space*> spaces;
+    Hermes::vector<Space<double>*> spaces;
     spaces.push_back(&space);
 
-    KellyTypeAdapt* adaptivity = new KellyTypeAdapt(spaces);
+    KellyTypeAdapt<double>* adaptivity = new KellyTypeAdapt<double>(spaces);
     adaptivity->add_error_estimator_surf(new ErrorEstimatorFormInterface(0));
     adaptivity->add_error_estimator_surf(new ErrorEstimatorFormNewton(0, BDY_BOTTOM));
     adaptivity->add_error_estimator_surf(new ErrorEstimatorFormNeumann(0, BDY_OUTER));
@@ -149,13 +134,13 @@ int main(int argc, char* argv[])
     double err_est_rel = adaptivity->calc_err_est(&sln, HERMES_TOTAL_ERROR_REL | HERMES_ELEMENT_ERROR_REL) * 100;
                                                   
     // Report results.
-    info("ndof: %d, err_est_rel: %g%%", Space::get_num_dofs(&space), err_est_rel);
+    info("ndof: %d, err_est_rel: %g%%", Space<double>::get_num_dofs(&space), err_est_rel);
     
     // Time measurement.
     cpu_time.tick();
     
     // Add entry to DOF and CPU convergence graphs.
-    graph_dof.add_values(Space::get_num_dofs(&space), err_est_rel);
+    graph_dof.add_values(Space<double>::get_num_dofs(&space), err_est_rel);
     graph_dof.save("conv_dof_est.dat");
     graph_cpu.add_values(cpu_time.accumulated(), err_est_rel);
     graph_cpu.save("conv_cpu_est.dat");
@@ -167,7 +152,7 @@ int main(int argc, char* argv[])
       info("Adapting coarse mesh.");
       done = adaptivity->adapt(THRESHOLD, STRATEGY, MESH_REGULARITY);
     }
-    if (Space::get_num_dofs(&space) >= NDOF_STOP) done = true;
+    if (Space<double>::get_num_dofs(&space) >= NDOF_STOP) done = true;
     
     // Increase the counter of performed adaptivity steps.
     if (done == false)  as++;

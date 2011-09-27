@@ -9,7 +9,7 @@ using namespace Hermes::Hermes2D::RefinementSelectors;
 
 /* Weak forms */
 
-class CustomWeakFormAcoustics : public WeakForm
+class CustomWeakFormAcoustics : public WeakForm<std::complex<double> >
 {
 public:
   CustomWeakFormAcoustics(std::string bdy_newton, double rho, double sound_speed, double omega);

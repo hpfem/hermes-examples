@@ -42,7 +42,7 @@ const double time_step = 0.1;                     // Time step.
 const double T_FINAL = 3600.0;                    // Time interval length.
 const double NEWTON_TOL = 1e-5;                   // Stopping criterion for the Newton's method.
 const int NEWTON_MAX_ITER = 100;                  // Maximum allowed number of Newton iterations.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
                                                   // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 
 // Problem parameters.
@@ -58,11 +58,11 @@ const double ALPHA_AIR = 5.0;                     // Heat transfer coefficient b
 
 int main(int argc, char* argv[])
 {
-  Hermes2D hermes_2D;
+  
 
   // Load the mesh.
   Mesh mesh;
-  H2DReader mloader;
+  MeshReaderH2D mloader;
   mloader.load("domain.mesh", &mesh);
 
   // Initial mesh refinements.
@@ -71,26 +71,25 @@ int main(int argc, char* argv[])
   mesh.refine_towards_boundary(HERMES_ANY, 2);
 
   // Initialize boundary conditions.
-  DefaultEssentialBCConst zero_vel_bc(Hermes::vector<std::string>("Bottom", "Right", "Top", "Left"), 0.0);
-  EssentialBCs bcs_vel_x(&zero_vel_bc);
-  EssentialBCs bcs_vel_y(&zero_vel_bc);
-  DefaultEssentialBCConst bc_temp_bottom("Bottom", TEMP_BOTTOM);
-  EssentialBCs bcs_temp(&bc_temp_bottom);
-  EssentialBCs bcs_pressure;
+  DefaultEssentialBCConst<double> zero_vel_bc(Hermes::vector<std::string>("Bottom", "Right", "Top", "Left"), 0.0);
+  EssentialBCs<double> bcs_vel_x(&zero_vel_bc);
+  EssentialBCs<double> bcs_vel_y(&zero_vel_bc);
+  DefaultEssentialBCConst<double> bc_temp_bottom("Bottom", TEMP_BOTTOM);
+  EssentialBCs<double> bcs_temp(&bc_temp_bottom);
 
   // Spaces for velocity components and pressure.
-  H1Space xvel_space(&mesh, &bcs_vel_x, P_INIT_VEL);
-  H1Space yvel_space(&mesh, &bcs_vel_y, P_INIT_VEL);
+  H1Space<double> xvel_space(&mesh, &bcs_vel_x, P_INIT_VEL);
+  H1Space<double> yvel_space(&mesh, &bcs_vel_y, P_INIT_VEL);
 #ifdef PRESSURE_IN_L2
-  L2Space p_space(&mesh, &bcs_pressure, P_INIT_PRESSURE);
+  L2Space<double> p_space(&mesh, P_INIT_PRESSURE);
 #else
-  H1Space p_space(&mesh, &bcs_pressure, P_INIT_PRESSURE);
+  H1Space<double> p_space(&mesh, P_INIT_PRESSURE);
 #endif
-  H1Space t_space(&mesh, &bcs_temp, P_INIT_TEMP);
-  Hermes::vector<Space *> spaces = Hermes::vector<Space *>(&xvel_space, &yvel_space, &p_space, &t_space);
+  H1Space<double> t_space(&mesh, &bcs_temp, P_INIT_TEMP);
+  Hermes::vector<Space<double>*> spaces = Hermes::vector<Space<double>*>(&xvel_space, &yvel_space, &p_space, &t_space);
 
   // Calculate and report the number of degrees of freedom.
-  int ndof = Space::get_num_dofs(Hermes::vector<Space *>(&xvel_space, &yvel_space, &p_space, &t_space));
+  int ndof = Space<double>::get_num_dofs(Hermes::vector<Space<double>*>(&xvel_space, &yvel_space, &p_space, &t_space));
   info("ndof = %d.", ndof);
 
   // Define projection norms.
@@ -104,25 +103,24 @@ int main(int argc, char* argv[])
 
   // Solutions for the Newton's iteration and time stepping.
   info("Setting initial conditions.");
-  Solution xvel_prev_time, yvel_prev_time, p_prev_time, t_prev_time; 
-  xvel_prev_time.set_zero(&mesh);
-  yvel_prev_time.set_zero(&mesh);
-  p_prev_time.set_zero(&mesh);
-  t_prev_time.set_const(&mesh, TEMP_INIT);
-  Hermes::vector<Solution*> slns = Hermes::vector<Solution*>(&xvel_prev_time, &yvel_prev_time, 
+  ZeroSolution xvel_prev_time(&mesh);
+  ZeroSolution yvel_prev_time(&mesh);
+  ZeroSolution p_prev_time(&mesh);
+  ConstantSolution<double> t_prev_time(&mesh, TEMP_INIT);
+  Hermes::vector<Solution<double>*> slns = Hermes::vector<Solution<double>*>(&xvel_prev_time, &yvel_prev_time, 
                                                              &p_prev_time, &t_prev_time);
 
   // Initialize weak formulation.
-  WeakForm* wf = new WeakFormRayleighBenard(Pr, Ra, "Top", TEMP_EXT, ALPHA_AIR, time_step, 
+  WeakForm<double>* wf = new WeakFormRayleighBenard(Pr, Ra, "Top", TEMP_EXT, ALPHA_AIR, time_step, 
                                             &xvel_prev_time, &yvel_prev_time, &t_prev_time);
 
   // Initialize the FE problem.
-  DiscreteProblem dp(wf, spaces);
+  DiscreteProblem<double> dp(wf, spaces);
 
   // Set up the solver, matrix, and rhs according to the solver selection.
-  SparseMatrix* matrix = create_matrix(matrix_solver);
-  Vector* rhs = create_vector(matrix_solver);
-  Solver* solver = create_linear_solver(matrix_solver, matrix, rhs);
+  SparseMatrix<double>* matrix = create_matrix<double>(matrix_solver_type);
+  Vector<double>* rhs = create_vector<double>(matrix_solver_type);
+  LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver_type, matrix, rhs);
 
   // Initialize views.
   VectorView vview("velocity", new WinGeom(0, 0, 1000, 200));
@@ -136,9 +134,9 @@ int main(int argc, char* argv[])
 
   // Project the initial condition on the FE space to obtain initial
   // coefficient vector for the Newton's method.
-  scalar* coeff_vec = new scalar[Space::get_num_dofs(spaces)];
+  double* coeff_vec = new double[Space<double>::get_num_dofs(spaces)];
   info("Projecting initial condition to obtain initial vector for the Newton's method.");
-  OGProjection::project_global(spaces, slns, coeff_vec, matrix_solver, 
+  OGProjection<double>::project_global(spaces, slns, coeff_vec, matrix_solver_type, 
                                Hermes::vector<ProjNormType>(vel_proj_norm, vel_proj_norm, p_proj_norm, t_proj_norm));
 
   // Time-stepping loop:
@@ -150,13 +148,21 @@ int main(int argc, char* argv[])
     info("---- Time step %d, time = %g:", ts, current_time);
 
     // Perform Newton's iteration.
-    info("Solving nonlinear problem:");
+    Hermes::Hermes2D::NewtonSolver<double> newton(&dp, matrix_solver_type);
     bool verbose = true;
-    if (!hermes_2D.solve_newton(coeff_vec, &dp, solver, matrix, rhs, 
-        NEWTON_TOL, NEWTON_MAX_ITER, verbose)) error("Newton's iteration failed.");
+    newton.set_verbose_output(verbose);
+    try
+    {
+      newton.solve(coeff_vec, NEWTON_TOL, NEWTON_MAX_ITER);
+    }
+    catch(Hermes::Exceptions::Exception e)
+    {
+      e.printMsg();
+      error("Newton's iteration failed.");
+    };
 
     // Update previous time level solutions.
-    Solution::vector_to_solutions(coeff_vec, spaces, slns);
+    Solution<double>::vector_to_solutions(coeff_vec, spaces, slns);
     // Show the solution at the end of time step.
     sprintf(title, "Velocity, time %g", current_time);
     vview.set_title(title);

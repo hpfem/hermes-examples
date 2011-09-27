@@ -9,62 +9,62 @@ using namespace Hermes::Hermes2D::RefinementSelectors;
 
 /* Initial condition */
 
-class CustomInitialConditionWave : public ExactSolutionScalar
+class CustomInitialConditionWave : public ExactSolutionScalar<double>
 {
 public:
-  CustomInitialConditionWave(Mesh* mesh) : ExactSolutionScalar(mesh) {};
+  CustomInitialConditionWave(Mesh* mesh) : ExactSolutionScalar<double>(mesh) {};
 
-  virtual scalar value (double x, double y) const;
+  virtual double value (double x, double y) const;
 
-  virtual void derivatives (double x, double y, scalar& dx, scalar& dy) const;
+  virtual void derivatives (double x, double y, double& dx, double& dy) const;
 
   virtual Ord ord(Ord x, Ord y) const;
 };
 
 /* Weak forms */
 
-class CustomWeakFormWave : public WeakForm
+class CustomWeakFormWave : public WeakForm<double>
 {
 public:
 
-  CustomWeakFormWave(double tau, double c_squared, Solution* u_prev_sln, Solution* v_prev_sln);
+  CustomWeakFormWave(double tau, double c_squared, Solution<double>* u_prev_sln, Solution<double>* v_prev_sln);
 
 private:
-  class VectorFormVolWave_0 : public WeakForm::VectorFormVol
+  class VectorFormVolWave_0 : public VectorFormVol<double>
   {
   public:
-    VectorFormVolWave_0() : WeakForm::VectorFormVol(0) {};
+    VectorFormVolWave_0() : VectorFormVol<double>(0) {};
 
     template<typename Real, typename Scalar>
     Scalar vector_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v,
                        Geom<Real> *e, ExtData<Scalar> *ext) const;
 
-    virtual scalar value(int n, double *wt, Func<scalar> *u_ext[], Func<double> *v,
-                         Geom<double> *e, ExtData<scalar> *ext) const;
+    virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v,
+                         Geom<double> *e, ExtData<double> *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e,
                     ExtData<Ord> *ext) const;
 
-    virtual WeakForm::VectorFormVol* clone();
+    virtual VectorFormVol<double>* clone();
   };
 
-  class VectorFormVolWave_1 : public WeakForm::VectorFormVol
+  class VectorFormVolWave_1 : public VectorFormVol<double>
   {
   public:
     VectorFormVolWave_1(double c_squared)
-          : WeakForm::VectorFormVol(1), c_squared(c_squared) {};
+          : VectorFormVol<double>(1), c_squared(c_squared) {};
 
     template<typename Real, typename Scalar>
     Scalar vector_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v,
                        Geom<Real> *e, ExtData<Scalar> *ext) const;
 
-    virtual scalar value(int n, double *wt, Func<scalar> *u_ext[], Func<double> *v,
-                         Geom<double> *e, ExtData<scalar> *ext) const;
+    virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v,
+                         Geom<double> *e, ExtData<double> *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e,
                     ExtData<Ord> *ext) const;
 
-    virtual WeakForm::VectorFormVol* clone();
+    virtual VectorFormVol<double>* clone();
 
     double c_squared;
   };

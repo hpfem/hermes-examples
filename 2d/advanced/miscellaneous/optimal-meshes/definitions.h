@@ -23,14 +23,14 @@ public:
 };
 
 // Exact solution (needed in the Dirichlet condition).
-class CustomExactSolution : public ExactSolutionScalar
+class CustomExactSolution : public ExactSolutionScalar<double>
 {
 public:
-  CustomExactSolution(Mesh* mesh, double K) : ExactSolutionScalar(mesh), K(K) {};
+  CustomExactSolution(Mesh* mesh, double K) : ExactSolutionScalar<double>(mesh), K(K) {};
 
-  virtual scalar value(double x, double y) const;
+  virtual double value(double x, double y) const;
 
-  virtual void derivatives(double x, double y, scalar& dx, scalar& dy) const;
+  virtual void derivatives(double x, double y, double& dx, double& dy) const;
 
   virtual Ord ord(Ord x, Ord y) const;
 
@@ -39,34 +39,34 @@ public:
 };
 
 // Weak forms.
-class CustomWeakForm : public WeakForm
+class CustomWeakForm : public WeakForm<double>
 {
 public:
   CustomWeakForm(CustomRightHandSide* rhs, std::string bdy_left_right, double K);
 
 private:
-  class CustomMatrixFormVol : public WeakForm::MatrixFormVol
+  class CustomMatrixFormVol : public MatrixFormVol<double>
   {
   public:
-    CustomMatrixFormVol(int i, int j) : WeakForm::MatrixFormVol(i, j) {};
+    CustomMatrixFormVol(int i, int j) : MatrixFormVol<double>(i, j) {};
 
     template<typename Real, typename Scalar>
     Scalar matrix_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const;
 
-    virtual scalar value(int n, double *wt, Func<scalar> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<scalar> *ext) const;
+    virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const;
   };
 
-  class CustomVectorFormVol : public WeakForm::VectorFormVol
+  class CustomVectorFormVol : public VectorFormVol<double>
   {
   public:
-    CustomVectorFormVol(int i, CustomRightHandSide* rhs) : WeakForm::VectorFormVol(i), rhs(rhs) {};
+    CustomVectorFormVol(int i, CustomRightHandSide* rhs) : VectorFormVol<double>(i), rhs(rhs) {};
 
     template<typename Real, typename Scalar>
     Scalar vector_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const;
 
-    virtual scalar value(int n, double *wt, Func<scalar> *u_ext[], Func<double> *v, Geom<double> *e, ExtData<scalar> *ext) const;
+    virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const;
 
@@ -74,15 +74,15 @@ private:
     CustomRightHandSide* rhs;
   };
 
-  class CustomVectorFormSurfRight : public WeakForm::VectorFormSurf
+  class CustomVectorFormSurfRight : public VectorFormSurf<double>
   {
   public:
-    CustomVectorFormSurfRight(int i, double K, std::string area) : WeakForm::VectorFormSurf(i, area), K(K) {};
+    CustomVectorFormSurfRight(int i, double K, std::string area) : VectorFormSurf<double>(i, area), K(K) {};
 
     template<typename Real, typename Scalar>
     Scalar vector_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const;
 
-    virtual scalar value(int n, double *wt, Func<scalar> *u_ext[], Func<double> *v, Geom<double> *e, ExtData<scalar> *ext) const;
+    virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const;
 
@@ -90,15 +90,15 @@ private:
     double K;
   };
 
-  class CustomVectorFormSurfLeft : public WeakForm::VectorFormSurf
+  class CustomVectorFormSurfLeft : public VectorFormSurf<double>
   {
   public:
-    CustomVectorFormSurfLeft(int i, double K, std::string area) : WeakForm::VectorFormSurf(i, area), K(K) {};
+    CustomVectorFormSurfLeft(int i, double K, std::string area) : VectorFormSurf(i, area), K(K) {};
 
     template<typename Real, typename Scalar>
     Scalar vector_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const;
 
-    virtual scalar value(int n, double *wt, Func<scalar> *u_ext[], Func<double> *v, Geom<double> *e, ExtData<scalar> *ext) const;
+    virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const;
 

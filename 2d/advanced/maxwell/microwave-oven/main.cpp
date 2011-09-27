@@ -39,7 +39,7 @@ const bool ALIGN_MESH = true;                     // if ALIGN_MESH == true, curv
                                                   // circular load are used, otherwise one uses a non-aligned mesh.
 const double THRESHOLD = 0.3;                     // This is a quantitative parameter of the adapt(...) function and
                                                   // it has different meanings for various adaptive strategies (see below).
-const int STRATEGY = 0;                           // Adaptive strategy:
+const int STRATEGY = 0;                           // Adapt<std::complex<double> >ive strategy:
                                                   // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
                                                   //   error is processed. If more elements have similar errors, refine
                                                   //   all to keep the mesh symmetric.
@@ -62,9 +62,9 @@ const double CONV_EXP = 1.0;                      // Default value is 1.0. This 
                                                   // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
 const double ERR_STOP = 2.0;                      // Stopping criterion for adaptivity (rel. error tolerance between the
                                                   // reference mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 60000;                      // Adaptivity process stops when the number of degrees of freedom grows
+const int NDOF_STOP = 60000;                      // Adapt<std::complex<double> >ivity process stops when the number of degrees of freedom grows
                                                   // over this limit. This is to prevent h-adaptivity to go on forever.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
                                                   // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 
 // Problem parameters.
@@ -76,8 +76,8 @@ const double rho = 3820.0;
 const double Cp = 7.531000;
 const double freq = 1.0*2450000000.0;
 const double omega = 2 * M_PI * freq;
-const double c = 1 / sqrt(e_0 * mu_0);
-const double kappa  = 2 * M_PI * freq * sqrt(e_0 * mu_0);
+const double c = 1 / std::sqrt(e_0 * mu_0);
+const double kappa  = 2 * M_PI * freq * std::sqrt(e_0 * mu_0);
 const double J = 0.0000033333;
 
 //  Boundary markers.
@@ -96,11 +96,11 @@ Scalar hcurl_form_kappa(int n, double *wt, Func<Scalar> *u_ext[], Func<Scalar> *
 int main(int argc, char* argv[])
 {
   // Instantiate a class with global functions.
-  Hermes2D hermes2d;
+  
 
   // Load the mesh.
   Mesh mesh;
-  H2DReader mloader;
+  MeshReaderH2D mloader;
   if (ALIGN_MESH) mloader.load("oven_load_circle.mesh", &mesh);
   else mloader.load("oven_load_square.mesh", &mesh);
   
@@ -108,20 +108,20 @@ int main(int argc, char* argv[])
   for (int i = 0; i < INIT_REF_NUM; i++)  mesh.refine_all_elements();
 
   // Initialize boundary conditions
-  DefaultEssentialBCConst bc_essential(BDY_PERFECT_CONDUCTOR, std::complex<double>(0.0, 0.0));
+  DefaultEssentialBCConst<std::complex<double> > bc_essential(BDY_PERFECT_CONDUCTOR, std::complex<double>(0.0, 0.0));
 
-  EssentialBCs bcs(&bc_essential);
+  EssentialBCs<std::complex<double> > bcs(&bc_essential);
 
   // Create an Hcurl space with default shapeset.
-  HcurlSpace space(&mesh, &bcs, P_INIT);
-  int ndof = Space::get_num_dofs(&space);
+   HcurlSpace<std::complex<double> > space(&mesh, &bcs, P_INIT);
+  int ndof = Space<std::complex<double> >::get_num_dofs(&space);
   info("ndof = %d", ndof);
 
   // Initialize the weak formulation.
   CustomWeakForm wf(e_0, mu_0, mu_r, kappa, omega, J, ALIGN_MESH);
 
   // Initialize coarse and reference mesh solution.
-  Solution sln, ref_sln;
+  Solution<std::complex<double> > sln, ref_sln;
 
   // Initialize refinements selector.
   HcurlProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
@@ -137,60 +137,69 @@ int main(int argc, char* argv[])
   TimePeriod cpu_time;
   cpu_time.tick();
 
-  // Adaptivity loop:
+  // Adapt<std::complex<double> >ivity loop:
   int as = 1; bool done = false;
   do
   {
-    info("---- Adaptivity step %d:", as);
+    info("---- Adapt<std::complex<double> >ivity step %d:", as);
 
     // Construct globally refined reference mesh and setup reference space.
-    Space* ref_space = Space::construct_refined_space(&space);
-    int ndof_ref = Space::get_num_dofs(ref_space);
+    Space<std::complex<double> >* ref_space = Space<std::complex<double> >::construct_refined_space(&space);
+    int ndof_ref = Space<std::complex<double> >::get_num_dofs(ref_space);
 
     // Initialize matrix solver.
-    SparseMatrix* matrix = create_matrix(matrix_solver);
-    Vector* rhs = create_vector(matrix_solver);
-    Solver* solver = create_linear_solver(matrix_solver, matrix, rhs);
+    SparseMatrix<std::complex<double> >* matrix = create_matrix<std::complex<double> >(matrix_solver_type);
+    Vector<std::complex<double> >* rhs = create_vector<std::complex<double> >(matrix_solver_type);
+    LinearSolver<std::complex<double> >* solver = create_linear_solver<std::complex<double> >(matrix_solver_type, matrix, rhs);
 
     // Initialize reference problem.
     info("Solving on reference mesh.");
-    DiscreteProblem dp(&wf, ref_space);
+    DiscreteProblem<std::complex<double> > dp(&wf, ref_space);
 
     // Time measurement.
     cpu_time.tick();
 
     // Initial coefficient vector for the Newton's method.  
-    scalar* coeff_vec = new scalar[ndof_ref];
-    memset(coeff_vec, 0, ndof_ref * sizeof(scalar));
+    std::complex<double> * coeff_vec = new std::complex<double> [ndof_ref];
+    memset(coeff_vec, 0, ndof_ref * sizeof(std::complex<double>));
 
     // Perform Newton's iteration.
-    if (!hermes2d.solve_newton(coeff_vec, &dp, solver, matrix, rhs)) error("Newton's iteration failed.");
-
-    // Translate the resulting coefficient vector into the Solution sln.
-    Solution::vector_to_solution(coeff_vec, ref_space, &ref_sln);
+    Hermes::Hermes2D::NewtonSolver<std::complex<double> > newton(&dp, matrix_solver_type);
+    try
+    {
+      newton.solve(coeff_vec);
+    }
+    catch(Hermes::Exceptions::Exception e)
+    {
+      e.printMsg();
+      error("Newton's iteration failed.");
+    };
+    // Translate the resulting coefficient vector into the Solution<std::complex<double> > sln.
+    Hermes::Hermes2D::Solution<std::complex<double> >::vector_to_solution(newton.get_sln_vector(), ref_space, &ref_sln);
   
     // Project the fine mesh solution onto the coarse mesh.
     info("Projecting reference solution on coarse mesh.");
-    OGProjection::project_global(&space, &ref_sln, &sln, matrix_solver); 
+    OGProjection<std::complex<double> >::project_global(&space, &ref_sln, &sln, matrix_solver_type); 
    
     // View the coarse mesh solution and polynomial orders.
-    eview.show(&sln);
+    RealFilter real(&sln);
+    eview.show(&real);
     oview.show(&space);
 
     // Calculate element errors and total error estimate.
     info("Calculating error estimate."); 
-    Adapt* adaptivity = new Adapt(&space);
+    Adapt<std::complex<double> >* adaptivity = new Adapt<std::complex<double> >(&space);
     double err_est_rel = adaptivity->calc_err_est(&sln, &ref_sln) * 100;
 
     // Report results.
     info("ndof_coarse: %d, ndof_fine: %d, err_est_rel: %g%%", 
-      Space::get_num_dofs(&space), Space::get_num_dofs(ref_space), err_est_rel);
+      Space<std::complex<double> >::get_num_dofs(&space), Space<std::complex<double> >::get_num_dofs(ref_space), err_est_rel);
 
     // Time measurement.
     cpu_time.tick();
 
     // Add entry to DOF and CPU convergence graphs.
-    graph_dof.add_values(Space::get_num_dofs(&space), err_est_rel);
+    graph_dof.add_values(Space<std::complex<double> >::get_num_dofs(&space), err_est_rel);
     graph_dof.save("conv_dof_est.dat");
     graph_cpu.add_values(cpu_time.accumulated(), err_est_rel);
     graph_cpu.save("conv_cpu_est.dat");
@@ -202,7 +211,7 @@ int main(int argc, char* argv[])
       info("Adapting coarse mesh.");
       done = adaptivity->adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
     }
-    if (Space::get_num_dofs(&space) >= NDOF_STOP) done = true;
+    if (Space<std::complex<double> >::get_num_dofs(&space) >= NDOF_STOP) done = true;
 
     delete [] coeff_vec;
     delete solver;
@@ -221,7 +230,8 @@ int main(int argc, char* argv[])
 
   // Show the reference solution - the final result.
   eview.set_title("Fine mesh solution");
-  eview.show(&ref_sln);
+  RealFilter ref_real(&ref_sln);
+  eview.show(&ref_real);
 
   // Wait for all views to be closed.
   View::wait();

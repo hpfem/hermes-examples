@@ -15,7 +15,7 @@
 //
 //  Domain: Square (0, 1)x(0, 1).
 //
-//  BC:  Dirichlet, see the function scalar essential_bc_values() below.
+//  BC:  Dirichlet, see the function double essential_bc_values() below.
 //
 //  The following parameters can be changed:
 
@@ -51,7 +51,7 @@ const double ERR_STOP = 5.0;                      // Stopping criterion for adap
                                                   // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;                      // Adaptivity process stops when the number of degrees of freedom grows
                                                   // over this limit. This is to prevent h-adaptivity to go on forever.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
                                                   // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 
 // Problem parameters.
@@ -62,7 +62,7 @@ int main(int argc, char* argv[])
 {
   // Load the mesh.
   Mesh mesh;
-  H2DReader mloader;
+  MeshReaderH2D mloader;
   mloader.load("square_quad.mesh", &mesh);     // quadrilaterals
   // mloader.load("square_tri.mesh", &mesh);   // triangles
 
@@ -74,22 +74,22 @@ int main(int argc, char* argv[])
   WeakFormLinearAdvectionDiffusion wf(STABILIZATION_ON, SHOCK_CAPTURING_ON, B1, B2, EPSILON);
   
   // Initialize boundary conditions
-  DefaultEssentialBCConst bc_rest("Rest", 1.0);
+  DefaultEssentialBCConst<double> bc_rest("Rest", 1.0);
   EssentialBCNonConst bc_layer("Layer");
 
-  EssentialBCs bcs(Hermes::vector<EssentialBoundaryCondition *>(&bc_rest, &bc_layer));
+  EssentialBCs<double> bcs(Hermes::vector<EssentialBoundaryCondition<double> *>(&bc_rest, &bc_layer));
 
   // Create an H1 space with default shapeset.
-  H1Space space(&mesh, &bcs, P_INIT);
+  H1Space<double> space(&mesh, &bcs, P_INIT);
 
   WinGeom* sln_win_geom = new WinGeom(0, 0, 440, 350);
   WinGeom* mesh_win_geom = new WinGeom(450, 0, 400, 350);
 
   // Initialize coarse and reference mesh solution.
-  Solution sln, ref_sln;
+  Solution<double> sln, ref_sln;
   
   // Initialize refinement selector.
-  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
+  H1ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Initialize views.
   ScalarView sview("Solution", new WinGeom(0, 0, 440, 350));
@@ -112,16 +112,16 @@ int main(int argc, char* argv[])
     info("---- Adaptivity step %d:", as);
 
     // Construct globally refined reference mesh and setup reference space.
-    Space* ref_space = Space::construct_refined_space(&space);
+    Space<double>* ref_space = Space<double>::construct_refined_space(&space);
 
     // Initialize matrix solver.
-    SparseMatrix* matrix = create_matrix(matrix_solver);
-    Vector* rhs = create_vector(matrix_solver);
-    Solver* solver = create_linear_solver(matrix_solver, matrix, rhs);
+    SparseMatrix<double>* matrix = create_matrix<double>(matrix_solver_type);
+    Vector<double>* rhs = create_vector<double>(matrix_solver_type);
+    LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver_type, matrix, rhs);
 
     // Assemble the reference problem.
     info("Solving on reference mesh.");
-    DiscreteProblem* dp = new DiscreteProblem(&wf, ref_space);
+    DiscreteProblem<double>* dp = new DiscreteProblem<double>(&wf, ref_space);
     dp->assemble(matrix, rhs);
 
     // Time measurement.
@@ -129,12 +129,12 @@ int main(int argc, char* argv[])
     
     // Solve the linear system of the reference problem. 
     // If successful, obtain the solution.
-    if(solver->solve()) Solution::vector_to_solution(solver->get_solution(), ref_space, &ref_sln);
+    if(solver->solve()) Solution<double>::vector_to_solution(solver->get_sln_vector(), ref_space, &ref_sln);
     else error ("Matrix solver failed.\n");
 
     // Project the fine mesh solution onto the coarse mesh.
     info("Projecting reference solution on coarse mesh.");
-    OGProjection::project_global(&space, &ref_sln, &sln, matrix_solver); 
+    OGProjection<double>::project_global(&space, &ref_sln, &sln, matrix_solver_type); 
 
     // Time measurement.
     cpu_time.tick();
@@ -148,18 +148,18 @@ int main(int argc, char* argv[])
 
     // Calculate element errors and total error estimate.
     info("Calculating error estimate."); 
-    Adapt* adaptivity = new Adapt(&space);
+    Adapt<double>* adaptivity = new Adapt<double>(&space);
     double err_est_rel = adaptivity->calc_err_est(&sln, &ref_sln) * 100;
 
     // Report results.
     info("ndof_coarse: %d, ndof_fine: %d, err_est_rel: %g%%", 
-      Space::get_num_dofs(&space), Space::get_num_dofs(ref_space), err_est_rel);
+      Space<double>::get_num_dofs(&space), Space<double>::get_num_dofs(ref_space), err_est_rel);
 
     // Time measurement.
     cpu_time.tick();
 
     // Add entry to DOF and CPU convergence graphs.
-    graph_dof.add_values(Space::get_num_dofs(&space), err_est_rel);
+    graph_dof.add_values(Space<double>::get_num_dofs(&space), err_est_rel);
     graph_dof.save("conv_dof_est.dat");
     graph_cpu.add_values(cpu_time.accumulated(), err_est_rel);
     graph_cpu.save("conv_cpu_est.dat");
@@ -174,7 +174,7 @@ int main(int argc, char* argv[])
       // Increase the counter of performed adaptivity steps.
       if (done == false)  as++;
     }
-    if (Space::get_num_dofs(&space) >= NDOF_STOP) done = true;
+    if (Space<double>::get_num_dofs(&space) >= NDOF_STOP) done = true;
 
     // Clean up.
     delete solver;

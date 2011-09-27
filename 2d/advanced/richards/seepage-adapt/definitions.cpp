@@ -1,3 +1,5 @@
+#include "definitions.h"
+
 // Jacobian matrix - volumetric part
 double jac_form_vol_euler(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
                           Func<double> *v, Geom<double> *e, ExtData<double> *ext)

@@ -13,37 +13,37 @@ double theta_s = 0.45;
 // true one by this offset.
 double H_OFFSET = 1000;
 
-scalar K(double h)
+double K(double h)
 {
   if (h < 0) return k_s * exp(alpha * h);
   else return k_s;    
 }
 
-scalar dKdh(double h)
+double dKdh(double h)
 {
   if (h < 0) return k_s * alpha * exp(alpha * h);
   else return 0;
 }
 
-scalar ddKdhh(double h)
+double ddKdhh(double h)
 {
   if (h < 0) return k_s * alpha * alpha * exp(alpha * h);
   else return 0;
 }
 
-scalar C(double h)
+double C(double h)
 {
   if (h < 0) return alpha * (theta_s - theta_r) * exp(alpha * h);
   else return alpha * (theta_s - theta_r);    
 }
 
-scalar dCdh(double h)
+double dCdh(double h)
 {
   if (h < 0) return alpha * (theta_s - theta_r) * alpha * exp(alpha * h);
   else return 0;    
 }
 
-scalar ddCdhh(double h)
+double ddCdhh(double h)
 {
   if (h < 0) return alpha * alpha * (theta_s - theta_r) * alpha * exp(alpha * h);
   else return 0;    
@@ -51,9 +51,9 @@ scalar ddCdhh(double h)
 
 /* Custom non-constant Dirichlet condition */
 
-EssentialBoundaryCondition::EssentialBCValueType CustomEssentialBCNonConst::get_value_type() const
+EssentialBoundaryCondition<double>::EssentialBCValueType CustomEssentialBCNonConst::get_value_type() const
 { 
-  return EssentialBoundaryCondition::BC_FUNCTION; 
+  return EssentialBoundaryCondition<double>::BC_FUNCTION; 
 }
 
 double CustomEssentialBCNonConst::value(double x, double y, double n_x, double n_y, 
@@ -64,7 +64,7 @@ double CustomEssentialBCNonConst::value(double x, double y, double n_x, double n
 
 /* Custom weak forms */
 
-CustomWeakFormRichardsRK::CustomWeakFormRichardsRK() : WeakForm(1)
+CustomWeakFormRichardsRK::CustomWeakFormRichardsRK() : WeakForm<double>(1)
 {
   // Jacobian volumetric part.
   CustomJacobianFormVol* jac_form_vol = new CustomJacobianFormVol(0, 0);
@@ -114,13 +114,13 @@ Ord CustomWeakFormRichardsRK::CustomJacobianFormVol::ord(int n, double *wt, Func
   return Ord(10);
 }
 
-WeakForm::MatrixFormVol* CustomWeakFormRichardsRK::CustomJacobianFormVol::clone() 
+MatrixFormVol<double>* CustomWeakFormRichardsRK::CustomJacobianFormVol::clone() 
 {
   return new CustomJacobianFormVol(*this);
 }
 
-scalar CustomWeakFormRichardsRK::CustomResidualFormVol::value(int n, double *wt, Func<scalar> *u_ext[], Func<double> *v, Geom<double> *e,
-                                                              ExtData<scalar> *ext) const 
+double CustomWeakFormRichardsRK::CustomResidualFormVol::value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e,
+                                                              ExtData<double> *ext) const 
 {
   double result = 0;
   Func<double>* h_prev_newton = u_ext[0];
@@ -145,7 +145,7 @@ Ord CustomWeakFormRichardsRK::CustomResidualFormVol::ord(int n, double *wt, Func
   return Ord(10);
 }
 
-WeakForm::VectorFormVol* CustomWeakFormRichardsRK::CustomResidualFormVol::clone() 
+VectorFormVol<double>* CustomWeakFormRichardsRK::CustomResidualFormVol::clone() 
 {
   return new CustomResidualFormVol(*this);
 }

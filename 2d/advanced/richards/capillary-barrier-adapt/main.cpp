@@ -2,8 +2,6 @@
 #define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
 
-
-
 //  This example uses adaptivity with dynamical meshes to solve
 //  the time-dependent Richard's equation. The time discretization 
 //  is backward Euler or Crank-Nicolson, and the nonlinear solver 
@@ -25,15 +23,8 @@
 //
 //
 //  BC: Dirichlet, given by the initial condition.
-//  IC: See the function init_cond().
 //
 //  The following parameters can be changed:
-
-// Constitutive relations.
-enum CONSTITUTIVE_RELATIONS {
-    CONSTITUTIVE_GENUCHTEN,    // Van Genuchten.
-    CONSTITUTIVE_GARDNER       // Gardner.
-};
 
 CONSTITUTIVE_RELATIONS constitutive_relations = CONSTITUTIVE_GENUCHTEN;
 
@@ -89,7 +80,7 @@ const double ERR_STOP = 1.0;                      // Stopping criterion for adap
                                                   // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;                      // Adaptivity process stops when the number of degrees of freedom grows
                                                   // over this limit. This is to prevent h-adaptivity to go on forever.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
                                                   // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 
 
@@ -107,44 +98,6 @@ const double PULSE_END_TIME = 1000.0;             // Time interval of the top la
 double current_time = time_step;                  // Global time variable initialized with first time step.
 
 
-// Problem parameters.
-double H_INIT = -15.0;                            // Initial pressure head.
-double H_ELEVATION = 10.0;                        // Top constant pressure head -- an infiltration experiment.
-double K_S_vals[4] = {350.2, 712.8, 1.68, 18.64}; 
-double ALPHA_vals[4] = {0.01, 1.0, 0.01, 0.01};
-double N_vals[4] = {2.5, 2.0, 1.23, 2.5};
-double M_vals[4] = {0.864, 0.626, 0.187, 0.864};
-
-double THETA_R_vals[4] = {0.064, 0.0, 0.089, 0.064};
-double THETA_S_vals[4] = {0.14, 0.43, 0.43, 0.24};
-double STORATIVITY_vals[4] = {0.1, 0.1, 0.1, 0.1};
-
-
-// Precalculation of constitutive tables.
-const int MATERIAL_COUNT = 4;
-const int CONSTITUTIVE_TABLE_METHOD = 2;          // 0 - constitutive functions are evaluated directly (slow performance).
-					                                        // 1 - constitutive functions are linearly approximated on interval <TABLE_LIMIT; LOW_LIMIT> 
-						                                      //	 (very efficient CPU utilization less efficient memory consumption (depending on TABLE_PRECISION)).
-						                                      // 2 - constitutive functions are aproximated by quintic splines.
-						  
-//!Use only if 	CONSTITUTIVE_TABLE_METHOD == 2 !//					  
-const int NUM_OF_INTERVALS = 16;                  // Number of intervals.                      
-const double INTERVALS_4_APPROX[16] = {-1.0, -2.0, -3.0, -4.0, -5.0, -8.0, -10.0, -12.0, // Low limits of intervals approximated by quintic splines.
-				     -15.0, -20.0, -30.0, -50.0, -75.0, -100.0,-300.0, -1000.0}; 
-//!------------------------------------------!//
-
-
-//!Use only if CONSTITUTIVE_TABLE_METHOD == 1 !//
-double TABLE_LIMIT = -1000.0; 		                // Limit of precalculated functions (should be always negative value lower 
-						                                      // then the lowest expect value of the solution (consider DMP!!)
-const double TABLE_PRECISION = 0.1;               // Precision of precalculated table use 1.0, 0,1, 0.01, etc.....
-const double LOW_LIMIT=-1.0;                      // Lower bound of K(h) function approximated by polynomials.
-const int NUM_OF_INSIDE_PTS = 0;
-//!------------------------------------------!//
-
-
-bool POLYNOMIALS_READY = false;
-bool POLYNOMIALS_ALLOCATED = false;
 
 // Boundary markers.
 const std::string BDY_TOP = "1";
@@ -152,25 +105,9 @@ const std::string BDY_RIGHT = "2";
 const std::string BDY_BOTTOM = "3";
 const std::string BDY_LEFT = "4";
 
-// Initial condition.
-double init_cond(double x, double y, double& dx, double& dy) {
-  dx = 0;
-  dy = 0;
-  return H_INIT;
-}
-
-// Constitutive relations.
-#include "constitutive_relations.cpp"
-
-// Weak forms.
-#include "definitions.cpp"
-
 // Main function.
 int main(int argc, char* argv[])
 {
-  // Instantiate a class with global functions.
-  Hermes2D hermes2d;
-
   ConstitutiveRelations* relations;
   if(constitutive_relations == CONSTITUTIVE_GENUCHTEN)
     relations = new ConstitutiveGenuchten(LOW_LIMIT, POLYNOMIALS_READY, CONSTITUTIVE_TABLE_METHOD, 
@@ -203,7 +140,7 @@ int main(int argc, char* argv[])
 
   // Load the mesh.
   Mesh mesh, basemesh;
-  H2DReader mloader;
+  MeshReaderH2D mloader;
   mloader.load(mesh_file.c_str(), &basemesh);
   
   // Perform initial mesh refinements.
@@ -213,37 +150,37 @@ int main(int argc, char* argv[])
 
   // Initialize boundary conditions.
   RichardsEssentialBC bc_essential(BDY_TOP, H_ELEVATION, PULSE_END_TIME, H_INIT, STARTUP_TIME);
-  EssentialBCs bcs(&bc_essential);
+  EssentialBCs<double> bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.
-  H1Space space(&mesh, &bcs, P_INIT);
-  int ndof = Space::get_num_dofs(&space);
+  H1Space<double> space(&mesh, &bcs, P_INIT);
+  int ndof = Space<double>::get_num_dofs(&space);
   info("ndof = %d.", ndof);
 
   // Create a selector which will select optimal candidate.
-  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
+  H1ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Solutions for the time stepping and the Newton's method.
-  Solution sln, ref_sln;
+  Solution<double> sln, ref_sln;
   InitialSolutionRichards sln_prev_time(&mesh, H_INIT);
   InitialSolutionRichards sln_prev_iter(&mesh, H_INIT);
 
   // Initialize the weak formulation.
-  WeakForm* wf;
+  WeakForm<double>* wf;
   if (ITERATIVE_METHOD == 1) {
     if (TIME_INTEGRATION == 1) {
       info("Creating weak formulation for the Newton's method (implicit Euler in time).");
-      wf = new WeakFormRichardsNewtonEuler(relations, time_step, &sln_prev_time);
+      wf = new WeakFormRichardsNewtonEuler(relations, time_step, &sln_prev_time, &mesh);
     }
     else {
       info("Creating weak formulation for the Newton's method (Crank-Nicolson in time).");
-      wf = new WeakFormRichardsNewtonCrankNicolson(relations, time_step, &sln_prev_time);
+      wf = new WeakFormRichardsNewtonCrankNicolson(relations, time_step, &sln_prev_time, &mesh);
     }
   }
   else {
     if (TIME_INTEGRATION == 1) {
       info("Creating weak formulation for the Picard's method (implicit Euler in time).");
-      wf = new WeakFormRichardsPicardEuler(relations, time_step, &sln_prev_iter, &sln_prev_time);
+      wf = new WeakFormRichardsPicardEuler(relations, time_step, &sln_prev_iter, &sln_prev_time, &mesh);
     }
     else {
       info("Creating weak formulation for the Picard's method (Crank-Nicolson in time).");
@@ -292,7 +229,7 @@ int main(int argc, char* argv[])
         default: error("Wrong global derefinement method.");
       }
 
-      ndof = Space::get_num_dofs(&space);
+      ndof = Space<double>::get_num_dofs(&space);
     }
 
     // Spatial adaptivity loop. Note: sln_prev_time must not be touched during adaptivity.
@@ -305,32 +242,32 @@ int main(int argc, char* argv[])
 
       // Construct globally refined reference mesh
       // and setup reference space.
-      Space* ref_space = Space::construct_refined_space(&space);
-      ndof = Space::get_num_dofs(ref_space);
+      Space<double>* ref_space = Space<double>::construct_refined_space(&space);
+      ndof = Space<double>::get_num_dofs(ref_space);
 
       // Next we need to calculate the reference solution.
       // Newton's method:
       if(ITERATIVE_METHOD == 1) {
-        scalar* coeff_vec = new scalar[Space::get_num_dofs(ref_space)];
+        double* coeff_vec = new double[Space<double>::get_num_dofs(ref_space)];
      
         // Calculate initial coefficient vector for Newton on the fine mesh.
         if (as == 1 && ts == 1) {
           info("Projecting coarse mesh solution to obtain initial vector on new fine mesh.");
-          OGProjection::project_global(ref_space, &sln_prev_time, coeff_vec, matrix_solver);
+          OGProjection<double>::project_global(ref_space, &sln_prev_time, coeff_vec, matrix_solver_type);
         }
         else {
           info("Projecting previous fine mesh solution to obtain initial vector on new fine mesh.");
-          OGProjection::project_global(ref_space, &ref_sln, coeff_vec, matrix_solver);
+          OGProjection<double>::project_global(ref_space, &ref_sln, coeff_vec, matrix_solver_type);
           delete ref_sln.get_mesh();
         }
 
         // Initialize the FE problem.
-        DiscreteProblem dp(wf, ref_space);
+        DiscreteProblem<double> dp(wf, ref_space);
 
         // Set up the solver, matrix, and rhs according to the solver selection.
-        SparseMatrix* matrix = create_matrix(matrix_solver);
-        Vector* rhs = create_vector(matrix_solver);
-        Solver* solver = create_linear_solver(matrix_solver, matrix, rhs);
+        SparseMatrix<double>* matrix = create_matrix<double>(matrix_solver_type);
+        Vector<double>* rhs = create_vector<double>(matrix_solver_type);
+        LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver_type, matrix, rhs);
 
         // Perform Newton's iteration on the reference mesh. If necessary, 
         // reduce time step to make it converge, but then restore time step 
@@ -338,29 +275,48 @@ int main(int argc, char* argv[])
         info("Performing Newton's iteration (tau = %g days):", time_step);
         bool success, verbose = true;
         double* save_coeff_vec = new double[ndof];
+        
         // Save coefficient vector.
-        for (int i=0; i < ndof; i++) save_coeff_vec[i] = coeff_vec[i];
-        double damping_coeff = 1.0;
+        for (int i=0; i < ndof; i++) 
+          save_coeff_vec[i] = coeff_vec[i];
 
         bc_essential.set_current_time(current_time);
-
-        while (!hermes2d.solve_newton(coeff_vec, &dp, solver, matrix, rhs, 
-                             NEWTON_TOL, NEWTON_MAX_ITER, verbose, damping_coeff)) {
-          // Restore solution from the beginning of time step.
-          for (int i=0; i < ndof; i++) coeff_vec[i] = save_coeff_vec[i];
-          // Reducing time step to 50%.
-          info("Reducing time step size from %g to %g days for the rest of this time step.", 
-               time_step, time_step * time_step_dec);
-          time_step *= time_step_dec;
-          // If time_step less than the prescribed minimum, stop.
-          if (time_step < time_step_min) error("Time step dropped below prescribed minimum value.");
-        }  
+        
+        // Perform Newton's iteration.
+        info("Solving nonlinear problem:");
+        Hermes::Hermes2D::NewtonSolver<double> newton(&dp, matrix_solver_type);
+        bool Newton_converged = false;
+        while(!Newton_converged)
+        {
+          try
+          {
+            newton.solve(coeff_vec, NEWTON_TOL, NEWTON_MAX_ITER);
+            Newton_converged = true;
+          }
+          catch(Hermes::Exceptions::Exception e)
+          {
+            e.printMsg();
+            Newton_converged = false;
+          };
+        
+          if(!Newton_converged)
+          {
+            // Restore solution from the beginning of time step.
+            for (int i=0; i < ndof; i++) coeff_vec[i] = save_coeff_vec[i];
+            // Reducing time step to 50%.
+            info("Reducing time step size from %g to %g days for the rest of this time step.", 
+                 time_step, time_step * time_step_dec);
+            time_step *= time_step_dec;
+            // If time_step less than the prescribed minimum, stop.
+            if (time_step < time_step_min) error("Time step dropped below prescribed minimum value.");
+          }
+        }
         // Delete the saved coefficient vector.
         delete [] save_coeff_vec;
 
         // Translate the resulting coefficient vector 
         // into the desired reference solution. 
-        Solution::vector_to_solution(coeff_vec, ref_space, &ref_sln);
+        Solution<double>::vector_to_solution(coeff_vec, ref_space, &ref_sln);
 
         // Cleanup.
         delete [] coeff_vec;
@@ -372,11 +328,11 @@ int main(int argc, char* argv[])
         // Calculate initial condition for Picard on the fine mesh.
         if (as == 1 && ts == 1) {
           info("Projecting coarse mesh solution to obtain initial vector on new fine mesh.");
-          OGProjection::project_global(ref_space, &sln_prev_time, &sln_prev_iter, matrix_solver);
+          OGProjection<double>::project_global(ref_space, &sln_prev_time, &sln_prev_iter, matrix_solver_type);
         }
         else {
           info("Projecting previous fine mesh solution to obtain initial vector on new fine mesh.");
-          OGProjection::project_global(ref_space, &ref_sln, &sln_prev_iter, matrix_solver);
+          OGProjection<double>::project_global(ref_space, &ref_sln, &sln_prev_iter, matrix_solver_type);
         }
 
         // Perform Picard iteration on the reference mesh. If necessary, 
@@ -387,8 +343,11 @@ int main(int argc, char* argv[])
 
         bc_essential.set_current_time(current_time);
 
-        while(!hermes2d.solve_picard(wf, ref_space, &sln_prev_iter, matrix_solver, PICARD_TOL, 
-                            PICARD_MAX_ITER, verbose)) {
+        DiscreteProblem<double> dp(wf, ref_space);
+        PicardSolver<double> picard(&dp, &sln_prev_iter, matrix_solver_type);
+        picard.set_verbose_output(verbose);
+        while(!picard.solve(PICARD_TOL, PICARD_MAX_ITER)) 
+          {
           // Restore solution from the beginning of time step.
           sln_prev_iter.copy(&sln_prev_time);
           // Reducing time step to 50%.
@@ -407,25 +366,25 @@ int main(int argc, char* argv[])
       // Project the fine mesh solution on the coarse mesh.
       info("Projecting fine mesh solution on coarse mesh for error calculation.");
       if(space.get_mesh() == NULL) error("it is NULL");
-      OGProjection::project_global(&space, &ref_sln, &sln, matrix_solver);
+      OGProjection<double>::project_global(&space, &ref_sln, &sln, matrix_solver_type);
 
       // Calculate element errors.
       info("Calculating error estimate."); 
-      Adapt* adaptivity = new Adapt(&space);
+      Adapt<double>* adaptivity = new Adapt<double>(&space);
       
       // Calculate error estimate wrt. fine mesh solution.
       err_est_rel = adaptivity->calc_err_est(&sln, &ref_sln) * 100;
 
       // Report results.
       info("ndof_coarse: %d, ndof_fine: %d, space_err_est_rel: %g%%", 
-        Space::get_num_dofs(&space), Space::get_num_dofs(ref_space), err_est_rel);
+        Space<double>::get_num_dofs(&space), Space<double>::get_num_dofs(ref_space), err_est_rel);
 
       // If space_err_est too large, adapt the mesh.
       if (err_est_rel < ERR_STOP) done = true;
       else {
         info("Adapting coarse mesh.");
         done = adaptivity->adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
-        if (Space::get_num_dofs(&space) >= NDOF_STOP) {
+        if (Space<double>::get_num_dofs(&space) >= NDOF_STOP) {
           done = true;
           break;
         }
@@ -440,7 +399,7 @@ int main(int argc, char* argv[])
     // Add entries to graphs.
     graph_time_err_est.add_values(current_time, err_est_rel);
     graph_time_err_est.save("time_error_est.dat");
-    graph_time_dof.add_values(current_time, Space::get_num_dofs(&space));
+    graph_time_dof.add_values(current_time, Space<double>::get_num_dofs(&space));
     graph_time_dof.save("time_dof.dat");
     graph_time_cpu.add_values(current_time, cpu_time.accumulated());
     graph_time_cpu.save("time_cpu.dat");
@@ -459,8 +418,7 @@ int main(int argc, char* argv[])
     // Save complete Solution.
     char* filename = new char[100];
     sprintf(filename, "outputs/tsln_%f.dat", current_time);
-    bool compress = false;   // Gzip compression not used as it only works on Linux.
-    sln.save(filename, compress);
+    sln.save(filename);
     info("Solution at time %g saved to file %s.", current_time, filename);
 
     // Copy new reference level solution into sln_prev_time.

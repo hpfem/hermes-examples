@@ -28,14 +28,14 @@ const int P_INIT = 2;                             // Initial polynomial degree.
 const double T_FINAL = 2.0;                       // Time interval length.
 double time_step = 0.005;                         // Time step.
 
-// Adaptivity.
+// Adapt<std::complex<double> >ivity.
 const int UNREF_FREQ = 1;                         // Every UNREF_FREQ time step the mesh is unrefined.
 const int UNREF_METHOD = 3;                       // 1... mesh reset to basemesh and poly degrees to P_INIT.   
                                                   // 2... one ref. layer shaved off, poly degrees reset to P_INIT.
                                                   // 3... one ref. layer shaved off, poly degrees decreased by one. 
 const double THRESHOLD = 0.3;                     // This is a quantitative parameter of the adapt(...) function and
                                                   // it has different meanings for various adaptive strategies (see below).
-const int STRATEGY = 1;                           // Adaptive strategy:
+const int STRATEGY = 1;                           // Adapt<std::complex<double> >ive strategy:
                                                   // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
                                                   //   error is processed. If more elements have similar errors, refine
                                                   //   all to keep the mesh symmetric.
@@ -60,9 +60,9 @@ const double ERR_STOP = 5.0;                      // Stopping criterion for hp-a
                                                   // (relative error between reference and coarse solution in percent)
 const double SPACE_ERR_TOL = 1.0;                 // Stopping criterion for adaptivity (rel. error tolerance between the
                                                   // fine mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 60000;                      // Adaptivity process stops when the number of degrees of freedom grows
+const int NDOF_STOP = 60000;                      // Adapt<std::complex<double> >ivity process stops when the number of degrees of freedom grows
                                                   // over this limit. This is to prevent h-adaptivity to go on forever.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
                                                   // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 
 // Temporal adaptivity.
@@ -109,7 +109,7 @@ const double omega = 1;                           // Frequency.
 int main(int argc, char* argv[])
 {
   // Instantiate a class with global functions.
-  Hermes2D hermes2d;
+  
 
   // Choose a Butcher's table or define your own.
   ButcherTable bt(butcher_table_type);
@@ -125,14 +125,14 @@ int main(int argc, char* argv[])
 
   // Load the mesh.
   Mesh mesh, basemesh;
-  H2DReader mloader;
+  MeshReaderH2D mloader;
   mloader.load("square.mesh", &basemesh);
   mesh.copy(&basemesh);
 
   // Initial mesh refinements.
   for(int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
 
-  // Convert initial condition into a Solution.
+  // Coget_num_surf() initial condition into a Solution<std::complex<double> >.
   CustomInitialCondition psi_time_prev(&mesh);
 
   // Initialize the weak formulation.
@@ -141,25 +141,30 @@ int main(int argc, char* argv[])
   CustomWeakFormGPRK wf(h, m, g, omega);
 
   // Initialize boundary conditions.
-  DefaultEssentialBCConst bc_essential("Bdy", 0.0);
-  EssentialBCs bcs(&bc_essential);
+  DefaultEssentialBCConst<std::complex<double> > bc_essential("Bdy", 0.0);
+  EssentialBCs<std::complex<double> > bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.
-  H1Space space(&mesh, &bcs, P_INIT);
+  H1Space<std::complex<double> > space(&mesh, &bcs, P_INIT);
   int ndof = space.get_num_dofs();
   info("ndof = %d", ndof);
  
   // Initialize the FE problem.
-  DiscreteProblem dp(&wf, &space);
+  DiscreteProblem<std::complex<double> > dp(&wf, &space);
 
   // Create a refinement selector.
-  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
+  H1ProjBasedSelector<std::complex<double> > selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Visualize initial condition.
   char title[100];
-  ScalarView sln_view("Initial condition", new WinGeom(0, 0, 440, 350));
-  sln_view.show_mesh(false);
-  sln_view.fix_scale_width(50);
+
+  ScalarView sview_real("Initial condition - real part", new WinGeom(0, 0, 600, 500));
+  ScalarView sview_imag("Initial condition - imaginary part", new WinGeom(610, 0, 600, 500));
+
+  sview_real.show_mesh(false);
+  sview_imag.show_mesh(false);
+  sview_real.fix_scale_width(50);
+  sview_imag.fix_scale_width(50);
   OrderView ord_view("Initial mesh", new WinGeom(445, 0, 440, 350));
   ord_view.fix_scale_width(50);
   ScalarView time_error_view("Temporal error", new WinGeom(0, 400, 440, 350));
@@ -167,7 +172,10 @@ int main(int argc, char* argv[])
   time_error_view.fix_scale_width(60);
   ScalarView space_error_view("Spatial error", new WinGeom(445, 400, 440, 350));
   space_error_view.fix_scale_width(50);
-  sln_view.show(&psi_time_prev);
+  RealFilter real(&psi_time_prev);
+  ImagFilter imag(&psi_time_prev);
+  sview_real.show(&real);
+  sview_imag.show(&imag);
   ord_view.show(&space);
 
   // Graph for time step history.
@@ -200,34 +208,33 @@ int main(int argc, char* argv[])
         default: error("Wrong global derefinement method.");
       }
 
-      ndof = Space::get_num_dofs(&space);
+      ndof = Space<std::complex<double> >::get_num_dofs(&space);
     }
     info("ndof: %d", ndof);
 
     // Spatial adaptivity loop. Note: psi_time_prev must not be 
     // changed during spatial adaptivity. 
-    Solution ref_sln;
-    Solution* time_error_fn;
-    if (bt.is_embedded() == true) time_error_fn = new Solution(&mesh);
+    Solution<std::complex<double> > ref_sln;
+    Solution<std::complex<double> >* time_error_fn;
+    if (bt.is_embedded() == true) time_error_fn = new Solution<std::complex<double> >(&mesh);
     else time_error_fn = NULL;
     bool done = false; int as = 1;
     double err_est;
     do {
       // Construct globally refined reference mesh and setup reference space.
-      Space* ref_space = Space::construct_refined_space(&space);
+      Space<std::complex<double> >* ref_space = Space<std::complex<double> >::construct_refined_space(&space);
 
       // Initialize discrete problem on reference mesh.
-      DiscreteProblem* ref_dp = new DiscreteProblem(&wf, ref_space);
+      DiscreteProblem<std::complex<double> >* ref_dp = new DiscreteProblem<std::complex<double> >(&wf, ref_space);
       
-      RungeKutta runge_kutta(ref_dp, &bt, matrix_solver);
+      RungeKutta<std::complex<double> > runge_kutta(ref_dp, &bt, matrix_solver_type);
 
       // Runge-Kutta step on the fine mesh.
       info("Runge-Kutta time step on fine mesh (t = %g s, time step = %g s, stages: %d).", 
          current_time, time_step, bt.get_size());
       bool verbose = true;
-      bool jacobian_changed = true;
-      if (!runge_kutta.rk_time_step(current_time, time_step, &psi_time_prev, 
-                                    &ref_sln, time_error_fn, jacobian_changed, verbose, 
+      if (!runge_kutta.rk_time_step_newton(current_time, time_step, &psi_time_prev, 
+                                    &ref_sln, time_error_fn, false, false, verbose, 
                                     NEWTON_TOL_FINE, NEWTON_MAX_ITER)) {
     
         error("Runge-Kutta time step failed, try to decrease time step size.");
@@ -245,11 +252,12 @@ int main(int argc, char* argv[])
         sprintf(title, "Temporal error est, spatial adaptivity step %d", as);     
         time_error_view.set_title(title);
         time_error_view.show_mesh(false);
-        AbsFilter abs_tef(time_error_fn);
+        RealFilter abs_time(time_error_fn);
+        AbsFilter abs_tef(&abs_time);
         time_error_view.show(&abs_tef, HERMES_EPS_HIGH);
 
-        rel_err_time = hermes2d.calc_norm(time_error_fn, HERMES_H1_NORM) / 
-                       hermes2d.calc_norm(&ref_sln, HERMES_H1_NORM) * 100;
+        rel_err_time = Global<std::complex<double> >::calc_norm(time_error_fn, HERMES_H1_NORM) / 
+                       Global<std::complex<double> >::calc_norm(&ref_sln, HERMES_H1_NORM) * 100;
         if (ADAPTIVE_TIME_STEP_ON == false) info("rel_err_time: %g%%", rel_err_time);
       }
 
@@ -286,26 +294,27 @@ int main(int argc, char* argv[])
       info("Spatial adaptivity step %d.", as);
 
       // Project the fine mesh solution onto the coarse mesh.
-      Solution sln;
+      Solution<std::complex<double> > sln;
       info("Projecting fine mesh solution on coarse mesh for error estimation.");
-      OGProjection::project_global(&space, &ref_sln, &sln, matrix_solver); 
+      OGProjection<std::complex<double> >::project_global(&space, &ref_sln, &sln, matrix_solver_type); 
 
       // Show spatial error.
       sprintf(title, "Spatial error est, spatial adaptivity step %d", as);  
-      DiffFilter* space_error_fn = new DiffFilter(Hermes::vector<MeshFunction*>(&ref_sln, &sln));   
+      DiffFilter<std::complex<double> >* space_error_fn = new DiffFilter<std::complex<double> >(Hermes::vector<MeshFunction<std::complex<double> >*>(&ref_sln, &sln));   
       space_error_view.set_title(title);
       space_error_view.show_mesh(false);
-      AbsFilter abs_sef(space_error_fn);
+      RealFilter abs_space(space_error_fn);
+      AbsFilter abs_sef(&abs_space);
       space_error_view.show(&abs_sef);
 
       // Calculate element errors and spatial error estimate.
       info("Calculating spatial error estimate.");
-      Adapt* adaptivity = new Adapt(&space);
+      Adapt<std::complex<double> >* adaptivity = new Adapt<std::complex<double> >(&space);
       double err_rel_space = adaptivity->calc_err_est(&sln, &ref_sln) * 100;
 
       // Report results.
       info("ndof: %d, ref_ndof: %d, err_rel_space: %g%%", 
-           Space::get_num_dofs(&space), Space::get_num_dofs(ref_space), err_rel_space);
+           Space<std::complex<double> >::get_num_dofs(&space), Space<std::complex<double> >::get_num_dofs(ref_space), err_rel_space);
 
       // If err_est too large, adapt the mesh.
       if (err_rel_space < SPACE_ERR_TOL) done = true;
@@ -314,7 +323,7 @@ int main(int argc, char* argv[])
         info("Adapting the coarse mesh.");
         done = adaptivity->adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
 
-        if (Space::get_num_dofs(&space) >= NDOF_STOP) 
+        if (Space<std::complex<double> >::get_num_dofs(&space) >= NDOF_STOP) 
           done = true;
         else
           // Increase the counter of performed adaptivity steps.
@@ -334,10 +343,14 @@ int main(int argc, char* argv[])
 
     // Visualize the solution and mesh.
     char title[100];
-    sprintf(title, "Solution, time %g s", current_time);
-    sln_view.set_title(title);
-    sln_view.show_mesh(false);
-    sln_view.show(&ref_sln);
+    sprintf(title, "Solution - real part, Time %3.2f s", current_time);
+    sview_real.set_title(title);
+    sprintf(title, "Solution - imaginary part, Time %3.2f s", current_time);
+    sview_imag.set_title(title);
+    RealFilter real(&ref_sln);
+    ImagFilter imag(&ref_sln);
+    sview_real.show(&real);
+    sview_imag.show(&imag);
     sprintf(title, "Mesh, time %g s", current_time);
     ord_view.set_title(title);
     ord_view.show(&space);

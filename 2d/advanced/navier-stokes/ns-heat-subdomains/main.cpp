@@ -1,4 +1,5 @@
-#define HERMES_REPORT_INFO
+#define HERMES_REPORT_ALL
+#define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
 
 using namespace Hermes;
@@ -93,7 +94,7 @@ int main(int argc, char* argv[])
 #else
   H1Space<double> p_space(&mesh_without_hole, &bcs_pressure, P_INIT_PRESSURE);
 #endif
-  // Space for temperature.
+  // Space<double> for temperature.
   H1Space<double> temperature_space(&mesh_whole_domain, &bcs_temperature, P_INIT_TEMP);
 
   // Calculate and report the number of degrees of freedom.
@@ -111,9 +112,9 @@ int main(int argc, char* argv[])
 
   // Solutions for the Newton's iteration and time stepping.
   info("Setting initial conditions.");
-  ZeroInitialCondition xvel_prev_time(&mesh_without_hole), yvel_prev_time(&mesh_without_hole), 
+  ZeroSolution xvel_prev_time(&mesh_without_hole), yvel_prev_time(&mesh_without_hole), 
                                       p_prev_time(&mesh_without_hole);
-  ConstInitialCondition  temperature_prev_time(&mesh_whole_domain, TEMP_INIT); 
+  ConstantSolution<double>  temperature_prev_time(&mesh_whole_domain, TEMP_INIT); 
 
   // Calculate Reynolds number.
   double reynolds_number = VEL_INLET * OBSTACLE_DIAMETER / KINEMATIC_VISCOSITY_WATER;

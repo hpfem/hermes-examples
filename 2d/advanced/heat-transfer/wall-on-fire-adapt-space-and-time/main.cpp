@@ -1,9 +1,6 @@
 #define HERMES_REPORT_ALL
 #define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
-#include "runge_kutta.h"
-
-
 
 //  This example models a nonstationary distribution of temperature within a wall
 //  exposed to ISO fire. Spatial adaptivity is ON by default, adaptivity in time 
@@ -67,7 +64,7 @@ const double SPACE_ERR_TOL = 1.0;                 // Stopping criterion for adap
                                                   // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;                      // Adaptivity process stops when the number of degrees of freedom grows
                                                   // over this limit. This is to prevent h-adaptivity to go on forever.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
                                                   // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 
 // Temporal adaptivity.
@@ -122,9 +119,6 @@ const double T_FINAL = 18000;      // Length of time interval in seconds.
 
 int main(int argc, char* argv[])
 {
-  // Instantiate a class with global functions.
-  Hermes2D hermes2d;
-
   // Choose a Butcher's table or define your own.
   ButcherTable bt(butcher_table_type);
   if (bt.is_explicit()) info("Using a %d-stage explicit R-K method.", bt.get_size());
@@ -139,7 +133,7 @@ int main(int argc, char* argv[])
 
   // Load the mesh.
   Mesh mesh, basemesh;
-  H2DReader mloader;
+  MeshReaderH2D mloader;
   mloader.load("wall.mesh", &basemesh);
   mesh.copy(&basemesh);
 
@@ -149,15 +143,15 @@ int main(int argc, char* argv[])
   mesh.refine_towards_boundary(BDY_FIRE, INIT_REF_NUM_BDY);
 
   // Initialize essential boundary conditions (none).
-  EssentialBCs bcs;
+  EssentialBCs<double> bcs;
 
   // Initialize an H1 space with default shapeset.
-  H1Space space(&mesh, &bcs, P_INIT);
-  int ndof = Space::get_num_dofs(&space);
+  H1Space<double> space(&mesh, &bcs, P_INIT);
+  int ndof = Space<double>::get_num_dofs(&space);
   info("ndof = %d.", ndof);
 
-  // Convert initial condition into a Solution.
-  Solution sln_prev_time(&mesh, TEMP_INIT);
+  // Coget_num_surf() initial condition into a Solution.
+  ConstantSolution<double> sln_prev_time(&mesh, TEMP_INIT);
 
   // Initialize the weak formulation.
   double current_time = 0;
@@ -165,10 +159,10 @@ int main(int argc, char* argv[])
                           RHO, HEATCAP, TEMP_EXT_AIR, TEMP_INIT, &current_time);
 
   // Initialize the FE problem.
-  DiscreteProblem dp(&wf, &space);
+  DiscreteProblem<double> dp(&wf, &space);
 
   // Create a refinement selector.
-  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
+  H1ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Visualize initial condition.
   char title[100];
@@ -208,27 +202,27 @@ int main(int argc, char* argv[])
         default: error("Wrong global derefinement method.");
       }
 
-      ndof = Space::get_num_dofs(&space);
+      ndof = Space<double>::get_num_dofs(&space);
     }
 
     // Spatial adaptivity loop. Note: sln_prev_time must not be 
     // changed during spatial adaptivity. 
-    Solution ref_sln;
-    Solution time_error_fn(&mesh);
+    Solution<double> ref_sln;
+    Solution<double> time_error_fn(&mesh);
     bool done = false; int as = 1;
     double err_est;
     do {
       // Construct globally refined reference mesh and setup reference space.
-      Space* ref_space = Space::construct_refined_space(&space);
+      Space<double>* ref_space = Space<double>::construct_refined_space(&space);
 
       // Initialize discrete problem on reference mesh.
-      DiscreteProblem ref_dp(&wf, ref_space);
+      DiscreteProblem<double> ref_dp(&wf, ref_space);
       
       // Initialize Runge-Kutta time stepping on the reference mesh.
-      RungeKutta runge_kutta(&ref_dp, &bt, matrix_solver);
+      RungeKutta<double> runge_kutta(&ref_dp, &bt, matrix_solver_type);
 
-      OGProjection::project_global(ref_space, Hermes::vector<Solution *>(&sln_prev_time), 
-                                   Hermes::vector<Solution *>(&sln_prev_time), matrix_solver);
+      OGProjection<double>::project_global(ref_space, &sln_prev_time, 
+                                   &sln_prev_time, matrix_solver_type);
       
       delete ref_sln.get_mesh();
       
@@ -237,8 +231,8 @@ int main(int argc, char* argv[])
            current_time, time_step, bt.get_size());
       bool verbose = true;
       bool jacobian_changed = false;
-      if (!runge_kutta.rk_time_step(current_time, time_step, &sln_prev_time, &ref_sln, bt.is_embedded() ? &time_error_fn : NULL,
-                                    jacobian_changed, verbose, NEWTON_TOL_FINE, NEWTON_MAX_ITER)) {
+      if (!runge_kutta.rk_time_step_newton(current_time, time_step, &sln_prev_time, &ref_sln, bt.is_embedded() ? &time_error_fn : NULL,
+                                    !jacobian_changed, false, verbose, NEWTON_TOL_FINE, NEWTON_MAX_ITER)) {
         error("Runge-Kutta time step failed, try to decrease time step size.");
       }
 
@@ -256,8 +250,8 @@ int main(int argc, char* argv[])
         //time_error_view.show_mesh(false);
         time_error_view.show(&time_error_fn, HERMES_EPS_VERYHIGH);
 
-        rel_err_time = hermes2d.calc_norm(&time_error_fn, HERMES_H1_NORM) 
-                       / hermes2d.calc_norm(&ref_sln, HERMES_H1_NORM) * 100;
+        rel_err_time = Global<double>::calc_norm(&time_error_fn, HERMES_H1_NORM) 
+                       / Global<double>::calc_norm(&ref_sln, HERMES_H1_NORM) * 100;
         if (ADAPTIVE_TIME_STEP_ON == false) info("rel_err_time: %g%%", rel_err_time);
       }
 
@@ -289,13 +283,13 @@ int main(int argc, char* argv[])
       info("Spatial adaptivity step %d.", as);
 
       // Project the fine mesh solution onto the coarse mesh.
-      Solution sln;
+      Solution<double> sln;
       info("Projecting fine mesh solution on coarse mesh for error estimation.");
-      OGProjection::project_global(&space, &ref_sln, &sln, matrix_solver); 
+      OGProjection<double>::project_global(&space, &ref_sln, &sln, matrix_solver_type); 
 
       // Show spatial error.
       sprintf(title, "Spatial error est, spatial adaptivity step %d", as);  
-      DiffFilter space_error_fn(Hermes::vector<MeshFunction*>(&ref_sln, &sln));   
+      DiffFilter<double> space_error_fn(Hermes::vector<MeshFunction<double>*>(&ref_sln, &sln));   
       space_error_view.set_title(title);
       //space_error_view.show_mesh(false);
       AbsFilter abs_sef(&space_error_fn);
@@ -303,12 +297,12 @@ int main(int argc, char* argv[])
 
       // Calculate element errors and spatial error estimate.
       info("Calculating spatial error estimate.");
-      Adapt* adaptivity = new Adapt(&space);
+      Adapt<double>* adaptivity = new Adapt<double>(&space);
       double err_rel_space = adaptivity->calc_err_est(&sln, &ref_sln) * 100;
 
       // Report results.
       info("ndof: %d, ref_ndof: %d, err_rel_space: %g%%", 
-           Space::get_num_dofs(&space), Space::get_num_dofs(ref_space), err_rel_space);
+           Space<double>::get_num_dofs(&space), Space<double>::get_num_dofs(ref_space), err_rel_space);
 
       // If err_est too large, adapt the mesh.
       if (err_rel_space < SPACE_ERR_TOL) done = true;
@@ -317,7 +311,7 @@ int main(int argc, char* argv[])
         info("Adapting the coarse mesh.");
         done = adaptivity->adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
 
-        if (Space::get_num_dofs(&space) >= NDOF_STOP) 
+        if (Space<double>::get_num_dofs(&space) >= NDOF_STOP) 
           done = true;
         else
           // Increase the counter of performed adaptivity steps.

@@ -9,7 +9,7 @@
 // a first-order system in time in the standard way (see example wave-1). Time 
 // discretization is performed using the implicit Euler method.
 //
-// The function rk_time_step() needs more optimisation, see a todo list at 
+// The function rk_time_step_newton() needs more optimisation, see a todo list at 
 // the beginning of file src/runge-kutta.h.
 //
 // PDE: \frac{1}{SPEED_OF_LIGHT**2}\frac{\partial^2 E}{\partial t^2} + curl curl E = 0,
@@ -36,7 +36,7 @@ const int P_INIT = 6;                              // Initial polynomial degree 
 const int INIT_REF_NUM = 1;                        // Number of initial uniform mesh refinements.
 const double time_step = 0.05;                     // Time step.
 const double T_FINAL = 35.0;                       // Final time.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;   // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;   // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 
 // Problem parameters.
 const double C_SQUARED = 1;                      // Square of wave speed.                     
@@ -45,7 +45,7 @@ int main(int argc, char* argv[])
 {
   // Load the mesh.
   Mesh mesh;
-  H2DReader mloader;
+  MeshReaderH2D mloader;
   mloader.load("domain.mesh", &mesh);
 
   // Perform initial mesh refinemets.
@@ -53,30 +53,30 @@ int main(int argc, char* argv[])
 
   // Initialize solutions.
   CustomInitialConditionWave E_sln(&mesh);
-  Solution F_sln(&mesh, 0.0, 0.0);
-  Hermes::vector<Solution*> slns(&E_sln, &F_sln);
+  ZeroSolutionVector F_sln(&mesh);
+  Hermes::vector<Solution<double>*> slns(&E_sln, &F_sln);
 
   // Initialize the weak formulation.
   CustomWeakFormWave wf(time_step, C_SQUARED, &E_sln, &F_sln);
   
   // Initialize boundary conditions
-  DefaultEssentialBCConst bc_essential("Perfect conductor", 0.0);
-  EssentialBCs bcs(&bc_essential);
+  DefaultEssentialBCConst<double> bc_essential("Perfect conductor", 0.0);
+  EssentialBCs<double> bcs(&bc_essential);
 
   // Create x- and y- displacement space using the default H1 shapeset.
-  HcurlSpace E_space(&mesh, &bcs, P_INIT);
-  HcurlSpace F_space(&mesh, &bcs, P_INIT);
-  Hermes::vector<Space *> spaces = Hermes::vector<Space *>(&E_space, &F_space);
+  HcurlSpace<double> E_space(&mesh, &bcs, P_INIT);
+  HcurlSpace<double> F_space(&mesh, &bcs, P_INIT);
+  Hermes::vector<Space<double> *> spaces = Hermes::vector<Space<double> *>(&E_space, &F_space);
 
-  info("ndof = %d.", Space::get_num_dofs(spaces));
+  info("ndof = %d.", Space<double>::get_num_dofs(spaces));
 
   // Initialize the FE problem.
-  DiscreteProblem dp(&wf, spaces);
+  DiscreteProblem<double> dp(&wf, spaces);
 
   // Set up the solver, matrix, and rhs according to the solver selection.
-  SparseMatrix* matrix = create_matrix(matrix_solver);
-  Vector* rhs = create_vector(matrix_solver);
-  Solver* solver = create_linear_solver(matrix_solver, matrix, rhs);
+  SparseMatrix<double>* matrix = create_matrix<double>(matrix_solver_type);
+  Vector<double>* rhs = create_vector<double>(matrix_solver_type);
+  LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver_type, matrix, rhs);
   solver->set_factorization_scheme(HERMES_REUSE_FACTORIZATION_COMPLETELY);
 
   // Initialize views.
@@ -100,12 +100,12 @@ int main(int argc, char* argv[])
     }
     else {
       info("Assembling the right-hand side vector (only).");
-      dp.assemble(NULL, rhs);
+      dp.assemble(rhs);
     }
 
     // Solve the linear system and if successful, obtain the solution.
     info("Solving the matrix problem.");
-    if(solver->solve()) Solution::vector_to_solutions(solver->get_solution(), spaces, slns);
+    if(solver->solve()) Solution<double>::vector_to_solutions(solver->get_sln_vector(), spaces, slns);
     else error ("Matrix solver failed.\n");
 
     // Visualize the solutions.

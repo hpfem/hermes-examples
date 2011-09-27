@@ -1,3 +1,5 @@
+#include "definitions.h"
+
 template<typename Real, typename Scalar>
 Scalar bilinear_form_0_0(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
 {

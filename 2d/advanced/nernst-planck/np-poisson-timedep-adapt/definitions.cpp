@@ -1,6 +1,4 @@
-
-#include "header.h"
-
+#include "definitions.h"
 
 class ScaledWeakFormPNPCranic : public WeakForm<double> {
 public:

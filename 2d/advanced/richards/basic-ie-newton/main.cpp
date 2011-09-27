@@ -1,7 +1,6 @@
 #define HERMES_REPORT_ALL
 #define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
-#include "function/function.h"
 
 
 
@@ -38,7 +37,7 @@ const int INIT_REF_NUM_BDY = 5;                   // Number of initial refinemen
 const int P_INIT = 2;                             // Initial polynomial degree.
 double time_step = 5e-4;                          // Time step.
 const double T_FINAL = 0.4;                       // Time interval length.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
                                                   // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 
 // Newton's method.
@@ -71,7 +70,7 @@ int main(int argc, char* argv[])
   double* coeff_vec = new double[ndof];
   memset(coeff_vec, 0, ndof*sizeof(double));
 
-  // Convert initial condition into a Solution.
+  // Coget_num_surf() initial condition into a Solution.
   Solution<double> h_time_prev;
   Solution<double>::vector_to_solution(coeff_vec, &space, &h_time_prev);
 
@@ -90,7 +89,7 @@ int main(int argc, char* argv[])
   DiscreteProblem<double> dp(&wf, &space);
 
   // Initialize Newton solver.
-  NewtonSolver<double> newton(&dp, matrix_solver);
+  NewtonSolver<double> newton(&dp, matrix_solver_type);
   newton.set_verbose_output(true);
 
   // Time stepping:
@@ -110,7 +109,7 @@ int main(int argc, char* argv[])
       error("Newton's iteration failed.");
     };
 
-    // Translate the resulting coefficient vector into the Solution sln.
+    // Translate the resulting coefficient vector into the Solution<double> sln.
     Solution<double>::vector_to_solution(coeff_vec, &space, &h_time_prev);
 
     // Visualize the solution.

@@ -8,30 +8,30 @@ using namespace Hermes::Hermes2D::Views;
 using namespace Hermes::Hermes2D::RefinementSelectors;
 
 // K (Gardner).
-scalar K(double h);
+double K(double h);
 
 // dK/dh (Gardner).
-scalar dKdh(double h);
+double dKdh(double h);
 
 // ddK/dhh (Gardner).
-scalar ddKdhh(double h);
+double ddKdhh(double h);
 
 // C (Gardner).
-scalar C(double h);
+double C(double h);
 
 // dC/dh (Gardner).
-scalar dCdh(double h);
+double dCdh(double h);
 
 // ddC/dhh (Gardner).
-scalar ddCdhh(double h);
+double ddCdhh(double h);
 
 /* Custom non-constant Dirichlet condition */
 
-class CustomEssentialBCNonConst : public EssentialBoundaryCondition 
+class CustomEssentialBCNonConst : public EssentialBoundaryCondition<double> 
 {
 public:
   CustomEssentialBCNonConst(Hermes::vector<std::string>(markers))       
-        : EssentialBoundaryCondition(markers) {};
+        : EssentialBoundaryCondition<double>(markers) {};
 
   virtual EssentialBCValueType get_value_type() const;
 
@@ -41,45 +41,45 @@ public:
 
 /* Weak forms */
 
-class CustomWeakFormRichardsRK : public WeakForm
+class CustomWeakFormRichardsRK : public WeakForm<double>
 {
 public:
   CustomWeakFormRichardsRK();
 
 private:
 
-  class CustomJacobianFormVol : public WeakForm::MatrixFormVol
+  class CustomJacobianFormVol : public MatrixFormVol<double>
   {
   public:
     CustomJacobianFormVol(int i, int j) 
-          : WeakForm::MatrixFormVol(i, j) 
+          : MatrixFormVol<double>(i, j) 
     {
     }
 
-    virtual scalar value(int n, double *wt, Func<scalar> *u_ext[], Func<double> *u, 
-                         Func<double> *v, Geom<double> *e, ExtData<scalar> *ext) const;
+    virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
+                         Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, 
                     Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const;
 
-    virtual WeakForm::MatrixFormVol* clone();
+    virtual MatrixFormVol<double>* clone();
   };
 
-  class CustomResidualFormVol : public WeakForm::VectorFormVol
+  class CustomResidualFormVol : public VectorFormVol<double>
   {
   public:
     CustomResidualFormVol(int i)
-          : WeakForm::VectorFormVol(i) 
+          : VectorFormVol<double>(i) 
     {
     }
 
-    virtual scalar value(int n, double *wt, Func<scalar> *u_ext[], Func<double> *v, Geom<double> *e,
-                         ExtData<scalar> *ext) const;
+    virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e,
+                         ExtData<double> *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
                     ExtData<Ord> *ext) const;
 
-    virtual WeakForm::VectorFormVol* clone();
+    virtual VectorFormVol<double>* clone();
   };
 };
 

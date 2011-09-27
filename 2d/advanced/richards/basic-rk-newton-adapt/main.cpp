@@ -1,7 +1,6 @@
 #define HERMES_REPORT_ALL
 #define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
-#include "function/function.h"
 
 
 
@@ -34,7 +33,7 @@ const int INIT_REF_NUM_BDY = 6;                   // Number of initial refinemen
 const int P_INIT = 2;                             // Initial polynomial degree of all mesh elements.
 double time_step = 5e-4;                          // Time step.
 const double T_FINAL = 0.4;                       // Time interval length.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
                                                   // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 
 // Adaptivity
@@ -94,9 +93,6 @@ ButcherTableType butcher_table_type = Implicit_SDIRK_2_2;
 
 int main(int argc, char* argv[])
 {
-  // Instantiate a class with global functions.
-  Hermes2D hermes2d;
-
   // Choose a Butcher's table or define your own.
   ButcherTable bt(butcher_table_type);
   if (bt.is_explicit()) info("Using a %d-stage explicit R-K method.", bt.get_size());
@@ -105,7 +101,7 @@ int main(int argc, char* argv[])
 
   // Load the mesh.
   Mesh mesh, basemesh;
-  H2DReader mloader;
+  MeshReaderH2D mloader;
   mloader.load("square.mesh", &basemesh);
   mesh.copy(&basemesh);
 
@@ -115,31 +111,31 @@ int main(int argc, char* argv[])
 
   // Initialize boundary conditions.
   CustomEssentialBCNonConst bc_essential(Hermes::vector<std::string>("Bottom", "Right", "Top", "Left"));
-  EssentialBCs bcs(&bc_essential);
+  EssentialBCs<double> bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.
-  H1Space space(&mesh, &bcs, P_INIT);
-  int ndof_coarse = Space::get_num_dofs(&space);
+  H1Space<double> space(&mesh, &bcs, P_INIT);
+  int ndof_coarse = Space<double>::get_num_dofs(&space);
   info("ndof_coarse = %d.", ndof_coarse);
 
   // Initial condition vector is the zero vector. This is why we
   // use the H_OFFSET. 
-  scalar* coeff_vec = new scalar[ndof_coarse];
+  double* coeff_vec = new double[ndof_coarse];
   memset(coeff_vec, 0, ndof_coarse*sizeof(double));
 
-  // Convert initial condition into a Solution.
-  Solution h_time_prev, h_time_new;
-  Solution::vector_to_solution(coeff_vec, &space, &h_time_prev);
+  // Coget_num_surf() initial condition into a Solution.
+  Solution<double> h_time_prev, h_time_new;
+  Solution<double>::vector_to_solution(coeff_vec, &space, &h_time_prev);
   delete [] coeff_vec;
 
   // Initialize the weak formulation.
   CustomWeakFormRichardsRK wf;
 
   // Initialize the FE problem.
-  DiscreteProblem dp(&wf, &space);
+  DiscreteProblem<double> dp(&wf, &space);
 
   // Create a refinement selector.
-  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
+  H1ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Visualize initial condition.
   char title[100];
@@ -176,7 +172,7 @@ int main(int argc, char* argv[])
         default: error("Wrong global derefinement method.");
       }
 
-      ndof_coarse = Space::get_num_dofs(&space);
+      ndof_coarse = Space<double>::get_num_dofs(&space);
     }
 
     // Spatial adaptivity loop. Note: h_time_prev must not be changed 
@@ -187,17 +183,17 @@ int main(int argc, char* argv[])
       info("Time step %d, adaptivity step %d:", ts, as);
 
       // Construct globally refined reference mesh and setup reference space.
-      Space* ref_space = Space::construct_refined_space(&space);
-      int ndof_ref = Space::get_num_dofs(ref_space);
+      Space<double>* ref_space = Space<double>::construct_refined_space(&space);
+      int ndof_ref = Space<double>::get_num_dofs(ref_space);
 
       // Initialize discrete problem on reference mesh.
-      DiscreteProblem dp(&wf, ref_space);
+      DiscreteProblem<double> dp(&wf, ref_space);
 
       // Time measurement.
       cpu_time.tick();
 
       // Initialize Runge-Kutta time stepping.
-      RungeKutta runge_kutta(&dp, &bt, matrix_solver);
+      RungeKutta<double> runge_kutta(&dp, &bt, matrix_solver_type);
 
       // Perform one Runge-Kutta time step according to the selected Butcher's table.
       info("Runge-Kutta time step (t = %g s, tau = %g s, stages: %d).",
@@ -206,7 +202,7 @@ int main(int argc, char* argv[])
       bool verbose = true;
       double damping_coeff = 1.0;
       double max_allowed_residual_norm = 1e10;
-      if (!runge_kutta.rk_time_step(current_time, time_step, &h_time_prev, 
+      if (!runge_kutta.rk_time_step_newton(current_time, time_step, &h_time_prev, 
                                     &h_time_new, jacobian_changed, verbose,
                                     NEWTON_TOL, NEWTON_MAX_ITER, damping_coeff,
                                     max_allowed_residual_norm)) 
@@ -215,18 +211,18 @@ int main(int argc, char* argv[])
       }
 
       // Project the fine mesh solution onto the coarse mesh.
-      Solution sln_coarse;
+      Solution<double> sln_coarse;
       info("Projecting fine mesh solution on coarse mesh for error estimation.");
-      OGProjection::project_global(&space, &h_time_new, &sln_coarse, matrix_solver); 
+      OGProjection<double>::project_global(&space, &h_time_new, &sln_coarse, matrix_solver_type); 
 
       // Calculate element errors and total error estimate.
       info("Calculating error estimate.");
-      Adapt* adaptivity = new Adapt(&space);
+      Adapt<double>* adaptivity = new Adapt<double>(&space);
       double err_est_rel_total = adaptivity->calc_err_est(&sln_coarse, &h_time_new) * 100;
 
       // Report results.
       info("ndof_coarse: %d, ndof_ref: %d, err_est_rel: %g%%", 
-           Space::get_num_dofs(&space), Space::get_num_dofs(ref_space), err_est_rel_total);
+           Space<double>::get_num_dofs(&space), Space<double>::get_num_dofs(ref_space), err_est_rel_total);
 
       // Time measurement.
       cpu_time.tick();
@@ -238,7 +234,7 @@ int main(int argc, char* argv[])
         info("Adapting the coarse mesh.");
         done = adaptivity->adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
 
-        if (Space::get_num_dofs(&space) >= NDOF_STOP) 
+        if (Space<double>::get_num_dofs(&space) >= NDOF_STOP) 
           done = true;
         else
           // Increase the counter of performed adaptivity steps.
@@ -254,7 +250,7 @@ int main(int argc, char* argv[])
     while (done == false);
 
     // Add entry to DOF and CPU convergence graphs.
-    graph_dof.add_values(current_time, Space::get_num_dofs(&space));
+    graph_dof.add_values(current_time, Space<double>::get_num_dofs(&space));
     graph_dof.save("conv_dof_est.dat");
     graph_cpu.add_values(current_time, cpu_time.accumulated());
     graph_cpu.save("conv_cpu_est.dat");

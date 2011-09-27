@@ -21,7 +21,7 @@ Real T_fire_t(Real t);
 
 /* Weak forms */
 
-class CustomWeakFormHeatRK : public WeakForm
+class CustomWeakFormHeatRK : public WeakForm<double>
 {
 public:
   CustomWeakFormHeatRK(std::string bdy_fire, std::string bdy_air,
@@ -30,61 +30,61 @@ public:
 
 private:
   // This form is custom since it contains space-dependent thermal conductivity.
-  class CustomJacobianVol : public WeakForm::MatrixFormVol
+  class CustomJacobianVol : public MatrixFormVol<double>
   {
   public:
     CustomJacobianVol(int i, int j, double rho, double heatcap)
-          : WeakForm::MatrixFormVol(i, j), rho(rho), heatcap(heatcap) {};
+          : MatrixFormVol<double>(i, j), rho(rho), heatcap(heatcap) {};
 
-    virtual scalar value(int n, double *wt, Func<scalar> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e,
-                         ExtData<scalar> *ext) const;
+    virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e,
+                         ExtData<double> *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const;
 
-    // This is needed for the rk_time_step() method.
-    virtual WeakForm::MatrixFormVol* clone();
+    // This is needed for the rk_time_step_newton() method.
+    virtual MatrixFormVol<double>* clone();
 
     double rho, heatcap;
   };
 
   // This form is custom since it contains space-dependent thermal conductivity.
-  class CustomFormResidualVol : public WeakForm::VectorFormVol
+  class CustomFormResidualVol : public VectorFormVol<double>
   {
   public:
     CustomFormResidualVol(int i, double rho, double heatcap)
-          : WeakForm::VectorFormVol(i), rho(rho), heatcap(heatcap) {};
+          : VectorFormVol<double>(i), rho(rho), heatcap(heatcap) {};
 
-    virtual scalar value(int n, double *wt, Func<scalar> *u_ext[], Func<double> *v, Geom<double> *e,
-                         ExtData<scalar> *ext) const;
+    virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e,
+                         ExtData<double> *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const;
 
-    // Needed for the rk_time_step() method.
-    virtual WeakForm::VectorFormVol* clone(); 
+    // Needed for the rk_time_step_newton() method.
+    virtual VectorFormVol<double>* clone(); 
 
     double rho, heatcap;
   };
 
   // Custom due to time-dependent exterior temperature.
-  class CustomFormResidualSurfFire : public WeakForm::VectorFormSurf
+  class CustomFormResidualSurfFire : public VectorFormSurf<double>
   {
   public:
     CustomFormResidualSurfFire(int i, std::string area, double alpha_fire, double rho,
                                double heatcap, double* current_time_ptr)
-          : WeakForm::VectorFormSurf(i, area), alpha_fire(alpha_fire), rho(rho),
+          : VectorFormSurf<double>(i, area), alpha_fire(alpha_fire), rho(rho),
                            heatcap(heatcap), current_time_ptr(current_time_ptr) {};
 
     template<typename Real, typename Scalar>
     Scalar vector_form_surf(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v,
                             Geom<Real> *e, ExtData<Scalar> *ext) const;
 
-    virtual scalar value(int n, double *wt, Func<scalar> *u_ext[], Func<double> *v, Geom<double> *e,
-                         ExtData<scalar> *ext) const;
+    virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e,
+                         ExtData<double> *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const;
 
-    // Needed for the rk_time_step() method.
-    virtual WeakForm::VectorFormSurf* clone();
+    // Needed for the rk_time_step_newton() method.
+    virtual VectorFormSurf<double>* clone();
 
     // Fire temperature as function of x and t.
     template<typename Real>

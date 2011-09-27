@@ -56,7 +56,7 @@ const double ERR_STOP = 1.0;                      // Stopping criterion for adap
                                                   // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 1000;                       // Adaptivity process stops when the number of degrees of freedom grows
                                                   // over this limit. This is to prevent h-adaptivity to go on forever.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
                                                   // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 
 // Newton's method
@@ -184,7 +184,7 @@ int main(int argc, char* argv[])
       DiscreteProblem<double> dp(&wf, ref_space);
 
       // Initialize Runge-Kutta time stepping.
-      RungeKutta<double> runge_kutta(&dp, &bt, matrix_solver);
+      RungeKutta<double> runge_kutta(&dp, &bt, matrix_solver_type);
 
       // Perform one Runge-Kutta time step according to the selected Butcher's table.
       info("Runge-Kutta time step (t = %g s, tau = %g s, stages: %d).",
@@ -202,7 +202,7 @@ int main(int argc, char* argv[])
       // Project the fine mesh solution onto the coarse mesh.
       Solution<double> sln_coarse;
       info("Projecting fine mesh solution on coarse mesh for error estimation.");
-      OGProjection<double>::project_global(&space, &sln_time_new, &sln_coarse, matrix_solver); 
+      OGProjection<double>::project_global(&space, &sln_time_new, &sln_coarse, matrix_solver_type); 
 
       // Calculate element errors and total error estimate.
       info("Calculating error estimate.");

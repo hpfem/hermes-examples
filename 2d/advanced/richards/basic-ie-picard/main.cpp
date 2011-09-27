@@ -33,7 +33,7 @@ const int INIT_REF_NUM_BDY = 5;                   // Number of initial refinemen
 const int P_INIT = 2;                             // Initial polynomial degree.
 double time_step = 5e-4;                          // Time step.
 const double T_FINAL = 0.4;                       // Time interval length.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
                                                   // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 
 // Picard's method.
@@ -67,7 +67,7 @@ int main(int argc, char* argv[])
   double* coeff_vec = new double[ndof];
   memset(coeff_vec, 0, ndof*sizeof(double));
 
-  // Convert initial condition into a Solution.
+  // Coget_num_surf() initial condition into a Solution.
   Solution<double> h_time_prev, h_iter_prev;
   Solution<double>::vector_to_solution(coeff_vec, &space, &h_time_prev);
   Solution<double>::vector_to_solution(coeff_vec, &space, &h_iter_prev);
@@ -87,7 +87,7 @@ int main(int argc, char* argv[])
   DiscreteProblem<double> dp(&wf, &space);
 
   // Initialize the Picard solver.
-  PicardSolver<double> picard(&dp, &h_iter_prev, matrix_solver);
+  PicardSolver<double> picard(&dp, &h_iter_prev, matrix_solver_type);
   picard.set_verbose_output(true);
 
   // Time stepping:

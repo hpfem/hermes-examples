@@ -1,4 +1,5 @@
 #define HERMES_REPORT_ALL
+#define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
 #include "problem_data.h"
 

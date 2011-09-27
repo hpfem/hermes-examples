@@ -1,6 +1,4 @@
-#define HERMES_REPORT_WARN
-#define HERMES_REPORT_INFO
-#define HERMES_REPORT_VERBOSE
+#define HERMES_REPORT_ALL
 #define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
 
@@ -55,7 +53,7 @@ const double ERR_STOP = 3.0;                      // Stopping criterion for adap
                                                   // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;                      // Adaptivity process stops when the number of degrees of freedom grows over
                                                   // this limit. This is mainly to prevent h-adaptivity to go on forever.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
                                                   // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 
 // Problem parameters.
@@ -88,7 +86,7 @@ int main(int argc, char* argv[])
 
   // Load the mesh.
   Mesh xmesh, ymesh, tmesh;
-  H2DReader mloader;
+  MeshReaderH2D mloader;
   mloader.load("domain.mesh", &xmesh); // Master mesh.
 
   // Initialize multimesh hp-FEM.
@@ -112,9 +110,9 @@ int main(int argc, char* argv[])
   bc_values_t.add_const(BDY_HOLES, TEMP_INNER);
 
   // Create H1 spaces with default shapesets.
-  H1Space xdisp(&xmesh, &bc_types_x_y, &bc_values_x_y, P_INIT_DISP);
-  H1Space ydisp(MULTI ? &ymesh : &xmesh, &bc_types_x_y, &bc_values_x_y, P_INIT_DISP);
-  H1Space temp(MULTI ? &tmesh : &xmesh, &bc_types_t, &bc_values_t, P_INIT_TEMP);
+  H1Space<double> xdisp(&xmesh, &bc_types_x_y, &bc_values_x_y, P_INIT_DISP);
+  H1Space<double> ydisp(MULTI ? &ymesh : &xmesh, &bc_types_x_y, &bc_values_x_y, P_INIT_DISP);
+  H1Space<double> temp(MULTI ? &tmesh : &xmesh, &bc_types_t, &bc_values_t, P_INIT_TEMP);
 
   // Initialize the weak formulation.
   WeakForm wf(3);
@@ -129,7 +127,7 @@ int main(int argc, char* argv[])
   wf.add_vector_form_surf(2, callback(linear_form_surf_2));
 
   // Initialize coarse and reference mesh solutions.
-  Solution xdisp_sln, ydisp_sln, temp_sln, ref_xdisp_sln, ref_ydisp_sln, ref_temp_sln;
+  Solution<double> xdisp_sln, ydisp_sln, temp_sln, ref_xdisp_sln, ref_ydisp_sln, ref_temp_sln;
 
   // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
@@ -156,15 +154,15 @@ int main(int argc, char* argv[])
     info("---- Adaptivity step %d:", as);
 
     // Construct globally refined reference mesh and setup reference space.
-    Hermes::vector<Space *>* ref_spaces = Space::construct_refined_spaces(Hermes::vector<Space *>(&xdisp, &ydisp, &temp));
+    Hermes::vector<Space<double> *>* ref_spaces = Space<double>::construct_refined_spaces(Hermes::vector<Space<double> *>(&xdisp, &ydisp, &temp));
 
     // Assemble the reference problem.
     info("Solving on reference mesh.");
     bool is_linear = true;
     DiscreteProblem* dp = new DiscreteProblem(&wf, *ref_spaces, is_linear);
-    SparseMatrix* matrix = create_matrix(matrix_solver);
-    Vector* rhs = create_vector(matrix_solver);
-    Solver* solver = create_linear_solver(matrix_solver, matrix, rhs);
+    SparseMatrix<double>* matrix = create_matrix<double>(matrix_solver_type);
+    Vector<double>* rhs = create_vector<double>(matrix_solver_type);
+    LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver_type, matrix, rhs);
     dp->assemble(matrix, rhs);
 
     // Time measurement.
@@ -180,8 +178,8 @@ int main(int argc, char* argv[])
 
     // Project the fine mesh solution onto the coarse mesh.
     info("Projecting reference solution on coarse mesh.");
-    OGProjection::project_global(Hermes::vector<Space *>(&xdisp, &ydisp, &temp), Hermes::vector<Solution *>(&ref_xdisp_sln, &ref_ydisp_sln, &ref_temp_sln), 
-                   Hermes::vector<Solution *>(&xdisp_sln, &ydisp_sln, &temp_sln), matrix_solver); 
+    OGProjection::project_global(Hermes::vector<Space<double> *>(&xdisp, &ydisp, &temp), Hermes::vector<Solution *>(&ref_xdisp_sln, &ref_ydisp_sln, &ref_temp_sln), 
+                   Hermes::vector<Solution *>(&xdisp_sln, &ydisp_sln, &temp_sln), matrix_solver_type); 
    
     // View the coarse mesh solution and polynomial orders.
     s_view_0.show(&xdisp_sln); 
@@ -196,14 +194,14 @@ int main(int argc, char* argv[])
 
     // Calculate element errors.
     info("Calculating error estimate and exact error."); 
-    Adapt* adaptivity = new Adapt(Hermes::vector<Space *>(&xdisp, &ydisp, &temp));
-    adaptivity->set_error_form(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
-    adaptivity->set_error_form(0, 1, bilinear_form_0_1<scalar, scalar>, bilinear_form_0_1<Ord, Ord>);
-    adaptivity->set_error_form(0, 2, bilinear_form_0_2<scalar, scalar>, bilinear_form_0_2<Ord, Ord>);
-    adaptivity->set_error_form(1, 0, bilinear_form_1_0<scalar, scalar>, bilinear_form_1_0<Ord, Ord>);
-    adaptivity->set_error_form(1, 1, bilinear_form_1_1<scalar, scalar>, bilinear_form_1_1<Ord, Ord>);
-    adaptivity->set_error_form(1, 2, bilinear_form_1_2<scalar, scalar>, bilinear_form_1_2<Ord, Ord>);
-    adaptivity->set_error_form(2, 2, bilinear_form_2_2<scalar, scalar>, bilinear_form_2_2<Ord, Ord>);
+    Adapt* adaptivity = new Adapt(Hermes::vector<Space<double> *>(&xdisp, &ydisp, &temp));
+    adaptivity->set_error_form(0, 0, bilinear_form_0_0<double, double>, bilinear_form_0_0<Ord, Ord>);
+    adaptivity->set_error_form(0, 1, bilinear_form_0_1<double, double>, bilinear_form_0_1<Ord, Ord>);
+    adaptivity->set_error_form(0, 2, bilinear_form_0_2<double, double>, bilinear_form_0_2<Ord, Ord>);
+    adaptivity->set_error_form(1, 0, bilinear_form_1_0<double, double>, bilinear_form_1_0<Ord, Ord>);
+    adaptivity->set_error_form(1, 1, bilinear_form_1_1<double, double>, bilinear_form_1_1<Ord, Ord>);
+    adaptivity->set_error_form(1, 2, bilinear_form_1_2<double, double>, bilinear_form_1_2<Ord, Ord>);
+    adaptivity->set_error_form(2, 2, bilinear_form_2_2<double, double>, bilinear_form_2_2<Ord, Ord>);
 
     // Calculate error estimate for each solution component and the total error estimate.
     Hermes::vector<double> err_est_rel;
@@ -215,16 +213,16 @@ int main(int argc, char* argv[])
 
     // Report results.
     info("ndof_coarse[xdisp]: %d, ndof_fine[xdisp]: %d, err_est_rel[xdisp]: %g%%", 
-         xdisp.Space::get_num_dofs(), Space::get_num_dofs((*ref_spaces)[0]), err_est_rel[0]*100);
+         xdisp.Space<double>::get_num_dofs(), Space<double>::get_num_dofs((*ref_spaces)[0]), err_est_rel[0]*100);
     info("ndof_coarse[ydisp]: %d, ndof_fine[ydisp]: %d, err_est_rel[ydisp]: %g%%",
-         ydisp.Space::get_num_dofs(), Space::get_num_dofs((*ref_spaces)[1]), err_est_rel[1]*100);
+         ydisp.Space<double>::get_num_dofs(), Space<double>::get_num_dofs((*ref_spaces)[1]), err_est_rel[1]*100);
     info("ndof_coarse[temp]: %d, ndof_fine[temp]: %d, err_est_rel[temp]: %g%%",
-         temp.Space::get_num_dofs(), Space::get_num_dofs((*ref_spaces)[2]), err_est_rel[2]*100);
+         temp.Space<double>::get_num_dofs(), Space<double>::get_num_dofs((*ref_spaces)[2]), err_est_rel[2]*100);
     info("ndof_coarse_total: %d, ndof_fine_total: %d, err_est_rel_total: %g%%",
-         Space::get_num_dofs(Hermes::vector<Space *>(&xdisp, &ydisp, &temp)), Space::get_num_dofs(*ref_spaces), err_est_rel_total);
+         Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&xdisp, &ydisp, &temp)), Space<double>::get_num_dofs(*ref_spaces), err_est_rel_total);
 
     // Add entry to DOF and CPU convergence graphs.
-    graph_dof_est.add_values(Space::get_num_dofs(Hermes::vector<Space *>(&xdisp, &ydisp, &temp)), err_est_rel_total);
+    graph_dof_est.add_values(Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&xdisp, &ydisp, &temp)), err_est_rel_total);
     graph_dof_est.save("conv_dof_est.dat");
     graph_cpu_est.add_values(cpu_time.accumulated(), err_est_rel_total);
     graph_cpu_est.save("conv_cpu_est.dat");
@@ -238,7 +236,7 @@ int main(int argc, char* argv[])
       done = adaptivity->adapt(Hermes::vector<RefinementSelectors::Selector *>(&selector, &selector, &selector), 
                                THRESHOLD, STRATEGY, MESH_REGULARITY);
     }
-    if (Space::get_num_dofs(Hermes::vector<Space *>(&xdisp, &ydisp, &temp)) >= NDOF_STOP) done = true;
+    if (Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&xdisp, &ydisp, &temp)) >= NDOF_STOP) done = true;
 
     // Clean up.
     delete solver;

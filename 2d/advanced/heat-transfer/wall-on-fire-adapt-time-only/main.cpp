@@ -1,8 +1,6 @@
 #define HERMES_REPORT_ALL
 #define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
-#include "runge_kutta.h"
-
 
 
 //  This example models a nonstationary distribution of temperature within a wall
@@ -41,7 +39,7 @@ const double TIME_TOL_LOWER = 0.5;                // If rel. temporal error is l
                                                   // but do not repeat time step (this might need further research).
 const double TIME_STEP_INC_RATIO = 1.1;           // Time step increase ratio (applied when rel. temporal error is too small).
 const double TIME_STEP_DEC_RATIO = 0.8;           // Time step decrease ratio (applied when rel. temporal error is too large).
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
                                                   // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 
 // Choose one of the following time-integration methods, or define your own Butcher's table. The last number 
@@ -79,9 +77,6 @@ const double T_FINAL = 18000;      // Length of time interval in seconds.
 
 int main(int argc, char* argv[])
 {
-  // Instantiate a class with global functions.
-  Hermes2D hermes2d;
-
   // Choose a Butcher's table or define your own.
   ButcherTable bt(butcher_table_type);
   if (bt.is_explicit()) info("Using a %d-stage explicit R-K method.", bt.get_size());
@@ -90,7 +85,7 @@ int main(int argc, char* argv[])
 
   // Load the mesh.
   Mesh mesh;
-  H2DReader mloader;
+  MeshReaderH2D mloader;
   mloader.load("wall.mesh", &mesh);
 
   // Perform initial mesh refinements.
@@ -99,17 +94,17 @@ int main(int argc, char* argv[])
   mesh.refine_towards_boundary(BDY_FIRE, INIT_REF_NUM_BDY);
 
   // Initialize essential boundary conditions (none).
-  EssentialBCs bcs;
+  EssentialBCs<double> bcs;
 
   // Initialize an H1 space with default shapeset.
-  H1Space space(&mesh, &bcs, P_INIT);
-  int ndof = Space::get_num_dofs(&space);
+  H1Space<double> space(&mesh, &bcs, P_INIT);
+  int ndof = Space<double>::get_num_dofs(&space);
   info("ndof = %d.", ndof);
  
   // Previous and next time level solutions.
-  Solution* sln_time_prev = new Solution(&mesh, TEMP_INIT);
-  Solution* sln_time_new = new Solution(&mesh);
-  Solution* time_error_fn = new Solution(&mesh, 0.0);
+  ConstantSolution<double> sln_time_prev(&mesh, TEMP_INIT);
+  ZeroSolution sln_time_new(&mesh);
+  ConstantSolution<double> time_error_fn(&mesh, 0.0);
 
   // Initialize the weak formulation.
   double current_time = 0;
@@ -117,7 +112,7 @@ int main(int argc, char* argv[])
                           RHO, HEATCAP, TEMP_EXT_AIR, TEMP_INIT, &current_time);
 
   // Initialize the FE problem.
-  DiscreteProblem dp(&wf, &space);
+  DiscreteProblem<double> dp(&wf, &space);
 
   // Initialize views.
   ScalarView Tview("Temperature", new WinGeom(0, 0, 1500, 400));
@@ -130,7 +125,7 @@ int main(int argc, char* argv[])
   info("Time step history will be saved to file time_step_history.dat.");
 
   // Initialize Runge-Kutta time stepping.
-  RungeKutta runge_kutta(&dp, &bt, matrix_solver);
+  RungeKutta<double> runge_kutta(&dp, &bt, matrix_solver_type);
 
   // Time stepping loop:
   int ts = 1;
@@ -141,8 +136,8 @@ int main(int argc, char* argv[])
          current_time, time_step, bt.get_size());
     bool jacobian_changed = false;
     bool verbose = true;
-    if (!runge_kutta.rk_time_step(current_time, time_step, sln_time_prev, sln_time_new, 
-                                  time_error_fn, jacobian_changed, verbose)) {
+    if (!runge_kutta.rk_time_step_newton(current_time, time_step, &sln_time_prev, &sln_time_new, 
+                                  &time_error_fn, !jacobian_changed, false, verbose)) {
       error("Runge-Kutta time step failed, try to decrease time step size.");
     }
 
@@ -150,7 +145,7 @@ int main(int argc, char* argv[])
     char title[100];
     sprintf(title, "Temporal error, t = %g", current_time);
     eview.set_title(title);
-    AbsFilter abs_tef(time_error_fn);
+    AbsFilter abs_tef(&time_error_fn);
     eview.show(&abs_tef, HERMES_EPS_VERYHIGH);
 
     // Calculate relative time stepping error and decide whether the 
@@ -158,8 +153,8 @@ int main(int argc, char* argv[])
     // reduced and the entire time step repeated. If yes, then another
     // check is run, and if the relative error is very low, time step 
     // is increased.
-    double rel_err_time = hermes2d.calc_norm(time_error_fn, HERMES_H1_NORM) 
-                          / hermes2d.calc_norm(sln_time_new, HERMES_H1_NORM) * 100;
+    double rel_err_time = Global<double>::calc_norm(&time_error_fn, HERMES_H1_NORM) 
+                          / Global<double>::calc_norm(&sln_time_new, HERMES_H1_NORM) * 100;
     info("rel_err_time = %g%%", rel_err_time);
     if (rel_err_time > TIME_TOL_UPPER) {
       info("rel_err_time above upper limit %g%% -> decreasing time step from %g to %g and restarting time step.", 
@@ -183,20 +178,15 @@ int main(int argc, char* argv[])
     // Show the new time level solution.
     sprintf(title, "Time %3.2f s", current_time);
     Tview.set_title(title);
-    Tview.show(sln_time_new);
+    Tview.show(&sln_time_new);
 
     // Copy solution for the new time step.
-    sln_time_prev->copy(sln_time_new);
+    sln_time_prev.copy(&sln_time_new);
 
     // Increase counter of time steps.
     ts++;
   } 
   while (current_time < T_FINAL);
-
-  // Cleanup.
-  delete sln_time_prev;
-  delete sln_time_new;
-  delete time_error_fn;
 
   // Wait for the view to be closed.
   View::wait();

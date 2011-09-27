@@ -2,9 +2,6 @@
 #define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
 
-
-
-
 //  This problem describes the distribution of the vector potential in
 //  a 2D domain comprising a wire carrying electrical current, air, and
 //  an iron which is not under voltage.
@@ -54,7 +51,7 @@ const char* preconditioner = "least-squares";     // Name of the preconditioner 
                                                   // the other solvers).
                                                   // Possibilities: none, jacobi, neumann, least-squares, or a
                                                   //  preconditioner from IFPACK (see solver/aztecoo.h)
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
                                                   // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 
 
@@ -63,19 +60,17 @@ const double RHO = 1.25;
 const double FREQ = 5e2;
 const double OMEGA = 2 * M_PI * FREQ;
 const double SOUND_SPEED = 353.0;
-const scalar P_SOURCE(1.0, 0.0);
+const std::complex<double> P_SOURCE(1.0, 0.0);
 
 int main(int argc, char* argv[])
 {
-  Hermes2D hermes2d;
-
   // Time measurement.
   TimePeriod cpu_time;
   cpu_time.tick();
 
   // Load the mesh.
   Mesh mesh;
-  H2DReader mloader;
+  MeshReaderH2D mloader;
   mloader.load("domain.mesh", &mesh);
 
   //MeshView mv("Initial mesh", new WinGeom(0, 0, 400, 400));
@@ -86,41 +81,34 @@ int main(int argc, char* argv[])
   for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
 
   // Initialize boundary conditions.
-  DefaultEssentialBCConst bc_essential("Source", P_SOURCE);
-  EssentialBCs bcs(&bc_essential);
+  DefaultEssentialBCConst<std::complex<double> > bc_essential("Source", P_SOURCE);
+  EssentialBCs<std::complex<double> > bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.
-  H1Space space(&mesh, &bcs, P_INIT);
-  int ndof = Space::get_num_dofs(&space);
+  H1Space<std::complex<double> > space(&mesh, &bcs, P_INIT);
+  int ndof = Space<std::complex<double> >::get_num_dofs(&space);
   info("ndof = %d", ndof);
 
   // Initialize the weak formulation.
   CustomWeakFormAcoustics wf("Wall", RHO, SOUND_SPEED, OMEGA);
 
   // Initialize coarse and reference mesh solution.
-  Solution sln, ref_sln;
+  Solution<std::complex<double> > sln, ref_sln;
 
   // Initialize refinement selector.
-  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
+  H1ProjBasedSelector<std::complex<double> > selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Initialize views.
-  ScalarView sview("Solution", new WinGeom(0, 0, 600, 350));
-  sview.show_mesh(false);
-  sview.fix_scale_width(50);
+  ScalarView sview_real("Solution - real part", new WinGeom(0, 0, 600, 350));
+  ScalarView sview_imag("Solution - imaginary part", new WinGeom(360, 0, 600, 350));
+  sview_real.show_mesh(false);
+  sview_imag.show_mesh(false);
+  sview_real.fix_scale_width(50);
+  sview_imag.fix_scale_width(50);
   OrderView  oview("Polynomial orders", new WinGeom(610, 0, 600, 350));
 
   // DOF and CPU convergence graphs initialization.
   SimpleGraph graph_dof, graph_cpu;
-
-  SparseMatrix* matrix = create_matrix(matrix_solver);
-  Vector* rhs = create_vector(matrix_solver);
-  Solver* solver = create_linear_solver(matrix_solver, matrix, rhs);
-
-  if (matrix_solver == SOLVER_AZTECOO) {
-    ((AztecOOSolver*) solver)->set_solver(iterative_method);
-    ((AztecOOSolver*) solver)->set_precond(preconditioner);
-    // Using default iteration parameters (see solver/aztecoo.h).
-  }
 
   // Adaptivity loop:
   int as = 1;
@@ -130,51 +118,62 @@ int main(int argc, char* argv[])
     info("---- Adaptivity step %d:", as);
 
     // Construct globally refined reference mesh and setup reference space.
-    Space* ref_space = Space::construct_refined_space(&space);
-    int ndof_ref = Space::get_num_dofs(ref_space);
+    Space<std::complex<double> >* ref_space = Space<std::complex<double> >::construct_refined_space(&space);
+    int ndof_ref = Space<std::complex<double> >::get_num_dofs(ref_space);
 
     // Assemble the reference problem.
     info("Solving on reference mesh.");
-    DiscreteProblem* dp = new DiscreteProblem(&wf, ref_space);
+    DiscreteProblem<std::complex<double> > dp(&wf, ref_space);
 
     // Time measurement.
     cpu_time.tick();
 
     // Initial coefficient vector for the Newton's method.
-    scalar* coeff_vec = new scalar[ndof_ref];
-    memset(coeff_vec, 0, ndof_ref * sizeof(scalar));
+    std::complex<double>* coeff_vec = new std::complex<double>[ndof_ref];
+    memset(coeff_vec, 0, ndof_ref * sizeof(std::complex<double>));
 
     // Perform Newton's iteration.
-    if (!hermes2d.solve_newton(coeff_vec, dp, solver, matrix, rhs)) error("Newton's iteration failed.");
-
-    // Translate the resulting coefficient vector into the Solution sln.
-    Solution::vector_to_solution(coeff_vec, ref_space, &ref_sln);
+    Hermes::Hermes2D::NewtonSolver<std::complex<double> > newton(&dp, matrix_solver_type);
+    try
+    {
+      newton.solve(coeff_vec);
+    }
+    catch(Hermes::Exceptions::Exception e)
+    {
+      e.printMsg();
+      error("Newton's iteration failed.");
+    };
+    // Translate the resulting coefficient vector into the Solution<std::complex<double> > sln.
+    Hermes::Hermes2D::Solution<std::complex<double> >::vector_to_solution(newton.get_sln_vector(), ref_space, &ref_sln);
 
     // Project the fine mesh solution onto the coarse mesh.
     info("Projecting reference solution on coarse mesh.");
-    OGProjection::project_global(&space, &ref_sln, &sln, matrix_solver);
+    OGProjection<std::complex<double> >::project_global(&space, &ref_sln, &sln, matrix_solver_type);
 
     // Time measurement.
     cpu_time.tick();
 
     // View the coarse mesh solution and polynomial orders.
-    sview.show(&sln);
+    RealFilter real(&sln);
+    ImagFilter imag(&sln);
+    sview_real.show(&real);
+    sview_imag.show(&imag);
     oview.show(&space);
 
     // Calculate element errors and total error estimate.
     info("Calculating error estimate.");
-    Adapt* adaptivity = new Adapt(&space);
+    Adapt<std::complex<double> >* adaptivity = new Adapt<std::complex<double> >(&space);
     double err_est_rel = adaptivity->calc_err_est(&sln, &ref_sln) * 100;
 
     // Report results.
     info("ndof_coarse: %d, ndof_fine: %d, err_est_rel: %g%%",
-      Space::get_num_dofs(&space), Space::get_num_dofs(ref_space), err_est_rel);
+      Space<std::complex<double> >::get_num_dofs(&space), Space<std::complex<double> >::get_num_dofs(ref_space), err_est_rel);
 
     // Time measurement.
     cpu_time.tick();
 
     // Add entry to DOF and CPU convergence graphs.
-    graph_dof.add_values(Space::get_num_dofs(&space), err_est_rel);
+    graph_dof.add_values(Space<std::complex<double> >::get_num_dofs(&space), err_est_rel);
     graph_dof.save("conv_dof_est.dat");
     graph_cpu.add_values(cpu_time.accumulated(), err_est_rel);
     graph_cpu.save("conv_cpu_est.dat");
@@ -186,13 +185,12 @@ int main(int argc, char* argv[])
       info("Adapting coarse mesh.");
       done = adaptivity->adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
     }
-    if (Space::get_num_dofs(&space) >= NDOF_STOP) done = true;
+    if (Space<std::complex<double> >::get_num_dofs(&space) >= NDOF_STOP) done = true;
 
     delete adaptivity;
     if (done == false)
       delete ref_space->get_mesh();
     delete ref_space;
-    delete dp;
 
     // Increase counter.
     as++;
@@ -201,14 +199,14 @@ int main(int argc, char* argv[])
 
   verbose("Total running time: %g s", cpu_time.accumulated());
 
-  // Clean up.
-  delete solver;
-  delete matrix;
-  delete rhs;
-
   // Show the reference solution - the final result.
-  sview.set_title("Fine mesh solution");
-  sview.show(&ref_sln);
+  sview_real.set_title("Fine mesh solution - real part");
+  sview_imag.set_title("Fine mesh solution - imaginary part");
+
+  RealFilter ref_real(&ref_sln);
+  ImagFilter ref_imag(&ref_sln);
+  sview_real.show(&ref_real);
+  sview_imag.show(&ref_imag);
 
   // Wait for all views to be closed.
   View::wait();

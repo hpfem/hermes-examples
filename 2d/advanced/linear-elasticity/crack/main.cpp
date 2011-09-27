@@ -1,9 +1,6 @@
-#define HERMES_REPORT_WARN
-#define HERMES_REPORT_INFO
-#define HERMES_REPORT_VERBOSE
+#define HERMES_REPORT_ALL
 #define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
-
 
 
 // This example uses adaptive multimesh hp-FEM to solve a simple problem
@@ -56,7 +53,7 @@ const double CONV_EXP = 1.0;                      // Default value is 1.0. This 
 const double ERR_STOP = 0.1;                      // Stopping criterion for adaptivity (rel. error tolerance between the
                                                   // reference mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;                      // Adaptivity process stops when the number of degrees of freedom grows.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
                                                   // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 
 // Problem parameters.
@@ -90,18 +87,18 @@ int main(int argc, char* argv[])
   u2_mesh.copy(&u1_mesh);
 
   // Initialize boundary conditions
-  DefaultEssentialBCConst zero_disp(BDY_LEFT, 0.0);
-  EssentialBCs bcs(&zero_disp);
+  DefaultEssentialBCConst<double> zero_disp(BDY_LEFT, 0.0);
+  EssentialBCs<double> bcs(&zero_disp);
 
   // Initialize the weak formulation.
   DefaultWeakFormLinearElasticity wf(E, nu, g1*rho);
 
   // Create H1 spaces with default shapeset for both displacement components.
-  H1Space u1_space(&u1_mesh, &bcs, P_INIT_U1);
-  H1Space u2_space(&u2_mesh, &bcs, P_INIT_U2);
+  H1Space<double> u1_space(&u1_mesh, &bcs, P_INIT_U1);
+  H1Space<double> u2_space(&u2_mesh, &bcs, P_INIT_U2);
 
   // Initialize coarse and reference mesh solutions.
-  Solution u1_sln, u2_sln, u1_ref_sln, u2_ref_sln;
+  Solution<double> u1_sln, u2_sln, u1_ref_sln, u2_ref_sln;
 
   // Initialize refinement selector.
   H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
@@ -126,12 +123,12 @@ int main(int argc, char* argv[])
     info("---- Adaptivity step %d:", as);
 
     // Construct globally refined reference mesh and setup reference space.
-    Hermes::vector<Space *>* ref_spaces = Space::construct_refined_spaces(Hermes::vector<Space *>(&u1_space, &u2_space));
+    Hermes::vector<Space<double> *>* ref_spaces = Space<double>::construct_refined_spaces(Hermes::vector<Space<double> *>(&u1_space, &u2_space));
 
     // Initialize matrix solver.
-    SparseMatrix* matrix = create_matrix(matrix_solver);
-    Vector* rhs = create_vector(matrix_solver);
-    Solver* solver = create_linear_solver(matrix_solver, matrix, rhs);
+    SparseMatrix* matrix = create_matrix(matrix_solver_type);
+    Vector* rhs = create_vector(matrix_solver_type);
+    Solver* solver = create_linear_solver(matrix_solver_type, matrix, rhs);
 
     // Assemble the reference problem.
     info("Solving on reference mesh.");
@@ -152,9 +149,9 @@ int main(int argc, char* argv[])
 
     // Project the fine mesh solution onto the coarse mesh.
     info("Projecting reference solution on coarse mesh.");
-    OGProjection::project_global(Hermes::vector<Space *>(&u1_space, &u2_space), 
+    OGProjection::project_global(Hermes::vector<Space<double> *>(&u1_space, &u2_space), 
                                  Hermes::vector<Solution *>(&u1_ref_sln, &u2_ref_sln), 
-                                 Hermes::vector<Solution *>(&u1_sln, &u2_sln), matrix_solver); 
+                                 Hermes::vector<Solution *>(&u1_sln, &u2_sln), matrix_solver_type); 
    
     // View the coarse mesh solution and polynomial orders.
     s_view_0.show(&u1_sln); 
@@ -171,14 +168,14 @@ int main(int argc, char* argv[])
     cpu_time.tick(HERMES_SKIP);
 
     // Initialize adaptivity.
-    Adapt* adaptivity = new Adapt(Hermes::vector<Space *>(&u1_space, &u2_space));
+    Adapt* adaptivity = new Adapt(Hermes::vector<Space<double> *>(&u1_space, &u2_space));
 
     /*
     // Register custom forms for error calculation.
-    adaptivity->set_error_form(0, 0, bilinear_form_0_0<scalar, scalar>, bilinear_form_0_0<Ord, Ord>);
-    adaptivity->set_error_form(0, 1, bilinear_form_0_1<scalar, scalar>, bilinear_form_0_1<Ord, Ord>);
-    adaptivity->set_error_form(1, 0, bilinear_form_1_0<scalar, scalar>, bilinear_form_1_0<Ord, Ord>);
-    adaptivity->set_error_form(1, 1, bilinear_form_1_1<scalar, scalar>, bilinear_form_1_1<Ord, Ord>);
+    adaptivity->set_error_form(0, 0, bilinear_form_0_0<double, double>, bilinear_form_0_0<Ord, Ord>);
+    adaptivity->set_error_form(0, 1, bilinear_form_0_1<double, double>, bilinear_form_0_1<Ord, Ord>);
+    adaptivity->set_error_form(1, 0, bilinear_form_1_0<double, double>, bilinear_form_1_0<Ord, Ord>);
+    adaptivity->set_error_form(1, 1, bilinear_form_1_1<double, double>, bilinear_form_1_1<Ord, Ord>);
     */
     
     // Calculate error estimate for each solution component and the total error estimate.
@@ -192,15 +189,15 @@ int main(int argc, char* argv[])
 
     // Report results.
     info("ndof_coarse[0]: %d, ndof_fine[0]: %d, err_est_rel[0]: %g%%", 
-         u1_space.Space::get_num_dofs(), Space::get_num_dofs((*ref_spaces)[0]), err_est_rel[0]*100);
+         u1_space.Space<double>::get_num_dofs(), Space<double>::get_num_dofs((*ref_spaces)[0]), err_est_rel[0]*100);
     info("ndof_coarse[1]: %d, ndof_fine[1]: %d, err_est_rel[1]: %g%%",
-         u2_space.Space::get_num_dofs(), Space::get_num_dofs((*ref_spaces)[1]), err_est_rel[1]*100);
+         u2_space.Space<double>::get_num_dofs(), Space<double>::get_num_dofs((*ref_spaces)[1]), err_est_rel[1]*100);
     info("ndof_coarse_total: %d, ndof_fine_total: %d, err_est_rel_total: %g%%",
-         Space::get_num_dofs(Hermes::vector<Space *>(&u1_space, &u2_space)), 
-         Space::get_num_dofs(*ref_spaces), err_est_rel_total);
+         Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&u1_space, &u2_space)), 
+         Space<double>::get_num_dofs(*ref_spaces), err_est_rel_total);
 
     // Add entry to DOF and CPU convergence graphs.
-    graph_dof_est.add_values(Space::get_num_dofs(Hermes::vector<Space *>(&u1_space, &u2_space)), err_est_rel_total);
+    graph_dof_est.add_values(Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&u1_space, &u2_space)), err_est_rel_total);
     graph_dof_est.save("conv_dof_est.dat");
     graph_cpu_est.add_values(cpu_time.accumulated(), err_est_rel_total);
     graph_cpu_est.save("conv_cpu_est.dat");
@@ -215,7 +212,7 @@ int main(int argc, char* argv[])
       done = adaptivity->adapt(Hermes::vector<RefinementSelectors::Selector *>(&selector, &selector), 
                                MULTI ? THRESHOLD_MULTI:THRESHOLD_SINGLE, STRATEGY, MESH_REGULARITY);
     }
-    if (Space::get_num_dofs(Hermes::vector<Space *>(&u1_space, &u2_space)) >= NDOF_STOP) done = true;
+    if (Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&u1_space, &u2_space)) >= NDOF_STOP) done = true;
 
     // Clean up.
     delete solver;

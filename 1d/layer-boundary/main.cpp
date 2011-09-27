@@ -48,7 +48,7 @@ const double ERR_STOP = 1e-3;                      // Stopping criterion for ada
                                                   // reference mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 1000;                       // Adaptivity process stops when the number of degrees of freedom grows
                                                   // over this limit. This is to prevent h-adaptivity to go on forever.
-Hermes::MatrixSolverType matrix_solver = Hermes::SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+Hermes::MatrixSolverType matrix_solver_type = Hermes::SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
                                                   // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 
 // Problem parameters.
@@ -127,7 +127,7 @@ int main(int argc, char* argv[])
     double* coeff_vec = new double[ndof_ref];
     memset(coeff_vec, 0, ndof_ref * sizeof(double));
 
-    NewtonSolver<double> newton(&dp, matrix_solver);
+    NewtonSolver<double> newton(&dp, matrix_solver_type);
     newton.set_verbose_output(false);
     
     Solution<double> ref_sln;
@@ -148,7 +148,7 @@ int main(int argc, char* argv[])
 
     // Project the fine mesh solution onto the coarse mesh.
     info("Calculating error estimate and exact error.");
-    OGProjection<double>::project_global(&space, &ref_sln, &sln, matrix_solver);
+    OGProjection<double>::project_global(&space, &ref_sln, &sln, matrix_solver_type);
 
     // Calculate element errors and total error estimate.
     Adapt<double> adaptivity(&space);

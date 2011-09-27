@@ -1,6 +1,5 @@
 #define HERMES_REPORT_ALL
 #define HERMES_REPORT_FILE "application.log"
-#include "config.h"
 #include "definitions.h"
 
 //  This example solves a linear advection equation using Dicontinuous Galerkin (DG) method.
@@ -48,7 +47,7 @@ const double CONV_EXP = 1.0;                      // Default value is 1.0. This 
                                                   // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;                      // Adaptivity process stops when the number of degrees of freedom grows
                                                   // over this limit. This is to prevent h-adaptivity to go on forever.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
                                                   // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 
 const char* iterative_method = "bicgstab";        // Name of the iterative method employed by AztecOO (ignored
@@ -63,17 +62,17 @@ int main(int argc, char* args[])
 {
   // Load the mesh.
   Mesh mesh;
-  H2DReader mloader;
+  MeshReaderH2D mloader;
   mloader.load("square.mesh", &mesh);
 
   // Perform initial mesh refinement.
   for (int i=0; i<INIT_REF; i++) mesh.refine_all_elements();
   
   // Create an L2 space.
-  L2Space space(&mesh, P_INIT);
+  L2Space<double> space(&mesh, P_INIT);
   
   // Initialize refinement selector.
-  L2ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
+  L2ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
   
   // Disable weighting of refinement candidates.
   selector.set_error_weights(1, 1, 1);
@@ -88,14 +87,14 @@ int main(int argc, char* args[])
   // Display the mesh.
   OrderView oview("Coarse mesh", new WinGeom(0, 0, 440, 350));
   oview.show(&space);
-  BaseView bview("Distribution of polynomial orders", new WinGeom(450, 0, 440, 350));
+  BaseView<double> bview("Distribution of polynomial orders", new WinGeom(450, 0, 440, 350));
   bview.show(&space);
 
-  Solution sln;
-  Solution ref_sln;
+  Solution<double> sln;
+  Solution<double> ref_sln;
 
   // Initialize the weak formulation.
-  CustomWeakForm wf("Bdy_bottom_left");
+  CustomWeakForm wf("Bdy_bottom_left", &mesh);
 
   ScalarView view1("Solution", new WinGeom(900, 0, 450, 350));
   view1.fix_scale_width(60);
@@ -107,38 +106,30 @@ int main(int argc, char* args[])
 
     // Construct globally refined reference mesh
     // and setup reference space.
-    Space* ref_space = Space::construct_refined_space(&space);
+    Space<double>* ref_space = Space<double>::construct_refined_space(&space);
 
     info("Solving on reference mesh.");
 
 	  // Initialize the FE problem.
-    DiscreteProblem* dp = new DiscreteProblem(&wf, ref_space);
+    DiscreteProblem<double>* dp = new DiscreteProblem<double>(&wf, ref_space);
     
     // Set up the solver, matrix, and rhs according to the solver selection.
-    SparseMatrix* matrix = create_matrix(matrix_solver);
-    Vector* rhs = create_vector(matrix_solver);
-    Solver* solver = create_linear_solver(matrix_solver, matrix, rhs);
-
-    // Initialize the preconditioner in the case of SOLVER_AZTECOO.
-    if (matrix_solver == SOLVER_AZTECOO) 
-    {
-      ((AztecOOSolver*) solver)->set_solver(iterative_method);
-      ((AztecOOSolver*) solver)->set_precond(preconditioner);
-      // Using default iteration parameters (see solver/aztecoo.h).
-    }    
+    SparseMatrix<double>* matrix = create_matrix<double>(matrix_solver_type);
+    Vector<double>* rhs = create_vector<double>(matrix_solver_type);
+    LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver_type, matrix, rhs);
 
     // Assemble the linear problem.
-    info("Assembling (ndof: %d).", Space::get_num_dofs(ref_space));
+    info("Assembling (ndof: %d).", Space<double>::get_num_dofs(ref_space));
     dp->assemble(matrix, rhs);
 
     // Solve the linear system. If successful, obtain the solution.
     info("Solving.");
-    if(solver->solve()) Solution::vector_to_solution(solver->get_solution(), ref_space, &ref_sln);
+    if(solver->solve()) Solution<double>::vector_to_solution(solver->get_sln_vector(), ref_space, &ref_sln);
     else error ("Matrix solver failed.\n");
     
     // Project the fine mesh solution onto the coarse mesh.
     info("Projecting reference solution on coarse mesh.");
-    OGProjection::project_global(&space, &ref_sln, &sln, matrix_solver, HERMES_L2_NORM);  
+    OGProjection<double>::project_global(&space, &ref_sln, &sln, matrix_solver_type, HERMES_L2_NORM);  
 
     // Time measurement.
     cpu_time.tick();
@@ -152,18 +143,18 @@ int main(int argc, char* args[])
 
     // Calculate element errors and total error estimate.
     info("Calculating error estimate."); 
-    Adapt* adaptivity = new Adapt(&space);
+    Adapt<double>* adaptivity = new Adapt<double>(&space);
     double err_est_rel = adaptivity->calc_err_est(&sln, &ref_sln) * 100;
  
     // Report results.
     info("ndof_coarse: %d, ndof_fine: %d, err_est_rel: %g%%", 
-         Space::get_num_dofs(&space), Space::get_num_dofs(ref_space), err_est_rel);
+         Space<double>::get_num_dofs(&space), Space<double>::get_num_dofs(ref_space), err_est_rel);
 
     // Time measurement.
     cpu_time.tick();
 
     // Add entry to DOF and CPU convergence graphs.
-    graph_dof_est.add_values(Space::get_num_dofs(&space), err_est_rel);
+    graph_dof_est.add_values(Space<double>::get_num_dofs(&space), err_est_rel);
     graph_dof_est.save("conv_dof_est.dat");
     graph_cpu_est.add_values(cpu_time.accumulated(), err_est_rel);
     graph_cpu_est.save("conv_cpu_est.dat");
@@ -175,7 +166,7 @@ int main(int argc, char* args[])
       info("Adapting the coarse mesh.");
       done = adaptivity->adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
 
-      if (Space::get_num_dofs(&space) >= NDOF_STOP) 
+      if (Space<double>::get_num_dofs(&space) >= NDOF_STOP) 
       {
         done = true;
         break;

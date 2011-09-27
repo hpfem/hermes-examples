@@ -66,7 +66,7 @@ const double ERR_STOP = 0.1;                      // Stopping criterion for adap
                                                   // fine mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 1000;                       // Adaptivity process stops when the number of degrees of freedom grows over
                                                   // this limit. This is mainly to prevent h-adaptivity to go on forever.
- Hermes::MatrixSolverType matrix_solver = Hermes::SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+ Hermes::MatrixSolverType matrix_solver_type = Hermes::SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
                                                   // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 
 // Problem parameters.
@@ -167,7 +167,7 @@ int main(int argc, char* argv[])
     info("Solving on reference mesh.");
     DiscreteProblem<double> dp(&wf, *ref_spaces);
 
-    NewtonSolver<double> newton(&dp, matrix_solver);
+    NewtonSolver<double> newton(&dp, matrix_solver_type);
     newton.set_verbose_output(false);
 
     // Time measurement.
@@ -191,14 +191,14 @@ int main(int argc, char* argv[])
     Solution<double>::vector_to_solutions(newton.get_sln_vector(), *ref_spaces, 
                                             Hermes::vector<Solution<double> *>(&u_ref_sln, &v_ref_sln));
 
-    // Translate the resulting coefficient vector into the Solution sln.
+    // Translate the resulting coefficient vector into the Solution<double> sln.
     Solution<double>::vector_to_solutions(coeff_vec, *ref_spaces, Hermes::vector<Solution<double> *>(&u_ref_sln, &v_ref_sln));
 
     // Project the fine mesh solution onto the coarse mesh.
     info("Projecting reference solution on coarse mesh.");
     OGProjection<double>::project_global(Hermes::vector<Space<double> *>(&u_space, &v_space), 
                                  Hermes::vector<Solution<double> *>(&u_ref_sln, &v_ref_sln), 
-                                 Hermes::vector<Solution<double> *>(&u_sln, &v_sln), matrix_solver); 
+                                 Hermes::vector<Solution<double> *>(&u_sln, &v_sln), matrix_solver_type); 
    
     cpu_time.tick();
 

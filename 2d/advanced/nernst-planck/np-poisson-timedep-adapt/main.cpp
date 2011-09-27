@@ -1,5 +1,6 @@
-#include "header.h"
-
+#define HERMES_REPORT_ALL
+#define HERMES_REPORT_FILE "application.log"
+#include "definitions.h"
 
 #include "timestep_controller.h"
 
@@ -118,7 +119,7 @@ const double CONV_EXP = 1.0;                      // Default value is 1.0. This 
 const int NDOF_STOP = 5000;	                      // To prevent adaptivity from going on forever.
 const double ERR_STOP = 0.1;                      // Stopping criterion for adaptivity (rel. error tolerance between the
                                                   // fine mesh and coarse mesh solution in percent).
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
                                                   // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 
 // Weak forms
@@ -223,7 +224,7 @@ int main (int argc, char* argv[]) {
 
   DiscreteProblem<double> dp_coarse(wf, Hermes::vector<Space<double> *>(&C_space, &phi_space));
 
-  NewtonSolver<double>* solver_coarse = new NewtonSolver<double>(&dp_coarse, matrix_solver);
+  NewtonSolver<double>* solver_coarse = new NewtonSolver<double>(&dp_coarse, matrix_solver_type);
 
   // Project the initial condition on the FE space to obtain initial
   // coefficient vector for the Newton's method.
@@ -234,7 +235,7 @@ int main (int argc, char* argv[]) {
 
   OGProjection<double>::project_global(Hermes::vector<Space<double> *>(&C_space, &phi_space),
       Hermes::vector<MeshFunction<double> *>(&C_prev_time, &phi_prev_time),
-      coeff_vec_coarse, matrix_solver);
+      coeff_vec_coarse, matrix_solver_type);
 
   // Create a selector which will select optimal candidate.
   H1ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
@@ -265,7 +266,7 @@ int main (int argc, char* argv[]) {
 
   //View::wait(HERMES_WAIT_KEYPRESS);
 
-  // Translate the resulting coefficient vector into the Solution sln.
+  // Translate the resulting coefficient vector into the Solution<double> sln.
   Solution<double>::vector_to_solutions(coeff_vec_coarse, Hermes::vector<Space<double> *>(&C_space, &phi_space),
                                 Hermes::vector<Solution<double> *>(&C_sln, &phi_sln));
 
@@ -315,20 +316,20 @@ int main (int argc, char* argv[]) {
       double* coeff_vec = new double[ndof_ref];
       memset(coeff_vec, 0, ndof * sizeof(double));
 
-      NewtonSolver<double>* solver = new NewtonSolver<double>(dp, matrix_solver);
+      NewtonSolver<double>* solver = new NewtonSolver<double>(dp, matrix_solver_type);
 
       // Calculate initial coefficient vector for Newton on the fine mesh.
       if (as == 1 && pid.get_timestep_number() == 1) {
         info("Projecting coarse mesh solution to obtain coefficient vector on new fine mesh.");
         OGProjection<double>::project_global(*ref_spaces,
               Hermes::vector<MeshFunction<double> *>(&C_sln, &phi_sln),
-              coeff_vec, matrix_solver);
+              coeff_vec, matrix_solver_type);
       }
       else {
         info("Projecting previous fine mesh solution to obtain coefficient vector on new fine mesh.");
         OGProjection<double>::project_global(*ref_spaces,
               Hermes::vector<MeshFunction<double> *>(&C_ref_sln, &phi_ref_sln),
-              coeff_vec, matrix_solver);
+              coeff_vec, matrix_solver_type);
       }
       if (as > 1) {
         // Now deallocate the previous mesh
@@ -358,7 +359,7 @@ int main (int argc, char* argv[]) {
       OGProjection<double>::project_global(Hermes::vector<Space<double> *>(&C_space, &phi_space),
                                    Hermes::vector<Solution<double> *>(&C_ref_sln, &phi_ref_sln),
                                    Hermes::vector<Solution<double> *>(&C_sln, &phi_sln),
-                                   matrix_solver);
+                                   matrix_solver_type);
 
       // Calculate element errors and total error estimate.
       info("Calculating error estimate.");
