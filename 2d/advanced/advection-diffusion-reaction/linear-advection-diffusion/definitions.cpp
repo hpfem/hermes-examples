@@ -23,7 +23,7 @@ Scalar WeakFormLinearAdvectionDiffusion::MatrixFormVolAdvectionDiffusion::matrix
       Real R = Hermes::sqrt(R_squared); //This just does fabs(b1 * u->dx[i] + b2 * u->dy[i]); but it can be parsed
       result += wt[i] * s_c * 0.5 * h_e * R *
                 (u->dx[i]*v->dx[i] + u->dy[i]*v->dy[i]) /
-                (Hermes::sqrt(pow(u->dx[i], 2) + Hermes::pow(u->dy[i], 2)) + 1.e-8);
+                (Hermes::sqrt(Hermes::pow(u->dx[i], 2) + Hermes::pow(u->dy[i], 2)) + 1.e-8);
     }
       
     if(static_cast<WeakFormLinearAdvectionDiffusion*>(wf)->stabilization_on) 
