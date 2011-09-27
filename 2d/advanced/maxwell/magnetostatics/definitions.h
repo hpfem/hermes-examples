@@ -6,10 +6,12 @@ using namespace Hermes;
 using namespace Hermes::Hermes2D;
 using namespace Hermes::Hermes2D::Views;
 using namespace Hermes::Hermes2D::RefinementSelectors;
+using namespace Hermes::Hermes2D::WeakFormsH1;
+using namespace Hermes::Hermes2D::WeakFormsMaxwell;
 
 /* Weak forms */
 
-class CustomWeakFormMagnetostatics : public WeakForm
+class CustomWeakFormMagnetostatics : public WeakForm<double>
 {
 public:
   CustomWeakFormMagnetostatics(std::string material_iron_1, std::string material_iron_2,
@@ -18,23 +20,21 @@ public:
                                double current_density, int order_inc = 3);
 };
 
-class HERMES_API FilterVectorPotencial : public MagFilter
+class FilterVectorPotencial : public MagFilter<double>
 {
 public:
-  FilterVectorPotencial(Hermes::vector<MeshFunction*> solutions, Hermes::vector<int> items) 
-        : MagFilter(solutions, items) {};
+  FilterVectorPotencial(Hermes::vector<MeshFunction<double>*> solutions, Hermes::vector<int> items);
 
 protected:
-  void filter_fn(int n, Hermes::vector<scalar*> values, scalar* result, Geom<double> *e);
+  void filter_fn(int n, Hermes::vector<double*> values, double* result, Geom<double> *e);
 };
 
-class HERMES_API FilterFluxDensity : public Filter
+class FilterFluxDensity : public Filter<double>
 {
 public:
-  FilterFluxDensity(Hermes::vector<MeshFunction*> solutions)
-        : Filter(solutions) {};
+  FilterFluxDensity(Hermes::vector<MeshFunction<double>*> solutions);
 
-  virtual scalar get_pt_value(double x, double y, int item = H2D_FN_VAL);
+  virtual double get_pt_value(double x, double y, int item = H2D_FN_VAL);
 
 protected:
   void precalculate(int order, int mask);
