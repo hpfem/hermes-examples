@@ -2090,10 +2090,10 @@ public:
       double w[4];
 
       for (int i = 0;i < n;i++) {
-        w[0] = ext->fn[0]->get_val_central(i);
-        w[1] = ext->fn[1]->get_val_central(i);
-        w[2] = ext->fn[2]->get_val_central(i);
-        w[3] = ext->fn[3]->get_val_central(i);
+        w[0] = (ext->fn[0]->get_val_central(i) + ext->fn[0]->get_val_neighbor(i)) / 2;
+        w[1] = (ext->fn[1]->get_val_central(i) + ext->fn[1]->get_val_neighbor(i)) / 2;
+        w[2] = (ext->fn[2]->get_val_central(i) + ext->fn[2]->get_val_neighbor(i)) / 2;
+        w[3] = (ext->fn[3]->get_val_central(i) + ext->fn[3]->get_val_neighbor(i)) / 2;
 
         double e_1_1[4] = {1, 0, 0, 0};
         double e_2_1[4] = {0, 1, 0, 0};
@@ -2110,10 +2110,10 @@ public:
         num_flux->P_plus(P_plus_3, w, e_3_1, e->nx[i], e->ny[i]);
         num_flux->P_plus(P_plus_4, w, e_4_1, e->nx[i], e->ny[i]);
 
-        w[0] = ext->fn[0]->get_val_neighbor(i);
-        w[1] = ext->fn[1]->get_val_neighbor(i);
-        w[2] = ext->fn[2]->get_val_neighbor(i);
-        w[3] = ext->fn[3]->get_val_neighbor(i);
+        w[0] = (ext->fn[0]->get_val_central(i) + ext->fn[0]->get_val_neighbor(i)) / 2;
+        w[1] = (ext->fn[1]->get_val_central(i) + ext->fn[1]->get_val_neighbor(i)) / 2;
+        w[2] = (ext->fn[2]->get_val_central(i) + ext->fn[2]->get_val_neighbor(i)) / 2;
+        w[3] = (ext->fn[3]->get_val_central(i) + ext->fn[3]->get_val_neighbor(i)) / 2;
 
         double e_1_2[4] = {1, 0, 0, 0};
         double e_2_2[4] = {0, 1, 0, 0};

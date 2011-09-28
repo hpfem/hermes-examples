@@ -31,10 +31,11 @@ double DISCONTINUITY_DETECTOR_PARAM = 1.0;
 bool REUSE_SOLUTION = false;
 
 const int P_INIT = 2;                                   // Initial polynomial degree.                      
-const int INIT_REF_NUM_VERTEX = 1;                      // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM_BOUNDARY_ANISO = 7;              // Number of initial mesh refinements towards the profile.
-double CFL_NUMBER = 0.5;                                // CFL value.
-double time_step = 1E-4;                                // Initial time step.
+const int INIT_REF_NUM_VERTEX = 0;                      // Number of initial uniform mesh refinements.
+const int INIT_REF_NUM_BOUNDARY_ANISO = 3;              // Number of initial mesh refinements towards the profile.
+double CFL_NUMBER = 1.0;                                // CFL value.
+double time_step_n = 1E-6;                                // Initial time step.
+double time_step_n_minus_one = 1E-6;                                // Initial time step.
 const MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 
@@ -65,11 +66,12 @@ int main(int argc, char* argv[])
   mloader.load("domain-arcs.xml", &mesh);
   
   mesh.refine_towards_boundary(BDY_SOLID_WALL_PROFILE, INIT_REF_NUM_BOUNDARY_ANISO);
+  mesh.refine_all_elements(2);
+  mesh.refine_towards_boundary(BDY_SOLID_WALL_PROFILE, INIT_REF_NUM_BOUNDARY_ANISO);
   mesh.refine_towards_vertex(0, INIT_REF_NUM_VERTEX);
 
   MeshView m;
   m.show(&mesh);
-  m.wait_for_close();
 
   // Initialize boundary condition types and spaces with default shapesets.
   L2Space<double> space_rho(&mesh, P_INIT);
@@ -78,18 +80,6 @@ int main(int argc, char* argv[])
   L2Space<double> space_e(&mesh, P_INIT);
   int ndof = Space<double>::get_num_dofs(Hermes::vector<Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
   info("ndof: %d", ndof);
-
-  Element* e;
-  for_all_active_elements(e, &mesh)
-  {
-    if( ((std::abs(e->vn[0]->x - 6) < 0.5) || (std::abs(e->vn[1]->x - 6) < 0.5) || (std::abs(e->vn[2]->x - 6) < 0.5) || (std::abs(e->vn[3]->x - 6) < 0.5))
-      &&
-        ((std::abs(e->vn[0]->y) < 0.5) || (std::abs(e->vn[1]->y) < 0.5) || (std::abs(e->vn[2]->y) < 0.5) || (std::abs(e->vn[3]->y) < 0.5)))
-        space_rho.set_element_order(e->id, space_rho.get_element_order(e->id) + 6);
-  }
-  space_rho_v_x.copy_orders(&space_rho);
-  space_rho_v_y.copy_orders(&space_rho);
-  space_e.copy_orders(&space_rho);
         
   // Initialize solutions, set initial conditions.
   ConstantSolution<double> prev_rho(&mesh, RHO_EXT);
@@ -130,7 +120,7 @@ int main(int argc, char* argv[])
 
   // Initialize weak formulation.
   EulerEquationsWeakFormSemiImplicitMultiComponent2ndOrder wf(&num_flux, KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, BDY_SOLID_WALL, BDY_SOLID_WALL_PROFILE, 
-    BDY_INLET, BDY_OUTLET, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e2, &prev_rho2, &prev_rho_v_x2, &prev_rho_v_y2, &prev_e2);
+    BDY_INLET, BDY_OUTLET, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e2, &prev_rho2, &prev_rho_v_x2, &prev_rho_v_y2, &prev_e2, (P_INIT == 0));
 
   // Initialize the FE problem.
   DiscreteProblem<double> dp(&wf, Hermes::vector<Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
@@ -139,12 +129,15 @@ int main(int argc, char* argv[])
   for(; t < 3.0; t += time_step_n)
   {
     info("---- Time step %d, time %3.5f.", iteration++, t);
-
+    CFL.set_number(1.0 + (t/2.5) * 1000.0);
+    
     // Set the current time step.
     wf.set_time_step(time_step_n, time_step_n_minus_one);
 
     // Assemble the stiffness matrix and rhs.
     info("Assembling the stiffness matrix and right-hand side vector.");
+    if(P_INIT == 0)
+      dp.set_fvm();
     dp.assemble(matrix, rhs);
 
     // Solve the matrix problem.
@@ -180,7 +173,6 @@ int main(int argc, char* argv[])
     CFL.calculate_semi_implicit(Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), &mesh, time_step_n);
     
     // Visualization.
-
     if((iteration - 1) % EVERY_NTH_STEP == 0) 
     {
       // Hermes visualization.
