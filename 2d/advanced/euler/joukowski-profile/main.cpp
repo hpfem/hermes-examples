@@ -32,7 +32,7 @@ bool REUSE_SOLUTION = false;
 
 const int P_INIT = 2;                                   // Initial polynomial degree.                      
 const int INIT_REF_NUM_VERTEX = 1;                      // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM_BOUNDARY_ANISO = 4;              // Number of initial mesh refinements towards the profile.
+const int INIT_REF_NUM_BOUNDARY_ANISO = 7;              // Number of initial mesh refinements towards the profile.
 double CFL_NUMBER = 0.5;                                // CFL value.
 double time_step = 1E-4;                                // Initial time step.
 const MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
@@ -62,7 +62,7 @@ int main(int argc, char* argv[])
   // Load the mesh.
   Mesh mesh;
   MeshReaderH2DXML mloader;
-  mloader.load("domain-nurbs.xml", &mesh);
+  mloader.load("domain-arcs.xml", &mesh);
   
   mesh.refine_towards_boundary(BDY_SOLID_WALL_PROFILE, INIT_REF_NUM_BOUNDARY_ANISO);
   mesh.refine_towards_vertex(0, INIT_REF_NUM_VERTEX);
