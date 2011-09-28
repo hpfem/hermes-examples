@@ -2582,30 +2582,38 @@ public:
     double kappa;
   };
 
-  class TildeFilter : public SimpleFilter<double>
+  class TildeFilter : public DXDYFilter<double>
   {
   public:
-    TildeFilter(double * tau_k, double * tau_k_minus_one, Hermes::vector<MeshFunction<double>*> solutions, Hermes::vector<int> items = *(new Hermes::vector<int>)) : SimpleFilter<double>(solutions, items), tau_k(tau_k), tau_k_minus_one(tau_k_minus_one) {}
+    TildeFilter(double * tau_k, double * tau_k_minus_one, Hermes::vector<MeshFunction<double>*> solutions) : DXDYFilter<double>(solutions), tau_k(tau_k), tau_k_minus_one(tau_k_minus_one) {}
   protected:
-    virtual void filter_fn(int n, Hermes::vector<double*> values, double* result)
+    void filter_fn (int n, Hermes::vector<double *> values, Hermes::vector<double *> dx, Hermes::vector<double *> dy, double* rslt, double* rslt_dx, double* rslt_dy)
     {
       for (int i = 0; i < n; i++)
-        result[i] = (((*tau_k) + (*tau_k_minus_one)) * values.at(0)[i] / (*tau_k_minus_one)) - ((*tau_k) / (*tau_k_minus_one)) * values.at(1)[i];
+      {
+        rslt[i] = (((*tau_k) + (*tau_k_minus_one)) * values.at(0)[i] / (*tau_k_minus_one)) - ((*tau_k) / (*tau_k_minus_one)) * values.at(1)[i];
+        rslt_dx[i] = (((*tau_k) + (*tau_k_minus_one)) * dx.at(0)[i] / (*tau_k_minus_one)) - ((*tau_k) / (*tau_k_minus_one)) * dx.at(1)[i];
+        rslt_dx[i] = (((*tau_k) + (*tau_k_minus_one)) * dy.at(0)[i] / (*tau_k_minus_one)) - ((*tau_k) / (*tau_k_minus_one)) * dy.at(1)[i];
+      }
     };
    private:
     double* tau_k;
     double* tau_k_minus_one;
   };
 
-  class RhsFilter : public SimpleFilter<double>
+  class RhsFilter : public DXDYFilter<double>
   {
   public:
-    RhsFilter(double * tau_k, double * tau_k_minus_one, Hermes::vector<MeshFunction<double>*> solutions, Hermes::vector<int> items = *(new Hermes::vector<int>)) : SimpleFilter<double>(solutions, items), tau_k(tau_k), tau_k_minus_one(tau_k_minus_one) {}
+    RhsFilter(double * tau_k, double * tau_k_minus_one, Hermes::vector<MeshFunction<double>*> solutions) : DXDYFilter<double>(solutions), tau_k(tau_k), tau_k_minus_one(tau_k_minus_one) {}
   protected:
-    virtual void filter_fn(int n, Hermes::vector<double*> values, double* result)
+    void filter_fn (int n, Hermes::vector<double *> values, Hermes::vector<double *> dx, Hermes::vector<double *> dy, double* rslt, double* rslt_dx, double* rslt_dy)
     {
       for (int i = 0; i < n; i++)
-        result[i] = (((*tau_k) + (*tau_k_minus_one)) * values.at(0)[i] / ((*tau_k) * (*tau_k_minus_one))) - ((*tau_k) / ((*tau_k_minus_one) * ((*tau_k) + (*tau_k_minus_one)))) * values.at(1)[i];
+      {
+        rslt[i] = (((*tau_k) + (*tau_k_minus_one)) * values.at(0)[i] / ((*tau_k) * (*tau_k_minus_one))) - ((*tau_k) / ((*tau_k_minus_one) * ((*tau_k) + (*tau_k_minus_one)))) * values.at(1)[i];
+        rslt_dx[i] = (((*tau_k) + (*tau_k_minus_one)) * dx.at(0)[i] / ((*tau_k) * (*tau_k_minus_one))) - ((*tau_k) / ((*tau_k_minus_one) * ((*tau_k) + (*tau_k_minus_one)))) * dx.at(1)[i];
+        rslt_dy[i] = (((*tau_k) + (*tau_k_minus_one)) * dy.at(0)[i] / ((*tau_k) * (*tau_k_minus_one))) - ((*tau_k) / ((*tau_k_minus_one) * ((*tau_k) + (*tau_k_minus_one)))) * dy.at(1)[i];
+      }
     };
    private:
     double* tau_k;
@@ -2619,7 +2627,7 @@ public:
   double pressure_ext;
   double energy_ext;
   EulerFluxes* euler_fluxes;
-  public:
+public:
   double tau_k, tau_k_minus_one;
 };
 
