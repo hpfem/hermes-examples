@@ -62,7 +62,7 @@ int main(int argc, char* argv[])
   MeshReaderH2D mloader;
   mloader.load("domain.mesh", &mesh);
 
-  // Coget_num_surf() to quadrilaterals.
+  // Convert to quadrilaterals.
   mesh.convert_triangles_to_quads();
 
   // Refine towards boundary.

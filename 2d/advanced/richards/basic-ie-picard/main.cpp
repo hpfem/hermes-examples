@@ -67,7 +67,7 @@ int main(int argc, char* argv[])
   double* coeff_vec = new double[ndof];
   memset(coeff_vec, 0, ndof*sizeof(double));
 
-  // Coget_num_surf() initial condition into a Solution.
+  // Convert initial condition into a Solution.
   Solution<double> h_time_prev, h_iter_prev;
   Solution<double>::vector_to_solution(coeff_vec, &space, &h_time_prev);
   Solution<double>::vector_to_solution(coeff_vec, &space, &h_iter_prev);

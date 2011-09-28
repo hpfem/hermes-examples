@@ -97,6 +97,11 @@ int main(int argc, char* argv[])
     if (ts == 1) {
       info("Assembling the stiffness matrix and right-hand side vector.");
       dp.assemble(matrix, rhs);
+      static char file_name[1024];
+      sprintf(file_name, "matrix.m");
+      FILE *f = fopen(file_name, "w");
+      matrix->dump(f, "A");
+      fclose(f);
     }
     else {
       info("Assembling the right-hand side vector (only).");

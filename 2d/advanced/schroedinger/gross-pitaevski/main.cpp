@@ -68,7 +68,7 @@ int main(int argc, char* argv[])
   // Initial mesh refinements.
   for(int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
 
-  // Coget_num_surf() initial condition into a Solution<std::complex<double> >.
+  // Convert initial condition into a Solution<std::complex<double> >.
   CustomInitialCondition psi_time_prev(&mesh);
   Solution<std::complex<double> > psi_time_new(&mesh);
 

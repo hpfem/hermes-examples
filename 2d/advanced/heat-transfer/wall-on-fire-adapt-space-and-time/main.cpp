@@ -150,7 +150,7 @@ int main(int argc, char* argv[])
   int ndof = Space<double>::get_num_dofs(&space);
   info("ndof = %d.", ndof);
 
-  // Coget_num_surf() initial condition into a Solution.
+  // Convert initial condition into a Solution.
   ConstantSolution<double> sln_prev_time(&mesh, TEMP_INIT);
 
   // Initialize the weak formulation.
