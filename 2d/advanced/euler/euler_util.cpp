@@ -51,15 +51,15 @@ void CFLCalculation::calculate(Hermes::vector<Solution<double>*> solutions, Mesh
   Element *e;
   for_all_active_elements(e, mesh)
   {
-AsmList<double> al;
+  AsmList<double> al;
   constant_rho_space.get_element_assembly_list(e, &al);
-  double rho = sln_vector[al.dof[0]];
+  double rho = sln_vector[al.get_dof()[0]];
   constant_rho_v_x_space.get_element_assembly_list(e, &al);
-  double v1 = sln_vector[al.dof[0]] / rho;
+  double v1 = sln_vector[al.get_dof()[0]] / rho;
   constant_rho_v_y_space.get_element_assembly_list(e, &al);
-  double v2 = sln_vector[al.dof[0]] / rho;
+  double v2 = sln_vector[al.get_dof()[0]] / rho;
   constant_energy_space.get_element_assembly_list(e, &al);
-  double energy = sln_vector[al.dof[0]];
+  double energy = sln_vector[al.get_dof()[0]];
 
   double condition = e->get_area() * CFL_number / (std::sqrt(v1*v1 + v2*v2) + QuantityCalculator::calc_sound_speed(rho, rho*v1, rho*v2, energy, kappa));
 
@@ -93,13 +93,13 @@ void CFLCalculation::calculate_semi_implicit(Hermes::vector<Solution<double>*> s
   {
 AsmList<double> al;
   constant_rho_space.get_element_assembly_list(e, &al);
-  w[0] = sln_vector[al.dof[0]];
+  w[0] = sln_vector[al.get_dof()[0]];
   constant_rho_v_x_space.get_element_assembly_list(e, &al);
-  w[1] = sln_vector[al.dof[0]];
+  w[1] = sln_vector[al.get_dof()[0]];
   constant_rho_v_y_space.get_element_assembly_list(e, &al);
-  w[2] = sln_vector[al.dof[0]];
+  w[2] = sln_vector[al.get_dof()[0]];
   constant_energy_space.get_element_assembly_list(e, &al);
-  w[3] = sln_vector[al.dof[0]];
+  w[3] = sln_vector[al.get_dof()[0]];
 
   double edge_length_max_lambda = 0.0;
 
@@ -185,11 +185,11 @@ void ADEStabilityCalculation::calculate(Hermes::vector<Solution<double>*> soluti
   {
 AsmList<double> al;
   constant_rho_space.get_element_assembly_list(e, &al);
-  double rho = sln_vector[al.dof[0]];
+  double rho = sln_vector[al.get_dof()[0]];
   constant_rho_v_x_space.get_element_assembly_list(e, &al);
-  double v1 = sln_vector[al.dof[0]] / rho;
+  double v1 = sln_vector[al.get_dof()[0]] / rho;
   constant_rho_v_y_space.get_element_assembly_list(e, &al);
-  double v2 = sln_vector[al.dof[0]] / rho;
+  double v2 = sln_vector[al.get_dof()[0]] / rho;
 
   double condition_advection = AdvectionRelativeConstant * approximate_inscribed_circle_radius(e) / std::sqrt(v1*v1 + v2*v2);
   double condition_diffusion = DiffusionRelativeConstant * e->get_area() / epsilon;
@@ -997,9 +997,9 @@ void FluxLimiter::limit_according_to_detector(Hermes::vector<Space<double> *> co
     for(std::set<int>::iterator it = discontinuous_elements.begin(); it != discontinuous_elements.end(); it++) {
       AsmList<double> al;
       spaces[space_i]->get_element_assembly_list(spaces[space_i]->get_mesh()->get_element(*it), &al);
-      for(unsigned int shape_i = 0; shape_i < al.cnt; shape_i++)
-        if(H2D_GET_H_ORDER(spaces[space_i]->get_shapeset()->get_order(al.idx[shape_i])) > 0 || H2D_GET_V_ORDER(spaces[space_i]->get_shapeset()->get_order(al.idx[shape_i])) > 0)
-          solution_vector[al.dof[shape_i]] = 0.0;
+      for(unsigned int shape_i = 0; shape_i < al.get_cnt(); shape_i++)
+        if(H2D_GET_H_ORDER(spaces[space_i]->get_shapeset()->get_order(al.get_idx()[shape_i])) > 0 || H2D_GET_V_ORDER(spaces[space_i]->get_shapeset()->get_order(al.get_idx()[shape_i])) > 0)
+          solution_vector[al.get_dof()[shape_i]] = 0.0;
     }
 
     // Now adjust the solutions.
@@ -1015,8 +1015,8 @@ void FluxLimiter::limit_according_to_detector(Hermes::vector<Space<double> *> co
       for(std::set<int>::iterator it = discontinuous_elements.begin(); it != discontinuous_elements.end(); it++) {
         AsmList<double> al;
         spaces[0]->get_element_assembly_list(spaces[0]->get_mesh()->get_element(*it), &al);
-        for(unsigned int shape_i = 0; shape_i < al.cnt; shape_i++) {
-          if(H2D_GET_H_ORDER(spaces[0]->get_shapeset()->get_order(al.idx[shape_i])) > 0 || H2D_GET_V_ORDER(spaces[0]->get_shapeset()->get_order(al.idx[shape_i])) > 0) {
+        for(unsigned int shape_i = 0; shape_i < al.get_cnt(); shape_i++) {
+          if(H2D_GET_H_ORDER(spaces[0]->get_shapeset()->get_order(al.get_idx()[shape_i])) > 0 || H2D_GET_V_ORDER(spaces[0]->get_shapeset()->get_order(al.get_idx()[shape_i])) > 0) {
             spaces[0]->get_mesh()->get_element(*it)->visited = true;
             bool all_sons_visited = true;
             for(unsigned int son_i = 0; son_i < 4; son_i++)
@@ -1049,9 +1049,9 @@ void FluxLimiter::limit_second_orders_according_to_detector(Hermes::vector<Space
     for(std::set<int>::iterator it = discontinuous_elements.begin(); it != discontinuous_elements.end(); it++) {
       AsmList<double> al;
       spaces[space_i]->get_element_assembly_list(spaces[space_i]->get_mesh()->get_element(*it), &al);
-      for(unsigned int shape_i = 0; shape_i < al.cnt; shape_i++)
-        if(H2D_GET_H_ORDER(spaces[space_i]->get_shapeset()->get_order(al.idx[shape_i])) > 1 || H2D_GET_V_ORDER(spaces[space_i]->get_shapeset()->get_order(al.idx[shape_i])) > 1)
-          solution_vector[al.dof[shape_i]] = 0.0;
+      for(unsigned int shape_i = 0; shape_i < al.get_cnt(); shape_i++)
+        if(H2D_GET_H_ORDER(spaces[space_i]->get_shapeset()->get_order(al.get_idx()[shape_i])) > 1 || H2D_GET_V_ORDER(spaces[space_i]->get_shapeset()->get_order(al.get_idx()[shape_i])) > 1)
+          solution_vector[al.get_dof()[shape_i]] = 0.0;
     }
 
     // Now adjust the solutions.
@@ -1078,10 +1078,10 @@ void FluxLimiter::limit_second_orders_according_to_detector(Hermes::vector<Space
       for(std::set<int>::iterator it = discontinuous_elements.begin(); it != discontinuous_elements.end(); it++) {
         AsmList<double> al;
         spaces[0]->get_element_assembly_list(spaces[0]->get_mesh()->get_element(*it), &al);
-        for(unsigned int shape_i = 0; shape_i < al.cnt; shape_i++) {
-          if(H2D_GET_H_ORDER(spaces[0]->get_shapeset()->get_order(al.idx[shape_i])) > 1 || H2D_GET_V_ORDER(spaces[0]->get_shapeset()->get_order(al.idx[shape_i])) > 1) {
-            int h_order_to_set = std::min(1, H2D_GET_H_ORDER(spaces[0]->get_shapeset()->get_order(al.idx[shape_i])));
-            int v_order_to_set = std::min(1, H2D_GET_V_ORDER(spaces[0]->get_shapeset()->get_order(al.idx[shape_i])));
+        for(unsigned int shape_i = 0; shape_i < al.get_cnt(); shape_i++) {
+          if(H2D_GET_H_ORDER(spaces[0]->get_shapeset()->get_order(al.get_idx()[shape_i])) > 1 || H2D_GET_V_ORDER(spaces[0]->get_shapeset()->get_order(al.get_idx()[shape_i])) > 1) {
+            int h_order_to_set = std::min(1, H2D_GET_H_ORDER(spaces[0]->get_shapeset()->get_order(al.get_idx()[shape_i])));
+            int v_order_to_set = std::min(1, H2D_GET_V_ORDER(spaces[0]->get_shapeset()->get_order(al.get_idx()[shape_i])));
             spaces[0]->get_mesh()->get_element(*it)->visited = true;
             bool all_sons_visited = true;
             for(unsigned int son_i = 0; son_i < 4; son_i++)

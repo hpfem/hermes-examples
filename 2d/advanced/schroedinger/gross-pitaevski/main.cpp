@@ -108,9 +108,16 @@ int main(int argc, char* argv[])
          current_time, time_step, bt.get_size());
     bool jacobian_changed = false;
     bool verbose = true;
-    if (!runge_kutta.rk_time_step_newton(current_time, time_step, &psi_time_prev, 
-                                  &psi_time_new, !jacobian_changed, false, verbose)) {
-      error("Runge-Kutta time step failed, try to decrease time step size.");
+    
+    try
+    {
+      runge_kutta.rk_time_step_newton(current_time, time_step, &psi_time_prev, 
+                                  &psi_time_new, !jacobian_changed, false, verbose);
+    }
+    catch(Exceptions::Exception& e)
+    {
+      e.printMsg();
+      error("Runge-Kutta time step failed");
     }
 
     // Show the new time level solution.

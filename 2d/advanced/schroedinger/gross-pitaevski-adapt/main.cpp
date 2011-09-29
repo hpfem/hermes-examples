@@ -233,11 +233,17 @@ int main(int argc, char* argv[])
       info("Runge-Kutta time step on fine mesh (t = %g s, time step = %g s, stages: %d).", 
          current_time, time_step, bt.get_size());
       bool verbose = true;
-      if (!runge_kutta.rk_time_step_newton(current_time, time_step, &psi_time_prev, 
+
+      try
+      {
+        runge_kutta.rk_time_step_newton(current_time, time_step, &psi_time_prev, 
                                     &ref_sln, time_error_fn, false, false, verbose, 
-                                    NEWTON_TOL_FINE, NEWTON_MAX_ITER)) {
-    
-        error("Runge-Kutta time step failed, try to decrease time step size.");
+                                    NEWTON_TOL_FINE, NEWTON_MAX_ITER);
+      }
+      catch(Exceptions::Exception& e)
+      {
+        e.printMsg();
+        error("Runge-Kutta time step failed");
       }
 
       /* If ADAPTIVE_TIME_STEP_ON == true, estimate temporal error. 

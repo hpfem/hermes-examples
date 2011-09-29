@@ -136,9 +136,16 @@ int main(int argc, char* argv[])
          current_time, time_step, bt.get_size());
     bool jacobian_changed = false;
     bool verbose = true;
-    if (!runge_kutta.rk_time_step_newton(current_time, time_step, &sln_time_prev, &sln_time_new, 
-                                  &time_error_fn, !jacobian_changed, false, verbose)) {
-      error("Runge-Kutta time step failed, try to decrease time step size.");
+
+    try
+    {
+      runge_kutta.rk_time_step_newton(current_time, time_step, &sln_time_prev, &sln_time_new, 
+                                  &time_error_fn, !jacobian_changed, false, verbose);
+    }
+    catch(Exceptions::Exception& e)
+    {
+      e.printMsg();
+      error("Runge-Kutta time step failed");
     }
 
     // Plot error function.
