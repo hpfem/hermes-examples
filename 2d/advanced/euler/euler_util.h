@@ -178,6 +178,8 @@ protected:
   Hermes::vector<Solution<double>*> limited_solutions;
 };
 
+template<typename Scalar> class Hermes::Hermes2D::SimpleFilter;
+
 // Filters.
 class MachNumberFilter : public SimpleFilter<double>
 {
