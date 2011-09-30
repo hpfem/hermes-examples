@@ -2744,7 +2744,7 @@ public:
   };
 
 
-  class TildeFilter : public DXDYFilter<double>
+  class TildeFilter : public Hermes::Hermes2D::DXDYFilter<double>
   {
   public:
     TildeFilter(double * tau_k, double * tau_k_minus_one, Hermes::vector<MeshFunction<double>*> solutions) : DXDYFilter<double>(solutions), tau_k(tau_k), tau_k_minus_one(tau_k_minus_one) {}
@@ -2763,7 +2763,7 @@ public:
     double* tau_k_minus_one;
   };
 
-  class RhsFilter : public DXDYFilter<double>
+  class RhsFilter : public Hermes::Hermes2D::DXDYFilter<double>
   {
   public:
     RhsFilter(double * tau_k, double * tau_k_minus_one, Hermes::vector<MeshFunction<double>*> solutions) : DXDYFilter<double>(solutions), tau_k(tau_k), tau_k_minus_one(tau_k_minus_one) {}
