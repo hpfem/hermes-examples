@@ -19,9 +19,9 @@ using namespace Hermes::Hermes2D::Views;
 //
 // The following parameters can be changed:
 // Visualization.
-const bool HERMES_VISUALIZATION = true;           // Set to "true" to enable Hermes OpenGL visualization. 
-const bool VTK_VISUALIZATION = false;             // Set to "true" to enable VTK output.
-const unsigned int EVERY_NTH_STEP = 1;            // Set visual output for every nth step.
+const bool HERMES_VISUALIZATION = false;           // Set to "true" to enable Hermes OpenGL visualization. 
+const bool VTK_VISUALIZATION = true;             // Set to "true" to enable VTK output.
+const unsigned int EVERY_NTH_STEP = 10;            // Set visual output for every nth step.
 
 // Shock capturing.
 enum shockCapturingType
@@ -30,8 +30,8 @@ enum shockCapturingType
   KUZMIN,
   KRIVODONOVA
 };
-bool SHOCK_CAPTURING = false;
-shockCapturingType SHOCK_CAPTURING_TYPE = FEISTAUER;
+bool SHOCK_CAPTURING = true;
+shockCapturingType SHOCK_CAPTURING_TYPE = KUZMIN;
 // Quantitative parameter of the discontinuity detector in case of Krivodonova.
 double DISCONTINUITY_DETECTOR_PARAM = 1.0;
 // Quantitative parameter of the shock capturing in case of Feistauer.

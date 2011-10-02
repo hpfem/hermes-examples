@@ -19,9 +19,9 @@ using namespace Hermes::Hermes2D::Views;
 //
 // The following parameters can be changed:
 // Visualization.
-const bool HERMES_VISUALIZATION = true;           // Set to "true" to enable Hermes OpenGL visualization. 
-const bool VTK_VISUALIZATION = false;              // Set to "true" to enable VTK output.
-const unsigned int EVERY_NTH_STEP = 1;            // Set visual output for every nth step.
+const bool HERMES_VISUALIZATION = false;           // Set to "true" to enable Hermes OpenGL visualization. 
+const bool VTK_VISUALIZATION = true;              // Set to "true" to enable VTK output.
+const unsigned int EVERY_NTH_STEP = 10;            // Set visual output for every nth step.
 
 // Shock capturing.
 enum shockCapturingType
@@ -31,7 +31,7 @@ enum shockCapturingType
   KRIVODONOVA
 };
 bool SHOCK_CAPTURING = false;
-shockCapturingType SHOCK_CAPTURING_TYPE = FEISTAUER;
+shockCapturingType SHOCK_CAPTURING_TYPE = KUZMIN;
 // Quantitative parameter of the discontinuity detector in case of Krivodonova.
 double DISCONTINUITY_DETECTOR_PARAM = 1.0;
 // Quantitative parameter of the shock capturing in case of Feistauer.
@@ -41,10 +41,10 @@ const double NU_2 = 0.1;
 // For saving/loading of solution.
 bool REUSE_SOLUTION = false;
 
-const int P_INIT = 2;                                   // Initial polynomial degree.                      
-const int INIT_REF_NUM_VERTEX = 0;                      // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM_BOUNDARY_ANISO = 3;              // Number of initial mesh refinements towards the profile.
-double CFL_NUMBER = 1.0;                                // CFL value.
+const int P_INIT = 1;                                   // Initial polynomial degree.                      
+const int INIT_REF_NUM_VERTEX = 1;                      // Number of initial uniform mesh refinements.
+const int INIT_REF_NUM_BOUNDARY_ANISO = 4;              // Number of initial mesh refinements towards the profile.
+double CFL_NUMBER = 0.1;                                // CFL value.
 double time_step_n = 1E-6;                                // Initial time step.
 double time_step_n_minus_one = 1E-6;                                // Initial time step.
 
@@ -167,7 +167,7 @@ int main(int argc, char* argv[])
   for(; t < 3.0; t += time_step_n)
   {
     info("---- Time step %d, time %3.5f.", iteration++, t);
-    CFL.set_number(1.0 + (t/2.5) * 1000.0);
+    CFL.set_number(0.1 + (t/2.5) * 1000.0);
 
     if(SHOCK_CAPTURING && SHOCK_CAPTURING_TYPE == FEISTAUER)
     {
