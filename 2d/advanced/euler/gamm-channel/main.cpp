@@ -188,8 +188,6 @@ int main(int argc, char* argv[])
 
     // Assemble the stiffness matrix and rhs.
     info("Assembling the stiffness matrix and right-hand side vector.");
-    if(P_INIT == 0)
-      dp.set_fvm();
     dp.assemble(matrix, rhs);
 
     // Solve the matrix problem.
@@ -234,7 +232,6 @@ int main(int argc, char* argv[])
     CFL.calculate_semi_implicit(Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), &mesh, time_step_n);
 
     // Visualization.
-
     if((iteration - 1) % EVERY_NTH_STEP == 0) 
     {
       // Hermes visualization.

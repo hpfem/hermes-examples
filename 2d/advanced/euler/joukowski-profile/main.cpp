@@ -30,7 +30,7 @@ enum shockCapturingType
   KUZMIN,
   KRIVODONOVA
 };
-bool SHOCK_CAPTURING = true;
+bool SHOCK_CAPTURING = false;
 shockCapturingType SHOCK_CAPTURING_TYPE = FEISTAUER;
 // Quantitative parameter of the discontinuity detector in case of Krivodonova.
 double DISCONTINUITY_DETECTOR_PARAM = 1.0;
@@ -48,8 +48,10 @@ double CFL_NUMBER = 1.0;                                // CFL value.
 double time_step_n = 1E-6;                                // Initial time step.
 double time_step_n_minus_one = 1E-6;                                // Initial time step.
 
-const MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+// Matrix solver for orthogonal projections.
+// Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
 
 // Equation parameters.
 const double P_EXT = 7142.8571428571428571428571428571;         // Exterior pressure (dimensionless).
@@ -189,8 +191,6 @@ int main(int argc, char* argv[])
 
     // Assemble the stiffness matrix and rhs.
     info("Assembling the stiffness matrix and right-hand side vector.");
-    if(P_INIT == 0)
-      dp.set_fvm();
     dp.assemble(matrix, rhs);
 
     // Solve the matrix problem.
@@ -235,7 +235,6 @@ int main(int argc, char* argv[])
     CFL.calculate_semi_implicit(Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), &mesh, time_step_n);
     
     // Visualization.
-
     if((iteration - 1) % EVERY_NTH_STEP == 0) 
     {
       // Hermes visualization.

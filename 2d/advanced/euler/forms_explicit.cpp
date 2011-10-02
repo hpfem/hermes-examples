@@ -1074,9 +1074,57 @@ public:
   double get_tau() const {
     return tau;
   }
+   
+  void set_stabilization(Solution<double>* prev_density_1, Solution<double>* prev_density_vel_x_1, Solution<double>* prev_density_vel_y_1, Solution<double>* prev_energy_1, double nu_1, double nu_2) 
+  {
+    Hermes::vector<std::pair<unsigned int, unsigned int> > matrix_coordinates;
+    matrix_coordinates.push_back(std::pair<unsigned int, unsigned int>(0, 0));
+    matrix_coordinates.push_back(std::pair<unsigned int, unsigned int>(1, 1));
+    matrix_coordinates.push_back(std::pair<unsigned int, unsigned int>(2, 2));
+    matrix_coordinates.push_back(std::pair<unsigned int, unsigned int>(3, 3));
 
-  // Destructor.
-  ~EulerEquationsWeakFormSemiImplicitMultiComponent() {};
+    Hermes::vector<std::pair<unsigned int, unsigned int> > matrix_coordinates_full;
+    matrix_coordinates_full.push_back(std::pair<unsigned int, unsigned int>(0, 0));
+    matrix_coordinates_full.push_back(std::pair<unsigned int, unsigned int>(0, 1));
+    matrix_coordinates_full.push_back(std::pair<unsigned int, unsigned int>(0, 2));
+    matrix_coordinates_full.push_back(std::pair<unsigned int, unsigned int>(0, 3));
+    matrix_coordinates_full.push_back(std::pair<unsigned int, unsigned int>(1, 0));
+    matrix_coordinates_full.push_back(std::pair<unsigned int, unsigned int>(1, 1));
+    matrix_coordinates_full.push_back(std::pair<unsigned int, unsigned int>(1, 2));
+    matrix_coordinates_full.push_back(std::pair<unsigned int, unsigned int>(1, 3));
+    matrix_coordinates_full.push_back(std::pair<unsigned int, unsigned int>(2, 0));
+    matrix_coordinates_full.push_back(std::pair<unsigned int, unsigned int>(2, 1));
+    matrix_coordinates_full.push_back(std::pair<unsigned int, unsigned int>(2, 2));
+    matrix_coordinates_full.push_back(std::pair<unsigned int, unsigned int>(2, 3));
+    matrix_coordinates_full.push_back(std::pair<unsigned int, unsigned int>(3, 0));
+    matrix_coordinates_full.push_back(std::pair<unsigned int, unsigned int>(3, 1));
+    matrix_coordinates_full.push_back(std::pair<unsigned int, unsigned int>(3, 2));
+    matrix_coordinates_full.push_back(std::pair<unsigned int, unsigned int>(3, 3));
+
+    EulerEquationsFormStabilizationVol* vol_form = new EulerEquationsFormStabilizationVol(nu_1, matrix_coordinates);
+
+    vol_form->ext.push_back(prev_density_1);
+    vol_form->ext.push_back(prev_density_vel_x_1);
+    vol_form->ext.push_back(prev_density_vel_y_1);
+    vol_form->ext.push_back(prev_energy_1);
+
+    add_multicomponent_matrix_form(vol_form);
+
+    EulerEquationsFormStabilizationSurf* surf_form = new EulerEquationsFormStabilizationSurf(matrix_coordinates_full, nu_2);
+
+    surf_form->ext.push_back(prev_density_1);
+    surf_form->ext.push_back(prev_density_vel_x_1);
+    surf_form->ext.push_back(prev_density_vel_y_1);
+    surf_form->ext.push_back(prev_energy_1);
+
+    add_multicomponent_matrix_form_surf(surf_form);
+  }
+
+  void set_discreteIndicator(bool* discreteIndicator)
+  {
+    this->discreteIndicator = discreteIndicator;
+  }
+
 protected:
   class EulerEquationsBilinearFormTime : public MultiComponentMatrixFormVol<double>
   {
@@ -1781,6 +1829,76 @@ protected:
     double kappa;
   };
 
+  class EulerEquationsFormStabilizationVol : public MultiComponentMatrixFormVol<double>
+  {
+  public:
+    EulerEquationsFormStabilizationVol(double nu_1, Hermes::vector<std::pair<unsigned int, unsigned int> >coordinates) : MultiComponentMatrixFormVol<double>(coordinates), nu_1(nu_1) {}
+
+    void value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
+      Geom<double> *e, ExtData<double> *ext, Hermes::vector<double>& result) const 
+    {
+      double result_i = 0.;
+      if(static_cast<EulerEquationsWeakFormSemiImplicitMultiComponent*>(wf)->discreteIndicator[e->id]) 
+        result_i = int_grad_u_grad_v<double, double>(n, wt, u, v) * nu_1 * e->diam;
+      result.push_back(result_i);
+      result.push_back(result_i);
+      result.push_back(result_i);
+      result.push_back(result_i);
+    }
+
+    Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, 
+      ExtData<Ord> *ext) const {
+        return Ord(24);
+    }
+  private:
+    double nu_1;
+  };
+
+  class EulerEquationsFormStabilizationSurf : public MultiComponentMatrixFormSurf<double>
+  {
+  public:
+    EulerEquationsFormStabilizationSurf(Hermes::vector<std::pair<unsigned int, 
+      unsigned int> >coordinates, double nu_2) 
+      : MultiComponentMatrixFormSurf<double>(coordinates, H2D_DG_INNER_EDGE), nu_2(nu_2) { }
+
+    void value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
+      Func<double> *v, Geom<double> *e, ExtData<double> *ext, 
+      Hermes::vector<double>& result) const {
+        double result_i = 0;
+
+        if(static_cast<EulerEquationsWeakFormSemiImplicitMultiComponent*>(wf)->discreteIndicator[e->id] && static_cast<EulerEquationsWeakFormSemiImplicitMultiComponent*>(wf)->discreteIndicator[e->get_neighbor_id()])
+          for (int i = 0;i < n;i++)
+            result_i += wt[i] * (u->get_val_central(i) - u->get_val_neighbor(i)) * (v->get_val_central(i) - v->get_val_neighbor(i)) * nu_2;
+
+        result.push_back(result_i);
+        result.push_back(result_i);
+        result.push_back(result_i);
+        result.push_back(result_i);
+
+        result.push_back(result_i);
+        result.push_back(result_i);
+        result.push_back(result_i);
+        result.push_back(result_i);
+
+        result.push_back(result_i);
+        result.push_back(result_i);
+        result.push_back(result_i);
+        result.push_back(result_i);
+
+        result.push_back(result_i);
+        result.push_back(result_i);
+        result.push_back(result_i);
+        result.push_back(result_i);
+    }
+
+    Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
+      Geom<Ord> *e, ExtData<Ord> *ext) const {
+        return Ord(24);
+    }
+
+    double nu_2;
+  };
+
   // Members.
   double rho_ext;
   double v1_ext;
@@ -1789,6 +1907,7 @@ protected:
   double energy_ext;
   double tau;
   EulerFluxes* euler_fluxes;
+  bool* discreteIndicator;
 };
 
 class EulerEquationsWeakFormSemiImplicitMultiComponent2ndOrder : public WeakForm<double>
@@ -2672,7 +2791,6 @@ public:
     double kappa;
   };
 
-
   class EulerEquationsFormStabilizationVol : public MultiComponentMatrixFormVol<double>
   {
   public:
@@ -2742,7 +2860,6 @@ public:
 
     double nu_2;
   };
-
 
   class TildeFilter : public Hermes::Hermes2D::DXDYFilter<double>
   {
@@ -2909,9 +3026,57 @@ public:
   double get_tau() const {
     return tau;
   }
+  
+  void set_stabilization(Solution<double>* prev_density_1, Solution<double>* prev_density_vel_x_1, Solution<double>* prev_density_vel_y_1, Solution<double>* prev_energy_1, double nu_1, double nu_2) 
+  {
+    Hermes::vector<std::pair<unsigned int, unsigned int> > matrix_coordinates;
+    matrix_coordinates.push_back(std::pair<unsigned int, unsigned int>(0, 0));
+    matrix_coordinates.push_back(std::pair<unsigned int, unsigned int>(1, 1));
+    matrix_coordinates.push_back(std::pair<unsigned int, unsigned int>(2, 2));
+    matrix_coordinates.push_back(std::pair<unsigned int, unsigned int>(3, 3));
 
-  // Destructor.
-  ~EulerEquationsWeakFormSemiImplicitMultiComponentTwoInflows() {};
+    Hermes::vector<std::pair<unsigned int, unsigned int> > matrix_coordinates_full;
+    matrix_coordinates_full.push_back(std::pair<unsigned int, unsigned int>(0, 0));
+    matrix_coordinates_full.push_back(std::pair<unsigned int, unsigned int>(0, 1));
+    matrix_coordinates_full.push_back(std::pair<unsigned int, unsigned int>(0, 2));
+    matrix_coordinates_full.push_back(std::pair<unsigned int, unsigned int>(0, 3));
+    matrix_coordinates_full.push_back(std::pair<unsigned int, unsigned int>(1, 0));
+    matrix_coordinates_full.push_back(std::pair<unsigned int, unsigned int>(1, 1));
+    matrix_coordinates_full.push_back(std::pair<unsigned int, unsigned int>(1, 2));
+    matrix_coordinates_full.push_back(std::pair<unsigned int, unsigned int>(1, 3));
+    matrix_coordinates_full.push_back(std::pair<unsigned int, unsigned int>(2, 0));
+    matrix_coordinates_full.push_back(std::pair<unsigned int, unsigned int>(2, 1));
+    matrix_coordinates_full.push_back(std::pair<unsigned int, unsigned int>(2, 2));
+    matrix_coordinates_full.push_back(std::pair<unsigned int, unsigned int>(2, 3));
+    matrix_coordinates_full.push_back(std::pair<unsigned int, unsigned int>(3, 0));
+    matrix_coordinates_full.push_back(std::pair<unsigned int, unsigned int>(3, 1));
+    matrix_coordinates_full.push_back(std::pair<unsigned int, unsigned int>(3, 2));
+    matrix_coordinates_full.push_back(std::pair<unsigned int, unsigned int>(3, 3));
+
+    EulerEquationsFormStabilizationVol* vol_form = new EulerEquationsFormStabilizationVol(nu_1, matrix_coordinates);
+
+    vol_form->ext.push_back(prev_density_1);
+    vol_form->ext.push_back(prev_density_vel_x_1);
+    vol_form->ext.push_back(prev_density_vel_y_1);
+    vol_form->ext.push_back(prev_energy_1);
+
+    add_multicomponent_matrix_form(vol_form);
+
+    EulerEquationsFormStabilizationSurf* surf_form = new EulerEquationsFormStabilizationSurf(matrix_coordinates_full, nu_2);
+
+    surf_form->ext.push_back(prev_density_1);
+    surf_form->ext.push_back(prev_density_vel_x_1);
+    surf_form->ext.push_back(prev_density_vel_y_1);
+    surf_form->ext.push_back(prev_energy_1);
+
+    add_multicomponent_matrix_form_surf(surf_form);
+  }
+
+  void set_discreteIndicator(bool* discreteIndicator)
+  {
+    this->discreteIndicator = discreteIndicator;
+  }
+
 protected:
   class EulerEquationsBilinearFormTime : public MultiComponentMatrixFormVol<double>
   {
@@ -3892,6 +4057,76 @@ protected:
     double kappa;
   };
 
+  class EulerEquationsFormStabilizationVol : public MultiComponentMatrixFormVol<double>
+  {
+  public:
+    EulerEquationsFormStabilizationVol(double nu_1, Hermes::vector<std::pair<unsigned int, unsigned int> >coordinates) : MultiComponentMatrixFormVol<double>(coordinates), nu_1(nu_1) {}
+
+    void value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
+      Geom<double> *e, ExtData<double> *ext, Hermes::vector<double>& result) const 
+    {
+      double result_i = 0.;
+      if(static_cast<EulerEquationsWeakFormSemiImplicitMultiComponentTwoInflows*>(wf)->discreteIndicator[e->id]) 
+        result_i = int_grad_u_grad_v<double, double>(n, wt, u, v) * nu_1 * e->diam;
+      result.push_back(result_i);
+      result.push_back(result_i);
+      result.push_back(result_i);
+      result.push_back(result_i);
+    }
+
+    Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, 
+      ExtData<Ord> *ext) const {
+        return Ord(24);
+    }
+  private:
+    double nu_1;
+  };
+
+  class EulerEquationsFormStabilizationSurf : public MultiComponentMatrixFormSurf<double>
+  {
+  public:
+    EulerEquationsFormStabilizationSurf(Hermes::vector<std::pair<unsigned int, 
+      unsigned int> >coordinates, double nu_2) 
+      : MultiComponentMatrixFormSurf<double>(coordinates, H2D_DG_INNER_EDGE), nu_2(nu_2) { }
+
+    void value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
+      Func<double> *v, Geom<double> *e, ExtData<double> *ext, 
+      Hermes::vector<double>& result) const {
+        double result_i = 0;
+
+        if(static_cast<EulerEquationsWeakFormSemiImplicitMultiComponentTwoInflows*>(wf)->discreteIndicator[e->id] && static_cast<EulerEquationsWeakFormSemiImplicitMultiComponentTwoInflows*>(wf)->discreteIndicator[e->get_neighbor_id()])
+          for (int i = 0;i < n;i++)
+            result_i += wt[i] * (u->get_val_central(i) - u->get_val_neighbor(i)) * (v->get_val_central(i) - v->get_val_neighbor(i)) * nu_2;
+
+        result.push_back(result_i);
+        result.push_back(result_i);
+        result.push_back(result_i);
+        result.push_back(result_i);
+
+        result.push_back(result_i);
+        result.push_back(result_i);
+        result.push_back(result_i);
+        result.push_back(result_i);
+
+        result.push_back(result_i);
+        result.push_back(result_i);
+        result.push_back(result_i);
+        result.push_back(result_i);
+
+        result.push_back(result_i);
+        result.push_back(result_i);
+        result.push_back(result_i);
+        result.push_back(result_i);
+    }
+
+    Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
+      Geom<Ord> *e, ExtData<Ord> *ext) const {
+        return Ord(24);
+    }
+
+    double nu_2;
+  };
+
   // Members.
   double rho_ext1;
   double v1_ext1;
@@ -3907,6 +4142,7 @@ protected:
 
   double tau;
   EulerFluxes* euler_fluxes;
+  bool* discreteIndicator;
 };
 
 class EulerEquationsWeakFormExplicitCoupled : public EulerEquationsWeakFormExplicitMultiComponent
