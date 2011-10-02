@@ -44,7 +44,7 @@ bool REUSE_SOLUTION = false;
 const int P_INIT = 1;                                   // Initial polynomial degree.                      
 const int INIT_REF_NUM = 2;                             // Number of initial uniform mesh refinements.                       
 const int INIT_REF_NUM_STEP = 0;                        // Number of initial localized mesh refinements.                       
-double CFL_NUMBER = 0.5;                                // CFL value.
+double CFL_NUMBER = 0.1;                                // CFL value.
 double time_step = 1E-6;                                // Initial time step.
 const MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
@@ -166,7 +166,7 @@ int main(int argc, char* argv[])
   for(; t < 10.0; t += time_step)
   {
     info("---- Time step %d, time %3.5f.", iteration++, t);
-
+    CFL.set_number(0.1 + (t/7.0) * 1.0);
     if(SHOCK_CAPTURING && SHOCK_CAPTURING_TYPE == FEISTAUER)
     {
       assert(space_stabilization.get_num_dofs() == space_stabilization.get_mesh()->get_num_active_elements());
