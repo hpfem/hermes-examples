@@ -41,9 +41,9 @@ const double NU_2 = 0.1;
 // For saving/loading of solution.
 bool REUSE_SOLUTION = false;
 
-const int P_INIT = 1;                                   // Initial polynomial degree.                      
-const int INIT_REF_NUM = 2;                             // Number of initial uniform mesh refinements.                       
-double CFL_NUMBER = 1.0;                                // CFL value.
+const int P_INIT = 0;                                   // Initial polynomial degree.                      
+const int INIT_REF_NUM = 3;                             // Number of initial uniform mesh refinements.                       
+double CFL_NUMBER = 0.1;                                // CFL value.
 double time_step_n = 1E-6;                                // Initial time step.
 double time_step_n_minus_one = 1E-6;                                // Initial time step.
 
@@ -191,13 +191,6 @@ int main(int argc, char* argv[])
     if(P_INIT == 0)
       dp.set_fvm();
     dp.assemble(matrix, rhs);
-
-    std::ofstream out("out");
-      for(int i = 0; i < matrix->get_size(); i++)
-        for(int j = 0; j < matrix->get_size(); j++)
-          if(std::abs(matrix->get(i,j)) > 1E-3)
-            out << i << ',' << j << ':' << matrix->get(i,j) << std::endl;
-      out.close();
 
     // Solve the matrix problem.
     info("Solving the matrix problem.");

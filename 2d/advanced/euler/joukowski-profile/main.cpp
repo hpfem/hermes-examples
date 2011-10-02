@@ -82,9 +82,6 @@ int main(int argc, char* argv[])
   mesh.refine_towards_boundary(BDY_SOLID_WALL_PROFILE, INIT_REF_NUM_BOUNDARY_ANISO);
   mesh.refine_towards_vertex(0, INIT_REF_NUM_VERTEX);
 
-  MeshView m;
-  m.show(&mesh);
-
   // Initialize boundary condition types and spaces with default shapesets.
   L2Space<double> space_rho(&mesh, P_INIT);
   L2Space<double> space_rho_v_x(&mesh, P_INIT);

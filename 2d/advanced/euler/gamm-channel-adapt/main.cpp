@@ -42,10 +42,10 @@ const double NU_2 = 0.1;
 bool REUSE_SOLUTION = false;
 
 const int P_INIT = 0;                             // Initial polynomial degree.                      
-const int INIT_REF_NUM = 2;                             // Number of initial uniform mesh refinements.                       
-double CFL_NUMBER = 1.0;                                // CFL value.
-double time_step_n = 1E-6;                                // Initial time step.
-double time_step_n_minus_one = 1E-6;                                // Initial time step.
+const int INIT_REF_NUM = 2;                       // Number of initial uniform mesh refinements.                       
+double CFL_NUMBER = 1.0;                          // CFL value.
+double time_step_n = 1E-6;                        // Initial time step.
+double time_step_n_minus_one = 1E-6;              // Initial time step.
 
 // Adaptivity.
 // Every UNREF_FREQth time step the mesh is unrefined.
