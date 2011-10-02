@@ -205,7 +205,7 @@ int main(int argc, char* argv[])
         FluxLimiter* flux_limiter;
         if(SHOCK_CAPTURING_TYPE == KUZMIN)
           flux_limiter = new FluxLimiter(FluxLimiter::Kuzmin, solver->get_sln_vector(), Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-          &space_rho_v_y, &space_e));
+          &space_rho_v_y, &space_e), true);
         else
           flux_limiter = new FluxLimiter(FluxLimiter::Krivodonova, solver->get_sln_vector(), Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
           &space_rho_v_y, &space_e));
