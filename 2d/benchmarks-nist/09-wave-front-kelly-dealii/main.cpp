@@ -305,7 +305,7 @@ int main(int argc, char* argv[])
     else
     {
       // Calculate element errors and total error estimate.
-      BasicKellyAdapt<double> adaptivity(&space);
+      Hermes::Hermes2D::BasicKellyAdapt<double> adaptivity(&space);
       
       unsigned int error_flags = HERMES_TOTAL_ERROR_ABS;
       

@@ -171,7 +171,7 @@ int main(int argc, char* argv[])
     verbose("Solution: %g s", cpu_time.last());
     
     // Calculate element errors and total error estimate.
-    BasicKellyAdapt<double> adaptivity(&space);
+    Hermes::Hermes2D::BasicKellyAdapt<double> adaptivity(&space);
     
     if (USE_ENERGY_NORM_NORMALIZATION)
       adaptivity.set_error_form(new EnergyErrorForm(&wf));
