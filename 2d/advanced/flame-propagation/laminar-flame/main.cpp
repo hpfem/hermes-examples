@@ -21,32 +21,39 @@
 //
 //  Time-stepping: a second order BDF formula.
 
-const int INIT_REF_NUM = 2;                       // Number of initial uniform mesh refinements.
-const int P_INIT = 2;                             // Initial polynomial degree.
+// Number of initial uniform mesh refinements.
+const int INIT_REF_NUM = 2;                       
+// Initial polynomial degree.
+const int P_INIT = 2;                             
 
 // Newton's method.
 const double DAMPING_COEFF = 1.0;
-const double NEWTON_TOL = 1e-4;                   // Stopping criterion for the Newton's method.
-const int NEWTON_MAX_ITER = 50;                   // Maximum allowed number of Newton iterations.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-                                                  // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-const bool NEWTON = true;                         // If NEWTON == true then the Newton's iteration is performed.
-                                                  // in every time step. Otherwise the convective term is linearized
-                                                  // using the velocities from the previous time step.
-const int PRECOND = 2;                            // Preconditioning by jacobian (1) (less GMRES iterations, more time to create precond)
-                                                  // or by approximation of jacobian (2) (less time for precond creation, more GMRES iters).
-                                                  // in case of jfnk,
-                                                  // default Ifpack proconditioner in case of Newton.
+// Stopping criterion for the Newton's method.
+const double NEWTON_TOL = 1e-4;                   
+// Maximum allowed number of Newton iterations.
+const int NEWTON_MAX_ITER = 50;                   
+// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
+// If NEWTON == true then the Newton's iteration is performed.
+// in every time step. Otherwise the convective term is linearized
+// using the velocities from the previous time step.
+const bool NEWTON = true;                         
+// Preconditioning by jacobian (1) (less GMRES iterations, more time to create precond)
+// or by approximation of jacobian (2) (less time for precond creation, more GMRES iters).
+// in case of jfnk, default Ifpack proconditioner in case of Newton.
+const int PRECOND = 2;                            
 
 // Problem constants.
-const double TAU   = 0.05;                        // Time step.
-const double T_FINAL = 60.0;                      // Time interval length.
+// Time step.
+const double TAU   = 0.05;                        
+// Time interval length.
+const double T_FINAL = 60.0;                      
 const double Le    = 1.0;
 const double alpha = 0.8;
 const double beta  = 10.0;
 const double kappa = 0.1;
 const double x1    = 9.0;
-
 
 int main(int argc, char* argv[])
 {

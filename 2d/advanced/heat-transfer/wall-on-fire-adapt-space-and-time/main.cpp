@@ -27,61 +27,80 @@
 //
 //  The following parameters can be changed:
 
-const int P_INIT = 1;                             // Polynomial degree of all mesh elements.
-const int INIT_REF_NUM = 1;                       // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM_BDY = 1;                   // Number of initial uniform mesh refinements towards the boundary.
-double time_step = 20;                            // Time step in seconds.
+// Polynomial degree of all mesh elements.
+const int P_INIT = 1;                             
+// Number of initial uniform mesh refinements.
+const int INIT_REF_NUM = 1;                       
+// Number of initial uniform mesh refinements towards the boundary.
+const int INIT_REF_NUM_BDY = 1;                   
+// Time step in seconds.
+double time_step = 20;                            
 
 // Spatial adaptivity.
-const int UNREF_FREQ = 1;                         // Every UNREF_FREQth time step the mesh is derefined.
-const int UNREF_METHOD = 3;                       // 1... mesh reset to basemesh and poly degrees to P_INIT.   
-                                                  // 2... one ref. layer shaved off, poly degrees reset to P_INIT.
-                                                  // 3... one ref. layer shaved off, poly degrees decreased by one. 
-const double THRESHOLD = 0.3;                     // This is a quantitative parameter of the adapt(...) function and
-                                                  // it has different meanings for various adaptive strategies (see below).
-const int STRATEGY = 0;                           // Adaptive strategy:
-                                                  // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
-                                                  //   error is processed. If more elements have similar errors, refine
-                                                  //   all to keep the mesh symmetric.
-                                                  // STRATEGY = 1 ... refine all elements whose error is larger
-                                                  //   than THRESHOLD times maximum element error.
-                                                  // STRATEGY = 2 ... refine all elements whose error is larger
-                                                  //   than THRESHOLD.
-                                                  // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const CandList CAND_LIST = H2D_HP_ANISO;          // Predefined list of element refinement candidates. Possible values are
-                                                  // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
-                                                  // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
-                                                  // See the User Documentation for details.
-const int MESH_REGULARITY = -1;                   // Maximum allowed level of hanging nodes:
-                                                  // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
-                                                  // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
-                                                  // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
-                                                  // Note that regular meshes are not supported, this is due to
-                                                  // their notoriously bad performance.
-const double CONV_EXP = 1.0;                      // Default value is 1.0. This parameter influences the selection of
-                                                  // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-const double SPACE_ERR_TOL = 1.0;                 // Stopping criterion for adaptivity (rel. error tolerance between the
-                                                  // fine mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 60000;                      // Adaptivity process stops when the number of degrees of freedom grows
-                                                  // over this limit. This is to prevent h-adaptivity to go on forever.
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-                                                  // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+// Every UNREF_FREQth time step the mesh is derefined.
+const int UNREF_FREQ = 1;                         
+// 1... mesh reset to basemesh and poly degrees to P_INIT.   
+// 2... one ref. layer shaved off, poly degrees reset to P_INIT.
+// 3... one ref. layer shaved off, poly degrees decreased by one. 
+const int UNREF_METHOD = 3;                       
+// This is a quantitative parameter of the adapt(...) function and
+// it has different meanings for various adaptive strategies.
+const double THRESHOLD = 0.3;                     
+// Adaptive strategy:
+// STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
+//   error is processed. If more elements have similar errors, refine
+//   all to keep the mesh symmetric.
+// STRATEGY = 1 ... refine all elements whose error is larger
+//   than THRESHOLD times maximum element error.
+// STRATEGY = 2 ... refine all elements whose error is larger
+//   than THRESHOLD.
+const int STRATEGY = 0;                           
+// Predefined list of element refinement candidates. Possible values are
+// H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
+// H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
+const CandList CAND_LIST = H2D_HP_ANISO;          
+// Maximum allowed level of hanging nodes:
+// MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
+// MESH_REGULARITY = 1 ... at most one-level hanging nodes,
+// MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
+// Note that regular meshes are not supported, this is due to
+// their notoriously bad performance.
+const int MESH_REGULARITY = -1;                   
+// This parameter influences the selection of
+// candidates in hp-adaptivity. Default value is 1.0. 
+const double CONV_EXP = 1.0;                      
+// Stopping criterion for adaptivity.
+const double SPACE_ERR_TOL = 1.0;                 
+// Adaptivity process stops when the number of degrees of freedom grows
+// over this limit. This is to prevent h-adaptivity to go on forever.
+const int NDOF_STOP = 60000;                      
+// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
 
 // Temporal adaptivity.
-bool ADAPTIVE_TIME_STEP_ON = false;                // This flag decides whether adaptive time stepping will be done.
-                                                  // The methods for the adaptive and fixed-step versions are set
-                                                  // below. An embedded method must be used with adaptive time stepping. 
-const double TIME_ERR_TOL_UPPER = 1.0;                // If rel. temporal error is greater than this threshold, decrease time 
-                                                  // step size and repeat time step.
-const double TIME_ERR_TOL_LOWER = 0.5;                // If rel. temporal error is less than this threshold, increase time step
-                                                  // but do not repeat time step (this might need further research).
-const double TIME_STEP_INC_RATIO = 1.1;           // Time step increase ratio (applied when rel. temporal error is too small).
-const double TIME_STEP_DEC_RATIO = 0.8;           // Time step decrease ratio (applied when rel. temporal error is too large).
+// This flag decides whether adaptive time stepping will be done.
+// The methods for the adaptive and fixed-step versions are set
+// below. An embedded method must be used with adaptive time stepping. 
+bool ADAPTIVE_TIME_STEP_ON = false;               
+// If rel. temporal error is greater than this threshold, decrease time 
+// step size and repeat time step.
+const double TIME_ERR_TOL_UPPER = 1.0;                
+// If rel. temporal error is less than this threshold, increase time step
+// but do not repeat time step (this might need further research).
+const double TIME_ERR_TOL_LOWER = 0.5;                
+// Time step increase ratio (applied when rel. temporal error is too small).
+const double TIME_STEP_INC_RATIO = 1.1;           
+// Time step decrease ratio (applied when rel. temporal error is too large).
+const double TIME_STEP_DEC_RATIO = 0.8;           
 
 // Newton's method.
-const double NEWTON_TOL_COARSE = 0.001;           // Stopping criterion for Newton on fine mesh.
-const double NEWTON_TOL_FINE = 0.005;             // Stopping criterion for Newton on fine mesh.
-const int NEWTON_MAX_ITER = 100;                  // Maximum allowed number of Newton iterations.
+// Stopping criterion for Newton on fine mesh.
+const double NEWTON_TOL_COARSE = 0.001;           
+// Stopping criterion for Newton on fine mesh.
+const double NEWTON_TOL_FINE = 0.005;             
+// Maximum allowed number of Newton iterations.
+const int NEWTON_MAX_ITER = 100;                  
 
 // Choose one of the following time-integration methods, or define your own Butcher's table. The last number 
 // in the name of each method is its order. The one before last, if present, is the number of stages.
@@ -107,15 +126,21 @@ const std::string BDY_RIGHT = "Right";
 const std::string BDY_AIR  = "Top";
 
 // Problem parameters.
-const double TEMP_INIT = 20;       // Initial temperature.
-const double TEMP_EXT_AIR = 20;    // Exterior temperature top;
+// Initial temperature.
+const double TEMP_INIT = 20;       
+// Exterior temperature top;
+const double TEMP_EXT_AIR = 20;    
 
-const double ALPHA_FIRE = 25;      // Heat flux coefficient on the bottom edge.
-const double ALPHA_AIR = 8;        // Heat flux coefficient on the top edge.
-const double HEATCAP = 1020;       // Heat capacity.
-const double RHO = 2200;           // Material density.
-const double T_FINAL = 18000;      // Length of time interval in seconds.
-
+// Heat flux coefficient on the bottom edge.
+const double ALPHA_FIRE = 25;      
+// Heat flux coefficient on the top edge.
+const double ALPHA_AIR = 8;        
+// Heat capacity.
+const double HEATCAP = 1020;       
+// Material density.
+const double RHO = 2200;           
+// Length of time interval in seconds.
+const double T_FINAL = 18000;      
 
 int main(int argc, char* argv[])
 {

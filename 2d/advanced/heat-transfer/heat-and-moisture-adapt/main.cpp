@@ -13,50 +13,61 @@
 //
 // The following parameters can be changed:
 
-const int P_INIT = 1;                             // Initial polynomial degrees.
-const bool MULTI = true;                          // MULTI = true  ... use multi-mesh,
-                                                  // MULTI = false ... use single-mesh.
-                                                  // Note: In the single mesh option, the meshes are
-                                                  // forced to be geometrically the same but the
-                                                  // polynomial degrees can still vary.
-const int UNREF_FREQ = 1;                         // Every UNREF_FREQth time step the mesh is derefined.
-const int UNREF_METHOD = 3;                       // 1... mesh reset to basemesh and poly degrees to P_INIT.   
-                                                  // 2... one ref. layer shaved off, poly degrees reset to P_INIT.
-                                                  // 3... one ref. layer shaved off, poly degrees decreased by one. 
-                                                  // and just one polynomial degree subtracted.
-const double THRESHOLD = 0.3;                     // This is a quantitative parameter of the adapt(...) function and
-                                                  // it has different meanings for various adaptive strategies (see below).
-const int STRATEGY = 1;                           // Adaptive strategy:
-                                                  // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
-                                                  //   error is processed. If more elements have similar errors, refine
-                                                  //   all to keep the mesh symmetric.
-                                                  // STRATEGY = 1 ... refine all elements whose error is larger
-                                                  //   than THRESHOLD times maximum element error.
-                                                  // STRATEGY = 2 ... refine all elements whose error is larger
-                                                  //   than THRESHOLD.
-                                                  // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const CandList CAND_LIST = H2D_HP_ANISO;          // Predefined list of element refinement candidates. Possible values are
-                                                  // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
-                                                  // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
-                                                  // See User Documentation for details.
-const int MESH_REGULARITY = -1;                   // Maximum allowed level of hanging nodes:
-                                                  // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
-                                                  // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
-                                                  // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
-                                                  // Note that regular meshes are not supported, this is due to
-                                                  // their notoriously bad performance.
-const double CONV_EXP = 1.0;                      // Default value is 1.0. This parameter influences the selection of
-                                                  // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-const double ERR_STOP = 0.3;                      // Stopping criterion for adaptivity (rel. error tolerance between the
-                                                  // fine mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 100000;                     // Adaptivity process stops when the number of degrees of freedom grows over
-                                                  // this limit. This is mainly to prevent h-adaptivity to go on forever.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-                                                  // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+// Initial polynomial degrees.
+const int P_INIT = 1;                             
+// MULTI = true  ... use multi-mesh,
+// MULTI = false ... use single-mesh.
+// Note: In the single mesh option, the meshes are
+// forced to be geometrically the same but the
+// polynomial degrees can still vary.
+const bool MULTI = true;                          
+// Every UNREF_FREQth time step the mesh is derefined.
+const int UNREF_FREQ = 1;                         
+// 1... mesh reset to basemesh and poly degrees to P_INIT.   
+// 2... one ref. layer shaved off, poly degrees reset to P_INIT.
+// 3... one ref. layer shaved off, poly degrees decreased by one. 
+// and just one polynomial degree subtracted.
+const int UNREF_METHOD = 3;                       
+// This is a quantitative parameter of the adapt(...) function and
+// it has different meanings for various adaptive strategies.
+const double THRESHOLD = 0.3;                     
+// Adaptive strategy:
+// STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
+//   error is processed. If more elements have similar errors, refine
+//   all to keep the mesh symmetric.
+// STRATEGY = 1 ... refine all elements whose error is larger
+//   than THRESHOLD times maximum element error.
+// STRATEGY = 2 ... refine all elements whose error is larger
+//   than THRESHOLD.
+const int STRATEGY = 1;                           
+// Predefined list of element refinement candidates. Possible values are
+// H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
+// H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
+const CandList CAND_LIST = H2D_HP_ANISO;          
+// Maximum allowed level of hanging nodes:
+// MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
+// MESH_REGULARITY = 1 ... at most one-level hanging nodes,
+// MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
+// Note that regular meshes are not supported, this is due to
+// their notoriously bad performance.
+const int MESH_REGULARITY = -1;                   
+// This parameter influences the selection of
+// candidates in hp-adaptivity. Default value is 1.0. 
+const double CONV_EXP = 1.0;                      
+// Stopping criterion for adaptivity.
+const double ERR_STOP = 0.3;                      
+// Adaptivity process stops when the number of degrees of freedom grows over
+// this limit. This is mainly to prevent h-adaptivity to go on forever.
+const int NDOF_STOP = 100000;                     
+// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
 
 // Time step and simulation time.
-const double TAU = 5.*24*60*60;                  // time step: 120 hours
-const double SIMULATION_TIME = 100*TAU + 0.001;  // (seconds) physical time
+// Time step: 120 hours.
+const double TAU = 5.*24*60*60;                  
+// Physical time [seconds].
+const double SIMULATION_TIME = 100*TAU + 0.001;  
 
 // Equation parameters.
 const double c_TT = 2.18e+6;
@@ -69,14 +80,20 @@ const double d_ww = 3.02e-8;
 const double k_ww = 1.84e-7;
 
 // Initial and boundary conditions.
-const double TEMP_INITIAL = 293.0;           // (Kelvins)
-const double MOIST_INITIAL = 0.9;            // (dimensionless)
-const double TEMP_EXTERIOR = 293.0;          // (Kelvins)
-const double MOIST_EXTERIOR = 0.55;          // (dimensionless)
-const double TEMP_REACTOR_MAX = 550.0;       // (Kelvins)
-const double REACTOR_START_TIME = 3600*24;   // (seconds) how long does the reactor
-                                             // need to warm up linearly from TEMP_INITIAL
-                                             // to TEMP_REACTOR_MAX
+// (Kelvins)
+const double TEMP_INITIAL = 293.0;           
+// (dimensionless)
+const double MOIST_INITIAL = 0.9;            
+// (Kelvins)
+const double TEMP_EXTERIOR = 293.0;          
+// (dimensionless)
+const double MOIST_EXTERIOR = 0.55;          
+// (Kelvins)
+const double TEMP_REACTOR_MAX = 550.0;       
+// How long does the reactor
+// need to warm up linearly from TEMP_INITIAL
+// to TEMP_REACTOR_MAX [seconds].
+const double REACTOR_START_TIME = 3600*24;   
 // Materials and boundary markers.
 const int BDY_SYMMETRY = 1;               
 const int BDY_REACTOR_WALL = 2;           
@@ -170,7 +187,8 @@ int main(int argc, char* argv[])
   M_order_view.show(&M_space);
 
   // Time stepping loop:
-  bool verbose = true;  // Print info during adaptivity.
+  // Print info during adaptivity.
+  bool verbose = true;  
   double comp_time = 0.0;
   static int ts = 1;
   while (CURRENT_TIME < SIMULATION_TIME)
