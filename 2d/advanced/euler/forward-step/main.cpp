@@ -18,10 +18,14 @@ using namespace Hermes::Hermes2D::Views;
 // IC: Constant state identical to inlet.
 //
 // The following parameters can be changed:
+
 // Visualization.
-const bool HERMES_VISUALIZATION = false;           // Set to "true" to enable Hermes OpenGL visualization. 
-const bool VTK_VISUALIZATION = true;             // Set to "true" to enable VTK output.
-const unsigned int EVERY_NTH_STEP = 10;            // Set visual output for every nth step.
+// Set to "true" to enable Hermes OpenGL visualization. 
+const bool HERMES_VISUALIZATION = false;           
+// Set to "true" to enable VTK output.
+const bool VTK_VISUALIZATION = true;             
+// Set visual output for every nth step.
+const unsigned int EVERY_NTH_STEP = 10;            
 
 // Shock capturing.
 enum shockCapturingType
@@ -41,20 +45,31 @@ const double NU_2 = 0.1;
 // For saving/loading of solution.
 bool REUSE_SOLUTION = false;
 
-const int P_INIT = 1;                                   // Initial polynomial degree.                      
-const int INIT_REF_NUM = 2;                             // Number of initial uniform mesh refinements.                       
-const int INIT_REF_NUM_STEP = 0;                        // Number of initial localized mesh refinements.                       
-double CFL_NUMBER = 0.1;                                // CFL value.
-double time_step = 1E-6;                                // Initial time step.
-const MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+// Initial polynomial degree.   
+const int P_INIT = 1;                                                      
+// Number of initial uniform mesh refinements.          
+const int INIT_REF_NUM = 2;                                          
+// Number of initial localized mesh refinements.   
+const int INIT_REF_NUM_STEP = 0;                                            
+// CFL value.
+double CFL_NUMBER = 0.1;                                
+// Initial time step.
+double time_step = 1E-6;                                
+// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+const MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
 
 // Equation parameters.
-const double P_EXT = 1.0;         // Exterior pressure (dimensionless).
-const double RHO_EXT = 1.4;       // Inlet density (dimensionless).   
-const double V1_EXT = 3.0;        // Inlet x-velocity (dimensionless).
-const double V2_EXT = 0.0;        // Inlet y-velocity (dimensionless).
-const double KAPPA = 1.4;         // Kappa.
+// Exterior pressure (dimensionless).
+const double P_EXT = 1.0;         
+// Inlet density (dimensionless).   
+const double RHO_EXT = 1.4;       
+// Inlet x-velocity (dimensionless).
+const double V1_EXT = 3.0;        
+// Inlet y-velocity (dimensionless).
+const double V2_EXT = 0.0;        
+// Kappa.
+const double KAPPA = 1.4;         
 
 // Boundary markers.
 const std::string BDY_SOLID_WALL_BOTTOM = "1";
