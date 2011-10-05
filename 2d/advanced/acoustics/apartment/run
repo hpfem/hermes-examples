@@ -1,0 +1,4 @@
+rm *.dat
+./acoustics-apartment
+python plot_graph.py &
+
