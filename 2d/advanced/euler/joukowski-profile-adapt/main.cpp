@@ -18,11 +18,16 @@ using namespace Hermes::Hermes2D::RefinementSelectors;
 // IC: Constant state identical to inlet.
 //
 // The following parameters can be changed:
+
 // Visualization.
-const bool HERMES_VISUALIZATION = false;           // Set to "true" to enable Hermes OpenGL visualization. 
-const bool VTK_VISUALIZATION = true;              // Set to "true" to enable VTK output.
-const bool SAVE_SPACES = true;              // Set to "true" to enable VTK output.
-const unsigned int EVERY_NTH_STEP = 1;            // Set visual output for every nth step.
+// Set to "true" to enable Hermes OpenGL visualization. 
+const bool HERMES_VISUALIZATION = false;           
+// Set to "true" to enable VTK output.
+const bool VTK_VISUALIZATION = true;              
+// Set to "true" to enable VTK output.
+const bool SAVE_SPACES = true;              
+// Set visual output for every nth step.
+const unsigned int EVERY_NTH_STEP = 1;            
 
 // Shock capturing.
 bool SHOCK_CAPTURING = false;
@@ -31,11 +36,16 @@ double DISCONTINUITY_DETECTOR_PARAM = 1.0;
 
 bool REUSE_SOLUTION = false;
 
-const int P_INIT = 0;                             // Initial polynomial degree.                      
-const int INIT_REF_NUM_VERTEX = 0;                // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM_BOUNDARY_ANISO = 3;        // Number of initial mesh refinements towards the profile.
-double CFL_NUMBER = 0.1;                          // CFL value.
-double time_step = 1E-6;                          // Initial time step.
+// Initial polynomial degree.        
+const int P_INIT = 0;                                           
+// Number of initial uniform mesh refinements.
+const int INIT_REF_NUM_VERTEX = 0;                
+// Number of initial mesh refinements towards the profile.
+const int INIT_REF_NUM_BOUNDARY_ANISO = 3;        
+// CFL value.
+double CFL_NUMBER = 0.1;                          
+// Initial time step.
+double time_step = 1E-6;                          
 
 // Adaptivity.
 // Every UNREF_FREQth time step the mesh is unrefined.
@@ -47,7 +57,7 @@ const int UNREF_FREQ = 5;
 int REFINEMENT_COUNT = 0;                         
 
 // This is a quantitative parameter of the adapt(...) function and
-// it has different meanings for various adaptive strategies (see below).
+// it has different meanings for various adaptive strategies.
 const double THRESHOLD = 0.3;                     
 
 // Adaptive strategy:
@@ -58,7 +68,6 @@ const double THRESHOLD = 0.3;
 //   than THRESHOLD times maximum element error.
 // STRATEGY = 2 ... refine all elements whose error is larger
 //   than THRESHOLD.
-// More adaptive strategies can be created in adapt_ortho_h1.cpp.
 const int STRATEGY = 1;                           
 
 // Predefined list of element refinement candidates. Possible values are
@@ -67,7 +76,6 @@ const int STRATEGY = 1;
 CandList CAND_LIST = H2D_HP_ANISO;                
 
 // Maximum polynomial degree used. -1 for unlimited.
-// See User Documentation for details.
 const int MAX_P_ORDER = -1;                       
 
 // Maximum allowed level of hanging nodes:
@@ -78,8 +86,8 @@ const int MAX_P_ORDER = -1;
 // their notoriously bad performance.
 const int MESH_REGULARITY = 1;                   
 
-// Default value is 1.0. This parameter influences the selection of
-// cancidates in hp-adaptivity. See get_optimal_refinement() for details.
+// This parameter influences the selection of
+// candidates in hp-adaptivity. Default value is 1.0. 
 const double CONV_EXP = 1;                        
 
 // Stopping criterion for adaptivity (rel. error tolerance between the
@@ -90,17 +98,21 @@ const double ERR_STOP = 1E-2;
 // this limit. This is mainly to prevent h-adaptivity to go on forever.
 const int NDOF_STOP = 100000;                   
 
-// Matrix solver for orthogonal projections.
-// Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+// Matrix solver for orthogonal projections: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
 
 // Equation parameters.
-const double P_EXT = 7142.8571428571428571428571428571;         // Exterior pressure (dimensionless).
-const double RHO_EXT = 1.0;                       // Inlet density (dimensionless).   
-const double V1_EXT = 0.01;       // Inlet x-velocity (dimensionless).
-const double V2_EXT = 0.0;                        // Inlet y-velocity (dimensionless).
-const double KAPPA = 1.4;                         // Kappa.
+// Exterior pressure (dimensionless).
+const double P_EXT = 7142.8571428571428571428571428571;         
+// Inlet density (dimensionless).   
+const double RHO_EXT = 1.0;                       
+// Inlet x-velocity (dimensionless).
+const double V1_EXT = 0.01;       
+// Inlet y-velocity (dimensionless).
+const double V2_EXT = 0.0;                        
+// Kappa.
+const double KAPPA = 1.4;                         
 
 // Boundary markers.
 const std::string BDY_INLET = "Inlet";

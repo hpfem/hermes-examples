@@ -18,10 +18,14 @@ using namespace Hermes::Hermes2D::RefinementSelectors;
 // IC: Constant state.
 //
 // The following parameters can be changed:
+
 // Visualization.
-const bool HERMES_VISUALIZATION = false;           // Set to "true" to enable Hermes OpenGL visualization. 
-const bool VTK_VISUALIZATION = true;              // Set to "true" to enable VTK output.
-const unsigned int EVERY_NTH_STEP = 10;            // Set visual output for every nth step.
+// Set to "true" to enable Hermes OpenGL visualization. 
+const bool HERMES_VISUALIZATION = false;           
+// Set to "true" to enable VTK output.
+const bool VTK_VISUALIZATION = true;              
+// Set visual output for every nth step.
+const unsigned int EVERY_NTH_STEP = 10;            
 
 // Shock capturing.
 bool SHOCK_CAPTURING = true;
@@ -30,10 +34,14 @@ double DISCONTINUITY_DETECTOR_PARAM = 1.0;
 
 bool REUSE_SOLUTION = true;
 
-const int P_INIT = 0;                             // Initial polynomial degree.                      
-const int INIT_REF_NUM = 2;                       // Number of initial uniform mesh refinements.                       
-double CFL_NUMBER = 0.1;                         // CFL value.
-double time_step = 1E-6;                          // Initial time step.
+// Initial polynomial degree.      
+const int P_INIT = 0;                                             
+// Number of initial uniform mesh refinements.  
+const int INIT_REF_NUM = 2;                                            
+// CFL value.
+double CFL_NUMBER = 0.1;                         
+// Initial time step.
+double time_step = 1E-6;                          
 
 // Adaptivity.
 // Every UNREF_FREQth time step the mesh is unrefined.
@@ -45,7 +53,7 @@ const int UNREF_FREQ = 5;
 int REFINEMENT_COUNT = 0;
 
 // This is a quantitative parameter of the adapt(...) function and
-// it has different meanings for various adaptive strategies (see below).
+// it has different meanings for various adaptive strategies.
 const double THRESHOLD = 0.3;                     
 
 // Adaptive strategy:
@@ -56,7 +64,6 @@ const double THRESHOLD = 0.3;
 //   than THRESHOLD times maximum element error.
 // STRATEGY = 2 ... refine all elements whose error is larger
 //   than THRESHOLD.
-// More adaptive strategies can be created in adapt_ortho_h1.cpp.
 const int STRATEGY = 1;                           
 
 // Predefined list of element refinement candidates. Possible values are
@@ -65,7 +72,6 @@ const int STRATEGY = 1;
 CandList CAND_LIST = H2D_HP_ANISO;                
 
 // Maximum polynomial degree used. -1 for unlimited.
-// See User Documentation for details.
 const int MAX_P_ORDER = 1;                       
 
 // Maximum allowed level of hanging nodes:
@@ -80,21 +86,19 @@ const int MESH_REGULARITY = -1;
 // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
 const double CONV_EXP = 1;                        
 
-// Stopping criterion for adaptivity (rel. error tolerance between the
-// fine mesh and coarse mesh solution in percent).
+// Stopping criterion for adaptivity.
 double ERR_STOP = 3.0;                     
 
 // Adaptivity process stops when the number of degrees of freedom grows over
 // this limit. This is mainly to prevent h-adaptivity to go on forever.
 const int NDOF_STOP = 100000;
 
-// Matrix solver for orthogonal projections.
-// Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+// Matrix solver for orthogonal projections: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
 
 // Equation parameters.
-const double KAPPA = 1.4;                         // Kappa.
+const double KAPPA = 1.4;                         
 const double RHO_LEFT = 1.0;
 const double RHO_TOP = 1.7;
 

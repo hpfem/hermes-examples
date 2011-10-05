@@ -7,7 +7,8 @@ using namespace Hermes::Hermes2D;
 using namespace Hermes::Hermes2D::Views;
 
 // This example solves the compressible Euler equations using a basic
-// piecewise-constant finite volume method, or Discontinuous Galerkin method of higher order with no adaptivity.
+// piecewise-constant finite volume method, or Discontinuous Galerkin 
+// method of higher order with no adaptivity.
 //
 // Equations: Compressible Euler equations, perfect gas state equation.
 //
@@ -18,10 +19,14 @@ using namespace Hermes::Hermes2D::Views;
 // IC: Constant state.
 //
 // The following parameters can be changed:
+
 // Visualization.
-const bool HERMES_VISUALIZATION = false;           // Set to "true" to enable Hermes OpenGL visualization. 
-const bool VTK_VISUALIZATION = true;              // Set to "true" to enable VTK output.
-const unsigned int EVERY_NTH_STEP = 10;            // Set visual output for every nth step.
+// Set to "true" to enable Hermes OpenGL visualization. 
+const bool HERMES_VISUALIZATION = false;           
+// Set to "true" to enable VTK output.
+const bool VTK_VISUALIZATION = true;              
+// Set visual output for every nth step.
+const unsigned int EVERY_NTH_STEP = 10;            
 
 // Shock capturing.
 enum shockCapturingType
@@ -41,12 +46,17 @@ const double NU_2 = 0.1;
 // For saving/loading of solution.
 bool REUSE_SOLUTION = false;
 
-const int P_INIT = 2;                                   // Initial polynomial degree.                      
-const int INIT_REF_NUM = 5;                             // Number of initial uniform mesh refinements.                       
-double CFL_NUMBER = 0.1;                                // CFL value.
-double time_step = 1E-4;                                // Initial time step.
-const MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+// Initial polynomial degree.      
+const int P_INIT = 2;                                                   
+// Number of initial uniform mesh refinements.      
+const int INIT_REF_NUM = 5;                                              
+// CFL value.
+double CFL_NUMBER = 0.1;                                
+// Initial time step.
+double time_step = 1E-4;                                
+// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+const MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
 
 double KAPPA = 1.4;
 
