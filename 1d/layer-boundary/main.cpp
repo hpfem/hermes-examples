@@ -6,7 +6,7 @@ using namespace RefinementSelectors;
 
 //  This is the 1D version of the benchmark layer-boundary. It is a
 //  singularly perturbed problem that exhibits a thin boundary layer. 
-//  The exact solution facilitates convergence studies.
+//  Known exact solution facilitates convergence studies.
 //
 //  PDE: -u'' + K*K*u - K*K + g(x) = 0.
 //
@@ -18,38 +18,47 @@ using namespace RefinementSelectors;
 //
 //  The following parameters can be changed:
 
-const int P_INIT = 1;                             // Initial polynomial degree of all mesh elements.
-const int INIT_REF_NUM = 0;                       // Number of initial mesh refinements (the original mesh is just one element).
-const int INIT_REF_NUM_BDY = 5;                   // Number of initial mesh refinements towards the boundary.
-const double THRESHOLD = 0.3;                     // This is a quantitative parameter of the adapt(...) function and
-                                                  // it has different meanings for various adaptive strategies (see below).
-const int STRATEGY = 0;                           // Adaptive strategy:
-                                                  // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
-                                                  //   error is processed. If more elements have similar errors, refine
-                                                  //   all to keep the mesh symmetric.
-                                                  // STRATEGY = 1 ... refine all elements whose error is larger
-                                                  //   than THRESHOLD times maximum element error.
-                                                  // STRATEGY = 2 ... refine all elements whose error is larger
-                                                  //   than THRESHOLD.
-                                                  // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const CandList CAND_LIST = H2D_HP_ANISO;          // Predefined list of element refinement candidates. Possible values are
-                                                  // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
-                                                  // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
-                                                  // See User Documentation for details.
-const int MESH_REGULARITY = -1;                   // Maximum allowed level of hanging nodes:
-                                                  // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
-                                                  // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
-                                                  // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
-                                                  // Note that regular meshes are not supported, this is due to
-                                                  // their notoriously bad performance.
-const double CONV_EXP = 0.5;                      // Default value is 1.0. This parameter influences the selection of
-                                                  // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-const double ERR_STOP = 1e-3;                      // Stopping criterion for adaptivity (rel. error tolerance between the
-                                                  // reference mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 1000;                       // Adaptivity process stops when the number of degrees of freedom grows
-                                                  // over this limit. This is to prevent h-adaptivity to go on forever.
-Hermes::MatrixSolverType matrix_solver_type = Hermes::SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-                                                  // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+// Initial polynomial degree of mesh elements.
+const int P_INIT = 1;                             
+// Number of initial mesh refinements (the original mesh is just one element).
+const int INIT_REF_NUM = 0;                       
+// Number of initial mesh refinements towards the boundary.
+const int INIT_REF_NUM_BDY = 5;                   
+// This is a quantitative parameter of the adapt(...) function and
+// it has different meanings for various adaptive strategies (see below).
+const double THRESHOLD = 0.3;                     
+// Adaptive strategy:
+// STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
+//   error is processed. If more elements have similar errors, refine
+//   all to keep the mesh symmetric.
+// STRATEGY = 1 ... refine all elements whose error is larger
+//   than THRESHOLD times maximum element error.
+// STRATEGY = 2 ... refine all elements whose error is larger
+//   than THRESHOLD.
+const int STRATEGY = 0;                           
+// Predefined list of element refinement candidates. Possible values are
+// H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
+// H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
+const CandList CAND_LIST = H2D_HP_ANISO;          
+// Maximum allowed level of hanging nodes:
+// MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
+// MESH_REGULARITY = 1 ... at most one-level hanging nodes,
+// MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
+// Note that regular meshes are not supported, this is due to
+// their notoriously bad performance.
+const int MESH_REGULARITY = -1;                   
+// This parameter influences the selection of
+// candidates in hp-adaptivity. Default value is 1.0. 
+const double CONV_EXP = 0.5;                      
+// Stopping criterion for adaptivity (rel. error tolerance between the
+// reference mesh and coarse mesh solution in percent).
+const double ERR_STOP = 1e-3;                     
+// Adaptivity process stops when the number of degrees of freedom grows
+// over this limit. This is to prevent h-adaptivity to go on forever.
+const int NDOF_STOP = 1000;                       
+// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+Hermes::MatrixSolverType matrix_solver_type = Hermes::SOLVER_UMFPACK;  
 
 // Problem parameters.
 const double K = 1e2;
@@ -62,7 +71,8 @@ int main(int argc, char* argv[])
   mloader.load("domain.xml", &mesh);
 
   // Perform initial mesh refinement.
-  int refinement_type = 2;                        // Split elements vertically.
+  // Split elements vertically.
+  int refinement_type = 2;                        
   for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements(refinement_type);
   mesh.refine_towards_boundary("Left", INIT_REF_NUM_BDY);
   mesh.refine_towards_boundary("Right", INIT_REF_NUM_BDY);
@@ -109,10 +119,12 @@ int main(int argc, char* argv[])
     cpu_time.tick();
 
     // Construct globally refined reference mesh and setup reference space.
-    int order_increase = 1;          // FIXME: This should be increase in the x-direction only.
-    int refinement_type = 0;         // FIXME: This should be '2' but that leads to a segfault.
+    // FIXME: This should be increase in the x-direction only.
+    int order_increase = 1;          
+    // FIXME: This should be '2' but that leads to a segfault.
+    int refinement_type = 0;         
     Space<double>* ref_space = Space<double>::construct_refined_space(&space, 
-                                              order_increase, refinement_type);
+        order_increase, refinement_type);
     int ndof_ref = ref_space->get_num_dofs();
 
     info("---- Adaptivity step %d (%d DOF):", as, ndof_ref);
@@ -197,13 +209,7 @@ int main(int argc, char* argv[])
     // Increase the counter of adaptivity steps.
     if (done == false)  
       as++;
-/*    else 
-    {
-      sview.show(&sln);
-      oview.show(&space);
-      info("err_est_rel: %g%%, err_exact_rel: %g%%", err_est_rel, err_exact_rel);
-    }
-*/       
+
     // Clean up.
     delete [] coeff_vec;
     

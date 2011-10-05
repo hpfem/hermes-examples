@@ -4,7 +4,7 @@
 
 using namespace RefinementSelectors;
 
-// This example is an analogu to the 2D tutorial example P04-adapt/03-system.
+// This example is an analogy to the 2D tutorial example P04-adapt/03-system.
 // It explains how to use the multimesh adaptive hp-FEM for 1D problems whose
 // solution components behave very differently, so that using the same mesh 
 // for both is a waste of DOFs.
@@ -30,44 +30,54 @@ using namespace RefinementSelectors;
 // h-adaptivity via the CAND_LIST option, and compare the multi-mesh vs.
 // single-mesh using the MULTI parameter.
 
-#define WITH_EXACT_SOLUTION                       // Error wrt. exact solution will be calculated.
-const int P_INIT_U = 1;                           // Initial polynomial degree for u.
-const int P_INIT_V = 1;                           // Initial polynomial degree for v.
-const int INIT_REF_BDY = 5;                       // Number of initial boundary refinements
-const bool MULTI = true;                          // MULTI = true  ... use multi-mesh,
-                                                  // MULTI = false ... use single-mesh.
-                                                  // Note: In the single mesh option, the meshes are
-                                                  // forced to be geometrically the same but the
-                                                  // polynomial degrees can still vary.
-const double THRESHOLD = 0.3;                     // This is a quantitative parameter of the adapt(...) function and
-                                                  // it has different meanings for various adaptive strategies (see below).
-const int STRATEGY = 1;                           // Adaptive strategy:
-                                                  // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
-                                                  //   error is processed. If more elements have similar errors, refine
-                                                  //   all to keep the mesh symmetric.
-                                                  // STRATEGY = 1 ... refine all elements whose error is larger
-                                                  //   than THRESHOLD times maximum element error.
-                                                  // STRATEGY = 2 ... refine all elements whose error is larger
-                                                  //   than THRESHOLD.
-                                                  // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const CandList CAND_LIST = H2D_HP_ANISO;          // Predefined list of element refinement candidates. Possible values are
-                                                  // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
-                                                  // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
-                                                  // See the User Documentation for details.
-const int MESH_REGULARITY = -1;                   // Maximum allowed level of hanging nodes:
-                                                  // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
-                                                  // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
-                                                  // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
-                                                  // Note that regular meshes are not supported, this is due to
-                                                  // their notoriously bad performance.
-const double CONV_EXP = 1;                        // Default value is 1.0. This parameter influences the selection of
-                                                  // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-const double ERR_STOP = 0.1;                      // Stopping criterion for adaptivity (rel. error tolerance between the
-                                                  // fine mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 1000;                       // Adaptivity process stops when the number of degrees of freedom grows over
-                                                  // this limit. This is mainly to prevent h-adaptivity to go on forever.
- Hermes::MatrixSolverType matrix_solver_type = Hermes::SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-                                                  // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+// Should exact solution be used and exact error calculated?
+#define WITH_EXACT_SOLUTION                       
+// Initial polynomial degree for u.
+const int P_INIT_U = 1;                           
+// Initial polynomial degree for v.
+const int P_INIT_V = 1;                           
+// Number of initial boundary refinements
+const int INIT_REF_BDY = 5;                       
+// MULTI = true  ... use multi-mesh,
+// MULTI = false ... use single-mesh.
+// Note: In the single mesh option, the meshes are
+// forced to be geometrically the same but the
+// polynomial degrees can still vary.
+const bool MULTI = true;                          
+// This is a quantitative parameter of the adapt(...) function and
+// it has different meanings for various adaptive strategies.
+const double THRESHOLD = 0.3;                     
+// Adaptive strategy:
+// STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
+//   error is processed. If more elements have similar errors, refine
+//   all to keep the mesh symmetric.
+// STRATEGY = 1 ... refine all elements whose error is larger
+//   than THRESHOLD times maximum element error.
+// STRATEGY = 2 ... refine all elements whose error is larger
+//   than THRESHOLD.
+const int STRATEGY = 1;                           
+// Predefined list of element refinement candidates. Possible values are
+// H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
+// H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
+const CandList CAND_LIST = H2D_HP_ANISO;          
+// Maximum allowed level of hanging nodes:
+// MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
+// MESH_REGULARITY = 1 ... at most one-level hanging nodes,
+// MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
+// Note that regular meshes are not supported, this is due to
+// their notoriously bad performance.
+const int MESH_REGULARITY = -1;                   
+// This parameter influences the selection of
+// candidates in hp-adaptivity. Default value is 1.0. 
+const double CONV_EXP = 1;                        
+// Stopping criterion for adaptivity.
+const double ERR_STOP = 0.1;                      
+// Adaptivity process stops when the number of degrees of freedom grows over
+// this limit. This is mainly to prevent h-adaptivity to go on forever.
+const int NDOF_STOP = 1000;                       
+// Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+Hermes::MatrixSolverType matrix_solver_type = Hermes::SOLVER_UMFPACK;  
 
 // Problem parameters.
 const double D_u = 1;
@@ -90,7 +100,8 @@ int main(int argc, char* argv[])
   if (MULTI == false) 
   {
     u_mesh.refine_towards_boundary("Left", INIT_REF_BDY);
-    if (INIT_REF_BDY > 1) u_mesh.refine_towards_boundary("Right", INIT_REF_BDY - 1);  // Minus one for the sake of mesh symmetry. 
+    // Minus one for the sake of mesh symmetry.     
+    if (INIT_REF_BDY > 1) u_mesh.refine_towards_boundary("Right", INIT_REF_BDY - 1);  
   }
 
   // Create initial mesh (master mesh).
@@ -100,7 +111,8 @@ int main(int argc, char* argv[])
   if (MULTI == true) 
   {
     v_mesh.refine_towards_boundary("Left", INIT_REF_BDY);
-    if (INIT_REF_BDY > 1) v_mesh.refine_towards_boundary("Right", INIT_REF_BDY - 1);  // Minus one for the sake of mesh symmetry. 
+    // Minus one for the sake of mesh symmetry. 
+    if (INIT_REF_BDY > 1) v_mesh.refine_towards_boundary("Right", INIT_REF_BDY - 1);  
   }
 
 #ifdef WITH_EXACT_SOLUTION
@@ -154,11 +166,13 @@ int main(int argc, char* argv[])
     info("---- Adaptivity step %d:", as);
 
     // Construct globally refined reference mesh and setup reference space.
-    int order_increase = 1;          // FIXME: This should be increase in the x-direction only.
-    int refinement_type = 0;         // FIXME: This should be '2' but that leads to a segfault.
+    // FIXME: This should be increase in the x-direction only.
+    int order_increase = 1;          
+    // FIXME: This should be '2' but that leads to a segfault.
+    int refinement_type = 0;         
     Hermes::vector<Space<double> *>* ref_spaces = 
-      Space<double>::construct_refined_spaces(Hermes::vector<Space<double> *>(&u_space, &v_space),
-                                              order_increase, refinement_type);
+        Space<double>::construct_refined_spaces(Hermes::vector<Space<double> *>(&u_space, &v_space),
+        order_increase, refinement_type);
     Space<double>* u_ref_space = (*ref_spaces)[0];
     Space<double>* v_ref_space = (*ref_spaces)[1];
     int ndof_ref = Space<double>::get_num_dofs(*ref_spaces);
@@ -189,16 +203,17 @@ int main(int argc, char* argv[])
     };
     // Translate the resulting coefficient vector into the instance of Solution.
     Solution<double>::vector_to_solutions(newton.get_sln_vector(), *ref_spaces, 
-                                            Hermes::vector<Solution<double> *>(&u_ref_sln, &v_ref_sln));
+        Hermes::vector<Solution<double> *>(&u_ref_sln, &v_ref_sln));
 
     // Translate the resulting coefficient vector into the Solution<double> sln.
-    Solution<double>::vector_to_solutions(coeff_vec, *ref_spaces, Hermes::vector<Solution<double> *>(&u_ref_sln, &v_ref_sln));
+    Solution<double>::vector_to_solutions(coeff_vec, *ref_spaces, 
+        Hermes::vector<Solution<double> *>(&u_ref_sln, &v_ref_sln));
 
     // Project the fine mesh solution onto the coarse mesh.
     info("Projecting reference solution on coarse mesh.");
     OGProjection<double>::project_global(Hermes::vector<Space<double> *>(&u_space, &v_space), 
-                                 Hermes::vector<Solution<double> *>(&u_ref_sln, &v_ref_sln), 
-                                 Hermes::vector<Solution<double> *>(&u_sln, &v_sln), matrix_solver_type); 
+        Hermes::vector<Solution<double> *>(&u_ref_sln, &v_ref_sln), 
+        Hermes::vector<Solution<double> *>(&u_sln, &v_sln), matrix_solver_type); 
    
     cpu_time.tick();
 
@@ -215,16 +230,14 @@ int main(int argc, char* argv[])
     // Calculate error estimate for each solution component and the total error estimate.
     Hermes::vector<double> err_est_rel;
     double err_est_rel_total = adaptivity->calc_err_est(Hermes::vector<Solution<double> *>(&u_sln, &v_sln), 
-                                                        Hermes::vector<Solution<double> *>(&u_ref_sln, &v_ref_sln), 
-                                                        &err_est_rel) * 100;
+        Hermes::vector<Solution<double> *>(&u_ref_sln, &v_ref_sln), &err_est_rel) * 100;
 
 #ifdef WITH_EXACT_SOLUTION
     // Calculate exact error for each solution component and the total exact error.
     Hermes::vector<double> err_exact_rel;
     bool solutions_for_adapt = false;
     double err_exact_rel_total = adaptivity->calc_err_exact(Hermes::vector<Solution<double> *>(&u_sln, &v_sln), 
-                                                            Hermes::vector<Solution<double> *>(&exact_u, &exact_v), 
-                                                            &err_exact_rel, solutions_for_adapt) * 100;
+        Hermes::vector<Solution<double> *>(&exact_u, &exact_v), &err_exact_rel, solutions_for_adapt) * 100;
 #endif
 
     // Time measurement.
@@ -255,13 +268,13 @@ int main(int argc, char* argv[])
 
     // Add entry to DOF and CPU convergence graphs.
     graph_dof_est.add_values(Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&u_space, &v_space)), 
-                             err_est_rel_total);
+        err_est_rel_total);
     graph_dof_est.save("conv_dof_est.dat");
     graph_cpu_est.add_values(cpu_time.accumulated(), err_est_rel_total);
     graph_cpu_est.save("conv_cpu_est.dat");
 #ifdef WITH_EXACT_SOLUTION
     graph_dof_exact.add_values(Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&u_space, &v_space)), 
-                               err_exact_rel_total);
+        err_exact_rel_total);
     graph_dof_exact.save("conv_dof_exact.dat");
     graph_cpu_exact.add_values(cpu_time.accumulated(), err_exact_rel_total);
     graph_cpu_exact.save("conv_cpu_exact.dat");
@@ -274,9 +287,10 @@ int main(int argc, char* argv[])
     {
       info("Adapting coarse mesh.");
       done = adaptivity->adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&selector, &selector), 
-                               THRESHOLD, STRATEGY, MESH_REGULARITY);
+          THRESHOLD, STRATEGY, MESH_REGULARITY);
     }
-    if (Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&u_space, &v_space)) >= NDOF_STOP) done = true;
+    if (Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&u_space, &v_space)) 
+        >= NDOF_STOP) done = true;
 
     // Clean up.
     delete [] coeff_vec;
