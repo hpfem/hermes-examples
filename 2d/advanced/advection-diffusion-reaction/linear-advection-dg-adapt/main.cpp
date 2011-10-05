@@ -3,9 +3,8 @@
 #include "definitions.h"
 
 //  This example solves a linear advection equation using Dicontinuous Galerkin (DG) method.
-//	It is intended to show how evalutation of surface matrix forms that take basis functions defined
-//	on different elements work.
-//  It is the same example as linear-advection-dg, but with automatic adaptivity.
+//  It is intended to show how evalutation of surface matrix forms that take basis functions defined
+//  on different elements work. It is the same example as linear-advection-dg, but with automatic adaptivity.
 //
 //  PDE: \nabla \cdot (\Beta u) = 0, where \Beta = (-x_2, x_1) / |x| represents a circular counterclockwise flow field.
 //
@@ -15,48 +14,51 @@
 //				
 //  The following parameters can be changed:
 
-
-
-const int INIT_REF = 2;                           // Number of initial uniform mesh refinements.
-const int P_INIT = 0;                             // Initial polynomial degrees of mesh elements in vertical and horizontal
-                                                  // directions.
-const double THRESHOLD = 0.2;                     // This is a quantitative parameter of the adapt(...) function and
-                                                  // it has different meanings for various adaptive strategies (see below).
-const int STRATEGY = 1;                           // Adaptive strategy:
-                                                  // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
-                                                  //   error is processed. If more elements have similar errors, refine
-                                                  //   all to keep the mesh symmetric.
-                                                  // STRATEGY = 1 ... refine all elements whose error is larger
-                                                  //   than THRESHOLD times maximum element error.
-                                                  // STRATEGY = 2 ... refine all elements whose error is larger
-                                                  //   than THRESHOLD.
-                                                  // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const CandList CAND_LIST = H2D_HP_ANISO;          // Predefined list of element refinement candidates. Possible values are
-                                                  // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO, H2D_HP_ANISO_H
-                                                  // H2D_HP_ANISO_P, H2D_HP_ANISO. See User Documentation for details.
-const int MESH_REGULARITY = -1;                   // Maximum allowed level of hanging nodes:
-                                                  // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
-                                                  // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
-                                                  // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
-                                                  // Note that regular meshes are not supported, this is due to
-                                                  // their notoriously bad performance.
-const double ERR_STOP = 3.0;                      // Stopping criterion for adaptivity (rel. error tolerance between the
-                                                  // fine mesh and coarse mesh solution in percent).
-const double CONV_EXP = 1.0;                      // Default value is 1.0. This parameter influences the selection of
-                                                  // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-                                                  // fine mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 60000;                      // Adaptivity process stops when the number of degrees of freedom grows
-                                                  // over this limit. This is to prevent h-adaptivity to go on forever.
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-                                                  // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-
-const char* iterative_method = "bicgstab";        // Name of the iterative method employed by AztecOO (ignored
-                                                  // by the other solvers). 
-                                                  // Possibilities: gmres, cg, cgs, tfqmr, bicgstab.
-const char* preconditioner = "jacobi";            // Name of the preconditioner employed by AztecOO (ignored by
-                                                  // the other solvers). 
-                                                  // Possibilities: none, jacobi, neumann, least-squares, or a
-                                                  // preconditioner from IFPACK (see solver/aztecoo.h).
+// Number of initial uniform mesh refinements.
+const int INIT_REF = 2;                           
+// Initial polynomial degrees of mesh elements in vertical and horizontal directions.
+const int P_INIT = 0;                             
+// This is a quantitative parameter of the adapt(...) function and
+// it has different meanings for various adaptive strategies.
+const double THRESHOLD = 0.2;                     
+// Adaptive strategy:
+// STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
+//   error is processed. If more elements have similar errors, refine
+//   all to keep the mesh symmetric.
+// STRATEGY = 1 ... refine all elements whose error is larger
+//   than THRESHOLD times maximum element error.
+// STRATEGY = 2 ... refine all elements whose error is larger
+//   than THRESHOLD.
+const int STRATEGY = 1;                           
+// Predefined list of element refinement candidates. Possible values are
+// H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO, H2D_HP_ANISO_H
+// H2D_HP_ANISO_P, H2D_HP_ANISO.
+const CandList CAND_LIST = H2D_HP_ANISO;          
+// Maximum allowed level of hanging nodes:
+// MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
+// MESH_REGULARITY = 1 ... at most one-level hanging nodes,
+// MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
+// Note that regular meshes are not supported, this is due to
+// their notoriously bad performance.
+const int MESH_REGULARITY = -1;                   
+// Stopping criterion for adaptivity.
+const double ERR_STOP = 3.0;                      
+// This parameter influences the selection of
+// cancidates in hp-adaptivity. Default value is 1.0. 
+const double CONV_EXP = 1.0;                      
+// Adaptivity process stops when the number of degrees of freedom grows
+// over this limit. This is to prevent h-adaptivity to go on forever.
+const int NDOF_STOP = 60000;                      
+// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
+// Name of the iterative method employed by AztecOO (ignored by the other solvers). 
+// Possibilities: gmres, cg, cgs, tfqmr, bicgstab.
+const char* iterative_method = "bicgstab";        
+// Name of the preconditioner employed by AztecOO (ignored by the other solvers). 
+// Possibilities: none, jacobi, neumann, least-squares, or a
+// preconditioner from IFPACK (see solver/aztecoo.h).
+const char* preconditioner = "jacobi";            
 
 int main(int argc, char* args[])
 {
@@ -110,7 +112,7 @@ int main(int argc, char* args[])
 
     info("Solving on reference mesh.");
 
-	  // Initialize the FE problem.
+    // Initialize the FE problem.
     DiscreteProblem<double>* dp = new DiscreteProblem<double>(&wf, ref_space);
     
     // Set up the solver, matrix, and rhs according to the solver selection.
@@ -187,9 +189,9 @@ int main(int argc, char* args[])
   }
   while (done == false);
 
-	info("Total running time: %g s", cpu_time.accumulated());
+  info("Total running time: %g s", cpu_time.accumulated());
   
-  // wait for keyboard or mouse input
+  // Wait for keyboard or mouse input.
   View::wait();
   return 0;
 }
