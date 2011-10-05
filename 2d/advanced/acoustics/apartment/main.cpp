@@ -106,12 +106,9 @@ int main(int argc, char* argv[])
   H1ProjBasedSelector<std::complex<double> > selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Initialize views.
-  ScalarView sview_real("Solution - real part", new WinGeom(0, 0, 600, 350));
-  ScalarView sview_imag("Solution - imaginary part", new WinGeom(360, 0, 600, 350));
-  sview_real.show_mesh(false);
-  sview_imag.show_mesh(false);
-  sview_real.fix_scale_width(50);
-  sview_imag.fix_scale_width(50);
+  ScalarView sview("Solution magnitude", new WinGeom(0, 0, 600, 350));
+  sview.show_mesh(false);
+  sview.fix_scale_width(50);
   OrderView  oview("Polynomial orders", new WinGeom(610, 0, 600, 350));
 
   // DOF and CPU convergence graphs initialization.
@@ -161,10 +158,8 @@ int main(int argc, char* argv[])
     cpu_time.tick();
 
     // View the coarse mesh solution and polynomial orders.
-    RealFilter real(&sln);
-    ImagFilter imag(&sln);
-    sview_real.show(&real);
-    sview_imag.show(&imag);
+    RealFilter mag(&sln);
+    sview.show(&mag);
     oview.show(&space);
 
     // Calculate element errors and total error estimate.
@@ -207,13 +202,10 @@ int main(int argc, char* argv[])
   verbose("Total running time: %g s", cpu_time.accumulated());
 
   // Show the reference solution - the final result.
-  sview_real.set_title("Fine mesh solution - real part");
-  sview_imag.set_title("Fine mesh solution - imaginary part");
+  sview.set_title("Fine mesh solution magnitude");
 
-  RealFilter ref_real(&ref_sln);
-  ImagFilter ref_imag(&ref_sln);
-  sview_real.show(&ref_real);
-  sview_imag.show(&ref_imag);
+  RealFilter ref_mag(&ref_sln);
+  sview.show(&ref_mag);
 
   // Wait for all views to be closed.
   View::wait();
