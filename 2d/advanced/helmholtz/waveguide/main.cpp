@@ -24,24 +24,37 @@
 //
 // The following parameters can be changed:
 
-const int P_INIT = 6;                                  // Initial polynomial degree of all elements.
-const int INIT_REF_NUM = 3;                            // Number of initial mesh refinements.
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;       // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-                                                       // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+// Initial polynomial degree of all elements.
+const int P_INIT = 6;                                  
+// Number of initial mesh refinements.
+const int INIT_REF_NUM = 3;                            
+// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;       
 
 // Problem parameters.
-const double epsr = 1.0;                    // Relative permittivity
-const double eps0 = 8.85418782e-12;         // Permittivity of vacuum F/m
+// Relative permittivity.
+const double epsr = 1.0;                    
+// Permittivity of vacuum F/m.
+const double eps0 = 8.85418782e-12;         
 const double eps = epsr * eps0;
-const double mur = 1.0;                     // Relative permeablity
-const double mu0 = 4*M_PI*1e-7;             // Permeability of vacuum H/m
+// Relative permeablity.
+const double mur = 1.0;                     
+// Permeability of vacuum H/m.
+const double mu0 = 4*M_PI*1e-7;             
 const double mu = mur * mu0;
-const double frequency = 3e9;               // Frequency MHz
-const double omega = 2*M_PI * frequency;    // Angular velocity
-const double sigma = 0;                     // Conductivity Ohm/m
-const double beta = 54;                     // Propagation constant
-const double E0 = 100;                      // Input electric intensity
-const double h = 0.1;                       // Height of waveguide
+// Frequency MHz.
+const double frequency = 3e9;               
+// Angular velocity.
+const double omega = 2*M_PI * frequency;    
+// Conductivity Ohm/m.
+const double sigma = 0;                     
+// Propagation constant.
+const double beta = 54;                     
+// Input electric intensity.
+const double E0 = 100;                      
+// Height of waveguide.
+const double h = 0.1;                       
 
 int main(int argc, char* argv[])
 {
@@ -51,7 +64,8 @@ int main(int argc, char* argv[])
   mloader.load("domain.mesh", &mesh);
 
   // Perform uniform mesh refinement.
-  for(int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements(2); // 2 is for vertical split.
+  // 2 is for vertical split.
+  for(int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements(2); 
 
   // Initialize boundary conditions
   DefaultEssentialBCConst<double> bc1("Bdy_perfect", 0.0);
@@ -63,9 +77,6 @@ int main(int argc, char* argv[])
   H1Space<double> e_i_space(&mesh, &bcs, P_INIT);
   int ndof = Space<double>::get_num_dofs(&e_r_space);
   info("ndof = %d", ndof);
-
-  // Initialize the weak formulation
-  // Weak forms for real and imaginary parts
 
   // Initialize the weak formulation.
   WeakFormHelmholtz wf(eps, mu, omega, sigma, beta, E0, h);
