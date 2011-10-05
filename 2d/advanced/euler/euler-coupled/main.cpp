@@ -19,42 +19,55 @@ using namespace Hermes::Hermes2D::Views;
 // IC: Various.
 //
 // The following parameters can be changed:
-// Visualization.
-const bool HERMES_VISUALIZATION = true;               // Set to "true" to enable Hermes OpenGL visualization. 
-const bool VTK_VISUALIZATION = true;                  // Set to "true" to enable VTK output.
-const unsigned int EVERY_NTH_STEP = 1;                // Set visual output for every nth step.
 
+// Set to "true" to enable Hermes OpenGL visualization. 
+const bool HERMES_VISUALIZATION = true;               
+// Set to "true" to enable VTK output.
+const bool VTK_VISUALIZATION = false;                  
+// Set visual output for every nth step.
+const unsigned int EVERY_NTH_STEP = 1;                
 // Shock capturing.
 bool SHOCK_CAPTURING = false;
-
 // Quantitative parameter of the discontinuity detector.
 double DISCONTINUITY_DETECTOR_PARAM = 1.0;
-
 // Stability for the concentration part.
 double ADVECTION_STABILITY_CONSTANT = 1.0;
 const double DIFFUSION_STABILITY_CONSTANT = 1.0;
-
-const int P_INIT_FLOW = 0;                             // Polynomial degree for the Euler equations (for the flow).
-const int P_INIT_CONCENTRATION = 1;                    // Polynomial degree for the concentration.
-double CFL_NUMBER = 1.0;                               // CFL value.
-double time_step = 1E-5, util_time_step;               // Initial and utility time step.
-const MatrixSolverType matrix_solver_type = SOLVER_UMFPACK; // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+// Polynomial degree for the Euler equations (for the flow).
+const int P_INIT_FLOW = 0;                             
+// Polynomial degree for the concentration.
+const int P_INIT_CONCENTRATION = 1;                    
+// CFL value.
+double CFL_NUMBER = 1.0;                               
+// Initial and utility time step.
+double time_step = 1E-5, util_time_step;               
+// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-
-unsigned int INIT_REF_NUM_FLOW = 3;                    // Number of initial uniform mesh refinements of the mesh for the flow.
-unsigned int INIT_REF_NUM_CONCENTRATION = 3;           // Number of initial uniform mesh refinements of the mesh for the concentration.
-unsigned int INIT_REF_NUM_CONCENTRATION_BDY = 1;       // Number of initial mesh refinements of the mesh for the concentration towards the 
+const MatrixSolverType matrix_solver_type = SOLVER_UMFPACK; 
+// Number of initial uniform mesh refinements of the mesh for the flow.
+unsigned int INIT_REF_NUM_FLOW = 3;                    
+// Number of initial uniform mesh refinements of the mesh for the concentration.
+unsigned int INIT_REF_NUM_CONCENTRATION = 3;           
+// Number of initial mesh refinements of the mesh for the concentration towards the 
 // part of the boundary where the concentration is prescribed.
+unsigned int INIT_REF_NUM_CONCENTRATION_BDY = 1;       
 // Equation parameters.
-const double P_EXT = 2.5;                              // Exterior pressure (dimensionless).
-const double RHO_EXT = 1.0;                            // Inlet density (dimensionless).   
-const double V1_EXT = 1.25;                             // Inlet x-velocity (dimensionless).
-const double V2_EXT = 0.0;                            // Inlet y-velocity (dimensionless).
-const double KAPPA = 1.4;                              // Kappa.
-const double CONCENTRATION_EXT = 0.1;                  // Concentration on the boundary.
-const double CONCENTRATION_EXT_STARTUP_TIME = 0.0;     // Start time of the concentration on the boundary.
-
-const double EPSILON = 0.01;                           // Diffusivity.
+// Exterior pressure (dimensionless).
+const double P_EXT = 2.5;                              
+// Inlet density (dimensionless).   
+const double RHO_EXT = 1.0;                            
+// Inlet x-velocity (dimensionless).
+const double V1_EXT = 1.25;                             
+// Inlet y-velocity (dimensionless).
+const double V2_EXT = 0.0;                            
+// Kappa.
+const double KAPPA = 1.4;                              
+// Concentration on the boundary.
+const double CONCENTRATION_EXT = 0.1;                  
+// Start time of the concentration on the boundary.
+const double CONCENTRATION_EXT_STARTUP_TIME = 0.0;     
+// Diffusivity.
+const double EPSILON = 0.01;                           
 
 // Boundary markers.
 const std::string BDY_INLET = "1";
@@ -102,7 +115,7 @@ int main(int argc, char* argv[])
   L2Space<double>space_rho_v_x(&mesh_flow, P_INIT_FLOW);
   L2Space<double>space_rho_v_y(&mesh_flow, P_INIT_FLOW);
   L2Space<double>space_e(&mesh_flow, P_INIT_FLOW);
-  // Space<double> for concentration.
+  // H1Space<double> for concentration.
   H1Space<double> space_c(&mesh_concentration, &bcs_concentration, P_INIT_CONCENTRATION);
 
   int ndof = Space<double>::get_num_dofs(Hermes::vector<Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e, &space_c));

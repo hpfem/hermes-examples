@@ -23,9 +23,12 @@ using namespace RefinementSelectors;
 // Semi-implicit scheme.
 const bool SEMI_IMPLICIT = true;
 // Visualization.
-const bool HERMES_VISUALIZATION = true;           // Set to "true" to enable Hermes OpenGL visualization. 
-const bool VTK_VISUALIZATION = false;              // Set to "true" to enable VTK output.
-const unsigned int EVERY_NTH_STEP = 5;            // Set visual output for every nth step.
+// Set to "true" to enable Hermes OpenGL visualization. 
+const bool HERMES_VISUALIZATION = true;           
+// Set to "true" to enable VTK output.
+const bool VTK_VISUALIZATION = false;              
+// Set visual output for every nth step.
+const unsigned int EVERY_NTH_STEP = 5;            
 
 // Shock capturing.
 bool SHOCK_CAPTURING = true;
@@ -36,22 +39,30 @@ double DISCONTINUITY_DETECTOR_PARAM = 1.0;
 double ADVECTION_STABILITY_CONSTANT = 1.0;
 const double DIFFUSION_STABILITY_CONSTANT = 1.0;
 
-const int P_INIT_FLOW = 0;                        // Polynomial degree for the Euler equations (for the flow).
-const int P_INIT_CONCENTRATION = 1;               // Polynomial degree for the concentration.
-double CFL_NUMBER = 1.0;                          // CFL value.
-double time_step = 1E-5, util_time_step;          // Initial and utility time step.
+// Polynomial degree for the Euler equations (for the flow).
+const int P_INIT_FLOW = 0;                        
+// Polynomial degree for the concentration.
+const int P_INIT_CONCENTRATION = 1;               
+// CFL value.
+double CFL_NUMBER = 1.0;                          
+// Initial and utility time step.
+double time_step = 1E-5, util_time_step;          
 
 // Adaptivity.
-const int UNREF_FREQ = 5;                         // Every UNREF_FREQth time step the mesh is unrefined.
-int REFINEMENT_COUNT_FLOW = 0;                         // Number of mesh refinements between two unrefinements.
+// Every UNREF_FREQth time step the mesh is unrefined.
+const int UNREF_FREQ = 5;                         
+// Number of mesh refinements between two unrefinements.
 // The mesh is not unrefined unless there has been a refinement since
 // last unrefinement.
-int REFINEMENT_COUNT_CONCENTRATION = 0;                         // Number of mesh refinements between two unrefinements.
+int REFINEMENT_COUNT_FLOW = 0;                         
+// Number of mesh refinements between two unrefinements.
 // The mesh is not unrefined unless there has been a refinement since
 // last unrefinement.
-const double THRESHOLD = 0.1;                     // This is a quantitative parameter of the adapt(...) function and
-// it has different meanings for various adaptive strategies (see below).
-const int STRATEGY = 1;                           // Adaptive strategy:
+int REFINEMENT_COUNT_CONCENTRATION = 0;                         
+// This is a quantitative parameter of the adapt(...) function and
+// it has different meanings for various adaptive strategies.
+const double THRESHOLD = 0.1;                     
+// Adaptive strategy:
 // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
 //  error is processed. If more elements have similar errors, refine
 //  all to keep the mesh symmetric.
@@ -59,44 +70,59 @@ const int STRATEGY = 1;                           // Adaptive strategy:
 //  than THRESHOLD times maximum element error.
 // STRATEGY = 2 ... refine all elements whose error is larger
 //  than THRESHOLD.
-// More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const CandList CAND_LIST_FLOW = H2D_HP_ANISO,      // Predefined list of element refinement candidates. Possible values are
-  CAND_LIST_CONCENTRATION = H2D_HP_ANISO;     // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
+const int STRATEGY = 1;                           
+// Predefined list of element refinement candidates. Possible values are
+// H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
 // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
-const int MAX_P_ORDER = -1;                       // Maximum polynomial degree used. -1 for unlimited.
-// See User Documentation for details.
-const int MESH_REGULARITY = -1;                   // Maximum allowed level of hanging nodes:
+const CandList CAND_LIST_FLOW = H2D_HP_ANISO, CAND_LIST_CONCENTRATION = H2D_HP_ANISO;     
+// Maximum polynomial degree used. -1 for unlimited.
+const int MAX_P_ORDER = -1;                       
+// Maximum allowed level of hanging nodes:
 // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
 // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
 // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
 // Note that regular meshes are not supported, this is due to
 // their notoriously bad performance.
-const double CONV_EXP = 1;                        // Default value is 1.0. This parameter influences the selection of
-// cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-double ERR_STOP_FLOW = 1.0;                 // Stopping criterion for adaptivity (rel. error tolerance between the
-// fine mesh and coarse mesh solution in percent).
-double ERR_STOP_CONCENTRATION = 10.0;        // Stopping criterion for adaptivity (rel. error tolerance between the
-// fine mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 100000;                     // Adaptivity process stops when the number of degrees of freedom grows over
+const int MESH_REGULARITY = -1;                   
+// This parameter influences the selection of
+// candidates in hp-adaptivity. Default value is 1.0. 
+const double CONV_EXP = 1;                        
+// Stopping criterion for adaptivity.
+double ERR_STOP_FLOW = 1.0;                 
+// Stopping criterion for adaptivity.
+double ERR_STOP_CONCENTRATION = 10.0;        
+// Adaptivity process stops when the number of degrees of freedom grows over
 // this limit. This is mainly to prevent h-adaptivity to go on forever.
-// Matrix solver for orthogonal projections.
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+const int NDOF_STOP = 100000;                     
+// Matrix solver for orthogonal projections: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
 
-unsigned int INIT_REF_NUM_FLOW = 3;               // Number of initial uniform mesh refinements of the mesh for the flow.
-unsigned int INIT_REF_NUM_CONCENTRATION = 3;      // Number of initial uniform mesh refinements of the mesh for the concentration.
-unsigned int INIT_REF_NUM_CONCENTRATION_BDY = 1;  // Number of initial mesh refinements of the mesh for the concentration towards the 
+// Number of initial uniform mesh refinements of the mesh for the flow.
+unsigned int INIT_REF_NUM_FLOW = 3;               
+// Number of initial uniform mesh refinements of the mesh for the concentration.
+unsigned int INIT_REF_NUM_CONCENTRATION = 3;      
+// Number of initial mesh refinements of the mesh for the concentration towards the 
 // part of the boundary where the concentration is prescribed.
-// Equation parameters.
-const double P_EXT = 2.5;                               // Exterior pressure (dimensionless).
-const double RHO_EXT = 1.0;                             // Inlet density (dimensionless).   
-const double V1_EXT = 1.25;                             // Inlet x-velocity (dimensionless).
-const double V2_EXT = 0.0;                            // Inlet y-velocity (dimensionless).
-const double KAPPA = 1.4;                               // Kappa.
-const double CONCENTRATION_EXT = 0.1;                  // Concentration on the boundary.
-const double CONCENTRATION_EXT_STARTUP_TIME = 0.0;     // Start time of the concentration on the boundary.
+unsigned int INIT_REF_NUM_CONCENTRATION_BDY = 1;  
 
-const double EPSILON = 0.001;                           // Diffusivity.
+// Equation parameters.
+// Exterior pressure (dimensionless).
+const double P_EXT = 2.5;                               
+// Inlet density (dimensionless).   
+const double RHO_EXT = 1.0;                             
+// Inlet x-velocity (dimensionless).
+const double V1_EXT = 1.25;                             
+// Inlet y-velocity (dimensionless).
+const double V2_EXT = 0.0;                            
+// Kappa.
+const double KAPPA = 1.4;                               
+// Concentration on the boundary.
+const double CONCENTRATION_EXT = 0.1;                  
+// Start time of the concentration on the boundary.
+const double CONCENTRATION_EXT_STARTUP_TIME = 0.0;     
+// Diffusivity.
+const double EPSILON = 0.001;                           
 
 // Boundary markers.
 const std::string BDY_INLET = "1";
