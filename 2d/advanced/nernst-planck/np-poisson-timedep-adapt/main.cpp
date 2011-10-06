@@ -4,7 +4,6 @@
 
 #include "timestep_controller.h"
 
-
 /** \addtogroup e_newton_np_timedep_adapt_system Newton Time-dependant System with Adaptivity
  \{
  \brief This example shows how to combine the automatic adaptivity with the Newton's method for a nonlinear time-dependent PDE system.
@@ -49,80 +48,107 @@
 // Parameters to tweak the amount of output to the console.
 #define NOSCREENSHOT
 
-bool SCALED = true;  // true if scaled dimensionless variables are used, false otherwise
-
+// True if scaled dimensionless variables are used, false otherwise.
+bool SCALED = true;  
 
 /*** Fundamental coefficients ***/
-const double D = 10e-11; 	                        // [m^2/s] Diffusion coefficient.
-const double R = 8.31; 		                        // [J/mol*K] Gas constant.
-const double T = 293; 		                        // [K] Aboslute temperature.
-const double F = 96485.3415;	                    // [s * A / mol] Faraday constant.
-const double eps = 2.5e-2; 	                      // [F/m] Electric permeability.
-const double mu = D / (R * T);                    // Mobility of ions.
-const double z = 1;		                            // Charge number.
-const double K = z * mu * F;                      // Constant for equation.
-const double L =  F / eps;	                      // Constant for equation.
-const double C0 = 1200;	                          // [mol/m^3] Anion and counterion concentration.
 
-// Scaling constants
-const double l = 200e-6;                  // scaling const, domain thickness [m]
-double lambda = Hermes::sqrt((eps)*R*T/(2.0*F*F*C0)); //Debye length [m]
+// [m^2/s] Diffusion coefficient.
+const double D = 10e-11; 	                        
+// [J/mol*K] Gas constant.
+const double R = 8.31; 		                        
+// [K] Aboslute temperature.
+const double T = 293; 		                        
+// [s * A / mol] Faraday constant.
+const double F = 96485.3415;	                    
+// [F/m] Electric permeability.
+const double eps = 2.5e-2; 	                      
+// Mobility of ions.
+const double mu = D / (R * T);                    
+// Charge number.
+const double z = 1;		                            
+// Constant for equation.
+const double K = z * mu * F;                      
+// Constant for equation.
+const double L =  F / eps;	                      
+// [mol/m^3] Anion and counterion concentration.
+const double C0 = 1200;	                          
+
+// Scaling constants.
+// Scaling const, domain thickness [m].
+const double l = 200e-6;                  
+// Debye length [m].
+double lambda = Hermes::sqrt((eps)*R*T/(2.0*F*F*C0)); 
 double epsilon = lambda/l;
 
-const double VOLTAGE = 1;                         // [V] Applied voltage.
+// [V] Applied voltage.
+const double VOLTAGE = 1;                         
 const double SCALED_VOLTAGE = VOLTAGE*F/(R*T);
 
-
-
 /* Simulation parameters */
+
 const double T_FINAL = 3;
 double INIT_TAU = 0.05;
-double *TAU = &INIT_TAU;                          // Size of the time step
+// Size of the time step.
+double *TAU = &INIT_TAU;                          
 
-// scaling time variables
+// Scaling time variables.
 //double SCALED_INIT_TAU = INIT_TAU*D/(lambda * l);
 //double TIME_SCALING = lambda * l / D;
 
-const int P_INIT = 2;       	                    // Initial polynomial degree of all mesh elements.
-const int REF_INIT = 3;     	                    // Number of initial refinements.
-const bool MULTIMESH = true;	                    // Multimesh?
-const int TIME_DISCR = 2;                         // 1 for implicit Euler, 2 for Crank-Nicolson.
+// Initial polynomial degree of all mesh elements.
+const int P_INIT = 2;       	                    
+// Number of initial refinements.
+const int REF_INIT = 3;     	                    
+// Multimesh?
+const bool MULTIMESH = true;	                    
+// 1 for implicit Euler, 2 for Crank-Nicolson.
+const int TIME_DISCR = 2;                         
 
-const double NEWTON_TOL_COARSE = 0.01;            // Stopping criterion for Newton on coarse mesh.
-const double NEWTON_TOL_FINE = 0.05;              // Stopping criterion for Newton on fine mesh.
-const int NEWTON_MAX_ITER = 100;                  // Maximum allowed number of Newton iterations.
+// Stopping criterion for Newton on coarse mesh.
+const double NEWTON_TOL_COARSE = 0.01;            
+// Stopping criterion for Newton on fine mesh.
+const double NEWTON_TOL_FINE = 0.05;              
+// Maximum allowed number of Newton iterations.
+const int NEWTON_MAX_ITER = 100;                  
 
-const int UNREF_FREQ = 1;                         // every UNREF_FREQth time step the mesh is unrefined.
-const double THRESHOLD = 0.3;                     // This is a quantitative parameter of the adapt(...) function and
-                                                  // it has different meanings for various adaptive strategies (see below).
-const int STRATEGY = 0;                           // Adaptive strategy:
-                                                  // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
-                                                  //   error is processed. If more elements have similar errors, refine
-                                                  //   all to keep the mesh symmetric.
-                                                  // STRATEGY = 1 ... refine all elements whose error is larger
-                                                  //   than THRESHOLD times maximum element error.
-                                                  // STRATEGY = 2 ... refine all elements whose error is larger
-                                                  //   than THRESHOLD.
-                                                  // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const CandList CAND_LIST = H2D_HP_ANISO;          // Predefined list of element refinement candidates. Possible values are
-                                                  // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
-                                                  // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
-                                                  // See User Documentation for details.
-const int MESH_REGULARITY = -1;                   // Maximum allowed level of hanging nodes:
-                                                  // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
-                                                  // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
-                                                  // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
-                                                  // Note that regular meshes are not supported, this is due to
-                                                  // their notoriously bad performance.
-const double CONV_EXP = 1.0;                      // Default value is 1.0. This parameter influences the selection of
-                                                  // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-const int NDOF_STOP = 5000;	                      // To prevent adaptivity from going on forever.
-const double ERR_STOP = 0.1;                      // Stopping criterion for adaptivity (rel. error tolerance between the
-                                                  // fine mesh and coarse mesh solution in percent).
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-                                                  // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+// Every UNREF_FREQth time step the mesh is unrefined.
+const int UNREF_FREQ = 1;                         
+// This is a quantitative parameter of the adapt(...) function and
+// it has different meanings for various adaptive strategies.
+const double THRESHOLD = 0.3;                     
+// Adaptive strategy:
+// STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
+//   error is processed. If more elements have similar errors, refine
+//   all to keep the mesh symmetric.
+// STRATEGY = 1 ... refine all elements whose error is larger
+//   than THRESHOLD times maximum element error.
+// STRATEGY = 2 ... refine all elements whose error is larger
+//   than THRESHOLD.
+const int STRATEGY = 0;                           
+// Predefined list of element refinement candidates. Possible values are
+// H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
+// H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
+const CandList CAND_LIST = H2D_HP_ANISO;          
+// Maximum allowed level of hanging nodes:
+// MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
+// MESH_REGULARITY = 1 ... at most one-level hanging nodes,
+// MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
+// Note that regular meshes are not supported, this is due to
+// their notoriously bad performance.
+const int MESH_REGULARITY = -1;                   
+// This parameter influences the selection of
+// candidates in hp-adaptivity. Default value is 1.0. 
+const double CONV_EXP = 1.0;                      
+// To prevent adaptivity from going on forever.
+const int NDOF_STOP = 5000;	                      
+// Stopping criterion for adaptivity.
+const double ERR_STOP = 0.1;                      
+// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
 
-// Weak forms
+// Weak forms.
 #include "definitions.cpp"
 
 // Boundary markers.
