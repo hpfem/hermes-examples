@@ -27,8 +27,15 @@ const bool VTK_VISUALIZATION = false;
 // Set visual output for every nth step.
 const unsigned int EVERY_NTH_STEP = 1;                
 // Shock capturing.
-bool SHOCK_CAPTURING = false;
-// Quantitative parameter of the discontinuity detector.
+enum shockCapturingType
+{
+  FEISTAUER,
+  KUZMIN,
+  KRIVODONOVA
+};
+bool SHOCK_CAPTURING = true;
+shockCapturingType SHOCK_CAPTURING_TYPE = KUZMIN;
+// Quantitative parameter of the discontinuity detector in case of Krivodonova.
 double DISCONTINUITY_DETECTOR_PARAM = 1.0;
 // Stability for the concentration part.
 double ADVECTION_STABILITY_CONSTANT = 1.0;
@@ -63,7 +70,7 @@ const double V2_EXT = 0.0;
 // Kappa.
 const double KAPPA = 1.4;                              
 // Concentration on the boundary.
-const double CONCENTRATION_EXT = 0.1;                  
+const double CONCENTRATION_EXT = 10000.1;                  
 // Start time of the concentration on the boundary.
 const double CONCENTRATION_EXT_STARTUP_TIME = 0.0;     
 // Diffusivity.
@@ -95,14 +102,15 @@ int main(int argc, char* argv[])
   mesh_flow.copy(&basemesh);
   mesh_concentration.copy(&basemesh);
 
+  // Perform initial mesh refinements.
+  for (int i = 0; i < INIT_REF_NUM_FLOW; i++) 
+    mesh_flow.refine_all_elements(0, true);
+
   for(unsigned int i = 0; i < INIT_REF_NUM_CONCENTRATION; i++)
-    mesh_concentration.refine_all_elements();
+    mesh_concentration.refine_all_elements(0, true);
 
   mesh_concentration.refine_towards_boundary(BDY_DIRICHLET_CONCENTRATION, INIT_REF_NUM_CONCENTRATION_BDY);
   mesh_flow.refine_towards_boundary(BDY_DIRICHLET_CONCENTRATION, INIT_REF_NUM_CONCENTRATION_BDY);
-
-  for(unsigned int i = 0; i < INIT_REF_NUM_FLOW; i++)
-    mesh_flow.refine_all_elements();
 
   // Initialize boundary condition types and spaces with default shapesets.
   // For the concentration.
@@ -129,38 +137,23 @@ int main(int argc, char* argv[])
   ConstantSolution<double> prev_c(&mesh_concentration, 0.0);
 
   // Numerical flux.
-  OsherSolomonNumericalFlux num_flux(KAPPA);
-
-  // Initialize weak formulation.
-  EulerEquationsWeakFormSemiImplicitCoupled wf(&num_flux, KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, BDY_SOLID_WALL_BOTTOM,
-    BDY_SOLID_WALL_TOP, BDY_INLET, BDY_OUTLET, BDY_NATURAL_CONCENTRATION, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_c, EPSILON, (P_INIT_FLOW == 0));
-
-  wf.set_time_step(time_step);
-
-  // Initialize the FE problem.
-  bool is_linear = true;
-  DiscreteProblem<double> dp(&wf, Hermes::vector<Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e, &space_c));
-
-  // If the FE problem is in fact a FV problem.
-  //if(P_INIT == 0) dp.set_fvm();  
+  VijayasundaramNumericalFlux num_flux(KAPPA);
 
   // Filters for visualization of Mach number, pressure and entropy.
   MachNumberFilter Mach_number(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA);
   PressureFilter pressure(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA);
   EntropyFilter entropy(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA, RHO_EXT, P_EXT);
 
-  /*
   ScalarView pressure_view("Pressure", new WinGeom(0, 0, 600, 300));
   ScalarView Mach_number_view("Mach number", new WinGeom(700, 0, 600, 300));
   ScalarView entropy_production_view("Entropy estimate", new WinGeom(0, 400, 600, 300));
-  ScalarView s5("Concentration", new WinGeom(700, 400, 600, 300));
-  */
 
-  ScalarView s1("1", new WinGeom(0, 0, 600, 300));
-  ScalarView s2("2", new WinGeom(700, 0, 600, 300));
-  ScalarView s3("3", new WinGeom(0, 400, 600, 300));
-  ScalarView s4("4", new WinGeom(700, 400, 600, 300));
-  ScalarView s5("Concentration", new WinGeom(350, 200, 600, 300));
+  ScalarView s1("prev_rho", new WinGeom(0, 0, 600, 300));
+  ScalarView s2("prev_rho_v_x", new WinGeom(700, 0, 600, 300));
+  ScalarView s3("prev_rho_v_y", new WinGeom(0, 400, 600, 300));
+  ScalarView s4("prev_e", new WinGeom(700, 400, 600, 300));
+  
+  ScalarView s5("Concentration", new WinGeom(700, 400, 600, 300));
 
   // Set up the solver, matrix, and rhs according to the solver selection.
   SparseMatrix<double>* matrix = create_matrix<double>(matrix_solver_type);
@@ -173,8 +166,16 @@ int main(int argc, char* argv[])
   // Set up Advection-Diffusion-Equation stability calculation class.
   ADEStabilityCalculation ADES(ADVECTION_STABILITY_CONSTANT, DIFFUSION_STABILITY_CONSTANT, EPSILON);
 
+  // Initialize weak formulation.
+  EulerEquationsWeakFormSemiImplicitCoupled wf(&num_flux, KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, BDY_SOLID_WALL_BOTTOM,
+    BDY_SOLID_WALL_TOP, BDY_INLET, BDY_OUTLET, BDY_NATURAL_CONCENTRATION, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_c, EPSILON, (P_INIT_FLOW == 0));
+
+  // Initialize the FE problem.
+  DiscreteProblem<double> dp(&wf, Hermes::vector<Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e, &space_c));
+
+  // Time stepping loop.
   int iteration = 0; double t = 0;
-  for(t = 0.0; t < 100.0; t += time_step)
+  for(; t < 10.0; t += time_step)
   {
     info("---- Time step %d, time %3.5f.", iteration++, t);
 
@@ -182,35 +183,39 @@ int main(int argc, char* argv[])
     wf.set_time_step(time_step);
     Space<double>::update_essential_bc_values(&space_c, t);
 
-    // Assemble stiffness matrix and rhs.
+    // Assemble the stiffness matrix and rhs.
     info("Assembling the stiffness matrix and right-hand side vector.");
     dp.assemble(matrix, rhs);
 
     // Solve the matrix problem.
     info("Solving the matrix problem.");
-    double* solution_vector = NULL;
-		
-		if(solver->solve())
+    if(solver->solve())
       if(!SHOCK_CAPTURING)
-        Solution<double>::vector_to_solutions(solution_vector, Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-					&space_rho_v_y, &space_e, &space_c), Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_c));
+        Solution<double>::vector_to_solutions(solver->get_sln_vector(), Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
+        &space_rho_v_y, &space_e, &space_c), Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_c));
       else
-        {      
-          FluxLimiter flux_limiter(FluxLimiter::Krivodonova, solver->get_sln_vector(), Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-            &space_rho_v_y, &space_e));
+      {      
+        FluxLimiter* flux_limiter;
+        if(SHOCK_CAPTURING_TYPE == KUZMIN)
+          flux_limiter = new FluxLimiter(FluxLimiter::Kuzmin, solver->get_sln_vector(), Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
+          &space_rho_v_y, &space_e));
+        else
+          flux_limiter = new FluxLimiter(FluxLimiter::Krivodonova, solver->get_sln_vector(), Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
+          &space_rho_v_y, &space_e));
 
-          flux_limiter.limit_according_to_detector();
+        if(SHOCK_CAPTURING_TYPE == KUZMIN)
+          flux_limiter->limit_second_orders_according_to_detector();
 
-          flux_limiter.get_limited_solutions(Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
-        }
+        flux_limiter->limit_according_to_detector();
+
+        flux_limiter->get_limited_solutions(Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
+      }
     else
       error ("Matrix solver failed.\n");
-		
-		util_time_step = time_step;
 
-    CFL.calculate_semi_implicit(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), &mesh_flow, util_time_step);
+    CFL.calculate_semi_implicit(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), &mesh_flow, time_step);
 
-    time_step = util_time_step;
+    util_time_step = time_step;
 
     ADES.calculate(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y), &mesh_concentration, util_time_step);
 
@@ -218,32 +223,20 @@ int main(int argc, char* argv[])
       time_step = util_time_step;
 
     // Visualization.
-    if((iteration - 1) % EVERY_NTH_STEP == 0) {
+    if((iteration - 1) % EVERY_NTH_STEP == 0) 
+    {
       // Hermes visualization.
       if(HERMES_VISUALIZATION)
-      {        /*
-               Mach_number.reinit();
-               pressure.reinit();
-               entropy.reinit();
-               pressure_view.show(&pressure);
-               entropy_production_view.show(&entropy);
-               Mach_number_view.show(&Mach_number);
-               s5.show(&prev_c);
-               */
-        s1.show(&prev_rho);
-        s2.show(&prev_rho_v_x);
-        s3.show(&prev_rho_v_y);
-        s4.show(&prev_e);
+      {
+        Mach_number.reinit();
+        pressure.reinit();
+        entropy.reinit();
+        pressure_view.show(&pressure);
+        entropy_production_view.show(&entropy);
+        Mach_number_view.show(&Mach_number);
         s5.show(&prev_c);
-        /*
-        s1.save_numbered_screenshot("density%i.bmp", iteration, true);
-        s2.save_numbered_screenshot("density_v_x%i.bmp", iteration, true);
-        s3.save_numbered_screenshot("density_v_y%i.bmp", iteration, true);
-        s4.save_numbered_screenshot("energy%i.bmp", iteration, true);
-        s5.save_numbered_screenshot("concentration%i.bmp", iteration, true);
-        */
-        //s5.wait_for_close();
-
+        pressure_view.save_numbered_screenshot("Pressure-%u.bmp", iteration - 1, true);
+        Mach_number_view.save_numbered_screenshot("Mach-%u.bmp", iteration - 1, true);
       }
       // Output solution in VTK format.
       if(VTK_VISUALIZATION)
@@ -264,18 +257,9 @@ int main(int argc, char* argv[])
     }
   }
 
-  /*
   pressure_view.close();
   entropy_production_view.close();
   Mach_number_view.close();
-  s5.close();
-  */
-
-  s1.close();
-  s2.close();
-  s3.close();
-  s4.close();
-  s5.close();
 
   return 0;
 }
