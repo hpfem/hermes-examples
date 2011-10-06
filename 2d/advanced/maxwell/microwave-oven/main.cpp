@@ -68,7 +68,7 @@ const int MESH_REGULARITY = -1;
 const double CONV_EXP = 1.0;                      
 // Stopping criterion for adaptivity.
 const double ERR_STOP = 2.0;                      
-// Adapt<std::complex<double> >ivity process stops when the number of degrees of freedom grows
+// Adaptivity process stops when the number of degrees of freedom grows
 // over this limit. This is to prevent h-adaptivity to go on forever.
 const int NDOF_STOP = 60000;                      
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
@@ -142,11 +142,11 @@ int main(int argc, char* argv[])
   TimePeriod cpu_time;
   cpu_time.tick();
 
-  // Adapt<std::complex<double> >ivity loop:
+  // Adaptivity loop:
   int as = 1; bool done = false;
   do
   {
-    info("---- Adapt<std::complex<double> >ivity step %d:", as);
+    info("---- Adaptivity step %d:", as);
 
     // Construct globally refined reference mesh and setup reference space.
     Space<std::complex<double> >* ref_space = Space<std::complex<double> >::construct_refined_space(&space);

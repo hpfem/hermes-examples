@@ -28,7 +28,7 @@ const int P_INIT = 2;                             // Initial polynomial degree.
 const double T_FINAL = 2.0;                       // Time interval length.
 double time_step = 0.005;                         // Time step.
 
-// Adapt<std::complex<double> >ivity.
+// Adaptivity.
 const int UNREF_FREQ = 1;                         // Every UNREF_FREQ time step the mesh is unrefined.
 const int UNREF_METHOD = 3;                       // 1... mesh reset to basemesh and poly degrees to P_INIT.   
                                                   // 2... one ref. layer shaved off, poly degrees reset to P_INIT.
@@ -60,7 +60,7 @@ const double ERR_STOP = 5.0;                      // Stopping criterion for hp-a
                                                   // (relative error between reference and coarse solution in percent)
 const double SPACE_ERR_TOL = 1.0;                 // Stopping criterion for adaptivity (rel. error tolerance between the
                                                   // fine mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 60000;                      // Adapt<std::complex<double> >ivity process stops when the number of degrees of freedom grows
+const int NDOF_STOP = 60000;                      // Adaptivity process stops when the number of degrees of freedom grows
                                                   // over this limit. This is to prevent h-adaptivity to go on forever.
 MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
                                                   // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
