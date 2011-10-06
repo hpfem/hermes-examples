@@ -10,49 +10,67 @@ using namespace Hermes::Hermes2D;
 // model is semi-realistic, double-check all parameter values and equations before 
 // using it for your applications.
 
-const bool STOKES = false;         // If true, then just Stokes equation will be considered,
-                                   // not Navier-Stokes.
-#define PRESSURE_IN_L2             // If defined, pressure elements will be discontinuous (L2),
-                                   // otherwise continuous (H1).                 
-const int P_INIT_VEL = 2;          // Initial polynomial degree for velocity components.
-const int P_INIT_PRESSURE = 1;     // Initial polynomial degree for pressure.
-                                   // Note: P_INIT_VEL should always be greater than
-                                   // P_INIT_PRESSURE because of the inf-sup condition.
-const int P_INIT_TEMP = 2;         // Initial polynomial degree for temperature.
-const int INIT_REF_NUM = 3;        // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM_HOLE = 4;   // Number of initial mesh refinements towards the hole.
-
+// If true, then just Stokes equation will be considered, not Navier-Stokes.
+const bool STOKES = false;         
+// If defined, pressure elements will be discontinuous (L2),
+// otherwise continuous (H1).   
+#define PRESSURE_IN_L2                           
+// Initial polynomial degree for velocity components.
+const int P_INIT_VEL = 2;          
+// Initial polynomial degree for pressure.
+// Note: P_INIT_VEL should always be greater than
+// P_INIT_PRESSURE because of the inf-sup condition.
+const int P_INIT_PRESSURE = 1;     
+// Initial polynomial degree for temperature.
+const int P_INIT_TEMP = 2;         
+// Number of initial uniform mesh refinements.
+const int INIT_REF_NUM = 3;        
+// Number of initial mesh refinements towards the hole.
+const int INIT_REF_NUM_HOLE = 4;   
 
 // Domain sizes (need to be compatible with mesh file).
-const double H = 6;                               // Domain height (necessary to define the parabolic
-                                                  // velocity profile at inlet).
-const double OBSTACLE_DIAMETER = 2.8284;          // For the calculation of Reynolds number
-
+// Domain height (necessary to define the parabolic
+// velocity profile at inlet).
+const double H = 6;                               
+// For the calculation of Reynolds number.
+const double OBSTACLE_DIAMETER = 2.8284;          
 
 // Problem parameters.
-const double VEL_INLET = 1.0;                        // Inlet velocity (reached after STARTUP_TIME).
-const double TEMP_INIT = 20.0;                       // Initial temperature.
-const double KINEMATIC_VISCOSITY_WATER = 1.004e-2;   // Correct is 1.004e-6 (at 20 deg Celsius) but then RE = 2.81713e+06 which 
-                                                     // is too much for this simple model, so we use a larger viscosity. Note
-                                                     // that kinematic viscosity decreases with rising temperature.
-const double THERMAL_CONDUCTIVITY_GRAPHITE = 450;    // We found a range of 25 - 470, but this is another 
-                                                     // number that one needs to be careful about.
-const double THERMAL_CONDUCTIVITY_WATER = 0.6;       // At 25 deg Celsius.
-const double RHO_GRAPHITE = 2220;                    // Density of graphite from Wikipedia, one should be 
-                                                     // careful about this number.      
+// Inlet velocity (reached after STARTUP_TIME).
+const double VEL_INLET = 1.0;                        
+// Initial temperature.
+const double TEMP_INIT = 20.0;                       
+// Correct is 1.004e-6 (at 20 deg Celsius) but then RE = 2.81713e+06 which 
+// is too much for this simple model, so we use a larger viscosity. Note
+// that kinematic viscosity decreases with rising temperature.
+const double KINEMATIC_VISCOSITY_WATER = 1.004e-2;   
+// We found a range of 25 - 470, but this is another 
+// number that one needs to be careful about.
+const double THERMAL_CONDUCTIVITY_GRAPHITE = 450;    
+// At 25 deg Celsius.
+const double THERMAL_CONDUCTIVITY_WATER = 0.6;       
+// Density of graphite from Wikipedia, one should be 
+// careful about this number.    
+const double RHO_GRAPHITE = 2220;                      
 const double RHO_WATER = 1000;      
-const double SPECIFIC_HEAT_GRAPHITE = 711;        // Also found on Wikipedia.
+// Also found on Wikipedia.
+const double SPECIFIC_HEAT_GRAPHITE = 711;        
 const double SPECIFIC_HEAT_WATER = 4187;            
-const double HEAT_SOURCE_GRAPHITE = 1e7;          // Heat source inside of the inner circle. This value is not 
-                                                  // realistic - we just want this thing to heat up quickly.
-const double STARTUP_TIME = 1.0;                  // During this time, inlet velocity increases gradually
-                                                  // from 0 to VEL_INLET, then it stays constant.
-const double time_step = 0.1;                     // Time step.
-const double T_FINAL = 30000.0;                   // Time interval length.
-const double NEWTON_TOL = 1e-4;                   // Stopping criterion for the Newton's method.
-const int NEWTON_MAX_ITER = 10;                   // Maximum allowed number of Newton iterations.
-
-// Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+// Heat source inside of the inner circle. This value is not 
+// realistic - we just want this thing to heat up quickly.
+const double HEAT_SOURCE_GRAPHITE = 1e7;          
+// During this time, inlet velocity increases gradually
+// from 0 to VEL_INLET, then it stays constant.
+const double STARTUP_TIME = 1.0;                  
+// Time step.
+const double time_step = 0.1;                     
+// Time interval length.
+const double T_FINAL = 30000.0;                   
+// Stopping criterion for the Newton's method.
+const double NEWTON_TOL = 1e-4;                   
+// Maximum allowed number of Newton iterations.
+const int NEWTON_MAX_ITER = 10;                   
+// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 Hermes::MatrixSolverType matrix_solver_type = Hermes::SOLVER_UMFPACK;  
 
@@ -122,8 +140,8 @@ int main(int argc, char* argv[])
 
   // Initialize weak formulation.
   CustomWeakFormHeatAndFlow wf(STOKES, reynolds_number, time_step, &xvel_prev_time, &yvel_prev_time, &temperature_prev_time, 
-                               HEAT_SOURCE_GRAPHITE, SPECIFIC_HEAT_GRAPHITE, SPECIFIC_HEAT_WATER, RHO_GRAPHITE, RHO_WATER, 
-                               THERMAL_CONDUCTIVITY_GRAPHITE, THERMAL_CONDUCTIVITY_WATER);
+      HEAT_SOURCE_GRAPHITE, SPECIFIC_HEAT_GRAPHITE, SPECIFIC_HEAT_WATER, RHO_GRAPHITE, RHO_WATER, 
+      THERMAL_CONDUCTIVITY_GRAPHITE, THERMAL_CONDUCTIVITY_WATER);
   
   // Initialize the FE problem.
   DiscreteProblem<double> dp(&wf, Hermes::vector<Space<double> *>(&xvel_space, &yvel_space, &p_space, &temperature_space));

@@ -27,39 +27,50 @@
 //
 // The following parameters can be changed:
 
-#define PRESSURE_IN_L2                            // If this is defined, the pressure is approximated using
-                                                  // discontinuous L2 elements (making the velocity discreetely
-                                                  // divergence-free, more accurate than using a continuous
-                                                  // pressure approximation). Otherwise the standard continuous
-                                                  // elements are used. The results are striking - check the
-                                                  // tutorial for comparisons.
-const int P_INIT_VEL = 2;                         // Initial polynomial degree for velocity components.
-const int P_INIT_PRESSURE = 1;                    // Initial polynomial degree for pressure.
-                                                  // Note: P_INIT_VEL should always be greater than
-                                                  // P_INIT_PRESSURE because of the inf-sup condition.
-const int P_INIT_TEMP = 1;                        // Initial polynomial degree for temperature
-const double time_step = 0.1;                     // Time step.
-const double T_FINAL = 3600.0;                    // Time interval length.
-const double NEWTON_TOL = 1e-5;                   // Stopping criterion for the Newton's method.
-const int NEWTON_MAX_ITER = 100;                  // Maximum allowed number of Newton iterations.
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-                                                  // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+// If this is defined, the pressure is approximated using
+// discontinuous L2 elements (making the velocity discreetely
+// divergence-free, more accurate than using a continuous
+// pressure approximation). Otherwise the standard continuous
+// elements are used. The results are striking - check the
+// tutorial for comparisons.
+#define PRESSURE_IN_L2                            
+// Initial polynomial degree for velocity components.
+const int P_INIT_VEL = 2;                         
+// Initial polynomial degree for pressure.
+// Note: P_INIT_VEL should always be greater than
+// P_INIT_PRESSURE because of the inf-sup condition.
+const int P_INIT_PRESSURE = 1;                    
+// Initial polynomial degree for temperature.
+const int P_INIT_TEMP = 1;                        
+// Time step.
+const double time_step = 0.1;                     
+// Time interval length.
+const double T_FINAL = 3600.0;                    
+// Stopping criterion for the Newton's method.
+const double NEWTON_TOL = 1e-5;                   
+// Maximum allowed number of Newton iterations.
+const int NEWTON_MAX_ITER = 100;                  
+// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
 
 // Problem parameters.
-const double Pr = 7.0;                            // Prandtl number (water around 20 degrees Celsius).
-const double Ra = 50;                             // Rayleigh number.
+// Prandtl number (water has 7.0 around 20 degrees Celsius).
+const double Pr = 7.0;                            
+// Rayleigh number.
+const double Ra = 100;                             
 const double TEMP_INIT = 20;
 const double TEMP_BOTTOM = 25;
-const double TEMP_EXT = 20;                       // External temperature above the surface of the water.
-const double ALPHA_AIR = 5.0;                     // Heat transfer coefficient between water and air on top edge.
+// External temperature above the surface of the water.
+const double TEMP_EXT = 20;                       
+// Heat transfer coefficient between water and air on top edge.
+const double ALPHA_AIR = 5.0;                     
 
 // Weak forms.
 #include "definitions.cpp"
 
 int main(int argc, char* argv[])
 {
-  
-
   // Load the mesh.
   Mesh mesh;
   MeshReaderH2D mloader;
@@ -107,20 +118,15 @@ int main(int argc, char* argv[])
   ZeroSolution yvel_prev_time(&mesh);
   ZeroSolution p_prev_time(&mesh);
   ConstantSolution<double> t_prev_time(&mesh, TEMP_INIT);
-  Hermes::vector<Solution<double>*> slns = Hermes::vector<Solution<double>*>(&xvel_prev_time, &yvel_prev_time, 
-                                                             &p_prev_time, &t_prev_time);
+  Hermes::vector<Solution<double>*> slns = Hermes::vector<Solution<double>*>(&xvel_prev_time, 
+      &yvel_prev_time, &p_prev_time, &t_prev_time);
 
   // Initialize weak formulation.
   WeakForm<double>* wf = new WeakFormRayleighBenard(Pr, Ra, "Top", TEMP_EXT, ALPHA_AIR, time_step, 
-                                            &xvel_prev_time, &yvel_prev_time, &t_prev_time);
+      &xvel_prev_time, &yvel_prev_time, &t_prev_time);
 
   // Initialize the FE problem.
   DiscreteProblem<double> dp(wf, spaces);
-
-  // Set up the solver, matrix, and rhs according to the solver selection.
-  SparseMatrix<double>* matrix = create_matrix<double>(matrix_solver_type);
-  Vector<double>* rhs = create_vector<double>(matrix_solver_type);
-  LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver_type, matrix, rhs);
 
   // Initialize views.
   VectorView vview("velocity", new WinGeom(0, 0, 1000, 200));
@@ -178,9 +184,6 @@ int main(int argc, char* argv[])
 
   // Clean up.
   delete [] coeff_vec;
-  delete matrix;
-  delete rhs;
-  delete solver;
 
   // Wait for all views to be closed.
   View::wait();

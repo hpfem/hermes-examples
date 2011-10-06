@@ -22,31 +22,45 @@
 //
 // The following parameters can be changed:
 
-const int INIT_REF_NUM = 2;                       // Number of initial uniform mesh refinements. 
-const int INIT_BDY_REF_NUM_INNER = 2;             // Number of initial mesh refinements towards boundary. 
-const int INIT_BDY_REF_NUM_OUTER = 2;             // Number of initial mesh refinements towards boundary. 
-
-const bool STOKES = false;                        // For application of Stokes flow (creeping flow).
-#define PRESSURE_IN_L2                            // If this is defined, the pressure is approximated using
-                                                  // discontinuous L2 elements (making the velocity discreetely
-                                                  // divergence-free, more accurate than using a continuous
-                                                  // pressure approximation). Otherwise the standard continuous
-                                                  // elements are used. The results are striking - check the
-                                                  // tutorial for comparisons.
-const int P_INIT_VEL = 2;                         // Initial polynomial degree for velocity components.
-const int P_INIT_PRESSURE = 1;                    // Initial polynomial degree for pressure.
-                                                  // Note: P_INIT_VEL should always be greater than
-                                                  // P_INIT_PRESSURE because of the inf-sup condition.
-const double RE = 5000.0;                         // Reynolds number.
-const double VEL = 0.1;                           // Surface velocity of inner circle.
-const double STARTUP_TIME = 1.0;                  // During this time, surface velocity of the inner circle increases 
-                                                  // gradually from 0 to VEL, then it stays constant.
-const double TAU = 10.0;                          // Time step.
-const double T_FINAL = 3600.0;                    // Time interval length.
-const double NEWTON_TOL = 1e-5;                   // Stopping criterion for the Newton's method.
-const int NEWTON_MAX_ITER = 10;                   // Maximum allowed number of Newton iterations.
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-                                                  // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+// Number of initial uniform mesh refinements. 
+const int INIT_REF_NUM = 2;                       
+// Number of initial mesh refinements towards inner boundary. 
+const int INIT_BDY_REF_NUM_INNER = 2;             
+// Number of initial mesh refinements towards outer boundary. 
+const int INIT_BDY_REF_NUM_OUTER = 2;             
+// For application of Stokes flow (creeping flow).
+const bool STOKES = false;                        
+// If this is defined, the pressure is approximated using
+// discontinuous L2 elements (making the velocity discreetely
+// divergence-free, more accurate than using a continuous
+// pressure approximation). Otherwise the standard continuous
+// elements are used. The results are striking - check the
+// tutorial for comparisons.
+#define PRESSURE_IN_L2                            
+// Initial polynomial degree for velocity components.
+const int P_INIT_VEL = 2;                         
+// Initial polynomial degree for pressure.
+// Note: P_INIT_VEL should always be greater than
+// P_INIT_PRESSURE because of the inf-sup condition.
+const int P_INIT_PRESSURE = 1;                    
+// Reynolds number.
+const double RE = 5000.0;                         
+// Surface velocity of inner circle.
+const double VEL = 0.1;                           
+// During this time, surface velocity of the inner circle increases 
+// gradually from 0 to VEL, then it stays constant.
+const double STARTUP_TIME = 1.0;                  
+// Time step.
+const double TAU = 10.0;                          
+// Time interval length.
+const double T_FINAL = 3600.0;                    
+// Stopping criterion for the Newton's method.
+const double NEWTON_TOL = 1e-5;                   
+// Maximum allowed number of Newton iterations.
+const int NEWTON_MAX_ITER = 10;                   
+// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
 
 // Current time (used in weak forms).
 double current_time = 0;
@@ -96,8 +110,10 @@ int main(int argc, char* argv[])
 
   // Initial mesh refinements.
   for (int i=0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
-  mesh.refine_towards_boundary("Inner", INIT_BDY_REF_NUM_INNER, false);  // true for anisotropic refinements
-  mesh.refine_towards_boundary("Outer", INIT_BDY_REF_NUM_OUTER, false);  // false for isotropic refinements
+  // Use 'true' for anisotropic refinements.
+  mesh.refine_towards_boundary("Inner", INIT_BDY_REF_NUM_INNER, false);  
+  // Use 'false' for isotropic refinements.
+  mesh.refine_towards_boundary("Outer", INIT_BDY_REF_NUM_OUTER, false);  
 
   // Initialize boundary conditions.
   EssentialBCNonConstX bc_inner_vel_x(std::string("Inner"), VEL, STARTUP_TIME);
@@ -135,18 +151,13 @@ int main(int argc, char* argv[])
   ZeroSolution p_prev_time(&mesh);
  
   Hermes::vector<Solution<double>*> slns = Hermes::vector<Solution<double>*>(&xvel_prev_time, &yvel_prev_time, 
-                                                             &p_prev_time);
+      &p_prev_time);
 
   // Initialize weak formulation.
   WeakForm<double>* wf = new WeakFormNSNewton(STOKES, RE, TAU, &xvel_prev_time, &yvel_prev_time);
 
   // Initialize the FE problem.
   DiscreteProblem<double> dp(wf, spaces);
-
-  // Set up the solver, matrix, and rhs according to the solver selection.
-  SparseMatrix<double>* matrix = create_matrix<double>(matrix_solver_type);
-  Vector<double>* rhs = create_vector<double>(matrix_solver_type);
-  LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver_type, matrix, rhs);
 
   // Initialize views.
   VectorView vview("velocity [m/s]", new WinGeom(0, 0, 600, 500));
@@ -208,9 +219,6 @@ int main(int argc, char* argv[])
 
   // Clean up.
   delete [] coeff_vec;
-  delete matrix;
-  delete rhs;
-  delete solver;
 
   // Wait for all views to be closed.
   View::wait();

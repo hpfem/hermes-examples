@@ -2,19 +2,13 @@
 #define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
 
-
-
 // The time-dependent laminar incompressible Navier-Stokes equations are
 // discretized in time via the implicit Euler method. If NEWTON == true,
 // the Newton's method is used to solve the nonlinear problem at each time
-// step. If NEWTON == false, the convective term is only linearized using the
-// velocities from the previous time step. Obviously the latter approach is wrong,
-// but people do this frequently because it is faster and simpler to implement.
-// Therefore we include this case for comparison purposes. We also show how
-// to use discontinuous ($L^2$) elements for pressure and thus make the
-// velocity discreetely divergence free. Comparison to approximating the
-// pressure with the standard (continuous) Taylor-Hood elements is enabled.
-// The Reynolds number Re = 200 which is embarrassingly low. You
+// step. We also show how to use discontinuous ($L^2$) elements for pressure 
+// and thus make the velocity discreetely divergence free. Comparison to 
+// approximating the pressure with the standard (continuous) Taylor-Hood elements 
+// is enabled. The Reynolds number Re = 200 which is embarrassingly low. You
 // can increase it but then you will need to make the mesh finer, and the
 // computation will take more time.
 //
@@ -32,32 +26,42 @@
 //
 // The following parameters can be changed:
 
-const bool STOKES = false;                        // For application of Stokes flow (creeping flow).
-#define PRESSURE_IN_L2                            // If this is defined, the pressure is approximated using
+// For application of Stokes flow (creeping flow).
+const bool STOKES = false;                        
+// If this is defined, the pressure is approximated using
                                                   // discontinuous L2 elements (making the velocity discreetely
                                                   // divergence-free, more accurate than using a continuous
                                                   // pressure approximation). Otherwise the standard continuous
                                                   // elements are used. The results are striking - check the
                                                   // tutorial for comparisons.
-const bool NEWTON = true;                         // If NEWTON == true then the Newton's iteration is performed.
-                                                  // in every time step. Otherwise the convective term is linearized
-                                                  // using the velocities from the previous time step.
-const int P_INIT_VEL = 2;                         // Initial polynomial degree for velocity components.
-const int P_INIT_PRESSURE = 1;                    // Initial polynomial degree for pressure.
-                                                  // Note: P_INIT_VEL should always be greater than
-                                                  // P_INIT_PRESSURE because of the inf-sup condition.
-const double RE = 200.0;                          // Reynolds number.
-const double VEL_INLET = 1.0;                     // Inlet velocity (reached after STARTUP_TIME).
-const double STARTUP_TIME = 1.0;                  // During this time, inlet velocity increases gradually
-                                                  // from 0 to VEL_INLET, then it stays constant.
-const double TAU = 0.1;                           // Time step.
-const double T_FINAL = 30000.0;                   // Time interval length.
-const double NEWTON_TOL = 1e-3;                   // Stopping criterion for the Newton's method.
-const int NEWTON_MAX_ITER = 10;                   // Maximum allowed number of Newton iterations.
-const double H = 5;                               // Domain height (necessary to define the parabolic
-                                                  // velocity profile at inlet).
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-                                                  // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+#define PRESSURE_IN_L2                            
+// Initial polynomial degree for velocity components.
+const int P_INIT_VEL = 2;                         
+// Initial polynomial degree for pressure.
+// Note: P_INIT_VEL should always be greater than
+// P_INIT_PRESSURE because of the inf-sup condition.
+const int P_INIT_PRESSURE = 1;                    
+// Reynolds number.
+const double RE = 200.0;                          
+// Inlet velocity (reached after STARTUP_TIME).
+const double VEL_INLET = 1.0;                     
+// During this time, inlet velocity increases gradually
+// from 0 to VEL_INLET, then it stays constant.
+const double STARTUP_TIME = 1.0;                  
+// Time step.
+const double TAU = 0.1;                           
+// Time interval length.
+const double T_FINAL = 30000.0;                   
+// Stopping criterion for the Newton's method.
+const double NEWTON_TOL = 1e-3;                   
+// Maximum allowed number of Newton iterations.
+const int NEWTON_MAX_ITER = 10;                   
+// Domain height (necessary to define the parabolic
+// velocity profile at inlet).
+const double H = 5;                               
+// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
 
 // Boundary markers.
 const std::string BDY_BOTTOM = "b1";
@@ -79,8 +83,10 @@ int main(int argc, char* argv[])
   // Initial mesh refinements.
   mesh.refine_all_elements();
   mesh.refine_towards_boundary(BDY_OBSTACLE, 4, false);
-  mesh.refine_towards_boundary(BDY_TOP, 4, true);     // '4' is the number of levels,
-  mesh.refine_towards_boundary(BDY_BOTTOM, 4, true);  // 'true' stands for anisotropic refinements.
+  // '4' is the number of levels,
+  mesh.refine_towards_boundary(BDY_TOP, 4, true);     
+  // 'true' stands for anisotropic refinements.
+  mesh.refine_towards_boundary(BDY_BOTTOM, 4, true);  
 
   // Initialize boundary conditions.
   EssentialBCNonConst bc_left_vel_x(BDY_LEFT, VEL_INLET, H, STARTUP_TIME);
@@ -118,18 +124,10 @@ int main(int argc, char* argv[])
 
   // Initialize weak formulation.
   WeakForm<double>* wf;
-  if (NEWTON)
-    wf = new WeakFormNSNewton(STOKES, RE, TAU, &xvel_prev_time, &yvel_prev_time);
-  else
-    wf = new WeakFormNSSimpleLinearization(STOKES, RE, TAU, &xvel_prev_time, &yvel_prev_time);
+  wf = new WeakFormNSNewton(STOKES, RE, TAU, &xvel_prev_time, &yvel_prev_time);
 
   // Initialize the FE problem.
   DiscreteProblem<double> dp(wf, Hermes::vector<Space<double>*>(&xvel_space, &yvel_space, &p_space));
-
-  // Set up the solver, matrix, and rhs according to the solver selection.
-  SparseMatrix<double>* matrix = create_matrix<double>(matrix_solver_type);
-  Vector<double>* rhs = create_vector<double>(matrix_solver_type);
-  LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver_type, matrix, rhs);
 
   // Initialize views.
   VectorView vview("velocity [m/s]", new WinGeom(0, 0, 750, 240));
@@ -143,14 +141,11 @@ int main(int argc, char* argv[])
   // Project the initial condition on the FE space to obtain initial
   // coefficient vector for the Newton's method.
   double* coeff_vec = new double[Space<double>::get_num_dofs(Hermes::vector<Space<double>*>(&xvel_space, &yvel_space, &p_space))];
-  if (NEWTON) 
-  {
-    info("Projecting initial condition to obtain initial vector for the Newton's method.");
-    OGProjection<double>::project_global(Hermes::vector<Space<double>*>(&xvel_space, &yvel_space, &p_space),
-                   Hermes::vector<MeshFunction<double>*>(&xvel_prev_time, &yvel_prev_time, &p_prev_time),
-                   coeff_vec, matrix_solver_type,
-                   Hermes::vector<ProjNormType>(vel_proj_norm, vel_proj_norm, p_proj_norm));
-  }
+  info("Projecting initial condition to obtain initial vector for the Newton's method.");
+  OGProjection<double>::project_global(Hermes::vector<Space<double>*>(&xvel_space, &yvel_space, &p_space),
+      Hermes::vector<MeshFunction<double>*>(&xvel_prev_time, &yvel_prev_time, &p_prev_time),
+      coeff_vec, matrix_solver_type,
+      Hermes::vector<ProjNormType>(vel_proj_norm, vel_proj_norm, p_proj_norm));
 
   // Time-stepping loop:
   char title[100];
@@ -166,37 +161,22 @@ int main(int argc, char* argv[])
       Space<double>::update_essential_bc_values(Hermes::vector<Space<double>*>(&xvel_space, &yvel_space, &p_space), current_time);
     }
 
-    if (NEWTON)
+    // Perform Newton's iteration.
+    info("Solving nonlinear problem:");
+    Hermes::Hermes2D::NewtonSolver<double> newton(&dp, matrix_solver_type);
+    try
     {
-      // Perform Newton's iteration.
-      info("Solving nonlinear problem:");
-      Hermes::Hermes2D::NewtonSolver<double> newton(&dp, matrix_solver_type);
-      try
-      {
-        newton.solve(coeff_vec, NEWTON_TOL, NEWTON_MAX_ITER);
-      }
-      catch(Hermes::Exceptions::Exception e)
-      {
-        e.printMsg();
-        error("Newton's iteration failed.");
-      };
+      newton.solve(coeff_vec, NEWTON_TOL, NEWTON_MAX_ITER);
+    }
+    catch(Hermes::Exceptions::Exception e)
+    {
+      e.printMsg();
+      error("Newton's iteration failed.");
+    };
 
-      // Update previous time level solutions.
-      Solution<double>::vector_to_solutions(coeff_vec, Hermes::vector<Space<double>*>(&xvel_space, &yvel_space, &p_space),
-                                    Hermes::vector<Solution<double>*>(&xvel_prev_time, &yvel_prev_time, &p_prev_time));
-    }
-    else 
-    {
-      // Linear solve.
-      info("Assembling and solving linear problem.");
-      dp.assemble(matrix, rhs, false);
-      if(solver->solve())
-        Solution<double>::vector_to_solutions(solver->get_sln_vector(),
-                  Hermes::vector<Space<double>*>(&xvel_space, &yvel_space, &p_space),
-                  Hermes::vector<Solution<double>*>(&xvel_prev_time, &yvel_prev_time, &p_prev_time));
-      else
-        error ("Matrix solver failed.\n");
-    }
+    // Update previous time level solutions.
+    Solution<double>::vector_to_solutions(coeff_vec, Hermes::vector<Space<double>*>(&xvel_space, &yvel_space, &p_space),
+        Hermes::vector<Solution<double>*>(&xvel_prev_time, &yvel_prev_time, &p_prev_time));
 
     // Show the solution at the end of time step.
     sprintf(title, "Velocity, time %g", current_time);
@@ -208,9 +188,6 @@ int main(int argc, char* argv[])
   }
 
   delete [] coeff_vec;
-  delete matrix;
-  delete rhs;
-  delete solver;
 
   // Wait for all views to be closed.
   View::wait();

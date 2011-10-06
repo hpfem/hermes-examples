@@ -2,8 +2,6 @@
 #define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
 
-
-
 // The time-dependent laminar incompressible Navier-Stokes equations are
 // discretized in time via the implicit Euler method. The Newton's method 
 // is used to solve the nonlinear problem at each time step. We show how
@@ -28,66 +26,85 @@
 //
 // The following parameters can be changed:
 
-const bool STOKES = false;                        // For application of Stokes flow (creeping flow).
-const int INIT_REF_NUM = 0;                       // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM_BDY = 3;                   // Number of initial mesh refinements towards boundary.
-#define PRESSURE_IN_L2                            // If this is defined, the pressure is approximated using
-                                                  // discontinuous L2 elements (making the velocity discreetely
-                                                  // divergence-free, more accurate than using a continuous
-                                                  // pressure approximation). Otherwise the standard continuous
-                                                  // elements are used. The results are striking - check the
-                                                  // tutorial for comparisons.
-const int P_INIT_VEL = 2;                         // Initial polynomial degree for velocity components
-const int P_INIT_PRESSURE = 1;                    // Initial polynomial degree for pressure
-                                                  // Note: P_INIT_VEL should always be greater than
-                                                  // P_INIT_PRESSURE because of the inf-sup condition
-
+// For application of Stokes flow (creeping flow).
+const bool STOKES = false;                        
+// Number of initial uniform mesh refinements.
+const int INIT_REF_NUM = 0;                       
+// Number of initial mesh refinements towards boundary.
+const int INIT_REF_NUM_BDY = 3;                   
+// If this is defined, the pressure is approximated using
+// discontinuous L2 elements (making the velocity discreetely
+// divergence-free, more accurate than using a continuous
+// pressure approximation). Otherwise the standard continuous
+// elements are used. The results are striking - check the
+// tutorial for comparisons.
+#define PRESSURE_IN_L2                            
+// Initial polynomial degree for velocity components.
+// Note: P_INIT_VEL should always be greater than
+// P_INIT_PRESSURE because of the inf-sup condition.
+const int P_INIT_VEL = 2;                         
+// Initial polynomial degree for pressure.
+const int P_INIT_PRESSURE = 1;                    
+                                                  
 // Adaptivity
-const int UNREF_FREQ = 1;                         // Every UNREF_FREQth time step the mesh is unrefined.
-const double THRESHOLD = 0.3;                     // This is a quantitative parameter of the adapt(...) function and
-                                                  // it has different meanings for various adaptive strategies (see below).
-const int STRATEGY = 1;                           // Adaptive strategy:
-                                                  // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
-                                                  //   error is processed. If more elements have similar errors, refine
-                                                  //   all to keep the mesh symmetric.
-                                                  // STRATEGY = 1 ... refine all elements whose error is larger
-                                                  //   than THRESHOLD times maximum element error.
-                                                  // STRATEGY = 2 ... refine all elements whose error is larger
-                                                  //   than THRESHOLD.
-                                                  // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const CandList CAND_LIST = H2D_H_ANISO;           // Predefined list of element refinement candidates. Possible values are
-                                                  // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
-                                                  // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
-                                                  // See the Used Documentation for details.
-const int MESH_REGULARITY = -1;                   // Maximum allowed level of hanging nodes:
-                                                  // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
-                                                  // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
-                                                  // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
-                                                  // Note that regular meshes are not supported, this is due to
-                                                  // their notoriously bad performance.
-const double CONV_EXP = 1.0;                      // Default value is 1.0. This parameter influences the selection of
-                                                  // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-const double ERR_STOP = 5.0;                      // Stopping criterion for adaptivity (rel. error tolerance between the
-                                                  // fine mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 60000;                      // Adaptivity process stops when the number of degrees of freedom grows over
-                                                  // this limit. This is mainly to prevent h-adaptivity to go on forever.
-const bool NEWTON = true;                         // If NEWTON == true then the Newton's iteration is performed.
-                                                  // in every time step. Otherwise the convective term is linearized
-                                                  // using the velocities from the previous time step.
-// Problem parameters
-const double RE = 200.0;                          // Reynolds number.
-const double VEL_INLET = 1.0;                     // Inlet velocity (reached after STARTUP_TIME).
-const double STARTUP_TIME = 1.0;                  // During this time, inlet velocity increases gradually
-                                                  // from 0 to VEL_INLET, then it stays constant.
-const double TAU = 0.01;                          // Time step.
-const double T_FINAL = 30000.0;                   // Time interval length.
-const double NEWTON_TOL = 0.05;                   // Stopping criterion for Newton on fine mesh.
-const int NEWTON_MAX_ITER = 20;                   // Maximum allowed number of Newton iterations.
-const double H = 5;                               // Domain height (necessary to define the parabolic
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-                                                  // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.                                                  // velocity profile at inlet)
+// Every UNREF_FREQth time step the mesh is unrefined.
+const int UNREF_FREQ = 1;                         
+// This is a quantitative parameter of the adapt(...) function and
+// it has different meanings for various adaptive strategies.
+const double THRESHOLD = 0.3;                     
+// Adaptive strategy:
+// STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
+//   error is processed. If more elements have similar errors, refine
+//   all to keep the mesh symmetric.
+// STRATEGY = 1 ... refine all elements whose error is larger
+//   than THRESHOLD times maximum element error.
+// STRATEGY = 2 ... refine all elements whose error is larger
+//   than THRESHOLD.
+const int STRATEGY = 1;                           
+// Predefined list of element refinement candidates. Possible values are
+// H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
+// H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
+const CandList CAND_LIST = H2D_H_ANISO;           
+// Maximum allowed level of hanging nodes:
+// MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
+// MESH_REGULARITY = 1 ... at most one-level hanging nodes,
+// MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
+// Note that regular meshes are not supported, this is due to
+// their notoriously bad performance.
+const int MESH_REGULARITY = -1;                   
+// This parameter influences the selection of
+// candidates in hp-adaptivity. Default value is 1.0. 
+const double CONV_EXP = 1.0;                      
+// Stopping criterion for adaptivity.
+const double ERR_STOP = 5.0;                      
+// Adaptivity process stops when the number of degrees of freedom grows over
+// this limit. This is mainly to prevent h-adaptivity to go on forever.
+const int NDOF_STOP = 60000;                      
 
-// Current time (defined as global since needed in weak forms)
+// Problem parameters
+// Reynolds number.
+const double RE = 200.0;                          
+// Inlet velocity (reached after STARTUP_TIME).
+const double VEL_INLET = 1.0;                     
+// During this time, inlet velocity increases gradually
+// from 0 to VEL_INLET, then it stays constant.
+const double STARTUP_TIME = 1.0;                  
+// Time step.
+const double TAU = 0.01;                          
+// Time interval length.
+const double T_FINAL = 30000.0;                   
+// Stopping criterion for Newton on fine mesh.
+const double NEWTON_TOL = 0.05;                   
+// Maximum allowed number of Newton iterations.
+const int NEWTON_MAX_ITER = 20;                   
+// Domain height (necessary to define the parabolic
+// velocity profile at inlet).
+const double H = 5;                               
+// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.        
+MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;                                            
+
+// Current time (defined as global since needed in weak forms).
 double TIME = 0;
 
 // Boundary markers.
@@ -122,10 +139,9 @@ void mag(int n, double* a, double* dadx, double* dady,
   }
 }
 */
+
 int main(int argc, char* argv[])
 {
-  
-
   // Load the mesh.
   Mesh mesh, basemesh;
   MeshReaderH2D mloader;
@@ -134,8 +150,10 @@ int main(int argc, char* argv[])
   // Initial mesh refinements.
   mesh.refine_all_elements();
   mesh.refine_towards_boundary(BDY_OBSTACLE, 4, false);
-  mesh.refine_towards_boundary(BDY_TOP, 4, true);     // '4' is the number of levels,
-  mesh.refine_towards_boundary(BDY_BOTTOM, 4, true);  // 'true' stands for anisotropic refinements.
+  // '4' is the number of levels.
+  mesh.refine_towards_boundary(BDY_TOP, 4, true);     
+  // 'true' stands for anisotropic refinements.
+  mesh.refine_towards_boundary(BDY_BOTTOM, 4, true);  
 
   // Initialize boundary conditions.
   EssentialBCNonConst bc_left_vel_x(BDY_LEFT, VEL_INLET, H, STARTUP_TIME);
@@ -181,10 +199,7 @@ int main(int argc, char* argv[])
 
   // Initialize weak formulation.
   WeakForm<double>* wf;
-  if (NEWTON)
-    wf = new WeakFormNSNewton(STOKES, RE, TAU, &xvel_prev_time, &yvel_prev_time);
-  else
-    wf = new WeakFormNSSimpleLinearization(STOKES, RE, TAU, &xvel_prev_time, &yvel_prev_time);
+  wf = new WeakFormNSNewton(STOKES, RE, TAU, &xvel_prev_time, &yvel_prev_time);
 
   // Initialize the FE problem.
   DiscreteProblem<double> dp(wf, spaces);
@@ -235,11 +250,6 @@ int main(int argc, char* argv[])
       // Initialize discrete problem on the reference mesh.
       DiscreteProblem<double> dp(wf, *ref_spaces);
 
-      // Initialize matrix solver.
-      SparseMatrix<double>* matrix = create_matrix<double>(matrix_solver_type);
-      Vector<double>* rhs = create_vector<double>(matrix_solver_type);
-      LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver_type, matrix, rhs);
-
       // Calculate initial coefficient vector for Newton on the fine mesh.
       double* coeff_vec = new double[Space<double>::get_num_dofs(*ref_spaces)];
 
@@ -279,9 +289,9 @@ int main(int argc, char* argv[])
         // Project the fine mesh solution onto the coarse mesh.
         info("Projecting reference solution on coarse mesh.");
         OGProjection<double>::project_global(Hermes::vector<Space<double>*>(&xvel_space, &yvel_space, &p_space), 
-                      Hermes::vector<Solution<double>*>(&xvel_ref_sln, &yvel_ref_sln, &p_ref_sln), 
-                      Hermes::vector<Solution<double>*>(&xvel_sln, &yvel_sln, &p_sln), matrix_solver_type, 
-                      Hermes::vector<ProjNormType>(vel_proj_norm, vel_proj_norm, p_proj_norm) );
+            Hermes::vector<Solution<double>*>(&xvel_ref_sln, &yvel_ref_sln, &p_ref_sln), 
+            Hermes::vector<Solution<double>*>(&xvel_sln, &yvel_sln, &p_sln), matrix_solver_type, 
+            Hermes::vector<ProjNormType>(vel_proj_norm, vel_proj_norm, p_proj_norm) );
       }
 
       // Calculate element errors and total error estimate.
@@ -313,9 +323,6 @@ int main(int argc, char* argv[])
       }
 
       // Clean up.
-      delete solver;
-      delete matrix;
-      delete rhs;
       delete adaptivity;
       delete ref_spaces;
       delete [] coeff_vec;
