@@ -2,8 +2,6 @@
 #define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
 
-
-
 //  This example solves the time-dependent Richard's equation using 
 //  adaptive time integration (no dynamical meshes in space yet).
 //  Many different time stepping methods can be used. The nonlinear 
@@ -24,31 +22,40 @@
 //
 //  The following parameters can be changed:
 
-// Constitutive relations.
-#define CONSTITUTIVE_GENUCHTEN                    // Van Genuchten or Gardner.
+// Constitutive relations - van Genuchten or Gardner.
+#define CONSTITUTIVE_GENUCHTEN                    
 
 // Choose full domain or half domain.
 //const char* mesh_file = "domain-full.mesh";
 const char* mesh_file = "domain-half.mesh";
 
 // Adaptive time stepping.
-double time_step = 0.3;                           // Time step (in days).
-const double time_tol_upper = 1.0;                // If rel. temporal error is greater than this threshold, decrease time 
-                                                  // step size and repeat time step.
-const double time_tol_lower = 0.5;                // If rel. temporal error is less than this threshold, increase time step
-                                                  // but do not repeat time step (this might need further research).
-double time_step_dec = 0.8;                       // Timestep decrease ratio after unsuccessful nonlinear solve.
-double time_step_inc = 1.1;                       // Timestep increase ratio after successful nonlinear solve.
-double time_step_min = 1e-8; 			  // Computation will stop if time step drops below this value. 
+// Time step (in days).
+double time_step = 0.3;                           
+// If rel. temporal error is greater than this threshold, decrease time 
+// step size and repeat time step.
+const double time_tol_upper = 1.0;                
+// If rel. temporal error is less than this threshold, increase time step
+// but do not repeat time step (this might need further research).
+const double time_tol_lower = 0.5;                
+// Timestep decrease ratio after unsuccessful nonlinear solve.
+double time_step_dec = 0.8;                       
+// Timestep increase ratio after successful nonlinear solve.
+double time_step_inc = 1.1;                       
+// Computation will stop if time step drops below this value. 
+double time_step_min = 1e-8; 			  
                        
 // Elements orders and initial refinements.
-const int P_INIT = 2;                             // Initial polynomial degree of all mesh elements.
-const int INIT_REF_NUM = 2;                       // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM_BDY_TOP = 1;               // Number of initial mesh refinements towards the top edge.
+// Initial polynomial degree of mesh elements.
+const int P_INIT = 2;                             
+// Number of initial uniform mesh refinements.
+const int INIT_REF_NUM = 2;                       
+// Number of initial mesh refinements towards the top edge.
+const int INIT_REF_NUM_BDY_TOP = 1;               
 
-// Matrix solver.
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-                                                  // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
 
 // Choose one of the following time-integration methods, or define your own Butcher's table. The last number 
 // in the name of each method is its order. The one before last, if present, is the number of stages.
@@ -65,22 +72,29 @@ MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_
 //   Implicit_SDIRK_CASH_3_23_embedded, Implicit_ESDIRK_TRBDF2_3_23_embedded, Implicit_ESDIRK_TRX2_3_23_embedded, 
 //   Implicit_SDIRK_BILLINGTON_3_23_embedded, Implicit_SDIRK_CASH_5_24_embedded, Implicit_SDIRK_CASH_5_34_embedded, 
 //   Implicit_DIRK_ISMAIL_7_45_embedded. 
-
 ButcherTableType butcher_table_type = Implicit_SDIRK_CASH_3_23_embedded;
 
 // Newton's method.
-const double NEWTON_TOL = 1e-5;                   // Stopping criterion for Newton on fine mesh.
-int NEWTON_MAX_ITER = 10;                         // Maximum allowed number of Newton iterations.
+// Stopping criterion for Newton on fine mesh.
+const double NEWTON_TOL = 1e-5;                   
+// Maximum allowed number of Newton iterations.
+int NEWTON_MAX_ITER = 10;                         
 
 // Times.
-const double STARTUP_TIME = 5.0;                  // Start-up time for time-dependent Dirichlet boundary condition.
-const double T_FINAL = 1000.0;                    // Time interval length.
-const double PULSE_END_TIME = 1000.0;             // Time interval of the top layer infiltration.
-double current_time = 0;                          // Global time variable.
+// Start-up time for time-dependent Dirichlet boundary condition.
+const double STARTUP_TIME = 5.0;                  
+// Time interval length.
+const double T_FINAL = 1000.0;                    
+// Time interval of the top layer infiltration.
+const double PULSE_END_TIME = 1000.0;             
+// Global time variable.
+double current_time = 0;                          
 
 // Problem parameters.
-double H_INIT = -15.0;                            // Initial pressure head.
-double H_ELEVATION = 10.0;                        // Top constant pressure head -- an infiltration experiment.
+// Initial pressure head.
+double H_INIT = -15.0;                            
+// Top constant pressure head -- an infiltration experiment.
+double H_ELEVATION = 10.0;                        
 const double K_S_vals[4] = {350.2, 712.8, 1.68, 18.64}; 
 const double ALPHA_vals[4] = {0.01, 1.0, 0.01, 0.01};
 const double N_vals[4] = {2.5, 2.0, 1.23, 2.5};
@@ -93,50 +107,53 @@ const double STORATIVITY_vals[4] = {0.1, 0.1, 0.1, 0.1};
 
 // Precalculation of constitutive tables.
 const int MATERIAL_COUNT = 4;
-const int CONSTITUTIVE_TABLE_METHOD = 2;          // 0 - constitutive functions are evaluated directly (slow performance).
-					          // 1 - constitutive functions are linearly approximated on interval 
-                                                  //     <TABLE_LIMIT; LOW_LIMIT> (very efficient CPU utilization less 
-                                                  //     efficient memory consumption (depending on TABLE_PRECISION)).
-						  // 2 - constitutive functions are aproximated by quintic splines.
+// 0 - constitutive functions are evaluated directly (slow performance).
+// 1 - constitutive functions are linearly approximated on interval 
+//     <TABLE_LIMIT; LOW_LIMIT> (very efficient CPU utilization less 
+//     efficient memory consumption (depending on TABLE_PRECISION)).
+// 2 - constitutive functions are aproximated by quintic splines.
+const int CONSTITUTIVE_TABLE_METHOD = 2;          
 						  
-//!Use only if 	CONSTITUTIVE_TABLE_METHOD == 2 !//					  
-const int NUM_OF_INTERVALS = 16;                  // Number of intervals.                      
+/* Use only if CONSTITUTIVE_TABLE_METHOD == 2 */					  
+// Number of intervals.        
+const int NUM_OF_INTERVALS = 16;                                
+// Low limits of intervals approximated by quintic splines.
 const double INTERVALS_4_APPROX[16] = 
-      {-1.0, -2.0, -3.0, -4.0, -5.0, -8.0, -10.0, -12.0, // Low limits of intervals approximated by quintic splines.
+      {-1.0, -2.0, -3.0, -4.0, -5.0, -8.0, -10.0, -12.0, 
       -15.0, -20.0, -30.0, -50.0, -75.0, -100.0,-300.0, -1000.0}; 
-int* POL_SEARCH_HELP;                             // This array contains for each integer of h function appropriate 
-                                                  // polynomial ID.
-double**** K_POLS;                                // First DIM is the interval ID, second DIM is the material ID, 
-                                                  // third DIM is the derivative degree, fourth DIM are the coefficients.
+// This array contains for each integer of h function appropriate polynomial ID.
+int* POL_SEARCH_HELP;                             
+// First DIM is the interval ID, second DIM is the material ID, 
+// third DIM is the derivative degree, fourth DIM are the coefficients.
+double**** K_POLS;                                
 double**** C_POLS;
-//!------------------------------------------!//
+/* END OF Use only if CONSTITUTIVE_TABLE_METHOD == 2 */					  
 
-
-//!Use only if CONSTITUTIVE_TABLE_METHOD == 1 !//
-double TABLE_LIMIT = -1000.0; 		          // Limit of precalculated functions (should be always negative value lower 
-						  // then the lowest expect value of the solution (consider DMP!!)
-const double TABLE_PRECISION = 0.1;               // Precision of precalculated table use 1.0, 0,1, 0.01, etc.....
+/* Use only if CONSTITUTIVE_TABLE_METHOD == 1 */
+// Limit of precalculated functions (should be always negative value lower 
+// then the lowest expect value of the solution (consider DMP!!)
+double TABLE_LIMIT = -1000.0; 		          
+// Precision of precalculated table use 1.0, 0,1, 0.01, etc.....
+const double TABLE_PRECISION = 0.1;               
 double** K_TABLE;                                  
 double** dKdh_TABLE;
 double** ddKdhh_TABLE;
 double** C_TABLE;
 double** dCdh_TABLE;
 bool CONSTITUTIVE_TABLES_READY = false;
-double*** POLYNOMIALS;                            // Polynomial approximation of the K(h) function close to saturation.
-                                                  // This function has singularity in its second derivative.
-						  // First dimension is material ID
-						  // Second dimension is the polynomial derivative.
-						  // Third dimension are the polynomial's coefficients.
-						  
-						  
-const double LOW_LIMIT = -1.0;                    // Lower bound of K(h) function approximated by polynomials.
+// Polynomial approximation of the K(h) function close to saturation.
+// This function has singularity in its second derivative.
+// First dimension is material ID
+// Second dimension is the polynomial derivative.
+// Third dimension are the polynomial's coefficients.
+double*** POLYNOMIALS;                            	  
+// Lower bound of K(h) function approximated by polynomials.						  
+const double LOW_LIMIT = -1.0;                    
 const int NUM_OF_INSIDE_PTS = 0;
-//!------------------------------------------!//
-
+/* END OF Use only if CONSTITUTIVE_TABLE_METHOD == 1 */
 
 bool POLYNOMIALS_READY = false;
 bool POLYNOMIALS_ALLOCATED = false;
-
 
 // Global variables for forms.
 double K_S, ALPHA, THETA_R, THETA_S, N, M, STORATIVITY;
