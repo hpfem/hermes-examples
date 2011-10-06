@@ -18,12 +18,17 @@
 //
 // The following parameters can be changed:
 
-const int P_INIT = 6;                              // Initial polynomial degree of all elements.
-const int INIT_REF_NUM = 1;                        // Number of initial uniform mesh refinements.
-const double time_step = 0.05;                     // Time step.
-const double T_FINAL = 35.0;                       // Final time.
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;   // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-                                                   // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+// Initial polynomial degree of mesh elements.
+const int P_INIT = 6;                              
+// Number of initial uniform mesh refinements.
+const int INIT_REF_NUM = 1;                        
+// Time step.
+const double time_step = 0.05;                     
+// Final time.
+const double T_FINAL = 35.0;                       
+// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;   
 
 // Choose one of the following time-integration methods, or define your own Butcher's table. The last number 
 // in the name of each method is its order. The one before last, if present, is the number of stages.
@@ -41,11 +46,10 @@ MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;   // Possibilities: SOLVER
 //   Implicit_SDIRK_BILLINGTON_3_23_embedded, Implicit_SDIRK_CASH_5_24_embedded, Implicit_SDIRK_CASH_5_34_embedded, 
 //   Implicit_DIRK_ISMAIL_7_45_embedded. 
 ButcherTableType butcher_table_type = Implicit_RK_1;
-//ButcherTableType butcher_table_type = Implicit_SDIRK_2_2;
-//ButcherTableType butcher_table_type = Implicit_Radau_IIA_3_5;
 
 // Problem parameters.
-const double C_SQUARED = 1;                      // Square of wave speed.                     
+// Square of wave speed.        
+const double C_SQUARED = 1;                                   
 
 int main(int argc, char* argv[])
 {
@@ -79,7 +83,6 @@ int main(int argc, char* argv[])
   // Create x- and y- displacement space using the default H1 shapeset.
   HcurlSpace<double> E_space(&mesh, &bcs_E, P_INIT);
   H1Space<double> B_space(&mesh, &bcs_B, P_INIT);
-  //L2Space<double> B_space(&mesh, P_INIT);
   Hermes::vector<Space<double> *> spaces = Hermes::vector<Space<double> *>(&E_space, &B_space);
   info("ndof = %d.", Space<double>::get_num_dofs(spaces));
 

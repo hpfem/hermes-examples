@@ -14,18 +14,26 @@
 //
 //  The following parameters can be changed:
 
-const int P_INIT = 3;                             // Initial polynomial degree.
-const double NEWTON_TOL = 1e-10;                  // Stopping criterion for the Newton's method.
-const int NEWTON_MAX_ITER = 1000;                 // Maximum allowed number of Newton iterations.
-const double NEWTON_DAMPING = 1.0;                // Number between 0 and 1 to damp Newton's iterations.
-const int INIT_REF_NUM = 0;                       // Number of initial uniform mesh refinements.
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-                                                  // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+// Initial polynomial degree.
+const int P_INIT = 3;                             
+// Stopping criterion for the Newton's method.
+const double NEWTON_TOL = 1e-10;                  
+// Maximum allowed number of Newton iterations.
+const int NEWTON_MAX_ITER = 1000;                 
+// Number between 0 and 1 to damp Newton's iterations.
+const double NEWTON_DAMPING = 1.0;                
+// Number of initial uniform mesh refinements.
+const int INIT_REF_NUM = 0;                       
+// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
 
 // Problem parameters.
 double MU_VACUUM = 4. * M_PI * 1e-7;
-double INIT_COND = 0.0;                           // Initial condition for the magnetic potential.
-double CURRENT_DENSITY = 1e9;                     // Volume source term.
+// Initial condition for the magnetic potential.
+double INIT_COND = 0.0;                           
+// Volume source term.
+double CURRENT_DENSITY = 1e9;                     
 
 // Material and boundary markers.
 const std::string MAT_AIR = "e2";
@@ -57,8 +65,9 @@ int main(int argc, char* argv[])
   CubicSpline mu_inv_iron(mu_inv_pts, mu_inv_val, bc_left, bc_right, first_der_left, first_der_right,
                           extrapolate_der_left, extrapolate_der_right);
   info("Saving cubic spline into a Pylab file spline.dat.");
-  double interval_extension = 1.0; // The interval of definition of the spline will be
-                                   // extended by "interval_extension" on both sides.
+  // The interval of definition of the spline will be
+  // extended by "interval_extension" on both sides.
+  double interval_extension = 1.0; 
   bool plot_derivative = false;
   mu_inv_iron.plot("spline.dat", interval_extension, plot_derivative);
   plot_derivative = true;
@@ -84,8 +93,9 @@ int main(int argc, char* argv[])
   info("ndof: %d", Space<double>::get_num_dofs(&space));
 
   // Initialize the weak formulation
-  int order_inc = 3; // This determines the increase of integration order
-                     // for the axisymmetric term containing 1/r. Default is 3.
+  // This determines the increase of integration order
+  // for the axisymmetric term containing 1/r. Default is 3.
+  int order_inc = 3; 
   CustomWeakFormMagnetostatics wf(MAT_IRON_1, MAT_IRON_2, &mu_inv_iron, MAT_AIR,
                                   MAT_COPPER, MU_VACUUM, CURRENT_DENSITY, order_inc);
 
