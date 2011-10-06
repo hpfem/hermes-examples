@@ -145,15 +145,17 @@ int main(int argc, char* argv[])
   // Load the mesh.
   Mesh mesh, basemesh;
   MeshReaderH2D mloader;
-  mloader.load("domain.mesh", &mesh);
+  mloader.load("domain.mesh", &basemesh);
 
   // Initial mesh refinements.
-  mesh.refine_all_elements();
-  mesh.refine_towards_boundary(BDY_OBSTACLE, 4, false);
+  //mesh.refine_all_elements();
+  basemesh.refine_towards_boundary(BDY_OBSTACLE, 1, false);
   // '4' is the number of levels.
-  mesh.refine_towards_boundary(BDY_TOP, 4, true);     
+  basemesh.refine_towards_boundary(BDY_TOP, 1, true);     
   // 'true' stands for anisotropic refinements.
-  mesh.refine_towards_boundary(BDY_BOTTOM, 4, true);  
+  basemesh.refine_towards_boundary(BDY_BOTTOM, 1, true);  
+
+  mesh.copy(&basemesh);
 
   // Initialize boundary conditions.
   EssentialBCNonConst bc_left_vel_x(BDY_LEFT, VEL_INLET, H, STARTUP_TIME);
@@ -253,7 +255,7 @@ int main(int argc, char* argv[])
       // Calculate initial coefficient vector for Newton on the fine mesh.
       double* coeff_vec = new double[Space<double>::get_num_dofs(*ref_spaces)];
 
-      if (as == 1) {
+      if (ts == 1) {
         info("Projecting coarse mesh solution to obtain coefficient vector on new fine mesh.");
         OGProjection<double>::project_global(*ref_spaces, Hermes::vector<MeshFunction<double>*>(&xvel_sln, &yvel_sln, &p_sln), 
                       coeff_vec, matrix_solver_type);
@@ -261,7 +263,7 @@ int main(int argc, char* argv[])
       else {
         info("Projecting previous fine mesh solution to obtain coefficient vector on new fine mesh.");
         OGProjection<double>::project_global(*ref_spaces, Hermes::vector<MeshFunction<double>*>(&xvel_ref_sln, &yvel_ref_sln, &p_ref_sln), 
-                      coeff_vec, matrix_solver_type);
+            coeff_vec, matrix_solver_type);
         delete xvel_ref_sln.get_mesh();
         delete yvel_ref_sln.get_mesh();
         delete p_ref_sln.get_mesh();
@@ -280,19 +282,15 @@ int main(int argc, char* argv[])
         error("Newton's iteration failed.");
       };
 
-
       // Update previous time level solutions.
-      Solution<double>::vector_to_solutions(coeff_vec, Hermes::vector<Space<double>*>(&xvel_space, &yvel_space, &p_space),
-                                    Hermes::vector<Solution<double>*>(&xvel_prev_time, &yvel_prev_time, &p_prev_time));
-      if (as > 1) 
-      {
-        // Project the fine mesh solution onto the coarse mesh.
-        info("Projecting reference solution on coarse mesh.");
-        OGProjection<double>::project_global(Hermes::vector<Space<double>*>(&xvel_space, &yvel_space, &p_space), 
-            Hermes::vector<Solution<double>*>(&xvel_ref_sln, &yvel_ref_sln, &p_ref_sln), 
-            Hermes::vector<Solution<double>*>(&xvel_sln, &yvel_sln, &p_sln), matrix_solver_type, 
-            Hermes::vector<ProjNormType>(vel_proj_norm, vel_proj_norm, p_proj_norm) );
-      }
+      Solution<double>::vector_to_solutions(newton.get_sln_vector(), *ref_spaces, Hermes::vector<Solution<double>*>(&xvel_ref_sln, &yvel_ref_sln, &p_ref_sln));
+       
+      // Project the fine mesh solution onto the coarse mesh.
+      info("Projecting reference solution on coarse mesh.");
+      OGProjection<double>::project_global(Hermes::vector<Space<double>*>(&xvel_space, &yvel_space, &p_space), 
+          Hermes::vector<Solution<double>*>(&xvel_ref_sln, &yvel_ref_sln, &p_ref_sln), 
+          Hermes::vector<Solution<double>*>(&xvel_sln, &yvel_sln, &p_sln), matrix_solver_type, 
+          Hermes::vector<ProjNormType>(vel_proj_norm, vel_proj_norm, p_proj_norm) );
 
       // Calculate element errors and total error estimate.
       info("Calculating error estimate.");
