@@ -2,8 +2,8 @@
 
 CustomWeakForm::CustomWeakForm(std::string left_bottom_bnd_part, Mesh* mesh) : WeakForm<double>(1), mesh(mesh)
 {
-    add_matrix_form(new MatrixFormVol<double>(0, 0));
-    add_vector_form(new VectorFormVol<double>(0));
+    add_matrix_form(new CustomMatrixFormVol(0, 0));
+    add_vector_form(new CustomVectorFormVol(0));
     add_matrix_form_surf(new CustomMatrixFormSurface(0, 0));
     add_matrix_form_surf(new CustomMatrixFormInterface(0, 0));
     add_vector_form_surf(new CustomVectorFormSurface(0, left_bottom_bnd_part));
