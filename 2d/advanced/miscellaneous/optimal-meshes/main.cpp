@@ -16,37 +16,44 @@
 //
 //  BC: Neumann, given by exact solution.
 
-int P_INIT = 2;                                   // Uniform polynomial degree of all mesh elements.
-int UNIFORM_REF_LEVEL = 0;                        // Number of initial uniform mesh refinements.
-const double THRESHOLD = 0.3;                     // This is a quantitative parameter of the adapt(...) function and
-                                                  // it has different meanings for various adaptive strategies (see below).
-const int STRATEGY = 0;                           // Adaptive strategy:
-                                                  // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
-                                                  //   error is processed. If more elements have similar errors, refine
-                                                  //   all to keep the mesh symmetric.
-                                                  // STRATEGY = 1 ... refine all elements whose error is larger
-                                                  //   than THRESHOLD times maximum element error.
-                                                  // STRATEGY = 2 ... refine all elements whose error is larger
-                                                  //   than THRESHOLD.
-                                                  // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const CandList CAND_LIST = H2D_HP_ANISO;          // Predefined list of element refinement candidates. Possible values are
-                                                  // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
-                                                  // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
-                                                  // See User Documentation for details.
-const int MESH_REGULARITY = -1;                   // Maximum allowed level of hanging nodes:
-                                                  // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
-                                                  // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
-                                                  // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
-                                                  // Note that regular meshes are not supported, this is due to
-                                                  // their notoriously bad performance.
-const double CONV_EXP = 0.5;                      // Default value is 1.0. This parameter influences the selection of
-                                                  // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-const double ERR_STOP = 0.01;                      // Stopping criterion for adaptivity (rel. error tolerance between the
-                                                  // reference mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 60000;                      // Adaptivity process stops when the number of degrees of freedom grows
-                                                  // over this limit. This is to prevent h-adaptivity to go on forever.
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-                                                  // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+// Uniform polynomial degree of all mesh elements.
+int P_INIT = 2;                                   
+// Number of initial uniform mesh refinements.
+int UNIFORM_REF_LEVEL = 0;                        
+// This is a quantitative parameter of the adapt(...) function and
+// it has different meanings for various adaptive strategies.
+const double THRESHOLD = 0.3;                     
+// Adaptive strategy:
+// STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
+//   error is processed. If more elements have similar errors, refine
+//   all to keep the mesh symmetric.
+// STRATEGY = 1 ... refine all elements whose error is larger
+//   than THRESHOLD times maximum element error.
+// STRATEGY = 2 ... refine all elements whose error is larger
+//   than THRESHOLD.
+const int STRATEGY = 0;                           
+// Predefined list of element refinement candidates. Possible values are
+// H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
+// H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
+const CandList CAND_LIST = H2D_HP_ANISO;          
+// Maximum allowed level of hanging nodes:
+// MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
+// MESH_REGULARITY = 1 ... at most one-level hanging nodes,
+// MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
+// Note that regular meshes are not supported, this is due to
+// their notoriously bad performance.
+const int MESH_REGULARITY = -1;                   
+// This parameter influences the selection of
+// candidates in hp-adaptivity. Default value is 1.0. 
+const double CONV_EXP = 0.5;                      
+// Stopping criterion for adaptivity.
+const double ERR_STOP = 0.01;                      
+// Adaptivity process stops when the number of degrees of freedom grows
+// over this limit. This is to prevent h-adaptivity to go on forever.
+const int NDOF_STOP = 60000;                      
+// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
 
 // Problem parameters.
 double K = 10.0;
@@ -57,7 +64,6 @@ const std::string BDY_TOP_BOTTOM = "Bdy top bottom";
 
 int main(int argc, char* argv[])
 {
-
   // Load the mesh.
   Mesh mesh;
   MeshReaderH2D mloader;

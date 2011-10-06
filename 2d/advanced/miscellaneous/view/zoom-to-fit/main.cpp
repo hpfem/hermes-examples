@@ -71,8 +71,10 @@ int main(int argc, char* argv[])
   };
   std::string title;
 
-  bool auto_range = true;      // True to determine the vertical limits from function values.
-  double range_min, range_max; // Custom vertical limits.
+  // True to determine the vertical limits from function values.
+  bool auto_range = true;      
+  // Custom vertical limits.
+  double range_min, range_max; 
 
   // Function for inspection.
   Solution fn;
@@ -83,7 +85,8 @@ int main(int argc, char* argv[])
   mloader.load(argv[2], &mesh);
 
   int fn_id = atoi(argv[1]);
-  switch(fn_id) {
+  switch(fn_id) 
+  {
     case 0:
       fn.set_exact(&mesh, fn_const);
       title = titles[0];
@@ -115,8 +118,9 @@ int main(int argc, char* argv[])
       return -1;
   }
 
-  if (fn_id == 4) { // Test manual setting bounds for the displayed range.
-
+  // Test manual setting bounds for the displayed range.
+  if (fn_id == 4) 
+  { 
     ScalarView view(const_cast<char *>(title.c_str()), new WinGeom(screen_width/4, screen_height/4, screen_width/2, screen_width/2));
     view.set_3d_mode(true);
 
@@ -134,8 +138,10 @@ int main(int argc, char* argv[])
     // Wait for the view to be closed.
     View::wait();
 
-  } else { // Test model positioning.
-
+  } 
+  else 
+  // Test model positioning.
+  { 
     for (int i = 0; i < 6; i++) {
       ScalarView view(const_cast<char *>(title.c_str()), new WinGeom(0, 0, test_dims[i][0], test_dims[i][1]));
       view.set_3d_mode(true);
@@ -145,7 +151,8 @@ int main(int argc, char* argv[])
       // Wait for the view to be closed.
       View::wait();
 
-      if (!auto_range) {
+      if (!auto_range) 
+      {
         char buf[256];
         sprintf(buf, "%s - restricted to (%f,%f)", title.c_str(), range_min, range_max);
         ScalarView view(buf, new WinGeom(0, 0, test_dims[i][0], test_dims[i][1]));
