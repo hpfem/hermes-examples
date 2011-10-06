@@ -187,7 +187,7 @@ int main(int argc, char* argv[])
     OGProjection<std::complex<double> >::project_global(&space, &ref_sln, &sln, matrix_solver_type); 
    
     // View the coarse mesh solution and polynomial orders.
-    RealFilter real(&sln);
+    ComplexAbsFilter real(&sln);
     eview.show(&real);
     oview.show(&space);
 
