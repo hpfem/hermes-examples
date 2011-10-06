@@ -2,8 +2,6 @@
 #define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
 
-
-
 //  This example is similar to basic-ie-newton except it uses the 
 //  Picard's method in each time step.
 //
@@ -25,22 +23,32 @@
 //
 //  The following parameters can be changed:
 
-// If this is defined, use van Genuchten's constitutive relations, otherwise use Gardner's.
-//#define CONSTITUTIVE_GENUCHTEN
+// Use van Genuchten's constitutive relations, or Gardner's.
+#define CONSTITUTIVE_GENUCHTEN
 
-const int INIT_GLOB_REF_NUM = 3;                  // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM_BDY = 5;                   // Number of initial refinements towards boundary.
-const int P_INIT = 2;                             // Initial polynomial degree.
-double time_step = 5e-4;                          // Time step.
-const double T_FINAL = 0.4;                       // Time interval length.
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-                                                  // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+// Number of initial uniform mesh refinements.
+const int INIT_GLOB_REF_NUM = 3;                  
+// Number of initial refinements towards boundary.
+const int INIT_REF_NUM_BDY = 5;                   
+// Initial polynomial degree.
+const int P_INIT = 2;                             
+// Time step.
+double time_step = 5e-4;                          
+// Time interval length.
+const double T_FINAL = 0.4;                       
+// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
 
 // Picard's method.
-const int PICARD_NUM_LAST_ITER_USED = 3;          // Number of last iterations used.
-const double PICARD_ANDERSON_BETA = 1.0;          // Parameter for the Anderson acceleration. 
-const double PICARD_TOL = 1e-6;                   // Stopping criterion for the Picard's method.
-const int PICARD_MAX_ITER = 100;                  // Maximum allowed number of Picard iterations.
+// Number of last iterations used.
+const int PICARD_NUM_LAST_ITER_USED = 3;          
+// Parameter for the Anderson acceleration. 
+const double PICARD_ANDERSON_BETA = 1.0;          
+// Stopping criterion for the Picard's method.
+const double PICARD_TOL = 1e-6;                   
+// Maximum allowed number of Picard iterations.
+const int PICARD_MAX_ITER = 100;                  
 
 int main(int argc, char* argv[])
 {
@@ -54,7 +62,8 @@ int main(int argc, char* argv[])
   mesh.refine_towards_boundary("Top", INIT_REF_NUM_BDY);
 
   // Initialize boundary conditions.
-  CustomEssentialBCNonConst bc_essential(Hermes::vector<std::string>("Bottom", "Right", "Top", "Left"));
+  CustomEssentialBCNonConst bc_essential(Hermes::vector<std::string>("Bottom", 
+      "Right", "Top", "Left"));
   EssentialBCs<double> bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.
@@ -98,7 +107,7 @@ int main(int argc, char* argv[])
 
     // Perform the Picard's iteration (Anderson acceleration on by default).
     if (!picard.solve(PICARD_TOL, PICARD_MAX_ITER, PICARD_NUM_LAST_ITER_USED, 
-                      PICARD_ANDERSON_BETA)) error("Picard's iteration failed.");
+        PICARD_ANDERSON_BETA)) error("Picard's iteration failed.");
 
     // Translate the coefficient vector into a Solution. 
     Solution<double>::vector_to_solution(picard.get_sln_vector(), &space, &h_iter_prev);

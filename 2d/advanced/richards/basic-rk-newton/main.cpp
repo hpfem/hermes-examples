@@ -25,20 +25,28 @@
 //
 //  The following parameters can be changed:
 
-// If this is defined, use van Genuchten's constitutive relations, otherwise use Gardner's.
-//#define CONSTITUTIVE_GENUCHTEN
+// Use van Genuchten's constitutive relations, or Gardner's.
+#define CONSTITUTIVE_GENUCHTEN
 
-const int INIT_GLOB_REF_NUM = 3;                  // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM_BDY = 5;                   // Number of initial refinements towards boundary.
-const int P_INIT = 2;                             // Initial polynomial degree.
-double time_step = 5e-4;                          // Time step.
-const double T_FINAL = 0.4;                       // Time interval length.
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-                                                  // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+// Number of initial uniform mesh refinements.
+const int INIT_GLOB_REF_NUM = 3;                  
+// Number of initial refinements towards boundary.
+const int INIT_REF_NUM_BDY = 5;                   
+// Initial polynomial degree.
+const int P_INIT = 2;                             
+// Time step.
+double time_step = 5e-4;                          
+// Time interval length.
+const double T_FINAL = 0.4;                       
+// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
 
 // Newton's method.
-const double NEWTON_TOL = 1e-5;                   // Stopping criterion for the Newton's method.
-const int NEWTON_MAX_ITER = 500;                  // Maximum allowed number of Newton iterations.
+// Stopping criterion for the Newton's method.
+const double NEWTON_TOL = 1e-5;                   
+// Maximum allowed number of Newton iterations.
+const int NEWTON_MAX_ITER = 500;                  
 const double DAMPING_COEFF = 1.0;
 
 // Choose one of the following time-integration methods, or define your own Butcher's table. The last number 
@@ -129,9 +137,8 @@ int main(int argc, char* argv[])
     try
     {
       runge_kutta.rk_time_step_newton(current_time, time_step, &h_time_prev, 
-                                  &h_time_new, freeze_jacobian, block_diagonal_jacobian, verbose,
-                                  NEWTON_TOL, NEWTON_MAX_ITER, damping_coeff,
-                                  max_allowed_residual_norm);
+          &h_time_new, freeze_jacobian, block_diagonal_jacobian, verbose,
+          NEWTON_TOL, NEWTON_MAX_ITER, damping_coeff, max_allowed_residual_norm);
     }
     catch(Exceptions::Exception& e)
     {
