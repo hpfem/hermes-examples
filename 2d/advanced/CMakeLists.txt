@@ -13,7 +13,6 @@ if((NOT NMAKE) AND (NOT MSVC))
 add_subdirectory(neutronics)
 endif((NOT NMAKE) AND (NOT MSVC))
 
-add_subdirectory(poisson)
 add_subdirectory(richards)
 add_subdirectory(schroedinger)
 add_subdirectory(flame-propagation)
