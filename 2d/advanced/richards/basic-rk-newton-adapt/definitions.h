@@ -1,9 +1,8 @@
 #include "hermes2d.h"
 
-/* Namespaces used */
-
 using namespace Hermes;
 using namespace Hermes::Hermes2D;
+using namespace Hermes::Hermes2D::WeakFormsH1;
 using namespace Hermes::Hermes2D::Views;
 using namespace Hermes::Hermes2D::RefinementSelectors;
 
@@ -31,7 +30,9 @@ class CustomEssentialBCNonConst : public EssentialBoundaryCondition<double>
 {
 public:
   CustomEssentialBCNonConst(Hermes::vector<std::string>(markers))       
-        : EssentialBoundaryCondition<double>(markers) {};
+        : EssentialBoundaryCondition<double>(markers) 
+  {
+  }
 
   virtual EssentialBCValueType get_value_type() const;
 
