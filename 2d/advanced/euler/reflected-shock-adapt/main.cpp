@@ -25,7 +25,7 @@ const bool HERMES_VISUALIZATION = false;
 // Set to "true" to enable VTK output.
 const bool VTK_VISUALIZATION = true;              
 // Set visual output for every nth step.
-const unsigned int EVERY_NTH_STEP = 10;            
+const unsigned int EVERY_NTH_STEP = 30;            
 
 // Shock capturing.
 bool SHOCK_CAPTURING = true;
@@ -37,7 +37,7 @@ bool REUSE_SOLUTION = true;
 // Initial polynomial degree.      
 const int P_INIT = 0;                                             
 // Number of initial uniform mesh refinements.  
-const int INIT_REF_NUM = 2;                                            
+const int INIT_REF_NUM = 3;                                            
 // CFL value.
 double CFL_NUMBER = 0.1;                         
 // Initial time step.
@@ -87,7 +87,7 @@ const int MESH_REGULARITY = -1;
 const double CONV_EXP = 1;                        
 
 // Stopping criterion for adaptivity.
-double ERR_STOP = 3.0;                     
+double ERR_STOP = 1.0;                     
 
 // Adaptivity process stops when the number of degrees of freedom grows over
 // this limit. This is mainly to prevent h-adaptivity to go on forever.
@@ -187,7 +187,7 @@ int main(int argc, char* argv[])
 
   // Time stepping loop.
   int iteration = 0; double t = 0;
-  for(; t < 5.0; t += time_step)
+  for(; t < 4.0; t += time_step)
   {
     info("---- Time step %d, time %3.5f.", iteration++, t);
 
@@ -362,13 +362,13 @@ int main(int argc, char* argv[])
         Linearizer lin;
         char filename[40];
         sprintf(filename, "Pressure-%i.vtk", iteration - 1);
-        lin.save_solution_vtk(&pressure, filename, "Pressure");
+        lin.save_solution_vtk(&pressure, filename, "Pressure", false);
         sprintf(filename, "Mach number-%i.vtk", iteration - 1);
-        lin.save_solution_vtk(&Mach_number, filename, "MachNumber");
+        lin.save_solution_vtk(&Mach_number, filename, "MachNumber", false);
         if((iteration - 1) % (EVERY_NTH_STEP * EVERY_NTH_STEP) == 0) 
         {
           sprintf(filename, "Entropy-%i.vtk", iteration - 1);
-          lin.save_solution_vtk(&entropy, filename, "Entropy");
+          lin.save_solution_vtk(&entropy, filename, "Entropy", false);
         }
       }
     }
