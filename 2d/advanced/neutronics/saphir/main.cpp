@@ -1,8 +1,6 @@
 #define HERMES_REPORT_ALL
 #define HERMES_REPORT_FILE "application.log"
-#include "definitions.h"
-
-
+//#include "definitions.h"
 
 //  This is the IAEA EIR-2 benchmark problem. Note the way of handling different material
 //  parameters. This is an alternative to how this is done in tutorial examples 07 and 12
@@ -19,67 +17,89 @@
 //
 //  The following parameters can be changed:
 
-const int P_INIT = 1;                             // Initial polynomial degree of all mesh elements.
-const int INIT_REF_NUM = 1;                       // Number of initial uniform mesh refinements.
-const double THRESHOLD = 0.6;                     // This is a quantitative parameter of the adapt(...) function and
-                                                  // it has different meanings for various adaptive strategies (see below).
-const int STRATEGY = 0;                           // Adaptive strategy:
-                                                  // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
-                                                  //   error is processed. If more elements have similar errors, refine
-                                                  //   all to keep the mesh symmetric.
-                                                  // STRATEGY = 1 ... refine all elements whose error is larger
-                                                  //   than THRESHOLD times maximum element error.
-                                                  // STRATEGY = 2 ... refine all elements whose error is larger
-                                                  //   than THRESHOLD.
-                                                  // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const CandList CAND_LIST = H2D_HP_ANISO_H;        // Predefined list of element refinement candidates. Possible values are
-                                                  // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
-                                                  // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
-                                                  // See User Documentation for details.
-const int MESH_REGULARITY = -1;                   // Maximum allowed level of hanging nodes:
-                                                  // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
-                                                  // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
-                                                  // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
-                                                  // Note that regular meshes are not supported, this is due to
-                                                  // their notoriously bad performance.
-const double CONV_EXP = 1.0;                      // Default value is 1.0. This parameter influences the selection of
-                                                  // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-const double ERR_STOP = 0.1;                      // Stopping criterion for adaptivity (rel. error tolerance between the
-                                                  // reference mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 100000;                     // Adaptivity process stops when the number of degrees of freedom grows
-                                                  // over this limit. This is to prevent h-adaptivity to go on forever.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-                                                  // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+// Initial polynomial degree of mesh elements.
+const int P_INIT = 1;                             
+// Number of initial uniform mesh refinements.
+const int INIT_REF_NUM = 1;                       
+// This is a quantitative parameter of the adapt(...) function and
+// it has different meanings for various adaptive strategies.
+const double THRESHOLD = 0.6;                     
+// Adaptive strategy:
+// STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
+//   error is processed. If more elements have similar errors, refine
+//   all to keep the mesh symmetric.
+// STRATEGY = 1 ... refine all elements whose error is larger
+//   than THRESHOLD times maximum element error.
+// STRATEGY = 2 ... refine all elements whose error is larger
+//   than THRESHOLD.
+const int STRATEGY = 0;                           
+// Predefined list of element refinement candidates. Possible values are
+// H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
+// H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
+const CandList CAND_LIST = H2D_HP_ANISO_H;        
+// Maximum allowed level of hanging nodes:
+// MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
+// MESH_REGULARITY = 1 ... at most one-level hanging nodes,
+// MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
+// Note that regular meshes are not supported, this is due to
+// their notoriously bad performance.
+const int MESH_REGULARITY = -1;                   
+// This parameter influences the selection of
+// candidates in hp-adaptivity. Default value is 1.0. 
+const double CONV_EXP = 1.0;                      
+// Stopping criterion for adaptivity (rel. error tolerance between the
+// reference mesh and coarse mesh solution in percent).
+const double ERR_STOP = 0.1;                      
+// Adaptivity process stops when the number of degrees of freedom grows
+// over this limit. This is to prevent h-adaptivity to go on forever.
+const int NDOF_STOP = 100000;                     
+// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
 
 // Problem parameters
-double LH = 96;                                   // Total horizontal length.
-double LH0 = 18;                                  // First horizontal length.
-double LH1 = 48;                                  // Second horizontal length.
-double LH2 = 78;                                  // Third horizontal length.
-double LV = 96;                                   // Total vertical length.
-double LV0 = 18;                                  // First vertical length.
-double LV1 = 48;                                  // Second vertical length.
-double LV2 = 78;                                  // Third vertical length.
-double SIGMA_T_1 = 0.60;                          // Total cross-sections.
+// Total horizontal length.
+double LH = 96;                                   
+// First horizontal length.
+double LH0 = 18;                                  
+// Second horizontal length.
+double LH1 = 48;                                  
+// Third horizontal length.
+double LH2 = 78;                                  
+// Total vertical length.
+double LV = 96;                                   
+// First vertical length.
+double LV0 = 18;                                  
+// Second vertical length.
+double LV1 = 48;                                  
+// Third vertical length.
+double LV2 = 78;                                  
+// Total cross-sections.
+double SIGMA_T_1 = 0.60;                          
 double SIGMA_T_2 = 0.48;
 double SIGMA_T_3 = 0.70;
 double SIGMA_T_4 = 0.85;
 double SIGMA_T_5 = 0.90;
-double SIGMA_S_1 = 0.53;                          // Scattering cross sections.
+// Scattering cross sections.
+double SIGMA_S_1 = 0.53;                          
 double SIGMA_S_2 = 0.20;
 double SIGMA_S_3 = 0.66;
 double SIGMA_S_4 = 0.50;
 double SIGMA_S_5 = 0.89;
-double Q_EXT_1 = 1;                               // Nonzero sources in regions 1 and 3 only,
-double Q_EXT_3 = 1;                               // sources in other regions are zero.
+// Nonzero sources in regions 1 and 3 only.
+// Sources in other regions are zero.
+double Q_EXT_1 = 1;                               
+double Q_EXT_3 = 1;                               
 
 // Additional constants
-double D_1 = 1/(3.*SIGMA_T_1);                    // Diffusion coefficients.
+// Diffusion coefficients.
+double D_1 = 1/(3.*SIGMA_T_1);                    
 double D_2 = 1/(3.*SIGMA_T_2);
 double D_3 = 1/(3.*SIGMA_T_3);
 double D_4 = 1/(3.*SIGMA_T_4);
 double D_5 = 1/(3.*SIGMA_T_5);
-double SIGMA_A_1 = SIGMA_T_1 - SIGMA_S_1;         // Absorption coefficients.
+// Absorption coefficients.
+double SIGMA_A_1 = SIGMA_T_1 - SIGMA_S_1;         
 double SIGMA_A_2 = SIGMA_T_2 - SIGMA_S_2;
 double SIGMA_A_3 = SIGMA_T_3 - SIGMA_S_3;
 double SIGMA_A_4 = SIGMA_T_4 - SIGMA_S_4;

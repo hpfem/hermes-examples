@@ -40,22 +40,31 @@
 //
 //  The following parameters can be changed:
 
-const int INIT_REF_NUM = 2;                       // Number of initial uniform mesh refinements.
-const int P_INIT_1 = 1,                           // Initial polynomial degree for approximation of group 1 fluxes.
-          P_INIT_2 = 1,                           // Initial polynomial degree for approximation of group 2 fluxes.
-          P_INIT_3 = 2,                           // Initial polynomial degree for approximation of group 3 fluxes.
-          P_INIT_4 = 2;                           // Initial polynomial degree for approximation of group 4 fluxes.
-const double ERROR_STOP = 1e-5;                   // Tolerance for the eigenvalue.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-                                                  // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+// Number of initial uniform mesh refinements.
+const int INIT_REF_NUM = 2;                       
+// Initial polynomial degree for approximation of group 1 fluxes.
+const int P_INIT_1 = 1,                           
+// Initial polynomial degree for approximation of group 2 fluxes.
+          P_INIT_2 = 1,                           
+// Initial polynomial degree for approximation of group 3 fluxes.
+          P_INIT_3 = 2,                           
+// Initial polynomial degree for approximation of group 4 fluxes.
+          P_INIT_4 = 2;                           
+// Tolerance for the eigenvalue.
+const double ERROR_STOP = 1e-5;                   
+// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
 
-const char* iterative_method = "bicgstab";        // Name of the iterative method employed by AztecOO (ignored
-                                                  // by the other solvers). 
-                                                  // Possibilities: gmres, cg, cgs, tfqmr, bicgstab.
-const char* preconditioner = "jacobi";            // Name of the preconditioner employed by AztecOO (ignored by
-                                                  // the other solvers). 
-                                                  // Possibilities: none, jacobi, neumann, least-squares, or a
-                                                  // preconditioner from IFPACK (see solver/aztecoo.h)
+// Name of the iterative method employed by AztecOO (ignored
+// by the other solvers). 
+// Possibilities: gmres, cg, cgs, tfqmr, bicgstab.
+const char* iterative_method = "bicgstab";        
+// Name of the preconditioner employed by AztecOO (ignored by
+// the other solvers). 
+// Possibilities: none, jacobi, neumann, least-squares, or a
+// preconditioner from IFPACK (see solver/aztecoo.h).
+const char* preconditioner = "jacobi";            
 
 // Initial eigenvalue approximation.
 double k_eff = 1.0;         
@@ -159,7 +168,8 @@ int main(int argc, char* argv[])
     
     info("Newton's method (matrix problem solved by %s).", MatrixSolverNames[matrix_solver].c_str());
     
-    memset(coeff_vec, 0.0, ndof*sizeof(scalar)); //TODO: Why it doesn't work without zeroing coeff_vec in each iteration?
+    //TODO: Why it doesn't work without zeroing coeff_vec in each iteration?
+    memset(coeff_vec, 0.0, ndof*sizeof(scalar)); 
     
     solver_time.tick(HERMES_SKIP);      
     if (!hermes2d.solve_newton(coeff_vec, &dp, solver, matrix, rhs, Jacobian_changed, 1e-8, 10, true)) 
@@ -175,7 +185,6 @@ int main(int argc, char* argv[])
     view4.show(&sln4);
     
     // Compute eigenvalue.
-    
     using WeakFormsNeutronics::Multigroup::SupportClasses::Common::SourceFilter;
     SourceFilter source(solutions, &matprop, core);
     SourceFilter source_prev(iterates, &matprop, core);
