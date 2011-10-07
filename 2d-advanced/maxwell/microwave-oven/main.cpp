@@ -2,8 +2,6 @@
 #define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
 
-
-
 // This example solves adaptively the electric field in a simplified microwave oven.
 // The waves are generated using a harmonic surface current on the right-most edge.
 // (Such small cavity is present in every microwave oven). There is a circular
@@ -74,6 +72,10 @@ const int NDOF_STOP = 60000;
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
+
+// Newton's method.
+const double NEWTON_TOL = 1e-6;
+const int NEWTON_MAX_ITER = 100;
 
 // Problem parameters.
 const double e_0   = 8.8541878176 * 1e-12;
@@ -152,11 +154,6 @@ int main(int argc, char* argv[])
     Space<std::complex<double> >* ref_space = Space<std::complex<double> >::construct_refined_space(&space);
     int ndof_ref = Space<std::complex<double> >::get_num_dofs(ref_space);
 
-    // Initialize matrix solver.
-    SparseMatrix<std::complex<double> >* matrix = create_matrix<std::complex<double> >(matrix_solver_type);
-    Vector<std::complex<double> >* rhs = create_vector<std::complex<double> >(matrix_solver_type);
-    LinearSolver<std::complex<double> >* solver = create_linear_solver<std::complex<double> >(matrix_solver_type, matrix, rhs);
-
     // Initialize reference problem.
     info("Solving on reference mesh.");
     DiscreteProblem<std::complex<double> > dp(&wf, ref_space);
@@ -172,7 +169,7 @@ int main(int argc, char* argv[])
     Hermes::Hermes2D::NewtonSolver<std::complex<double> > newton(&dp, matrix_solver_type);
     try
     {
-      newton.solve(coeff_vec);
+      newton.solve(coeff_vec, NEWTON_TOL, NEWTON_MAX_ITER);
     }
     catch(Hermes::Exceptions::Exception e)
     {
@@ -188,7 +185,12 @@ int main(int argc, char* argv[])
    
     // View the coarse mesh solution and polynomial orders.
     ComplexAbsFilter real(&sln);
+    char title[100];
+    sprintf(title, "Electric field, adaptivity step %d", as);
+    eview.set_title(title);
     eview.show(&real);
+    sprintf(title, "Polynomial orders, adaptivity step %d", as);
+    oview.set_title(title);
     oview.show(&space);
 
     // Calculate element errors and total error estimate.
@@ -219,9 +221,6 @@ int main(int argc, char* argv[])
     if (Space<std::complex<double> >::get_num_dofs(&space) >= NDOF_STOP) done = true;
 
     delete [] coeff_vec;
-    delete solver;
-    delete matrix;
-    delete rhs;
     delete adaptivity;
     if(done == false) delete ref_space->get_mesh();
     delete ref_space;
@@ -234,7 +233,7 @@ int main(int argc, char* argv[])
   verbose("Total running time: %g s", cpu_time.accumulated());
 
   // Show the reference solution - the final result.
-  eview.set_title("Fine mesh solution");
+  eview.set_title("Fine mesh solution - real part");
   RealFilter ref_real(&ref_sln);
   eview.show(&ref_real);
 
