@@ -8,6 +8,7 @@ using namespace Hermes::Hermes2D;
 using namespace Hermes::Hermes2D::Views;
 using namespace Hermes::Hermes2D::RefinementSelectors;
 
+/* Essential boundary conditions */
 
 class EssentialBCNonConst : public EssentialBoundaryCondition<double> 
 {
@@ -21,10 +22,11 @@ public:
     virtual double value(double x, double y, double n_x, double n_y, double t_x, double t_y) const;
 };
 
+/* Weak forms */
+
 class WeakFormHelmholtz : public WeakForm<double>
 {
 public:
-    // Problems parameters
     WeakFormHelmholtz(double eps, double mu, double omega, double sigma, double beta, double E0, double h);
 
 private:
@@ -42,7 +44,7 @@ private:
         virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const;
 
     private:
-        // Memebers.
+        // Members.
         double eps;
         double omega;
         double mu;
@@ -51,7 +53,7 @@ private:
     class MatrixFormHelmholtzEquation_real_imag : public MatrixFormVol<double>
     {
     private:
-        // Memebers.
+        // Members.
         double mu;
         double omega;
         double sigma;
@@ -71,7 +73,7 @@ private:
     class MatrixFormHelmholtzEquation_imag_real : public MatrixFormVol<double>
     {
     private:
-        // Memebers.
+        // Members.
         double mu;
         double omega;
         double sigma;
@@ -101,12 +103,11 @@ private:
 
         virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const;
 
-        // Memebers.
+        // Members.
         double eps;
         double mu;
         double omega;
     };
-
 
     class MatrixFormSurfHelmholtz_real_imag : public MatrixFormSurf<double>
     {
@@ -123,8 +124,6 @@ private:
 
         virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const;
     };
-
-
 
     class MatrixFormSurfHelmholtz_imag_real : public MatrixFormSurf<double>
     {

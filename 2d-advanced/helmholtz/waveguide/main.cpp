@@ -8,7 +8,7 @@
 //
 // PDE: Helmholtz equation for electric field
 //
-//    Delta E  + (omega^2*mu*epsilon - j*omega*sigma*mu)*E = 0
+//    -Laplace E  - (omega^2*mu*epsilon + j*omega*sigma*mu)*E = 0
 //
 // BC:              Gamma_1
 //             ----------------------------
@@ -16,11 +16,11 @@
 //             ----------------------------
 //                  Gamma_2
 //
-//     1) Dirichlet boundary condition Ex = 0 (perfect eletric conductor) on Gamma_1 and Gamma_2.
+//     1) Perfect conductor boundary condition Ex = 0 on Gamma_1 and Gamma_2.
 //     2) Essential (Dirichlet) boundary condition on Gamma_3
-//          Ex(y) = E_0 * cos(y*M_PI/h), where h is height of the waveguide ()
-//     3) Newton boundary condition (impedance matching) on Gamma_4
-//          dE/dn = j*beta*E
+//          Ex(y) = E_0 * cos(y*M_PI/h), where h is height of the waveguide.
+//     3) Impedance boundary condition on Gamma_4
+//          dE/dn = j*beta*E.
 //
 // The following parameters can be changed:
 
@@ -31,6 +31,10 @@ const int INIT_REF_NUM = 3;
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;       
+
+// Newton's method.
+const double NEWTON_TOL = 1e-8;
+const int NEWTON_MAX_ITER = 100;
 
 // Problem parameters.
 // Relative permittivity.
@@ -95,7 +99,7 @@ int main(int argc, char* argv[])
   Hermes::Hermes2D::NewtonSolver<double> newton(&dp, matrix_solver_type);
   try
   {
-    newton.solve(coeff_vec);
+    newton.solve(coeff_vec, NEWTON_TOL, NEWTON_MAX_ITER);
   }
   catch(Hermes::Exceptions::Exception e)
   {
