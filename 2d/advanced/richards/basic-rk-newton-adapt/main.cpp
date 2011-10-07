@@ -261,9 +261,11 @@ int main(int argc, char* argv[])
       
       // Clean up.
       delete adaptivity;
-      delete ref_space;
       if(!done)
+      {
+        delete h_time_new.get_space();
         delete h_time_new.get_mesh();
+      }
     }
     while (done == false);
 
@@ -285,6 +287,7 @@ int main(int argc, char* argv[])
 
     // Copy last reference solution into h_time_prev.
     h_time_prev.copy(&h_time_new);
+    delete h_time_new.get_mesh();
 
     // Increase current time and counter of time steps.
     current_time += time_step;
