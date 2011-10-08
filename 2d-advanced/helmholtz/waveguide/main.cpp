@@ -3,18 +3,19 @@
 #include "definitions.h"
 
 // This example shows how to model harmonic steady state in parallel plate waveguide.
-// The Helmholtz equation is solved and there are demonstrated two typical boundary
-// conditions used in high frequency domain.
+// The complex-valued Helmholtz equation is solved by decomposing it into two equations 
+// for the real and imaginary part of the E field. Two typical boundary conditions used in 
+// high-frequency problems are demonstrated.
 //
 // PDE: Helmholtz equation for electric field
 //
 //    -Laplace E  - (omega^2*mu*epsilon + j*omega*sigma*mu)*E = 0
 //
-// BC:              Gamma_1
-//             ----------------------------
-//  Gamma_3    |                           |  Gamma_4
-//             ----------------------------
-//                  Gamma_2
+// BC:                     Gamma_1 (perfect)
+//                   ----------------------------
+//  Gamma_3 (left)   |                           |  Gamma_4 (impedance)
+//                   ----------------------------
+//                         Gamma_2 (perfect)
 //
 //     1) Perfect conductor boundary condition Ex = 0 on Gamma_1 and Gamma_2.
 //     2) Essential (Dirichlet) boundary condition on Gamma_3
@@ -107,8 +108,9 @@ int main(int argc, char* argv[])
     error("Newton's iteration failed.");
   };
 
-  // Translate the resulting coefficient vector into the Solution<double> sln.
-  Solution<double>::vector_to_solutions(coeff_vec, Hermes::vector<Space<double>*>(&e_r_space, &e_i_space), Hermes::vector<Solution<double>*>(&e_r_sln, &e_i_sln));
+  // Translate the resulting coefficient vector into Solutions.
+  Solution<double>::vector_to_solutions(coeff_vec, Hermes::vector<Space<double>*>(&e_r_space, &e_i_space), 
+      Hermes::vector<Solution<double>*>(&e_r_sln, &e_i_sln));
 
   // Visualize the solution.
   ScalarView viewEr("Er [V/m]", new WinGeom(0, 0, 800, 400));
