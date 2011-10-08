@@ -41,8 +41,8 @@ const int MESH_REGULARITY = -1;                     // Maximum allowed level of 
                                                     // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
                                                     // Note that regular meshes are not supported, this is due to
                                                     // their notoriously bad performance.
-const double CONV_EXP = 1.0;                        // Default value is 1.0. This parameter influences the selection of
-                                                    // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
+const double CONV_EXP = 1.0;                        // This parameter influences the selection of
+                                                    // candidates in hp-adaptivity. Default value is 1.0. 
 const double ERR_STOP = 1e-4;                       // Stopping criterion for adaptivity (rel. error tolerance between the
                                                     // reference mesh and coarse mesh solution in percent).
 const int NDOF_STOP = 60000;                        // Adaptivity process stops when the number of degrees of freedom grows

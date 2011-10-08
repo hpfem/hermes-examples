@@ -44,7 +44,7 @@ const int MESH_REGULARITY = -1;
 // Stopping criterion for adaptivity.
 const double ERR_STOP = 3.0;                      
 // This parameter influences the selection of
-// cancidates in hp-adaptivity. Default value is 1.0. 
+// candidates in hp-adaptivity. Default value is 1.0. 
 const double CONV_EXP = 1.0;                      
 // Adaptivity process stops when the number of degrees of freedom grows
 // over this limit. This is to prevent h-adaptivity to go on forever.

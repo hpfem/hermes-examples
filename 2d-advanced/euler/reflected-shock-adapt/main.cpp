@@ -82,8 +82,8 @@ const int MAX_P_ORDER = 1;
 // their notoriously bad performance.
 const int MESH_REGULARITY = -1;                   
 
-// Default value is 1.0. This parameter influences the selection of
-// cancidates in hp-adaptivity. See get_optimal_refinement() for details.
+// This parameter influences the selection of
+// candidates in hp-adaptivity. Default value is 1.0. 
 const double CONV_EXP = 1;                        
 
 // Stopping criterion for adaptivity.
