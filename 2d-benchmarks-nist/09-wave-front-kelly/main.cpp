@@ -19,43 +19,54 @@
 //
 //  The following parameters can be changed:
 
-int PARAM = 3;         // PARAM determines which parameter values you wish to use 
-                       //            for the steepness and location of the wave front. 
-                       // #| name   |   ALPHA | X_LOC	| Y_LOC | R_ZERO
-                       // 0: mild		    20      -0.05  -0.05    0.7
-                       // 1: steep      1000    -0.05  -0.05    0.7
-                       // 2: asymmetric 1000     1.5    0.25    0.92
-                       // 3: well       50       0.5    0.5     0.25
+// PARAM determines which parameter values you wish to use 
+//            for the steepness and location of the wave front. 
+// #| name   |   ALPHA | X_LOC	| Y_LOC | R_ZERO
+// 0: mild		    20      -0.05  -0.05    0.7
+// 1: steep      1000    -0.05  -0.05    0.7
+// 2: asymmetric 1000     1.5    0.25    0.92
+// 3: well       50       0.5    0.5     0.25
+int PARAM = 3;         
 
-const int P_INIT = 2;                             // Initial polynomial degree of all mesh elements.
-const int INIT_REF_NUM = 2;                       // Number of initial uniform mesh refinements.
-const double THRESHOLD = 0.3;                     // This is a quantitative parameter of the adapt(...) function and
-                                                  // it has different meanings for various adaptive strategies (see below).
-const int STRATEGY = 0;                           // Adaptive strategy:
-                                                  // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
-                                                  //   error is processed. If more elements have similar errors, refine
-                                                  //   all to keep the mesh symmetric.
-                                                  // STRATEGY = 1 ... refine all elements whose error is larger
-                                                  //   than THRESHOLD times maximum element error.
-                                                  // STRATEGY = 2 ... refine all elements whose error is larger
-                                                  //   than THRESHOLD.
-                                                  // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const int MESH_REGULARITY = -1;                   // Maximum allowed level of hanging nodes:
-                                                  // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
-                                                  // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
-                                                  // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
-                                                  // Note that regular meshes are not supported, this is due to
-                                                  // their notoriously bad performance.
-const double ERR_STOP = 0.5;                      // Stopping criterion for adaptivity (rel. error tolerance between the
-                                                  // reference mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 60000;                      // Adaptivity process stops when the number of degrees of freedom grows
-                                                  // over this limit. This is to prevent h-adaptivity to go on forever.
-Hermes::MatrixSolverType matrix_solver_type = Hermes::SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-                                                  // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+// Initial polynomial degree of mesh elements.
+const int P_INIT = 2;                             
+// Number of initial uniform mesh refinements.
+const int INIT_REF_NUM = 2;                       
+// This is a quantitative parameter of the adapt(...) function and
+// it has different meanings for various adaptive strategies.
+const double THRESHOLD = 0.3;                     
+// Adaptive strategy:
+// STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
+//   error is processed. If more elements have similar errors, refine
+//   all to keep the mesh symmetric.
+// STRATEGY = 1 ... refine all elements whose error is larger
+//   than THRESHOLD times maximum element error.
+// STRATEGY = 2 ... refine all elements whose error is larger
+//   than THRESHOLD.
+const int STRATEGY = 0;                           
+// Maximum allowed level of hanging nodes:
+// MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
+// MESH_REGULARITY = 1 ... at most one-level hanging nodes,
+// MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
+// Note that regular meshes are not supported, this is due to
+// their notoriously bad performance.
+const int MESH_REGULARITY = -1;                   
+// Stopping criterion for adaptivity (rel. error tolerance between the
+// reference mesh and coarse mesh solution in percent).
+const double ERR_STOP = 0.5;                      
+// Adaptivity process stops when the number of degrees of freedom grows
+// over this limit. This is to prevent h-adaptivity to go on forever.
+const int NDOF_STOP = 60000;                      
+// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+Hermes::MatrixSolverType matrix_solver_type = Hermes::SOLVER_UMFPACK;  
 
-const bool USE_RESIDUAL_ESTIMATOR = true;         // Add also the norm of the residual to the error estimate of each element.
-const bool USE_ENERGY_NORM_NORMALIZATION = false; // Use energy norm for error estimate normalization and measuring of exact error.
-const bool TEST_ELEMENT_BASED_KELLY = false;      // Test if two possible approaches to interface error estimators accumulation give same results.
+// Add also the norm of the residual to the error estimate of each element.
+const bool USE_RESIDUAL_ESTIMATOR = true;         
+// Use energy norm for error estimate normalization and measuring of exact error.
+const bool USE_ENERGY_NORM_NORMALIZATION = false; 
+// Test if two possible approaches to interface error estimators accumulation give same results.
+const bool TEST_ELEMENT_BASED_KELLY = false;      
 
 int main(int argc, char* argv[])
 {
@@ -87,7 +98,8 @@ int main(int argc, char* argv[])
     y_loc = 0.5;
     r_zero = 0.25;
     break;
-  default:   // The same as 0.
+  default:   
+    // The same as 0.
     alpha = 20;
     x_loc = -0.05;
     y_loc = -0.05;
@@ -98,8 +110,10 @@ int main(int argc, char* argv[])
   // Load the mesh.
   Mesh mesh;
   MeshReaderH2D mloader;
-  mloader.load("square_quad.mesh", &mesh);     // quadrilaterals
-  // mloader.load("square_tri.mesh", &mesh);   // triangles
+  // Quadrilaterals.
+  mloader.load("square_quad.mesh", &mesh);     
+  // Triangles.
+  // mloader.load("square_tri.mesh", &mesh);   
 
   // Perform initial mesh refinement.
   for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();

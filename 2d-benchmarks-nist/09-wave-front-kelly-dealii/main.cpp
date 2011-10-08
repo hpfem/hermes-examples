@@ -19,28 +19,35 @@
 //
 //  The following parameters can be changed:
 
-int PARAM = 3;         // PARAM determines which parameter values you wish to use 
-                       //            for the steepness and location of the wave front. 
-                       // #| name   |   ALPHA | X_LOC	| Y_LOC | R_ZERO
-                       // 0: mild		    20      -0.05  -0.05    0.7
-                       // 1: steep      1000    -0.05  -0.05    0.7
-                       // 2: asymmetric 1000     1.5    0.25    0.92
-                       // 3: well       50       0.5    0.5     0.25
+// PARAM determines which parameter values you wish to use 
+//            for the steepness and location of the wave front. 
+// #| name   |   ALPHA | X_LOC	| Y_LOC | R_ZERO
+// 0: mild		    20      -0.05  -0.05    0.7
+// 1: steep      1000    -0.05  -0.05    0.7
+// 2: asymmetric 1000     1.5    0.25    0.92
+// 3: well       50       0.5    0.5     0.25
+int PARAM = 3;         
 
-const int P_INIT = 2;                             // Initial polynomial degree of all mesh elements.
-const int INIT_REF_NUM = 2;                       // Number of initial uniform mesh refinements.
-const int MESH_REGULARITY = -1;                    // Maximum allowed level of hanging nodes:
-                                                  // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
-                                                  // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
-                                                  // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
-                                                  // Note that regular meshes are not supported, this is due to
-                                                  // their notoriously bad performance.
-const double ERR_STOP = 0.1;                      // Stopping criterion for adaptivity (rel. error tolerance between the
-                                                  // reference mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 60000;                      // Adaptivity process stops when the number of degrees of freedom grows
-                                                  // over this limit. This is to prevent h-adaptivity to go on forever.
-Hermes::MatrixSolverType matrix_solver_type = Hermes::SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-                                                  // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+// Initial polynomial degree of mesh elements.
+const int P_INIT = 2;                             
+// Number of initial uniform mesh refinements.
+const int INIT_REF_NUM = 2;                       
+// Maximum allowed level of hanging nodes:
+// MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
+// MESH_REGULARITY = 1 ... at most one-level hanging nodes,
+// MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
+// Note that regular meshes are not supported, this is due to
+// their notoriously bad performance.
+const int MESH_REGULARITY = -1;                   
+// Stopping criterion for adaptivity (rel. error tolerance between the
+// reference mesh and coarse mesh solution in percent).
+const double ERR_STOP = 0.1;                      
+// Adaptivity process stops when the number of degrees of freedom grows
+// over this limit. This is to prevent h-adaptivity to go on forever.
+const int NDOF_STOP = 60000;                      
+// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+Hermes::MatrixSolverType matrix_solver_type = Hermes::SOLVER_UMFPACK;  
 
 int main(int argc, char* argv[])
 {
@@ -72,7 +79,8 @@ int main(int argc, char* argv[])
     y_loc = 0.5;
     r_zero = 0.25;
     break;
-  default:   // The same as 0.
+  default:   
+    // The same as 0.
     alpha = 20;
     x_loc = -0.05;
     y_loc = -0.05;
@@ -92,11 +100,14 @@ int main(int argc, char* argv[])
   }
   
   double threshold = 0.3;                     
-  int strategy = 0;       // strategy = 0 ... Refine elements until sqrt(threshold) times total error is processed. 
-                          //                  If more elements have similar errors, refine all to keep the mesh symmetric.
-                          // strategy = 1 ... Refine all elements whose error is larger than threshold times max. element error.
-  bool use_residual_estimator = false;        // Add also the norm of the residual to the error estimate of each element.
-  bool use_energy_norm_normalization = false; // Use energy norm for error estimate normalization and measuring of exact error.
+  // strategy = 0 ... Refine elements until sqrt(threshold) times total error is processed. 
+  //                  If more elements have similar errors, refine all to keep the mesh symmetric.
+  int strategy = 0;       
+  // strategy = 1 ... Refine all elements whose error is larger than threshold times max. element error.
+  // Add also the norm of the residual to the error estimate of each element.
+  bool use_residual_estimator = false;        
+  // Use energy norm for error estimate normalization and measuring of exact error.
+  bool use_energy_norm_normalization = false; 
   
   switch (refinement_mode)
   {
@@ -180,7 +191,8 @@ int main(int argc, char* argv[])
   
   // Time measurement.
   Hermes::TimePeriod wall_clock;
-  wall_clock.tick(); // Stop counting time for adaptation.
+  // Stop counting time for adaptation.
+  wall_clock.tick(); 
 
   // Load the mesh.
   Mesh mesh;
@@ -190,7 +202,8 @@ int main(int argc, char* argv[])
   // Perform initial mesh refinement.
   for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
   
-  wall_clock.tick(); // Stop counting time for adaptation.
+  // Stop counting time for adaptation.
+  wall_clock.tick(); 
   adapt_time += wall_clock.last();
   
   // Set exact solution.
@@ -240,7 +253,8 @@ int main(int argc, char* argv[])
   int as = 0; bool done = false;
   do
   {
-    wall_clock.tick(); // Start counting setup time.
+    // Start counting setup time.
+    wall_clock.tick(); 
     
     // Assemble the discrete problem.    
     DiscreteProblem<double> dp(&wf, &space);
@@ -269,7 +283,8 @@ int main(int argc, char* argv[])
     assemble_time += newton.get_assemble_time();
     solve_time += newton.get_solve_time();
      
-    wall_clock.tick();  // Start counting time for adaptation.
+    // Start counting time for adaptation.
+    wall_clock.tick();  
     Solution<double>::vector_to_solution(newton.get_sln_vector(), &space, &sln);
     
     double err_exact = Global<double>::calc_abs_error(&sln, &exact, HERMES_H1_NORM);
@@ -280,7 +295,8 @@ int main(int argc, char* argv[])
     info("    Number of degrees of freedom: %d", ndof);
     info("    H1 error w.r.t. exact soln.:  %g", err_exact);
     
-    wall_clock.tick(); // Stop counting time for adaptation.
+    // Stop counting time for adaptation.
+    wall_clock.tick(); 
     double accum_time = wall_clock.accumulated();
     adapt_time += wall_clock.last();
     
@@ -298,7 +314,8 @@ int main(int argc, char* argv[])
     conv_table.add_value(6, solve_time);
     conv_table.add_value(7, adapt_time);
     
-    wall_clock.tick(); // Start counting time for adaptation.
+    // Start counting time for adaptation.
+    wall_clock.tick(); 
     
     if (err_exact < ERR_STOP) 
       done = true;
@@ -324,7 +341,8 @@ int main(int argc, char* argv[])
       
       done = adaptivity.adapt(threshold, strategy, MESH_REGULARITY);
       
-      wall_clock.tick(); // Stop counting time for adaptation.
+      // Stop counting time for adaptation.
+      wall_clock.tick(); 
       adapt_time += wall_clock.last();
     }
         
