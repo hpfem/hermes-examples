@@ -94,15 +94,6 @@ const double J = 0.0000033333;
 const std::string BDY_PERFECT_CONDUCTOR = "b2";
 const std::string BDY_CURRENT = "b1";
 
-/* WEAK FORM FOR ERROR CALCULATION - TO BE USED IN ADAPTIVITY.
-// error calculation
-template<typename Real, typename Scalar>
-Scalar hcurl_form_kappa(int n, double *wt, Func<Scalar> *u_ext[], Func<Scalar> *u, Func<Scalar> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return int_curl_e_curl_f<Scalar, Scalar>(n, wt, u, v) + sqr(kappa) * int_e_f<Scalar, Scalar>(n, wt, u, v);
-}
-*/
-
 int main(int argc, char* argv[])
 {
   // Load the mesh.
@@ -112,7 +103,7 @@ int main(int argc, char* argv[])
   else mloader.load("oven_load_square.mesh", &mesh);
   
   // Perform initial mesh refinemets.
-  for (int i = 0; i < INIT_REF_NUM; i++)  mesh.refine_all_elements();
+  for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
 
   // Initialize boundary conditions
   DefaultEssentialBCConst<std::complex<double> > bc_essential(BDY_PERFECT_CONDUCTOR, std::complex<double>(0.0, 0.0));
@@ -120,8 +111,8 @@ int main(int argc, char* argv[])
   EssentialBCs<std::complex<double> > bcs(&bc_essential);
 
   // Create an Hcurl space with default shapeset.
-   HcurlSpace<std::complex<double> > space(&mesh, &bcs, P_INIT);
-  int ndof = Space<std::complex<double> >::get_num_dofs(&space);
+  HcurlSpace<std::complex<double> > space(&mesh, &bcs, P_INIT);
+  int ndof = space.get_num_dofs();
   info("ndof = %d", ndof);
 
   // Initialize the weak formulation.
@@ -196,6 +187,10 @@ int main(int argc, char* argv[])
     // Calculate element errors and total error estimate.
     info("Calculating error estimate."); 
     Adapt<std::complex<double> >* adaptivity = new Adapt<std::complex<double> >(&space);
+
+    // Set custom error form and calculate error estimate.
+    CustomErrorForm cef(kappa);
+    adaptivity->set_error_form(0, 0, &cef);
     double err_est_rel = adaptivity->calc_err_est(&sln, &ref_sln) * 100;
 
     // Report results.

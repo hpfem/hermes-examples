@@ -9,6 +9,8 @@ using namespace Hermes::Hermes2D::RefinementSelectors;
 
 /* Weak forms */
 
+// Jacobian.
+
 class CustomMatrixForm : public MatrixFormVol<std::complex<double> >
 {
 public:
@@ -43,6 +45,8 @@ public:
   double e_0, mu_0, mu_r, kappa, omega, J;
   bool align_mesh;
 };
+
+// Residual.
 
 class CustomResidualForm : public VectorFormVol<std::complex<double> >
 {
@@ -106,3 +110,27 @@ public:
                  double J, bool align_mesh);
 };
 
+// Custom error form.
+
+class CustomErrorForm : public Adapt<std::complex<double> >::MatrixFormVolError
+{
+public:
+ CustomErrorForm(double kappa) : Adapt<std::complex<double> >::MatrixFormVolError(HERMES_HCURL_NORM)
+  {
+    kappa_squared = sqr(kappa);
+  };
+
+  template<typename Real, typename Scalar>
+  Scalar hcurl_form_kappa(int n, double *wt, Func<Scalar> *u_ext[], Func<Scalar> *u, Func<Scalar> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+  {
+    return int_curl_e_curl_f<Scalar, Scalar>(n, wt, u, v) + kappa_squared * int_e_f<Scalar, Scalar>(n, wt, u, v);
+  }
+
+  virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
+      Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
+
+  virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, 
+      Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const;
+
+  double kappa_squared;
+}
