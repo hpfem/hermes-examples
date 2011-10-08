@@ -2,8 +2,6 @@
 #define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
 
-
-
 // A massive hollow conductor is heated by induction and cooled by water running inside.
 // We will model this problem using linear thermoelasticity equations, where the x-displacement,
 // y-displacement, and the temperature will be approximated on individual meshes equipped
@@ -17,57 +15,66 @@
 //     temp = TEMP_INNER on Gamma_4
 //     negative heat flux with HEAT_FLUX_OUTER elsewhere.
 
-const bool SOLVE_ON_COARSE_MESH = false;          // If true, coarse mesh FE problem is solved in every adaptivity step.
-                                                  // If false, projection of the fine mesh solution on the coarse mesh is used. 
-const int P_INIT_TEMP = 1;                        // Initial polynomial degrees in temperature mesh.
-const int P_INIT_DISP = 1;                        // Initial polynomial degrees for displacement meshes.
-const bool MULTI = true;                          // MULTI = true  ... use multi-mesh,
-                                                  // MULTI = false ... use single-mesh.
-                                                  // Note: In the single mesh option, the meshes are
-                                                  // forced to be geometrically the same but the
-                                                  // polynomial degrees can still vary.
-const double THRESHOLD = 0.3;                     // This is a quantitative parameter of the adapt(...) function and
-                                                  // it has different meanings for various adaptive strategies (see below).
-const int STRATEGY = 1;                           // Adaptive strategy:
-                                                  // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
-                                                  //   error is processed. If more elements have similar errors, refine
-                                                  //   all to keep the mesh symmetric.
-                                                  // STRATEGY = 1 ... refine all elements whose error is larger
-                                                  //   than THRESHOLD times maximum element error.
-                                                  // STRATEGY = 2 ... refine all elements whose error is larger
-                                                  //   than THRESHOLD.
-                                                  // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const CandList CAND_LIST = H2D_HP_ANISO;          // Predefined list of element refinement candidates. Possible values are
-                                                  // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
-                                                  // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
-                                                  // See User Documentation for details.
-const int MESH_REGULARITY = -1;                   // Maximum allowed level of hanging nodes:
-                                                  // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
-                                                  // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
-                                                  // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
-                                                  // Note that regular meshes are not supported, this is due to
-                                                  // their notoriously bad performance.
-const double CONV_EXP = 1.0;                      // Default value is 1.0. This parameter influences the selection of
-                                                  // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-const double ERR_STOP = 3.0;                      // Stopping criterion for adaptivity (rel. error tolerance between the
-                                                  // fine mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 60000;                      // Adaptivity process stops when the number of degrees of freedom grows over
-                                                  // this limit. This is mainly to prevent h-adaptivity to go on forever.
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-                                                  // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+// Initial polynomial degrees in temperature mesh.
+const int P_INIT_TEMP = 1;                        
+// Initial polynomial degrees for displacement meshes.
+const int P_INIT_DISP = 1;                        
+// MULTI = true  ... use multi-mesh,
+// MULTI = false ... use single-mesh.
+// Note: In the single mesh option, the meshes are
+// forced to be geometrically the same but the
+// polynomial degrees can still vary.
+const bool MULTI = true;                          
+// This is a quantitative parameter of the adapt(...) function and
+// it has different meanings for various adaptive strategies.
+const double THRESHOLD = 0.3;                     
+// Adaptive strategy:
+// STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
+//   error is processed. If more elements have similar errors, refine
+//   all to keep the mesh symmetric.
+// STRATEGY = 1 ... refine all elements whose error is larger
+//   than THRESHOLD times maximum element error.
+// STRATEGY = 2 ... refine all elements whose error is larger
+//   than THRESHOLD.
+const int STRATEGY = 1;                           
+// Predefined list of element refinement candidates. Possible values are
+// H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
+// H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
+const CandList CAND_LIST = H2D_HP_ANISO;          
+// Maximum allowed level of hanging nodes:
+// MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
+// MESH_REGULARITY = 1 ... at most one-level hanging nodes,
+// MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
+// Note that regular meshes are not supported, this is due to
+// their notoriously bad performance.
+const int MESH_REGULARITY = -1;                   
+// This parameter influences the selection of
+// candidates in hp-adaptivity. Default value is 1.0. 
+const double CONV_EXP = 1.0;                      
+// Stopping criterion for adaptivity.
+const double ERR_STOP = 3.0;                      
+// Adaptivity process stops when the number of degrees of freedom grows over
+// this limit. This is mainly to prevent h-adaptivity to go on forever.
+const int NDOF_STOP = 60000;                      
+// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
 
 // Problem parameters.
-double HEAT_SRC = 10000.0;                        // Heat source in the material (caused by induction heating).
+// Heat source in the material (caused by induction heating).
+double HEAT_SRC = 10000.0;                        
 double TEMP_INNER = 50;
 double HEAT_FLUX_OUTER = -50;
-const double E = 2e11;                            // Steel: E=200 GPa.
+// Steel: E=200 GPa.
+const double E = 2e11;                            
 const double nu = 0.3;
 const double lambda = (E * nu) / ((1 + nu) * (1 - 2*nu));
 const double mu = E / (2*(1 + nu));
 const double l2m = lambda + 2*mu;
 const double rho = 8000;
 const double g = 9.81;
-const double alpha = 13e-6;                       // See http://hyperphysics.phy-astr.gsu.edu/hbase/tables/thexp.html.
+// See http://hyperphysics.phy-astr.gsu.edu/hbase/tables/thexp.html.
+const double alpha = 13e-6;                       
 
 //  Boundary markers.
 const int BDY_BOTTOM = 1;
@@ -87,11 +94,14 @@ int main(int argc, char* argv[])
   // Load the mesh.
   Mesh xmesh, ymesh, tmesh;
   MeshReaderH2D mloader;
-  mloader.load("domain.mesh", &xmesh); // Master mesh.
+  // Master mesh.
+  mloader.load("domain.mesh", &xmesh); 
 
   // Initialize multimesh hp-FEM.
-  ymesh.copy(&xmesh);                  // Ydisp will share master mesh with xdisp.
-  tmesh.copy(&xmesh);                  // Temp will share master mesh with xdisp.
+  // Ydisp will share master mesh with xdisp.
+  ymesh.copy(&xmesh);                  
+  // Temp will share master mesh with xdisp.
+  tmesh.copy(&xmesh);                  
 
   // Initialize boundary conditions.
   BCTypes bc_types_x_y;
@@ -206,7 +216,7 @@ int main(int argc, char* argv[])
     // Calculate error estimate for each solution component and the total error estimate.
     Hermes::vector<double> err_est_rel;
     double err_est_rel_total = adaptivity->calc_err_est(Hermes::vector<Solution *>(&xdisp_sln, &ydisp_sln, &temp_sln), 
-                              Hermes::vector<Solution *>(&ref_xdisp_sln, &ref_ydisp_sln, &ref_temp_sln), &err_est_rel) * 100;
+        Hermes::vector<Solution *>(&ref_xdisp_sln, &ref_ydisp_sln, &ref_temp_sln), &err_est_rel) * 100;
 
     // Time measurement.
     cpu_time.tick();
@@ -219,7 +229,8 @@ int main(int argc, char* argv[])
     info("ndof_coarse[temp]: %d, ndof_fine[temp]: %d, err_est_rel[temp]: %g%%",
          temp.Space<double>::get_num_dofs(), Space<double>::get_num_dofs((*ref_spaces)[2]), err_est_rel[2]*100);
     info("ndof_coarse_total: %d, ndof_fine_total: %d, err_est_rel_total: %g%%",
-         Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&xdisp, &ydisp, &temp)), Space<double>::get_num_dofs(*ref_spaces), err_est_rel_total);
+         Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&xdisp, &ydisp, &temp)), 
+         Space<double>::get_num_dofs(*ref_spaces), err_est_rel_total);
 
     // Add entry to DOF and CPU convergence graphs.
     graph_dof_est.add_values(Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&xdisp, &ydisp, &temp)), err_est_rel_total);

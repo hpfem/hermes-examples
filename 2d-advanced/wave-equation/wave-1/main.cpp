@@ -24,10 +24,15 @@
 //
 // The following parameters can be changed:
 
-const int P_INIT = 6;                              // Initial polynomial degree of all elements.
-const double time_step = 0.01;                     // Time step.
-const double T_FINAL = 2.0;                        // Final time.
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;   // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+// Initial polynomial degree of all elements.
+const int P_INIT = 6;                              
+// Time step.
+const double time_step = 0.01;                     
+// Final time.
+const double T_FINAL = 2.0;                        
+// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;   
 
 // Choose one of the following time-integration methods, or define your own Butcher's table. The last number 
 // in the name of each method is its order. The one before last, if present, is the number of stages.
@@ -47,7 +52,8 @@ MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;   // Possibilities: SOLVER
 ButcherTableType butcher_table_type = Implicit_RK_1;
 
 // Problem parameters.
-const double C_SQUARED = 100;                      // Square of wave speed.                     
+// Square of wave speed.  
+const double C_SQUARED = 100;                                         
 
 int main(int argc, char* argv[])
 {
