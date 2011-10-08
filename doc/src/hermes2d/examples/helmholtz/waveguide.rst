@@ -83,10 +83,48 @@ For many technical problems it is sufficient to know the solution in the frequen
 .. math::
 	:label: Helmholtz equation
 
-	\Delta \overline{\pmb{E}} - \mathrm{j} \mu \sigma \omega \overline{\pmb{E}} + \omega^2 \mu \varepsilon \overline{{\pmb{E}}} = \mathbf{0},
+	-\Delta \overline{\pmb{E}} + \mathrm{j} \mu \sigma \omega \overline{\pmb{E}} - \omega^2 \mu \varepsilon \overline{{\pmb{E}}} = \mathbf{0},
 
 	
 which is the Helmholtz equation.
+
+Decomposition into two real equations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The electric field $\overline{\pmb{E}}$ can be written as
+
+.. math::
+	:label: real decomposition
+
+	\overline{\pmb{E}} = \overline{\pmb{E}}_R + \mathrm{j} \overline{\pmb{E}}_I
+
+Substituting into the original equation, we obtain
+
+.. math::
+	:label: Helmholtz equation as real system
+
+	-\Delta (\overline{\pmb{E}}_R + \mathrm{j} \overline{\pmb{E}}_I) 
+        + \mathrm{j} \mu \sigma \omega (\overline{\pmb{E}}_R + \mathrm{j} \overline{\pmb{E}}_I) 
+        - \omega^2 \mu \varepsilon (\overline{\pmb{E}}_R + \mathrm{j} \overline{\pmb{E}}_I) = \mathbf{0},
+
+Last, comparing the real and imaginary numbers in the equation, we have
+
+.. math::
+	:label: Helmholtz equation - real part
+
+	-\Delta \overline{\pmb{E}}_R - \omega^2 \mu \varepsilon \overline{\pmb{E}}_R 
+        - \mu \sigma \omega \overline{\pmb{E}}_I = 0 
+        
+and
+
+.. math::
+	:label: Helmholtz equation - complex part
+
+	-\Delta \overline{\pmb{E}}_I - \omega^2 \mu \varepsilon \overline{\pmb{E}}_I 
+        + \mu \sigma \omega \overline{\pmb{E}}_R = 0.
+
+Parallel plate waveguide
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 Parallel plate waveguide is the simplest type of guide that supports TM (transversal magnetic) and TE (transversal electric) modes. This kind of guide allows also TEM (transversal electric and magnetic) mode.
 
@@ -111,7 +149,7 @@ Helmholtz problem
 .. math::
     :label: a. Helmholtz equation
 
-       \Delta \overline{\pmb{E}} - \mathrm{j} \mu \sigma \omega \overline{\pmb{E}} + \omega^2 \mu \varepsilon \overline{{\pmb{E}}} = \mathbf{0}.
+       -\Delta \overline{\pmb{E}} + \mathrm{j} \mu \sigma \omega \overline{\pmb{E}} - \omega^2 \mu \varepsilon \overline{{\pmb{E}}} = \mathbf{0}.
 
 The conducting plates (boundary :math:`\Gamma_1, \Gamma_2`) are usually supposed to be *perfectly conductive*, 
 which can be modeled using the perfect conductor boundary condition
