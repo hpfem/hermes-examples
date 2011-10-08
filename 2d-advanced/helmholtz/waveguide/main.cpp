@@ -75,11 +75,13 @@ int main(int argc, char* argv[])
   // Initialize boundary conditions
   DefaultEssentialBCConst<double> bc1("Bdy_perfect", 0.0);
   EssentialBCNonConst bc2("Bdy_left");
+  DefaultEssentialBCConst<double> bc3("Bdy_left", 0.0);
   EssentialBCs<double> bcs(Hermes::vector<EssentialBoundaryCondition<double> *>(&bc1, &bc2));
+  EssentialBCs<double> bcs_im(Hermes::vector<EssentialBoundaryCondition<double> *>(&bc1, &bc3));
 
   // Create an H1 space with default shapeset.
   H1Space<double> e_r_space(&mesh, &bcs, P_INIT);
-  H1Space<double> e_i_space(&mesh, &bcs, P_INIT);
+  H1Space<double> e_i_space(&mesh, &bcs_im, P_INIT);
   int ndof = Space<double>::get_num_dofs(&e_r_space);
   info("ndof = %d", ndof);
 
