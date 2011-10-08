@@ -133,4 +133,4 @@ public:
       Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const;
 
   double kappa_squared;
-}
+};
