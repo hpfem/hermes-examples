@@ -1,8 +1,6 @@
 Basic-ie-picard
 ---------------
 
-**Git reference:** Example `basic-ie-picard <http://git.hpfem.org/hermes.git/tree/HEAD:/hermes2d/examples/richards/basic-ie-picard>`_.
-
 Model problem
 ~~~~~~~~~~~~~
 

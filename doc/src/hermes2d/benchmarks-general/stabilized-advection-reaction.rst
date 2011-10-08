@@ -1,8 +1,6 @@
 Advection-reaction (Hyperbolic)
 -------------------------------
 
-**Git reference:** Benchmark `stabilized-advection-reaction <http://git.hpfem.org/hermes.git/tree/HEAD:/hermes2d/benchmarks-general/stabilized-advection-reaction>`_.
-
 This benchmark shows how to solve a steady-state `1`\ :sup:`st` order hyperbolic PDE with discontinuous boundary conditions.
 
 Model problem

@@ -1,8 +1,6 @@
 Basic-rk-newton
 ---------------
 
-**Git reference:** Example `basic-rk-newton <http://git.hpfem.org/hermes.git/tree/HEAD:/hermes2d/examples/richards/basic-rk-newton>`_.
-
 Model problem
 ~~~~~~~~~~~~~
 

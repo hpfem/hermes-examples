@@ -1,8 +1,6 @@
 Singular Perturbation
 ---------------------
 
-**Git reference:** Example `singular-perturbation <http://git.hpfem.org/hermes.git/tree/HEAD:/hermes2d/examples/miscellaneous/singular-perturbation>`_.
-
 We solve a singularly perturbed elliptic problem that exhibits a thin anisotropic boundary layer that is 
 difficult to resolve. 
 

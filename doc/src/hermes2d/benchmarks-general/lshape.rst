@@ -1,8 +1,6 @@
 L-Shape (Elliptic)
 ------------------
 
-**Git reference:** Benchmark `lshape <http://git.hpfem.org/hermes.git/tree/HEAD:/hermes2d/benchmarks-general/lshape>`_.
-
 This is a standard adaptivity benchmark whose exact solution is smooth but
 contains singular gradient in a re-entrant corner. 
 

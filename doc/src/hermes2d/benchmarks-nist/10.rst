@@ -1,8 +1,6 @@
 NIST-10 (Interior Line Singularity)
 -----------------------------------
 
-**Git reference:** Benchmark `10-interior-line-singularity <http://git.hpfem.org/hermes.git/tree/HEAD:/hermes2d/benchmarks-nist/10-interior-line-singularity>`_.
-
 This example is an extension of Boundary Line Singularity (NIST-07) with an anisotropic solution to allow 
 for a sloped line so that the singularity does not necessarily coincide with element edges. 
 

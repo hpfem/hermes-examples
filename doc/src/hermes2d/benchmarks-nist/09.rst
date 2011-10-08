@@ -1,8 +1,6 @@
 NIST-09 (Wave Front)
 --------------------
 
-**Git reference:** Benchmark `09-wave-front <http://git.hpfem.org/hermes.git/tree/HEAD:/hermes2d/benchmarks-nist/09-wave-front>`_.
-
 Commonly used for testing adaptive refinement algorithms is Poisson's equation with a solution that has
 a steep wave front in the interior of the domain.
 

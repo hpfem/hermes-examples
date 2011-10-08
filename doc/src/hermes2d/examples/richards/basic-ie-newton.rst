@@ -1,8 +1,6 @@
 Basic-ie-newton
 ---------------
 
-**Git reference:** Example `basic-ie-newton <http://git.hpfem.org/hermes.git/tree/HEAD:/hermes2d/examples/richards/basic-ie-newton>`_.
-
 Model problem
 ~~~~~~~~~~~~~
 

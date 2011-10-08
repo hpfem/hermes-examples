@@ -1,8 +1,6 @@
 Saphir
 ------
 
-**Git reference:** Example `saphir <http://git.hpfem.org/hermes.git/tree/HEAD:/hermes2d/examples/neutronics/saphir>`_.
-
 Problem description
 ~~~~~~~~~~~~~~~~~~~
 

@@ -1,9 +1,6 @@
 Laminar Flame
 -------------
 
-**Git reference:** Example `laminar-flame 
-<http://git.hpfem.org/hermes.git/tree/HEAD:/hermes2d/tutorial/P03-timedep/laminar-flame>`_.
-
 Problem description
 ~~~~~~~~~~~~~~~~~~~
 

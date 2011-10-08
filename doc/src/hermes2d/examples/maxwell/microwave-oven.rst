@@ -1,8 +1,6 @@
 Microwave Oven
 --------------
 
-**Git reference:** Example `microwave oven <http://git.hpfem.org/hermes.git/tree/HEAD:/hermes2d/examples/maxwell/microwave-oven>`_.
-
 Problem description
 ~~~~~~~~~~~~~~~~~~~
 

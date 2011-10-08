@@ -1,8 +1,6 @@
 Basic-rk-newton-adapt
 ---------------------
 
-**Git reference:** Example `basic-rk-newton-adapt <http://git.hpfem.org/hermes.git/tree/HEAD:/hermes2d/examples/richards/basic-rk-newton-adapt>`_.
-
 Model problem
 ~~~~~~~~~~~~~
 

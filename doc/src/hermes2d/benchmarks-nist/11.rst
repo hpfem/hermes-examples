@@ -1,8 +1,6 @@
 NIST-11 (Intersecting Interfaces)
 ---------------------------------
 
-**Git reference:** Benchmark `11-kellogg <http://git.hpfem.org/hermes.git/tree/HEAD:/hermes2d/benchmarks-nist/11-kellogg>`_.
-
 The solution to this problem has a discontinuous derivative along the interfaces, and an infinite 
 derivative at the origin that posses a challenge to adaptive algorithms. 
  

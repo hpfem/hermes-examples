@@ -3,8 +3,6 @@ Waveguide
 
 By David Panek, University of West Bohemia, Czech Republic.
 
-**Git reference:** Example `waveguide <http://git.hpfem.org/hermes.git/tree/HEAD:/hermes2d/examples/helmholtz/waveguide>`_.
-
 Mathematical description of waveguides
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

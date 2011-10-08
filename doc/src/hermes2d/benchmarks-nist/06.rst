@@ -1,8 +1,6 @@
 NIST-06 (Boundary Layer)
 ------------------------
 
-**Git reference:** Benchmark `06-boundary-layer <http://git.hpfem.org/hermes.git/tree/HEAD:/hermes2d/benchmarks-nist/06-boundary-layer>`_.
-
 This example is a singularly perturbed problem that exhibits a boundary layer along the right 
 and top sides of the domain. 
 

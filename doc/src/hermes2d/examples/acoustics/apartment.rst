@@ -1,8 +1,6 @@
 Apartment
 ---------
 
-**Git reference:** Example `apartment <http://git.hpfem.org/hermes.git/tree/HEAD:/hermes2d/examples/acoustics/apartment>`_.
-
 Problem description
 ~~~~~~~~~~~~~~~~~~~
 

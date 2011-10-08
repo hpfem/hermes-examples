@@ -1,8 +1,6 @@
 Boundary Layer (Elliptic)
 -------------------------
 
-**Git reference:** Benchmark `layer-boundary <http://git.hpfem.org/hermes.git/tree/HEAD:/hermes2d/benchmarks-general/layer-boundary>`_.
-
 This example is a singularly perturbed problem with known exact solution that exhibits a thin boundary layer 
 The reader can use it to perform various experiments with adaptivity. The sample numerical results presented 
 below imply that:

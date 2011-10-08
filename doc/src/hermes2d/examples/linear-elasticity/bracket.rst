@@ -1,8 +1,6 @@
 Bracket
 -------
 
-**Git reference:** Example `bracket <http://git.hpfem.org/hermes.git/tree/HEAD:/hermes2d/examples/linear-elasticity/bracket>`_.
-
 This example employs adaptive multimesh hp-FEM to solve equations of linear elasticity. 
 
 Problem description

@@ -1,8 +1,6 @@
 NIST-07 (Boundary Line Singularity)
 -----------------------------------
 
-**Git reference:** Benchmark `07-boundary-line-singularity <http://git.hpfem.org/hermes.git/tree/HEAD:/hermes2d/benchmarks-nist/07-boundary-line-singularity>`_.
-
 Many papers on testing adaptive algorithms use a 1D example with a singularity of the form $x^{\alpha}$
 at the left endpoint of the domain. This can be extended to 2D by simply making the solution be
 constant in $y$.

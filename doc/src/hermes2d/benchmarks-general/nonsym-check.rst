@@ -1,8 +1,6 @@
 Non-symmetric (Elliptic)
 ------------------------
 
-**Git reference:** Benchmark `nonsym-check <http://git.hpfem.org/hermes.git/tree/HEAD:/hermes2d/benchmarks-general/nonsym-check>`_.
-
 This example uses a nonsymmetric equation and its purpose is to 
 check that nonsymmetric problems are solved correctly.
 

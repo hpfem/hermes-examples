@@ -1,9 +1,6 @@
 Heat and Moisture Transfer in Concrete (heat-and-moisture-adapt)
 ----------------------------------------------------------------
 
-**Git reference:** Tutorial example `04-heat-and-moisture-adapt 
-<http://git.hpfem.org/hermes.git/tree/HEAD:/hermes2d/examples/heat-transfer/heat-and-moisture-adapt>`_.
-
 Model problem
 ~~~~~~~~~~~~~
 

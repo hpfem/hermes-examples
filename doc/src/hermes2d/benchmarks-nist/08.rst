@@ -1,8 +1,6 @@
 NIST-08 (Oscillatory)
 ---------------------
 
-**Git reference:** Benchmark `08-oscillatory <http://git.hpfem.org/hermes.git/tree/HEAD:/hermes2d/benchmarks-nist/08-oscillatory>`_.
-
 This problem is inspired by the wave function that satisfies a Shrodinger equation model of two
 interacting atoms. It is highly oscillatory near the origin, with the wavelength decreasing closer
 to the origin. 

@@ -1,8 +1,6 @@
 Two-Group Neutronics (Neutronics)
 ---------------------------------
 
-**Git reference:** Benchmark `neutronics-2-group-adapt <http://git.hpfem.org/hermes.git/tree/HEAD:/hermes2d/benchmarks-general/neutronics-2-group-adapt>`_.
-
 This benchmark uses automatic adaptivity to solve a system of weakly coupled elliptic PDEs describing diffusion of neutrons through given medium.
 It employs the simple (yet often used in practice) two-group approximation by which all neutrons are divided into two distinct groups according to their energy (speed). This leads to the system of two equations shown below.
 

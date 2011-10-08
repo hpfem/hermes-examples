@@ -1,8 +1,6 @@
 NIST-02 (Reentrant Corner)
 --------------------------
 
-**Git reference:** Benchmark `02-reentrant-corner <http://git.hpfem.org/hermes.git/tree/HEAD:/hermes2d/benchmarks-nist/02-reentrant-corner>`_.
-
 This is a reentrant corner problem causing a singularity in the solution. 
 
 Model problem

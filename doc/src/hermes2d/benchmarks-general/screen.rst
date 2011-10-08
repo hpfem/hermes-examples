@@ -1,8 +1,6 @@
 Screen (Maxwell's Equations)
 ----------------------------
 
-**Git reference:** Benchmark `screen <http://git.hpfem.org/hermes.git/tree/HEAD:/hermes2d/benchmarks-general/screen>`_.
-
 This example solves time-harmonic Maxwell's equations. It describes an electromagnetic wave that 
 hits a thin screen under the angle of 45 degrees, causing a singularity at the tip of the screen.
 The strength of the singularity makes this example rather difficult. 

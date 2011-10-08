@@ -1,9 +1,6 @@
 Linear Advection-Diffusion
 --------------------------
 
-**Git reference:** Example `linear-advection-diffusion 
-<http://git.hpfem.org/hermes.git/tree/HEAD:/hermes2d/examples/advection-diffusion-reaction/linear-advection-diffusion>`_.
-
 Problem description
 ~~~~~~~~~~~~~~~~~~~
 

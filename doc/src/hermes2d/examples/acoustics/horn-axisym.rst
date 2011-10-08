@@ -1,8 +1,6 @@
 Axisymmetric Horn
 -----------------
 
-**Git reference:** Example `horn-axisym <http://git.hpfem.org/hermes.git/tree/HEAD:/hermes2d/examples/acoustics/horn-axisym>`_.
-
 Problem description
 ~~~~~~~~~~~~~~~~~~~
 

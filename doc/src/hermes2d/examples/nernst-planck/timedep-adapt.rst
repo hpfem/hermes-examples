@@ -3,8 +3,6 @@ Nernst-Planck Equation System
 
 By David Pugal, University of Nevada, Reno.
 
-**Git reference:** Example `timedep-adapt <http://git.hpfem.org/hermes.git/tree/HEAD:/hermes2d/examples/nernst-planck/timedep-adapt>`_.
-
 Problem description
 ~~~~~~~~~~~~~~~~~~~
 

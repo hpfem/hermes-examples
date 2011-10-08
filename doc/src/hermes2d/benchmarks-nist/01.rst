@@ -1,8 +1,6 @@
 NIST-01 (Analytic Solution)
 ---------------------------
 
-**Git reference:** Benchmark `01-analytic-solution <http://git.hpfem.org/hermes.git/tree/HEAD:/hermes2d/benchmarks-nist/01-analytic-solution>`_.
-
 The purpose of this benchmark is to observe how an adaptive algorithm behaves in a context where 
 adaptivity isn’t really needed (smooth solution). 
 

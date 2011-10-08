@@ -1,8 +1,6 @@
 NIST-03 (Linear Elasticity)
 ---------------------------
 
-**Git reference:** Benchmark `03-linear-elasticity <http://git.hpfem.org/hermes.git/tree/HEAD:/hermes2d/benchmarks-nist/03-linear-elasticity>`_.
-
 This problem is a coupled system of two equations with a mixed derivative in the coupling term 
 (Lame equations); the context of the problem comes from the subject of linear elasticity. 
 

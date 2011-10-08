@@ -1,8 +1,6 @@
 Smooth-iso (Elliptic)
 ---------------------
 
-**Git reference:** Benchmark `smooth-iso <http://git.hpfem.org/hermes.git/tree/HEAD:/hermes2d/benchmarks-general/smooth-iso>`_.
-
 We show that it is a very bad idea to approximate smooth solutions using low-order 
 elements.
 

@@ -1,8 +1,6 @@
 Hollow Conductor
 ----------------
 
-**Git reference:** Example `hollow conductor <http://git.hpfem.org/hermes.git/tree/HEAD:/hermes2d/examples/thermoelasticity/hollow-conductor>`_.
-
 Problem description
 ~~~~~~~~~~~~~~~~~~~
 
@@ -12,8 +10,7 @@ equations, where the x-displacement, y-displacement, and the temperature will be
 on individual meshes equipped with mutually independent adaptivity mechanisms. 
 
 The computational domain is shown in the following figure and the details of the geometry can be found 
-in the corresponding 
-`mesh file <http://git.hpfem.org/hermes.git/blob/HEAD:/hermes2d/examples/thermoelasticity/hollow-conductor/domain.mesh>`_.
+in the corresponding mesh file.
 It is worth mentioning how the circular arcs are defined via NURBS:
 
 ::

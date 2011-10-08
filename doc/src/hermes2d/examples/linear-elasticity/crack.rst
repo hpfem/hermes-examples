@@ -1,11 +1,9 @@
 Crack
 -----
 
-**Git reference:** Example `crack <http://git.hpfem.org/hermes.git/tree/HEAD:/hermes2d/examples/linear-elasticity/crack>`_.
-
 This example employs adaptive multimesh hp-FEM to solve
 equations of linear elasticity that we already saw in the tutorial example
-`P01-linear/08-system <http://git.hpfem.org/hermes.git/tree/HEAD:/hermes2d/tutorial/P01-linear/08-system>`_.
+P01-linear/08-system.
 
 Problem description
 ~~~~~~~~~~~~~~~~~~~
@@ -20,10 +18,7 @@ cracks, as shown in the following figure:
    :alt: Domain.
 
 The cracks have a flat diamond-like shape and their width along with some other parameters 
-can be changed in the mesh file `crack.mesh 
-<http://git.hpfem.org/hermes.git/blob/HEAD:/hermes2d/examples/linear-elasticity/elasticity-crack/crack.mesh>`_:
-
-::
+can be changed in the mesh file::
 
     a = 0.25   # horizontal size of an eleemnt
     b = 0.1    # vertical size of an element

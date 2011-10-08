@@ -1,9 +1,6 @@
 Circular-Obstacle
 -----------------
 
-**Git reference:** Tutorial example `circular-obstacle
-<http://git.hpfem.org/hermes.git/tree/HEAD:/hermes2d/examples/navier-stokes/circular-obstacle>`_.
-
 Model problem
 ~~~~~~~~~~~~~
 

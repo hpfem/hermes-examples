@@ -1,9 +1,6 @@
 NIST-12 (Multiple Difficulties)
 -------------------------------
 
-**Git reference:** Benchmark `12-multiple-difficulties <http://git.hpfem.org/hermes.git/tree/HEAD:/hermes2d/benchmarks-nist/12-multiple-difficulties>`_.
-
-
 This problem combines four difficulties of different strengths into the same problem by combining 
 some of the features of the other test problems (reentrant corner, sharp peak, etc).
 

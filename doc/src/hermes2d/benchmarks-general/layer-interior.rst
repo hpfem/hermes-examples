@@ -1,8 +1,6 @@
 Interior Layer (Elliptic)
 -------------------------
 
-**Git reference:** Benchmark `layer-interior <http://git.hpfem.org/hermes.git/tree/HEAD:/hermes2d/benchmarks-general/layer-interior>`_.
-
 This example has a smooth solution that exhibits a steep interior layer.
 
 Model problem

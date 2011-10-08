@@ -1,9 +1,6 @@
 Gross-Pitaevski Equation
 ------------------------
 
-**Git reference:** Example `gross-pitaevski 
-<http://git.hpfem.org/hermes.git/tree/HEAD:/hermes2d/examples/schroedinger/gross-pitaevski>`_.
-
 In this example we use the Newton's method to solve the nonlinear complex-valued 
 time-dependent Gross-Pitaevski equation. This equation describes the ground state of 
 a quantum system of identical bosons using the Hartree–Fock approximation and the 

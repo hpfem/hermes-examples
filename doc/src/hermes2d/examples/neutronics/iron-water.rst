@@ -1,8 +1,6 @@
 Iron-Water
 ----------
 
-**Git reference:** Example `iron-water <http://git.hpfem.org/hermes.git/tree/HEAD:/hermes2d/examples/neutronics/iron-water>`_.
-
 Loading mesh in ExodusII format
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -19,10 +17,7 @@ The latter can be done, for example, in the CMake.vars file as follows:
     SET(EXODUSII_ROOT /opt/packages/exodusii)
     SET(NETCDF_ROOT   /opt/packages/netcdf)
 
-The mesh is now loaded using the ExodusIIReader (see 
-the `mesh_loader.h <http://git.hpfem.org/hermes.git/blob/HEAD:/hermes2d/src/mesh/mesh_loader.h>`_ file):
-
-::
+The mesh is now loaded using the ExodusIIReader::
 
     // Load the mesh
     Mesh mesh;

@@ -1,8 +1,6 @@
 NIST-04 (Peak)
 ------------------
 
-**Git reference:** Benchmark `04-exponential-peak <http://git.hpfem.org/hermes.git/tree/HEAD:/hermes2d/benchmarks-nist/04-exponential-peak>`_.
-
 This problem has an exponential peak in the interior of the domain. 
 
 Model problem

@@ -1,8 +1,6 @@
 Smooth-aniso-x (Elliptic)
 -------------------------
 
-**Git reference:** Benchmark `smooth-aniso-x <http://git.hpfem.org/hermes.git/tree/HEAD:/hermes2d/benchmarks-general/smooth-aniso-x>`_.
-
 We show that one should use (spatially as well as polynomially) anisotropic refinements for solutions 
 containing anisotropy. 
 
