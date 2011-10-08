@@ -8,32 +8,35 @@ Hermes Examples
 
 Thank you for your interest in Hermes!
 
-This document is organized as follows: 
-
-* Section 1 shows how Hermes performs on numerous benchmarks (examples with known exact solutions). 
-  Many of them come from the National Institute for Standards and Technology (NIST). Benchmarks 
-  like this are great for assessing the performance of a finite element code.
-* Section 2 presents examples from various application areas such as acoustics, fluid and solid
-  mechanics, electromagnetics, neutronics, quantum chemistry, ground-water flow, and others. 
+This document contains benchmarks and examples for Hermes. The first part 
+of the document shows how Hermes performs on benchmarks (examples with known exact solutions). 
+Several of them come from the National Institute for Standards and Technology (NIST). 
+In the second part we preset examples from various application areas such as acoustics, 
+fluid and solid mechanics, heat transfer, electromagnetics, neutronics, quantum chemistry, 
+ground-water flow, and others. 
 
 This document is under continuous development. If you find bugs, typos, dead links 
 and such, please report them to the 
 `Hermes2D mailing list <http://groups.google.com/group/hermes2d/>`_.
 
-Benchmarks
-----------
+Benchmarks - General
+--------------------
+
+.. toctree::
+    :maxdepth: 1
+
+    src/hermes2d/benchmarks-general
+
+Benchmarks - NIST
+-----------------
 
 .. toctree::
     :maxdepth: 1
 
     src/hermes2d/benchmarks-nist
-    src/hermes2d/benchmarks-general
 
-Examples
---------
-
-Not all examples are documented, please check the examples/
-directory as well.
+Advanced Examples
+-----------------
 
 .. toctree::
     :maxdepth: 1
@@ -56,3 +59,8 @@ directory as well.
     src/hermes2d/examples/wave-equation.rst
     src/hermes2d/examples/miscellaneous.rst
     
+1D Examples
+-----------
+
+Hermes2D can be used to solve 1D problems. Several examples of this are
+collected in the directory 1d/. 

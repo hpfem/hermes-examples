@@ -106,7 +106,7 @@ int main(int argc, char* argv[])
   H1ProjBasedSelector<std::complex<double> > selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Initialize views.
-  ScalarView sview("Solution magnitude", new WinGeom(0, 0, 600, 350));
+  ScalarView sview("Acoustic pressure", new WinGeom(0, 0, 600, 350));
   sview.show_mesh(false);
   sview.fix_scale_width(50);
   OrderView  oview("Polynomial orders", new WinGeom(610, 0, 600, 350));
@@ -158,8 +158,8 @@ int main(int argc, char* argv[])
     cpu_time.tick();
 
     // View the coarse mesh solution and polynomial orders.
-    RealFilter mag(&sln);
-    sview.show(&mag);
+    RealFilter acoustic_pressure(&sln);
+    sview.show(&acoustic_pressure);
     oview.show(&space);
 
     // Calculate element errors and total error estimate.
