@@ -9,7 +9,7 @@
 //
 // PDE: Helmholtz equation for electric field
 //
-//    -Laplace E  - (omega^2*mu*epsilon + j*omega*sigma*mu)*E = 0
+//    -Laplace E  - omega^2*mu*epsilon*E + j*omega*sigma*mu*E = 0
 //
 // BC:                     Gamma_1 (perfect)
 //                   ----------------------------

@@ -200,7 +200,7 @@ template<typename Real, typename Scalar>
 Scalar WeakFormHelmholtz::VectorFormSurfHelmholtz_real::vector_form_surf(int n, double *wt, 
     Func<Real> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const 
 {
-  return beta * int_u_v<Real, Scalar>(n, wt, u_ext[0], v);
+  return beta * int_u_v<Real, Scalar>(n, wt, u_ext[1], v);
 }
 
 double WeakFormHelmholtz::VectorFormSurfHelmholtz_real::value(int n, double *wt, Func<double> *u_ext[], 
