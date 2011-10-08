@@ -2,8 +2,6 @@
 #define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
 
-
-
 //  This example shows how to combine automatic adaptivity with the Newton's
 //  method for a nonlinear complex-valued time-dependent PDE (the Gross-Pitaevski
 //  equation describing the behavior of Einstein-Bose quantum gases)
@@ -23,63 +21,80 @@
 //
 //  The following parameters can be changed:
 
-const int INIT_REF_NUM = 2;                       // Number of initial uniform refinements.
-const int P_INIT = 2;                             // Initial polynomial degree.
-const double T_FINAL = 2.0;                       // Time interval length.
-double time_step = 0.005;                         // Time step.
+// Number of initial uniform refinements.
+const int INIT_REF_NUM = 2;                       
+// Initial polynomial degree.
+const int P_INIT = 2;                             
+// Time interval length.
+const double T_FINAL = 2.0;                       
+// Time step.
+double time_step = 0.005;                         
 
 // Adaptivity.
-const int UNREF_FREQ = 1;                         // Every UNREF_FREQ time step the mesh is unrefined.
-const int UNREF_METHOD = 3;                       // 1... mesh reset to basemesh and poly degrees to P_INIT.   
-                                                  // 2... one ref. layer shaved off, poly degrees reset to P_INIT.
-                                                  // 3... one ref. layer shaved off, poly degrees decreased by one. 
-const double THRESHOLD = 0.3;                     // This is a quantitative parameter of the adapt(...) function and
-                                                  // it has different meanings for various adaptive strategies (see below).
-const int STRATEGY = 1;                           // Adapt<std::complex<double> >ive strategy:
-                                                  // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
-                                                  //   error is processed. If more elements have similar errors, refine
-                                                  //   all to keep the mesh symmetric.
-                                                  // STRATEGY = 1 ... refine all elements whose error is larger
-                                                  //   than THRESHOLD times maximum element error.
-                                                  // STRATEGY = 2 ... refine all elements whose error is larger
-                                                  //   than THRESHOLD.
-                                                  // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const CandList CAND_LIST = H2D_HP_ANISO;          // Predefined list of element refinement candidates. Possible values are
-                                                  // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
-                                                  // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
-                                                  // See the User Documentation for details.
-const int MESH_REGULARITY = -1;                   // Maximum allowed level of hanging nodes:
-                                                  // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
-                                                  // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
-                                                  // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
-                                                  // Note that regular meshes are not supported, this is due to
-                                                  // their notoriously bad performance.
-const double CONV_EXP = 1.0;                      // Default value is 1.0. This parameter influences the selection of
-                                                  // cancidates in hp-adaptivity. See get_optimal_refinement() for details.
-const double ERR_STOP = 5.0;                      // Stopping criterion for hp-adaptivity
-                                                  // (relative error between reference and coarse solution in percent)
-const double SPACE_ERR_TOL = 1.0;                 // Stopping criterion for adaptivity (rel. error tolerance between the
-                                                  // fine mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 60000;                      // Adaptivity process stops when the number of degrees of freedom grows
-                                                  // over this limit. This is to prevent h-adaptivity to go on forever.
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-                                                  // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+// Every UNREF_FREQ time step the mesh is unrefined.
+const int UNREF_FREQ = 1;                         
+// 1... mesh reset to basemesh and poly degrees to P_INIT.   
+// 2... one ref. layer shaved off, poly degrees reset to P_INIT.
+// 3... one ref. layer shaved off, poly degrees decreased by one. 
+const int UNREF_METHOD = 3;                       
+// This is a quantitative parameter of the adapt(...) function and
+// it has different meanings for various adaptive strategies.
+const double THRESHOLD = 0.3;                     
+// Adaptive strategy:
+// STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
+//   error is processed. If more elements have similar errors, refine
+//   all to keep the mesh symmetric.
+// STRATEGY = 1 ... refine all elements whose error is larger
+//   than THRESHOLD times maximum element error.
+// STRATEGY = 2 ... refine all elements whose error is larger
+//   than THRESHOLD.
+const int STRATEGY = 1;                           
+// Predefined list of element refinement candidates. Possible values are
+// H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
+// H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
+const CandList CAND_LIST = H2D_HP_ANISO;          
+// Maximum allowed level of hanging nodes:
+// MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
+// MESH_REGULARITY = 1 ... at most one-level hanging nodes,
+// MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
+// Note that regular meshes are not supported, this is due to
+// their notoriously bad performance.
+const int MESH_REGULARITY = -1;                   
+// This parameter influences the selection of
+// candidates in hp-adaptivity. Default value is 1.0. 
+const double CONV_EXP = 1.0;                                          
+// Stopping criterion for adaptivity.
+const double SPACE_ERR_TOL = 1.0;                 
+// Adaptivity process stops when the number of degrees of freedom grows
+// over this limit. This is to prevent h-adaptivity to go on forever.
+const int NDOF_STOP = 60000;                      
+// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
 
 // Temporal adaptivity.
-bool ADAPTIVE_TIME_STEP_ON = true;                // This flag decides whether adaptive time stepping will be done.
-                                                  // The methods for the adaptive and fixed-step versions are set
-                                                  // below. An embedded method must be used with adaptive time stepping. 
-const double TIME_ERR_TOL_UPPER = 1.0;            // If rel. temporal error is greater than this threshold, decrease time 
-                                                  // step size and repeat time step.
-const double TIME_ERR_TOL_LOWER = 0.1;            // If rel. temporal error is less than this threshold, increase time step
-                                                  // but do not repeat time step (this might need further research).
-const double TIME_STEP_INC_RATIO = 1.1;           // Time step increase ratio (applied when rel. temporal error is too small).
-const double TIME_STEP_DEC_RATIO = 0.8;           // Time step decrease ratio (applied when rel. temporal error is too large).
+// This flag decides whether adaptive time stepping will be done.
+// The methods for the adaptive and fixed-step versions are set
+// below. An embedded method must be used with adaptive time stepping. 
+bool ADAPTIVE_TIME_STEP_ON = true;                
+// If rel. temporal error is greater than this threshold, decrease time 
+// step size and repeat time step.
+const double TIME_ERR_TOL_UPPER = 1.0;            
+// If rel. temporal error is less than this threshold, increase time step
+// but do not repeat time step (this might need further research).
+const double TIME_ERR_TOL_LOWER = 0.1;            
+// Time step increase ratio (applied when rel. temporal error is too small).
+const double TIME_STEP_INC_RATIO = 1.1;           
+// Time step decrease ratio (applied when rel. temporal error is too large).
+const double TIME_STEP_DEC_RATIO = 0.8;           
 
 // Newton's method.
-const double NEWTON_TOL_COARSE = 0.01;            // Stopping criterion for Newton on coarse mesh.
-const double NEWTON_TOL_FINE = 0.05;              // Stopping criterion for Newton on fine mesh.
-const int NEWTON_MAX_ITER = 50;                   // Maximum allowed number of Newton iterations.
+// Stopping criterion for Newton on coarse mesh.
+const double NEWTON_TOL_COARSE = 0.01;            
+// Stopping criterion for Newton on fine mesh.
+const double NEWTON_TOL_FINE = 0.05;              
+// Maximum allowed number of Newton iterations.
+const int NEWTON_MAX_ITER = 50;                   
 
 // Choose one of the following time-integration methods, or define your own Butcher's table. The last number 
 // in the name of each method is its order. The one before last, if present, is the number of stages.
@@ -96,21 +111,20 @@ const int NEWTON_MAX_ITER = 50;                   // Maximum allowed number of N
 //   Implicit_SDIRK_CASH_3_23_embedded, Implicit_ESDIRK_TRBDF2_3_23_embedded, Implicit_ESDIRK_TRX2_3_23_embedded, 
 //   Implicit_SDIRK_BILLINGTON_3_23_embedded, Implicit_SDIRK_CASH_5_24_embedded, Implicit_SDIRK_CASH_5_34_embedded, 
 //   Implicit_DIRK_ISMAIL_7_45_embedded. 
-
-//ButcherTableType butcher_table_type = Implicit_RK_1;
 ButcherTableType butcher_table_type = Implicit_SDIRK_CASH_3_23_embedded;
 
 // Problem parameters.
-const double h = 1;                               // Planck constant 6.626068e-34.
-const double m = 1;                               // Mass of boson.
-const double g = 1;                               // Coupling constant.
-const double omega = 1;                           // Frequency.
+// Planck constant 6.626068e-34.
+const double h = 1;                               
+// Mass of boson.
+const double m = 1;                               
+// Coupling constant.
+const double g = 1;                               
+// Frequency.
+const double omega = 1;                           
 
 int main(int argc, char* argv[])
 {
-  // Instantiate a class with global functions.
-  
-
   // Choose a Butcher's table or define your own.
   ButcherTable bt(butcher_table_type);
   if (bt.is_explicit()) info("Using a %d-stage explicit R-K method.", bt.get_size());
@@ -138,6 +152,7 @@ int main(int argc, char* argv[])
   // Initialize the weak formulation.
   double current_time = 0;
 
+  // Initialize weak formulation.
   CustomWeakFormGPRK wf(h, m, g, omega);
 
   // Initialize boundary conditions.
@@ -202,7 +217,6 @@ int main(int argc, char* argv[])
                 space.set_uniform_order(P_INIT);
                 break;
         case 3: mesh.unrefine_all_elements();
-                //space.adjust_element_order(-1, P_INIT);
                 space.adjust_element_order(-1, -1, P_INIT, P_INIT);
                 break;
         default: error("Wrong global derefinement method.");

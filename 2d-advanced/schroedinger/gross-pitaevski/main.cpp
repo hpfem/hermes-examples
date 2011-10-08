@@ -2,8 +2,6 @@
 #define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
 
-
-
 //  This example uses the Newton's method to solve a nonlinear complex-valued
 //  time-dependent PDE (the Gross-Pitaevski equation describing the behavior
 //  of Einstein-Bose quantum gases). For time-discretization one can use either
@@ -20,14 +18,22 @@
 //
 //  BC:  homogeneous Dirichlet everywhere on the boundary.
 
-const int INIT_REF_NUM = 3;                       // Number of initial uniform refinements.
-const int P_INIT = 4;                             // Initial polynomial degree.
-double time_step = 0.005;                         // Time step.
-const double T_FINAL = 2;                         // Time interval length.
-const double NEWTON_TOL = 1e-5;                   // Stopping criterion for the Newton's method.
-const int NEWTON_MAX_ITER = 100;                  // Maximum allowed number of Newton iterations.
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-                                                  // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+// Number of initial uniform refinements.
+const int INIT_REF_NUM = 3;                       
+// Initial polynomial degree.
+const int P_INIT = 4;                             
+// Time step.
+double time_step = 0.005;                         
+// Time interval length.
+const double T_FINAL = 2;                         
+// Stopping criterion for the Newton's method.
+const double NEWTON_TOL = 1e-5;                   
+// Maximum allowed number of Newton iterations.
+const int NEWTON_MAX_ITER = 100;                  
+// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
+
 // Choose one of the following time-integration methods, or define your own Butcher's table. The last number 
 // in the name of each method is its order. The one before last, if present, is the number of stages.
 // Explicit methods:
@@ -43,14 +49,17 @@ MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_
 //   Implicit_SDIRK_CASH_3_23_embedded, Implicit_ESDIRK_TRBDF2_3_23_embedded, Implicit_ESDIRK_TRX2_3_23_embedded, 
 //   Implicit_SDIRK_BILLINGTON_3_23_embedded, Implicit_SDIRK_CASH_5_24_embedded, Implicit_SDIRK_CASH_5_34_embedded, 
 //   Implicit_DIRK_ISMAIL_7_45_embedded. 
-
 ButcherTableType butcher_table_type = Implicit_SDIRK_2_2;
 
 // Problem constants
-const double h = 1;                               // Planck constant 6.626068e-34.
-const double m = 1;                               // Mass of boson.
-const double g = 1;                               // Coupling constant.
-const double omega = 1;                           // Frequency.
+// Planck constant 6.626068e-34.
+const double h = 1;                               
+// Mass of boson.
+const double m = 1;                               
+// Coupling constant.
+const double g = 1;                               
+// Frequency.
+const double omega = 1;                           
 
 int main(int argc, char* argv[])
 {
