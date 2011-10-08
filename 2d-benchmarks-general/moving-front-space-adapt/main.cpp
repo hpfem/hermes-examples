@@ -20,49 +20,63 @@ using namespace RefinementSelectors;
 //
 //  The following parameters can be changed:
 
-const int INIT_REF_NUM = 1;                       // Number of initial uniform mesh refinements.
-const int P_INIT = 2;                             // Initial polynomial degree of all mesh elements.
-const double time_step = 0.1;                     // Time step. 
-const double T_FINAL = 10.0;                      // Time interval length.
+// Number of initial uniform mesh refinements.
+const int INIT_REF_NUM = 1;                       
+// Initial polynomial degree of mesh elements.
+const int P_INIT = 2;                             
+// Time step. 
+const double time_step = 0.1;                     
+// Time interval length.
+const double T_FINAL = 10.0;                      
 
 // Adaptivity
-const int UNREF_FREQ = 1;                         // Every UNREF_FREQth time step the mesh is derefined.
-const int UNREF_METHOD = 3;                       // 1... mesh reset to basemesh and poly degrees to P_INIT.   
-                                                  // 2... one ref. layer shaved off, poly degrees reset to P_INIT.
-                                                  // 3... one ref. layer shaved off, poly degrees decreased by one. 
-const double THRESHOLD = 0.3;                     // This is a quantitative parameter of the adapt(...) function and
-                                                  // it has different meanings for various adaptive strategies (see below).
-const int STRATEGY = 0;                           // Adaptive strategy:
-                                                  // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
-                                                  //   error is processed. If more elements have similar errors, refine
-                                                  //   all to keep the mesh symmetric.
-                                                  // STRATEGY = 1 ... refine all elements whose error is larger
-                                                  //   than THRESHOLD times maximum element error.
-                                                  // STRATEGY = 2 ... refine all elements whose error is larger
-                                                  //   than THRESHOLD.
-                                                  // More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const CandList CAND_LIST = H2D_HP_ANISO;          // Predefined list of element refinement candidates. Possible values are
-                                                  // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
-                                                  // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
-                                                  // See the User Documentation for details.
-const int MESH_REGULARITY = -1;                   // Maximum allowed level of hanging nodes:
-                                                  // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
-                                                  // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
-                                                  // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
-                                                  // Note that regular meshes are not supported, this is due to
-                                                  // their notoriously bad performance.
-const double CONV_EXP = 1.0;                      // This parameter influences the selection of
-                                                  // candidates in hp-adaptivity. Default value is 1.0. 
-const double ERR_STOP = 1.0;                      // Stopping criterion for adaptivity (rel. error tolerance between the
-                                                  // fine mesh and coarse mesh solution in percent).
-const int NDOF_STOP = 60000;                      // Adaptivity process stops when the number of degrees of freedom grows
-                                                  // over this limit. This is to prevent h-adaptivity to go on forever.
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  // Possibilities: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-                                                  // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+// Every UNREF_FREQth time step the mesh is derefined.
+const int UNREF_FREQ = 1;                         
+// 1... mesh reset to basemesh and poly degrees to P_INIT.   
+// 2... one ref. layer shaved off, poly degrees reset to P_INIT.
+// 3... one ref. layer shaved off, poly degrees decreased by one. 
+const int UNREF_METHOD = 3;                       
+// This is a quantitative parameter of the adapt(...) function and
+// it has different meanings for various adaptive strategies.
+const double THRESHOLD = 0.3;                     
+// Adaptive strategy:
+// STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
+//   error is processed. If more elements have similar errors, refine
+//   all to keep the mesh symmetric.
+// STRATEGY = 1 ... refine all elements whose error is larger
+//   than THRESHOLD times maximum element error.
+// STRATEGY = 2 ... refine all elements whose error is larger
+//   than THRESHOLD.
+const int STRATEGY = 0;                           
+// Predefined list of element refinement candidates. Possible values are
+// H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
+// H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
+const CandList CAND_LIST = H2D_HP_ANISO;          
+// Maximum allowed level of hanging nodes:
+// MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
+// MESH_REGULARITY = 1 ... at most one-level hanging nodes,
+// MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
+// Note that regular meshes are not supported, this is due to
+// their notoriously bad performance.
+const int MESH_REGULARITY = -1;                   
+// This parameter influences the selection of
+// candidates in hp-adaptivity. Default value is 1.0. 
+const double CONV_EXP = 1.0;                      
+// Stopping criterion for adaptivity (rel. error tolerance between the
+// fine mesh and coarse mesh solution in percent).
+const double ERR_STOP = 1.0;                      
+// Adaptivity process stops when the number of degrees of freedom grows
+// over this limit. This is to prevent h-adaptivity to go on forever.
+const int NDOF_STOP = 60000;                      
+// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
+MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
 
 // Newton's method
-const double NEWTON_TOL = 1e-5;                   // Stopping criterion for Newton on fine mesh.
-const int NEWTON_MAX_ITER = 20;                   // Maximum allowed number of Newton iterations.
+// Stopping criterion for Newton on fine mesh.
+const double NEWTON_TOL = 1e-5;                   
+// Maximum allowed number of Newton iterations.
+const int NEWTON_MAX_ITER = 20;                   
 
 // Choose one of the following time-integration methods, or define your own Butcher's table. The last number
 // in the name of each method is its order. The one before last, if present, is the number of stages.
@@ -86,7 +100,8 @@ double x_0 = 0.0;
 double x_1 = 10.0;
 double y_0 = -5.0;
 double y_1 = 5.0;
-double s = 20.0;          // Steepness of the moving front.
+// Steepness of the moving front.
+double s = 20.0;          
 double c = 1000.0;
 
 // Current time.
