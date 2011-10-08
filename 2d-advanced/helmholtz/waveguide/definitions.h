@@ -37,11 +37,14 @@ private:
               : MatrixFormVol<double>(i, j), eps(eps), omega(omega), mu(mu) {};
 
         template<typename Real, typename Scalar>
-        Scalar matrix_form(int n, double *wt, Func<Real> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const;
+        Scalar matrix_form(int n, double *wt, Func<Real> *u_ext[], Func<Real> *u, Func<Real> *v, 
+            Geom<Real> *e, ExtData<Scalar> *ext) const;
 
-        virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
+        virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
+            Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
 
-        virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const;
+        virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, 
+            Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const;
 
     private:
         // Members.
@@ -63,11 +66,14 @@ private:
               : MatrixFormVol<double>(i, j), mu(mu), omega(omega), sigma(sigma) {};
 
         template<typename Real, typename Scalar>
-        Scalar matrix_form(int n, double *wt, Func<Real> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const;
+        Scalar matrix_form(int n, double *wt, Func<Real> *u_ext[], Func<Real> *u, Func<Real> *v, 
+            Geom<Real> *e, ExtData<Scalar> *ext) const;
 
-        virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
+        virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
+            Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
 
-        virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const;
+        virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
+            Geom<Ord> *e, ExtData<Ord> *ext) const;
     };
 
     class MatrixFormHelmholtzEquation_imag_real : public MatrixFormVol<double>
@@ -83,11 +89,14 @@ private:
               : MatrixFormVol<double>(i, j), mu(mu), omega(omega), sigma(sigma) {};
 
         template<typename Real, typename Scalar>
-        Scalar matrix_form(int n, double *wt, Func<Real> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const;
+        Scalar matrix_form(int n, double *wt, Func<Real> *u_ext[], Func<Real> *u, Func<Real> *v, 
+            Geom<Real> *e, ExtData<Scalar> *ext) const;
 
-        virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
+        virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
+            Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
 
-        virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const;
+        virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
+            Geom<Ord> *e, ExtData<Ord> *ext) const;
     };
 
     class MatrixFormHelmholtzEquation_imag_imag : public MatrixFormVol<double>
@@ -97,11 +106,14 @@ private:
               : MatrixFormVol<double>(i, j), eps(eps), mu(mu), omega(omega) {};
 
         template<typename Real, typename Scalar>
-        Scalar matrix_form(int n, double *wt, Func<Real> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const;
+        Scalar matrix_form(int n, double *wt, Func<Real> *u_ext[], Func<Real> *u, Func<Real> *v, 
+            Geom<Real> *e, ExtData<Scalar> *ext) const;
 
-        virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
+        virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
+            Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
 
-        virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const;
+        virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
+            Geom<Ord> *e, ExtData<Ord> *ext) const;
 
         // Members.
         double eps;
@@ -118,11 +130,14 @@ private:
               : MatrixFormSurf<double>(i, j, area), beta(beta){};
 
         template<typename Real, typename Scalar>
-        Scalar matrix_form_surf(int n, double *wt, Func<Real> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const;
+        Scalar matrix_form_surf(int n, double *wt, Func<Real> *u_ext[], Func<Real> *u, Func<Real> *v, 
+            Geom<Real> *e, ExtData<Scalar> *ext) const;
 
-        virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
+        virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
+            Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
 
-        virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const;
+        virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
+            Geom<Ord> *e, ExtData<Ord> *ext) const;
     };
 
     class MatrixFormSurfHelmholtz_imag_real : public MatrixFormSurf<double>
@@ -135,10 +150,99 @@ private:
               : MatrixFormSurf<double>(i, j, area), beta(beta){};
 
         template<typename Real, typename Scalar>
-        Scalar matrix_form_surf(int n, double *wt, Func<Real> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const;
+        Scalar matrix_form_surf(int n, double *wt, Func<Real> *u_ext[], Func<Real> *u, Func<Real> *v, 
+            Geom<Real> *e, ExtData<Scalar> *ext) const;
 
-        virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
+        virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
+            Geom<double> *e, ExtData<double> *ext) const;
 
-        virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const;
+        virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
+            Geom<Ord> *e, ExtData<Ord> *ext) const;
+    };
+
+    class VectorFormHelmholtzEquation_real : public VectorFormVol<double>
+    {
+    public:
+    VectorFormHelmholtzEquation_real(int i, double eps, double omega, double mu, double sigma)
+      : VectorFormVol<double>(i), eps(eps), omega(omega), mu(mu), sigma(sigma) {};
+
+        template<typename Real, typename Scalar>
+        Scalar vector_form(int n, double *wt, Func<Real> *u_ext[], Func<Real> *v, 
+            Geom<Real> *e, ExtData<Scalar> *ext) const;
+
+        virtual double value(int n, double *wt, Func<double> *u_ext[],
+            Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
+
+        virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[],
+            Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const;
+
+    private:
+        // Members.
+        double eps;
+        double omega;
+        double mu;
+        double sigma;
+    };
+
+    class VectorFormHelmholtzEquation_imag : public VectorFormVol<double>
+    {
+    public:
+    VectorFormHelmholtzEquation_imag(int i, double eps, double omega, double mu, double sigma)
+      : VectorFormVol<double>(i), eps(eps), omega(omega), mu(mu), sigma(sigma) {};
+
+        template<typename Real, typename Scalar>
+        Scalar vector_form(int n, double *wt, Func<Real> *u_ext[], Func<Real> *v, 
+            Geom<Real> *e, ExtData<Scalar> *ext) const;
+
+        virtual double value(int n, double *wt, Func<double> *u_ext[],
+            Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
+
+        virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[],
+            Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const;
+
+    private:
+        // Members.
+        double eps;
+        double omega;
+        double mu;
+        double sigma;
+    };
+
+    class VectorFormSurfHelmholtz_real : public VectorFormSurf<double>
+    {
+    private:
+        double beta;
+    public:
+        VectorFormSurfHelmholtz_real(int i, std::string area, double beta)
+              : VectorFormSurf<double>(i, area), beta(beta) {};
+
+        template<typename Real, typename Scalar>
+        Scalar vector_form_surf(int n, double *wt, Func<Real> *u_ext[], Func<Real> *v, 
+            Geom<Real> *e, ExtData<Scalar> *ext) const;
+
+        virtual double value(int n, double *wt, Func<double> *u_ext[],
+            Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
+
+        virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, 
+            Geom<Ord> *e, ExtData<Ord> *ext) const;
+    };
+
+    class VectorFormSurfHelmholtz_imag : public VectorFormSurf<double>
+    {
+    private:
+        double beta;
+    public:
+        VectorFormSurfHelmholtz_imag(int i, std::string area, double beta)
+              : VectorFormSurf<double>(i, area), beta(beta) {};
+
+        template<typename Real, typename Scalar>
+        Scalar vector_form_surf(int n, double *wt, Func<Real> *u_ext[], Func<Real> *v, 
+            Geom<Real> *e, ExtData<Scalar> *ext) const;
+
+        virtual double value(int n, double *wt, Func<double> *u_ext[],
+            Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
+
+        virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, 
+            Geom<Ord> *e, ExtData<Ord> *ext) const;
     };
 };
