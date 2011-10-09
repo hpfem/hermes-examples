@@ -121,16 +121,23 @@ public:
   };
 
   template<typename Real, typename Scalar>
-  Scalar hcurl_form_kappa(int n, double *wt, Func<Scalar> *u_ext[], Func<Scalar> *u, Func<Scalar> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+  Scalar hcurl_form_kappa(int n, double *wt, Func<Scalar> *u_ext[], Func<Scalar> *u, 
+      Func<Scalar> *v, Geom<Real> *e, ExtData<Scalar> *ext) const
   {
     return int_curl_e_curl_f<Scalar, Scalar>(n, wt, u, v) + kappa_squared * int_e_f<Scalar, Scalar>(n, wt, u, v);
   }
 
-  virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
-      Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
+  virtual std::complex<double> value(int n, double *wt, Func<std::complex<double> > *u_ext[], Func<std::complex<double> > *u, 
+      Func<std::complex<double> > *v, Geom<double> *e, ExtData<std::complex<double> > *ext) const
+  {
+    return hcurl_form_kappa<double, std::complex<double> >(n, wt, u_ext, u, v, e, ext);
+  }
 
   virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, 
-      Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const;
+      Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const
+  {
+    return hcurl_form_kappa<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
+  }
 
   double kappa_squared;
 };
