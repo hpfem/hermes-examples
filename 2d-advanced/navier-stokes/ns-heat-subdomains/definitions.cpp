@@ -56,8 +56,8 @@ CustomWeakFormHeatAndFlow::CustomWeakFormHeatAndFlow(bool Stokes, double Reynold
     add_vector_form(vft);
 
     add_vector_form(new WeakFormsH1::DefaultResidualDiffusion<double>(3, "Outside", new Hermes1DFunction<double>(thermal_conductivity_water)));
-    add_vector_form(new WeakFormsH1::DefaultResidualDiffusion<double>(3, "Inner Circle", new Hermes1DFunction<double>(thermal_conductivity_graphite)));
+    add_vector_form(new WeakFormsH1::DefaultResidualDiffusion<double>(3, "Graphite Circle", new Hermes1DFunction<double>(thermal_conductivity_graphite)));
     add_vector_form(new CustomResidualAdvection(3, "Outside"));
     
-    add_vector_form(new WeakFormsH1::DefaultVectorFormVol<double>(3, "Inner Circle", new Hermes::Hermes2DFunction<double>(-heat_source)));
+    add_vector_form(new WeakFormsH1::DefaultVectorFormVol<double>(3, "Graphite Circle", new Hermes::Hermes2DFunction<double>(-heat_source)));
   };
