@@ -18,7 +18,7 @@
     <domain:quad v1="1" v2="2" v3="6" v4="5" marker="Outside" i="1"/>
     <domain:quad v1="2" v2="3" v3="7" v4="6" marker="Outside" i="2"/>
     <domain:quad v1="3" v2="0" v3="4" v4="7" marker="Outside" i="3"/>
-    <domain:quad v1="4" v2="5" v3="6" v4="7" marker="Inner Circle" i="4"/>
+    <domain:quad v1="4" v2="5" v3="6" v4="7" marker="Graphite Circle" i="4"/>
   </elements>
 
   <edges>
