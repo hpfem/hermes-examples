@@ -15,10 +15,10 @@ class CustomWeakForm : public WeakForm<double>
     Jacobian() : MatrixFormVol<double>(0, 0, Hermes::HERMES_ANY, HERMES_SYM) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u,
-                        Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
+        Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
 
     virtual Hermes::Ord ord(int n, double *wt, Func<Hermes::Ord> *u_ext[], Func<Hermes::Ord> *u, Func<Hermes::Ord> *v,
-                            Geom<Hermes::Ord> *e, ExtData<Hermes::Ord> *ext) const;
+        Geom<Hermes::Ord> *e, ExtData<Hermes::Ord> *ext) const;
   };
   
   class Residual : public VectorFormVol<double>
@@ -28,10 +28,10 @@ class CustomWeakForm : public WeakForm<double>
     Residual(const Hermes::Hermes2DFunction<double>* rhs) : VectorFormVol<double>(0), rhs(rhs) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
-                         Geom<double> *e, ExtData<double> *ext) const;
+        Geom<double> *e, ExtData<double> *ext) const;
 
     virtual Hermes::Ord ord(int n, double *wt, Func<Hermes::Ord> *u_ext[], Func<Hermes::Ord> *v,
-                            Geom<Hermes::Ord> *e, ExtData<Hermes::Ord> *ext) const;
+        Geom<Hermes::Ord> *e, ExtData<Hermes::Ord> *ext) const;
   };
   
   public:
@@ -46,7 +46,7 @@ class CustomRightHandSide : public Hermes::Hermes2DFunction<double>
 {
 public:
   CustomRightHandSide(double poly_deg)
-    : Hermes::Hermes2DFunction<double>(), poly_deg(poly_deg) {};
+      : Hermes::Hermes2DFunction<double>(), poly_deg(poly_deg) {};
 
   virtual double value(double x, double y) const;
   virtual Ord value (Ord x, Ord y) const { return Ord(8); }
@@ -60,7 +60,7 @@ class CustomExactSolution : public ExactSolutionScalar<double>
 {
 public:
   CustomExactSolution(Mesh* mesh, double poly_deg)
-            : ExactSolutionScalar<double>(mesh), poly_deg(poly_deg) {};
+      : ExactSolutionScalar<double>(mesh), poly_deg(poly_deg) {};
 
   virtual double value(double x, double y) const;
 
