@@ -68,8 +68,10 @@ int main(int argc, char* argv[])
   // Load the mesh.
   Mesh mesh;
   MeshReaderH2D mloader;
-  mloader.load("square_quad.mesh", &mesh);     // quadrilaterals
-  // mloader.load("square_tri.mesh", &mesh);   // triangles
+  // Quadrilaterals.
+  mloader.load("square_quad.mesh", &mesh);    
+  // Triangles.
+  // mloader.load("square_tri.mesh", &mesh);   
 
   // Perform initial mesh refinements.
   for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
@@ -78,10 +80,11 @@ int main(int argc, char* argv[])
   CustomExactSolution exact_sln(&mesh, EXACT_SOL_P);
 
   // Define right-hand side.
-  CustomRightHandSide rhs(EXACT_SOL_P);
+  CustomRightHandSide f(EXACT_SOL_P);
 
-  // Define function f.
-  CustomWeakForm wf(&rhs);
+  // Initialize weak formulation.
+  Hermes1DFunction<double> lambda(1.0);
+  WeakFormsH1::DefaultWeakFormPoisson<double> wf(HERMES_ANY, &lambda, &f);
 
   // Initialize boundary conditions
   DefaultEssentialBCNonConst<double> bc_essential("Bdy", &exact_sln);

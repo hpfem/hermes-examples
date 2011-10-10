@@ -1,5 +1,34 @@
 #include "definitions.h"
 
+/* Custom initial condition */
+
+CustomInitialCondition::CustomInitialCondition(Mesh *mesh, double mid_x, double mid_y, double radius, double temp_water, double temp_graphite) 
+  : ExactSolutionScalar<double>(mesh), mid_x(mid_x), mid_y(mid_y), radius(radius), temp_water(temp_water), temp_graphite(temp_graphite) 
+{
+  return ;
+}
+
+double CustomInitialCondition::value(double x, double y) const 
+{
+  bool in_graphite = (std::sqrt(sqr(mid_x - x) + sqr(mid_y - y)) < radius);
+  double temp = temp_water;
+  if (in_graphite) temp = temp_graphite;
+  return temp;
+}
+
+void CustomInitialCondition::derivatives(double x, double y, double& dx, double& dy) const 
+{   
+  dx = 0;
+  dy = 0;
+}
+
+Ord CustomInitialCondition::ord(Ord x, Ord y) const 
+{
+  return Ord(1);
+}
+
+/* Weak forms */
+
 CustomWeakFormHeatAndFlow::CustomWeakFormHeatAndFlow(bool Stokes, double Reynolds, double time_step, Solution<double>* x_vel_previous_time, 
   Solution<double>* y_vel_previous_time, Solution<double>* T_prev_time, double heat_source, double specific_heat_graphite, 
   double specific_heat_water, double rho_graphite, double rho_water, double thermal_conductivity_graphite, double thermal_conductivity_water) 
@@ -56,8 +85,8 @@ CustomWeakFormHeatAndFlow::CustomWeakFormHeatAndFlow(bool Stokes, double Reynold
     add_vector_form(vft);
 
     add_vector_form(new WeakFormsH1::DefaultResidualDiffusion<double>(3, "Outside", new Hermes1DFunction<double>(thermal_conductivity_water)));
-    add_vector_form(new WeakFormsH1::DefaultResidualDiffusion<double>(3, "Inner Circle", new Hermes1DFunction<double>(thermal_conductivity_graphite)));
+    add_vector_form(new WeakFormsH1::DefaultResidualDiffusion<double>(3, "Graphite Circle", new Hermes1DFunction<double>(thermal_conductivity_graphite)));
     add_vector_form(new CustomResidualAdvection(3, "Outside"));
     
-    add_vector_form(new WeakFormsH1::DefaultVectorFormVol<double>(3, "Inner Circle", new Hermes::Hermes2DFunction<double>(-heat_source)));
+    add_vector_form(new WeakFormsH1::DefaultVectorFormVol<double>(3, "Graphite Circle", new Hermes::Hermes2DFunction<double>(-heat_source)));
   };

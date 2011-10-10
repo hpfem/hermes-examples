@@ -7,6 +7,25 @@ using namespace Hermes::Hermes2D;
 using namespace Hermes::Hermes2D::Views;
 using namespace Hermes::Hermes2D::RefinementSelectors;
 
+/* Custom initial condition */
+
+class CustomInitialCondition : public ExactSolutionScalar<double>
+{
+public:
+  CustomInitialCondition(Mesh *mesh, double mid_x, double mid_y, double radius, double temp_water, double temp_graphite);
+
+  virtual double value(double x, double y) const;
+
+  virtual void derivatives(double x, double y, double& dx, double& dy) const;
+
+  virtual Ord ord(Ord x, Ord y) const;
+
+  // Members.
+  double mid_x, mid_y, radius, temp_water, temp_graphite;
+};
+
+/* Weak forms */
+
 class CustomWeakFormHeatAndFlow : public WeakForm<double>
 {
 public:
