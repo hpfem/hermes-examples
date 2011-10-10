@@ -33,13 +33,17 @@ const int INIT_REF_NUM_HOLE = 4;
 // velocity profile at inlet).
 const double H = 6;                               
 // For the calculation of Reynolds number.
-const double OBSTACLE_DIAMETER = 2.8284;          
+const double OBSTACLE_DIAMETER = 2.8284;     
+// For the definition of custom initial condition.     
+const double HOLE_MID_X = 3.0;
+const double HOLE_MID_Y = 3.0;
 
 // Problem parameters.
 // Inlet velocity (reached after STARTUP_TIME).
 const double VEL_INLET = 1.0;                        
 // Initial temperature.
-const double TEMP_INIT = 20.0;                       
+const double TEMP_INIT_WATER = 20.0;                       
+const double TEMP_INIT_GRAPHITE = 200.0;                       
 // Correct is 1.004e-6 (at 20 deg Celsius) but then RE = 2.81713e+06 which 
 // is too much for this simple model, so we use a larger viscosity. Note
 // that kinematic viscosity decreases with rising temperature.
@@ -130,9 +134,18 @@ int main(int argc, char* argv[])
 
   // Solutions for the Newton's iteration and time stepping.
   info("Setting initial conditions.");
-  ZeroSolution xvel_prev_time(&mesh_without_hole), yvel_prev_time(&mesh_without_hole), 
-                                      p_prev_time(&mesh_without_hole);
-  ConstantSolution<double>  temperature_prev_time(&mesh_whole_domain, TEMP_INIT); 
+  ZeroSolution xvel_prev_time(&mesh_without_hole), yvel_prev_time(&mesh_without_hole), p_prev_time(&mesh_without_hole);
+
+  // Initial solution for temperature.
+  CustomInitialCondition temperature_ic(&mesh_whole_domain, HOLE_MID_X, HOLE_MID_Y, 
+      0.5*OBSTACLE_DIAMETER, TEMP_INIT_WATER, TEMP_INIT_GRAPHITE); 
+
+  // Project it to obtain continuous initial condition for temperature.
+  double *coeff_vec_temp = new double[temperature_space.get_num_dofs()];
+  OGProjection<double>::project_global(&temperature_space, &temperature_ic, coeff_vec_temp, matrix_solver_type, temperature_proj_norm);
+  Solution<double> temperature_prev_time;
+  Solution<double>::vector_to_solution(coeff_vec_temp, &temperature_space, &temperature_prev_time);
+  delete [] coeff_vec_temp;
 
   // Calculate Reynolds number.
   double reynolds_number = VEL_INLET * OBSTACLE_DIAMETER / KINEMATIC_VISCOSITY_WATER;
