@@ -1,4 +1,7 @@
 add_subdirectory(01-analytic-solution)   
+add_subdirectory(02-reentrant-corner)   
+add_subdirectory(04-exponential-peak)   
+add_subdirectory(06-boundary-layer)   
 add_subdirectory(09-wave-front)   
 add_subdirectory(09-wave-front-kelly)
 add_subdirectory(09-wave-front-kelly-dealii)
