@@ -142,7 +142,7 @@ int main(int argc, char* argv[])
 
   // Project it to obtain continuous initial condition for temperature.
   double *coeff_vec_temp = new double[temperature_space.get_num_dofs()];
-  OGProjection<double>::project_global(&temperature_space, &temperature_ic, coeff_vec_temp, matrix_solver_type, temperature_proj_norm);
+  OGProjection<double>::project_global(&temperature_space, &temperature_ic, coeff_vec_temp, matrix_solver_type, HERMES_L2_NORM);
   Solution<double> temperature_prev_time;
   Solution<double>::vector_to_solution(coeff_vec_temp, &temperature_space, &temperature_prev_time);
   delete [] coeff_vec_temp;
@@ -221,13 +221,13 @@ int main(int argc, char* argv[])
     // Show the solution at the end of time step.
     sprintf(title, "Velocity [m/s], time %g s", current_time);
     vview.set_title(title);
-    vview.show(&xvel_prev_time, &yvel_prev_time, Views::HERMES_EPS_LOW);
+    vview.show(&xvel_prev_time, &yvel_prev_time);
     sprintf(title, "Pressure [Pa], time %g s", current_time);
     pview.set_title(title);
     pview.show(&p_prev_time);
     sprintf(title, "Temperature [C], time %g s", current_time);
     tempview.set_title(title);
-    tempview.show(&temperature_prev_time);
+    tempview.show(&temperature_prev_time,  Views::HERMES_EPS_HIGH);
   }
 
   delete [] coeff_vec;
