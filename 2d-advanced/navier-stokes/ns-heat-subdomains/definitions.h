@@ -9,10 +9,10 @@ using namespace Hermes::Hermes2D::RefinementSelectors;
 
 /* Custom initial condition */
 
-class CustomInitialCondition : public Hermes2DFunction<double>
+class CustomInitialCondition : public ExactSolutionScalar<double>
 {
 public:
-  public CustomInitialCondition(Mesh *mesh, double mid_x, double mid_y, double radius, double temp_water, double temp_graphite);
+  CustomInitialCondition(Mesh *mesh, double mid_x, double mid_y, double radius, double temp_water, double temp_graphite);
 
   virtual double value(double x, double y) const;
 

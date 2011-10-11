@@ -3,14 +3,14 @@
 /* Custom initial condition */
 
 CustomInitialCondition::CustomInitialCondition(Mesh *mesh, double mid_x, double mid_y, double radius, double temp_water, double temp_graphite) 
-  : mid_x(mid_x), mid_y(mid_y), radius(radius), temp_water(temp_water), temp_graphite(temp_graphite) 
+  : ExactSolutionScalar<double>(mesh), mid_x(mid_x), mid_y(mid_y), radius(radius), temp_water(temp_water), temp_graphite(temp_graphite) 
 {
   return ;
 }
 
 double CustomInitialCondition::value(double x, double y) const 
 {
-  bool in_graphite = (sqrt(sqr(mid_x - x) + sqr(mid_y - y)) < radius);
+  bool in_graphite = (std::sqrt(sqr(mid_x - x) + sqr(mid_y - y)) < radius);
   double temp = temp_water;
   if (in_graphite) temp = temp_graphite;
   return temp;
@@ -24,7 +24,7 @@ void CustomInitialCondition::derivatives(double x, double y, double& dx, double&
 
 Ord CustomInitialCondition::ord(Ord x, Ord y) const 
 {
-  return 1;
+  return Ord(1);
 }
 
 /* Weak forms */
