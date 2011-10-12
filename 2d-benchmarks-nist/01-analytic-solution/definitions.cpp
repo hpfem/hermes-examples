@@ -40,5 +40,5 @@ void CustomExactSolution::derivatives(double x, double y, double& dx, double& dy
 
 Ord CustomExactSolution::ord (Ord x, Ord y) const
 {
-  return Ord(Ord::get_max_order());
+  return Ord(8);
 }

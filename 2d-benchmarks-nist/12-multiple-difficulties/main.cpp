@@ -3,33 +3,39 @@
 
 using namespace RefinementSelectors;
 
-//  This is the sixth in the series of NIST benchmarks with known exact solutions. It solves
-//  a problem with boundary layer.
+//  This is the twelfth in the series of NIST benchmarks with known exact solutions.
 //
 //  Reference: W. Mitchell, A Collection of 2D Elliptic Problems for Testing Adaptive Algorithms, 
 //                          NIST Report 7668, February 2010.
 //
-//  The problem is made harder for adaptive algorithms by decreasing the (positive) parameter EPSILON.
+//  PDE: -Laplace u + f = 0 
 //
-//  PDE: -EPSILON Laplace u + 2du/dx + du/dy - f = 0
+//  Known exact solution: 
+//  See the class CustomExactSolution::value in file "definitions.h"
 //
-//  Known exact solution, see the class CustomExactSolution.
-//
-//  Domain: square (-1, 1) x (-1, 1), see the file square.mesh.
+//  Domain: L-shaped domain (-1,1)x(-1,1)\(0,1)x(-1,0), see the file "lshape.mesh".
 //
 //  BC:  Dirichlet, given by exact solution.
 //
 //  The following parameters can be changed:
 
-const double epsilon = 1e-1;
+const double omega_c = 3.0 * M_PI / 2.0;
+const double x_w = 0.0;             
+const double y_w = -3.0 / 4.0;
+const double r_0 = 3.0 / 4.0;
+const double alpha_w = 200.0;
+const double x_p = -Hermes::sqrt(5.0) / 4.0;
+const double y_p = -1.0 / 4.0;
+const double alpha_p = 1000.0;
+const double epsilon = 1.0 / 100.0;
 
 // Initial polynomial degree of mesh elements.
-const int P_INIT = 2;                             
+const int P_INIT = 3;  
 // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM = 1;                       
+const int INIT_REF_NUM = 1; 
 // This is a quantitative parameter of the adapt(...) function and
 // it has different meanings for various adaptive strategies.
-const double THRESHOLD = 0.3;                     
+const double THRESHOLD = 0.3;
 // Adaptive strategy:
 // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
 //   error is processed. If more elements have similar errors, refine
@@ -38,49 +44,50 @@ const double THRESHOLD = 0.3;
 //   than THRESHOLD times maximum element error.
 // STRATEGY = 2 ... refine all elements whose error is larger
 //   than THRESHOLD.
-const int STRATEGY = 0;                           
+const int STRATEGY = 0;   
 // Predefined list of element refinement candidates. Possible values are
 // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
 // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
-const CandList CAND_LIST = H2D_HP_ANISO;          
+const CandList CAND_LIST = H2D_HP_ANISO_H;
 // Maximum allowed level of hanging nodes:
 // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
 // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
 // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
 // Note that regular meshes are not supported, this is due to
 // their notoriously bad performance.
-const int MESH_REGULARITY = -1;                   
+const int MESH_REGULARITY = -1;
 // This parameter influences the selection of
 // candidates in hp-adaptivity. Default value is 1.0.
-const double CONV_EXP = 1.0;                       
+const double CONV_EXP = 1.0;
 // Stopping criterion for adaptivity (rel. error tolerance between the
 // reference mesh and coarse mesh solution in percent).
-const double ERR_STOP = 1e-3;                      
+const double ERR_STOP = 1.0;
 // Adaptivity process stops when the number of degrees of freedom grows
 // over this limit. This is to prevent h-adaptivity to go on forever.
-const int NDOF_STOP = 100000;                      
+const int NDOF_STOP = 60000;
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-Hermes::MatrixSolverType matrix_solver_type = Hermes::SOLVER_UMFPACK;  
+Hermes::MatrixSolverType matrix_solver_type = Hermes::SOLVER_UMFPACK;                     
 
 int main(int argc, char* argv[])
 {
   // Load the mesh.
   Mesh mesh;
   MeshReaderH2D mloader;
-  mloader.load("square_quad.mesh", &mesh);
+  mloader.load("lshape.mesh", &mesh);
 
   // Perform initial mesh refinement.
   for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
-  
+
   // Set exact solution.
-  CustomExactSolution exact_sln(&mesh, epsilon);
+  CustomExactSolution exact_sln(&mesh, alpha_w, alpha_p, x_w, y_w, r_0, omega_c, epsilon, x_p, y_p);
 
   // Define right-hand side.
-  CustomRightHandSide f(epsilon);
+  CustomRightHandSide f(alpha_w, alpha_p, x_w, y_w, r_0, omega_c, epsilon, x_p, y_p);
 
-  // Initialize weak formulation.
-  CustomWeakForm wf(&f);
+  // Initialize the weak formulation.
+  Hermes1DFunction<double> lambda(1.0);
+  WeakFormsH1::DefaultWeakFormPoisson<double> wf(HERMES_ANY, &lambda, &f);
 
   // Initialize boundary conditions
   DefaultEssentialBCNonConst<double> bc_essential("Bdy", &exact_sln);

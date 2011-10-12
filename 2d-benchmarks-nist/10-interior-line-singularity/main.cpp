@@ -1,32 +1,34 @@
 #define HERMES_REPORT_ALL
+#define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
 
 using namespace RefinementSelectors;
 
-//  This is the sixth in the series of NIST benchmarks with known exact solutions. It solves
-//  a problem with boundary layer.
+//  This is the 10th in the series of NIST benchmarks with known exact solutions. 
 //
 //  Reference: W. Mitchell, A Collection of 2D Elliptic Problems for Testing Adaptive Algorithms, 
 //                          NIST Report 7668, February 2010.
 //
-//  The problem is made harder for adaptive algorithms by decreasing the (positive) parameter EPSILON.
+//  Compare adaptivity with isotropic and anisotropic refinements.
 //
-//  PDE: -EPSILON Laplace u + 2du/dx + du/dy - f = 0
+//  PDE: -Laplace u + f = 0 where f is dictated by the exact solution.
 //
-//  Known exact solution, see the class CustomExactSolution.
+//  Exact solution: u(x,y) = cos(K*y)    for x < 0,
+//                  u(x,y) = cos(K*y) + pow(x, alpha)   for x > 0   where alpha > 0.
 //
-//  Domain: square (-1, 1) x (-1, 1), see the file square.mesh.
+//  Domain: square, see the file singpert.mesh.
 //
-//  BC:  Dirichlet, given by exact solution.
+//  BC:  Dirichlet given by the exact solution.
 //
 //  The following parameters can be changed:
 
-const double epsilon = 1e-1;
+const double K = M_PI/2;
+const double alpha = 2.01;
 
 // Initial polynomial degree of mesh elements.
 const int P_INIT = 2;                             
 // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM = 1;                       
+const int INIT_REF_NUM = 0;                       
 // This is a quantitative parameter of the adapt(...) function and
 // it has different meanings for various adaptive strategies.
 const double THRESHOLD = 0.3;                     
@@ -72,18 +74,19 @@ int main(int argc, char* argv[])
 
   // Perform initial mesh refinement.
   for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
-  
+
   // Set exact solution.
-  CustomExactSolution exact_sln(&mesh, epsilon);
+  CustomExactSolution exact_sln(&mesh, K, alpha);
 
   // Define right-hand side.
-  CustomRightHandSide f(epsilon);
+  CustomRightHandSide f(K, alpha);
 
   // Initialize weak formulation.
-  CustomWeakForm wf(&f);
+  Hermes1DFunction<double> lambda(1.0);
+  WeakFormsH1::DefaultWeakFormPoisson<double> wf(HERMES_ANY, &lambda, &f);
 
   // Initialize boundary conditions
-  DefaultEssentialBCNonConst<double> bc_essential("Bdy", &exact_sln);
+  DefaultEssentialBCNonConst<double> bc_essential("Bdy_dirichlet_rest", &exact_sln);
   EssentialBCs<double> bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.
