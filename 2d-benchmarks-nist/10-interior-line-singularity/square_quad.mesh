@@ -1,0 +1,21 @@
+a = 1
+ma = -1
+
+vertices = [
+  [ ma, ma ],
+  [ a, ma ],
+  [ a, a ],
+  [ ma, a ]
+]
+
+elements = [
+  [ 2, 3, 0, 1, "Mat" ]
+]
+
+boundaries = [
+  [ 0, 1, "Bdy_dirichlet_rest" ],
+  [ 1, 2, "Bdy_dirichlet_rest" ],
+  [ 2, 3, "Bdy_dirichlet_rest" ],
+  [ 3, 0, "Bdy_neumann_left" ]
+]
+
