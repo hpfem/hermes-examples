@@ -14,7 +14,7 @@ double CustomRightHandSide::value(double x, double y) const
 	       + poly_deg*a*Hermes::pow(y, 8.0)*e*f*Hermes::pow(x, poly_deg)*g);
 }
 
-Ord CustomRightHandSide::ord (Ord x, Ord y) const
+Ord CustomRightHandSide::value (Ord x, Ord y) const
 {
   return Ord(8);
 }

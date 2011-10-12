@@ -13,6 +13,7 @@ public:
       : Hermes::Hermes2DFunction<double>(), poly_deg(poly_deg) {};
 
   virtual double value(double x, double y) const;
+
   virtual Ord value (Ord x, Ord y) const;
   
   double poly_deg;
