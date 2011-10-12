@@ -1,0 +1,4 @@
+rm *~ 
+./nist-11
+python plot_graph.py &
+
