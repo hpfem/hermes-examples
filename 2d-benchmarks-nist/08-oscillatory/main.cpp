@@ -3,26 +3,25 @@
 
 using namespace RefinementSelectors;
 
-//  This is the sixth in the series of NIST benchmarks with known exact solutions. It solves
-//  a problem with boundary layer.
+//  This is the eight in the series of NIST benchmarks with known exact solutions. It solves
+//  the Helmholtz equation and has an oscillatory solution.
 //
 //  Reference: W. Mitchell, A Collection of 2D Elliptic Problems for Testing Adaptive Algorithms, 
 //                          NIST Report 7668, February 2010.
 //
-//  The problem is made harder for adaptive algorithms by decreasing the (positive) parameter EPSILON.
+//  The problem is made harder for adaptive algorithms by decreasing the parameter ALPHA.
 //
-//  PDE: -EPSILON Laplace u + 2du/dx + du/dy - f = 0
+//  PDE: -Laplace u - u/(ALPHA + r(x, y)) + f = 0 where r(x, y) = sqrt(x*x + y*y)
 //
-//  Known exact solution, see the class CustomExactSolution.
+//  Known exact solution, see functions fn() and fndd().
 //
-//  Domain: square (-1, 1) x (-1, 1), see the file square.mesh.
+//  Domain: unit square (0, 1) x (0, 1), see the file square.mesh.
 //
 //  BC:  Dirichlet, given by exact solution.
 //
 //  The following parameters can be changed:
 
-// Problem parameters.
-const double epsilon = 1e-1;
+const double alpha = 1/(10*M_PI);
 
 // Initial polynomial degree of mesh elements.
 const int P_INIT = 2;                             
@@ -56,7 +55,7 @@ const int MESH_REGULARITY = -1;
 const double CONV_EXP = 1.0;                       
 // Stopping criterion for adaptivity (rel. error tolerance between the
 // reference mesh and coarse mesh solution in percent).
-const double ERR_STOP = 1e-3;                      
+const double ERR_STOP = 0.5;                      
 // Adaptivity process stops when the number of degrees of freedom grows
 // over this limit. This is to prevent h-adaptivity to go on forever.
 const int NDOF_STOP = 100000;                      
@@ -73,12 +72,12 @@ int main(int argc, char* argv[])
 
   // Perform initial mesh refinement.
   for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
-  
+
   // Set exact solution.
-  CustomExactSolution exact_sln(&mesh, epsilon);
+  CustomExactSolution exact_sln(&mesh, alpha);
 
   // Define right-hand side.
-  CustomRightHandSide f(epsilon);
+  CustomRightHandSide f(alpha);
 
   // Initialize weak formulation.
   CustomWeakForm wf(&f);
