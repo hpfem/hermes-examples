@@ -13,10 +13,7 @@ public:
       : Hermes::Hermes2DFunction<double>(), poly_deg(poly_deg) {};
 
   virtual double value(double x, double y) const;
-  virtual Ord value (Ord x, Ord y) const 
-  { 
-    return Ord(8); 
-  }
+  virtual Ord value (Ord x, Ord y) const;
   
   double poly_deg;
 };
@@ -33,10 +30,7 @@ public:
 
   virtual void derivatives(double x, double y, double& dx, double& dy) const;
 
-  virtual Ord ord (Ord x, Ord y) const 
-  { 
-    return Ord(Ord::get_max_order()); 
-  }
+  virtual Ord ord (Ord x, Ord y) const; 
 
   double poly_deg;
 };
