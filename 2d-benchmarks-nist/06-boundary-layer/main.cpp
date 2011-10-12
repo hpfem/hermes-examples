@@ -78,10 +78,10 @@ int main(int argc, char* argv[])
   CustomExactSolution exact_sln(&mesh, epsilon);
 
   // Define right-hand side.
-  CustomRightHandSide rhs(epsilon);
+  CustomRightHandSide f(epsilon);
 
   // Define function f.
-  CustomWeakForm wf(&rhs, epsilon);
+  CustomWeakForm wf(&f);
 
   // Initialize boundary conditions
   DefaultEssentialBCNonConst<double> bc_essential("Bdy", &exact_sln);
