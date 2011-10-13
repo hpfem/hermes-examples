@@ -1,10 +1,7 @@
 #define HERMES_REPORT_ALL
+#include "definitions.h"
 
-#include <iostream>
-#include <iomanip>
-#include <fstream>
 using namespace std;
-
 
 //Debugging matrix printer.
 bool printmatrix(double** A, int n, int m){
@@ -18,7 +15,6 @@ bool printmatrix(double** A, int n, int m){
   return true;
 }
 
-
 //Debugging vector printer.
 bool printvector(double* vect, int n){
   for (int i=0; i<n; i++){
@@ -30,67 +26,66 @@ bool printvector(double* vect, int n){
 }
 
 // Creates a table of precalculated constitutive functions.
-bool get_constitutive_tables(int method)
+bool get_constitutive_tables(int method, ConstitutiveRelationsGenuchtenWithLayer* constitutive, int material_count)
 {
   info("Creating tables of constitutive functions (complicated real exponent relations).");
 
   // Table values dimension.
-  int bound = int(-TABLE_LIMIT/TABLE_PRECISION)+1;
+  int bound = int(-constitutive->table_limit/constitutive->table_precision)+1;
   
   // Allocating arrays. 
-  K_TABLE = new double*[MATERIAL_COUNT];
-  for (int i=0; i<MATERIAL_COUNT; i++) {
-    K_TABLE[i] = new double[bound];
+  constitutive->k_table = new double*[material_count];
+  for (int i=0; i<material_count; i++) {
+    constitutive->k_table[i] = new double[bound];
   }
   
-  dKdh_TABLE = new double*[MATERIAL_COUNT] ;
-  for (int i=0; i<MATERIAL_COUNT; i++) {
-    dKdh_TABLE[i] = new double[bound];
+  constitutive->dKdh_table = new double*[material_count] ;
+  for (int i=0; i<material_count; i++) {
+    constitutive->dKdh_table[i] = new double[bound];
   }
   
-  dKdh_TABLE = new double*[MATERIAL_COUNT] ;
-  for (int i=0; i<MATERIAL_COUNT; i++) {
-    dKdh_TABLE[i] = new double[bound];
+  constitutive->dKdh_table = new double*[material_count] ;
+  for (int i=0; i<material_count; i++) {
+    constitutive->dKdh_table[i] = new double[bound];
   }
- 
 
-  C_TABLE = new double*[MATERIAL_COUNT] ;
-  for (int i=0; i<MATERIAL_COUNT; i++) {
-    C_TABLE[i] = new double[bound];
+  constitutive->c_table = new double*[material_count] ;
+  for (int i=0; i<material_count; i++) {
+    constitutive->c_table[i] = new double[bound];
   }
   
   //If Newton method (method==1) selected constitutive function derivations are required.
   if (method==1){
-    dCdh_TABLE = new double*[MATERIAL_COUNT] ;
-    for (int i=0; i<MATERIAL_COUNT; i++) {
-      dCdh_TABLE[i] = new double[bound];
+    constitutive->dCdh_table = new double*[material_count] ;
+    for (int i=0; i<material_count; i++) {
+      constitutive->dCdh_table[i] = new double[bound];
     }
     
-    ddKdhh_TABLE = new double*[MATERIAL_COUNT] ;
-    for (int i=0; i<MATERIAL_COUNT; i++) {
-      ddKdhh_TABLE[i] = new double[bound];
+    constitutive->ddKdhh_table = new double*[material_count] ;
+    for (int i=0; i<material_count; i++) {
+      constitutive->ddKdhh_table[i] = new double[bound];
     }
   }
   
   // Calculate and save K(h).
   info("Calculating and saving K(h).");
-  for (int j=0; j<MATERIAL_COUNT; j++) {
+  for (int j=0; j<material_count; j++) {
     for (int i=0; i< bound; i++) {
-      K_TABLE[j][i] = K(-TABLE_PRECISION*i, j);
+      constitutive->k_table[j][i] = constitutive->K(-constitutive->table_precision*i, j);
     }
   }
   // Calculate and save dKdh(h).
   info("Calculating and saving dKdh(h).");
-  for (int j=0; j<MATERIAL_COUNT; j++) {
+  for (int j=0; j<material_count; j++) {
     for (int i=0; i< bound; i++) {
-      dKdh_TABLE[j][i] = dKdh(-TABLE_PRECISION*i, j);
+      constitutive->dKdh_table[j][i] = constitutive->dKdh(-constitutive->table_precision*i, j);
     }
   }
   // Calculate and save C(h).
   info("Calculating and saving C(h).");
-  for (int j=0; j<MATERIAL_COUNT; j++) {
+  for (int j=0; j<material_count; j++) {
     for (int i=0; i< bound; i++) {
-      C_TABLE[j][i] = C(-TABLE_PRECISION*i, j);
+      constitutive->c_table[j][i] = constitutive->C(-constitutive->table_precision*i, j);
     }
   }
   
@@ -99,16 +94,16 @@ bool get_constitutive_tables(int method)
   if (method==1){
     // Calculate and save ddKdhh(h).
     info("Calculating and saving ddKdhh(h).");
-    for (int j=0; j<MATERIAL_COUNT; j++) {
+    for (int j=0; j<material_count; j++) {
       for (int i=0; i< bound; i++) {
-	ddKdhh_TABLE[j][i] = ddKdhh(-TABLE_PRECISION*i, j);
+	constitutive->ddKdhh_table[j][i] = constitutive->ddKdhh(-constitutive->table_precision*i, j);
       }
     }
     // Calculate and save dCdh(h).
     info("Calculating and saving dCdh(h).");
-    for (int j=0; j<MATERIAL_COUNT; j++) {
+    for (int j=0; j<material_count; j++) {
       for (int i=0; i< bound; i++) {
-	dCdh_TABLE[j][i] = dCdh(-TABLE_PRECISION*i, j);
+	constitutive->dCdh_table[j][i] = constitutive->dCdh(-constitutive->table_precision*i, j);
       }
     }
   }	
@@ -157,11 +152,11 @@ bool gem_full(double** A, double* b, double* X, int n){
   return true;
 }
 
-// Initialize polynomial approximation of constitutive relations close to full saturation for CONSTITUTIVE_TABLE_METHOD=1.
-// For CONSTITUTIVE_TABLE_METHOD=2 all constitutive functions are approximated by polynomials, K(h) function by quintic spline, C(h) 
-// function by cubic splines. Discretization is managed by variable int NUM_OF_INTERVALS and double* INTERVALS_4_APPROX.
+// Initialize polynomial approximation of constitutive relations close to full saturation for constitutive->constitutive_table_method=1.
+// For constitutive->constitutive_table_method=2 all constitutive functions are approximated by polynomials, K(h) function by quintic spline, C(h) 
+// function by cubic splines. Discretization is managed by variable int num_of_intervals and double* intervals_4_approx.
 // ------------------------------------------------------------------------------
-// For CONSTITUTIVE_TABLE_METHOD=1 this function requires folowing arguments:
+// For constitutive->constitutive_table_method=1 this function requires folowing arguments:
 // n - degree of polynomials
 // low_limit - start point of the polynomial approximation
 // points - array of points inside the interval bounded by <low_limit, 0> to improve the accuracy, at least one is recommended. 
@@ -169,33 +164,34 @@ bool gem_full(double** A, double* b, double* X, int n){
 // n_inside_point - number of inside points
 // layer - material to be considered.
 //------------------------------------------------------------------------------
-// For CONSTITUTIVE_TABLE_METHOD=2, all parameters are obtained from global definitions.
-bool init_polynomials(int n, double low_limit, double *points, int n_inside_points, int layer){
+// For constitutive->constitutive_table_method=2, all parameters are obtained from global definitions.
+bool init_polynomials(int n, double low_limit, double *points, int n_inside_points, int layer, ConstitutiveRelationsGenuchtenWithLayer* constitutive, int material_count, int num_of_intervals, double* intervals_4_approx)
+{
   double** Aside;
   double* Bside;
   double* X;
-  switch (CONSTITUTIVE_TABLE_METHOD) 
-    { 
+  switch (constitutive->constitutive_table_method) 
+    {
       // no approximation 
       case 0 :
 	break ;
       // polynomial approximation only for the the K(h) function surroundings close to zero
       case 1 :
 	
-	if (POLYNOMIALS_ALLOCATED == false){
+	if (constitutive->polynomials_allocated == false){
 
-	  POLYNOMIALS = new double**[MATERIAL_COUNT];
+	  constitutive->polynomials = new double**[material_count];
 	  
-	  for (int i=0; i<MATERIAL_COUNT; i++){
-	    POLYNOMIALS[i] = new double*[3] ;
+	  for (int i=0; i<material_count; i++){
+	    constitutive->polynomials[i] = new double*[3] ;
 	  }
 	  
-	  for (int i=0; i<MATERIAL_COUNT; i++){
+	  for (int i=0; i<material_count; i++){
 	    for (int j=0; j<3; j++){
-	      POLYNOMIALS[i][j] = new double[n_inside_points+6] ;
+	      constitutive->polynomials[i][j] = new double[n_inside_points+6] ;
 	    }
 	  }
-	  POLYNOMIALS_ALLOCATED = true;
+	  constitutive->polynomials_allocated = true;
 	}
 
 	Aside = new double*[n+n_inside_points] ;
@@ -215,9 +211,9 @@ bool init_polynomials(int n, double low_limit, double *points, int n_inside_poin
 	  Aside[4][i] = i*pow(low_limit, i-1) ;
 	  Aside[5][i] = i*(i-1)*pow(low_limit, i-2) ;
 	}
-	Bside[3] = K(low_limit, layer) ;
-	Bside[4] = dKdh(low_limit, layer) ;
-	Bside[5] = ddKdhh(low_limit, layer) ; 
+	Bside[3] = constitutive->K(low_limit, layer) ;
+	Bside[4] = constitutive->dKdh(low_limit, layer) ;
+	Bside[5] = constitutive->ddKdhh(low_limit, layer) ; 
 	
 	// Evaluate the second three rows of the matrix (zero, first and second derivative at point zero).
 	Aside[0][0] = 1.0 ;
@@ -226,7 +222,7 @@ bool init_polynomials(int n, double low_limit, double *points, int n_inside_poin
 	Aside[1][1] = 1.0 ;
 	Aside[2][2] = 2.0 ;
       
-	Bside[0] = K(0.0, layer) ;
+	Bside[0] = constitutive->K(0.0, layer) ;
 	Bside[1] = 0.0;
 	Bside[2] = 0.0;
       
@@ -234,71 +230,71 @@ bool init_polynomials(int n, double low_limit, double *points, int n_inside_poin
 	  for (int j=0; j<n; j++) {
 	    Aside[i][j]=pow(points[i-6],j) ;
 	  }
-	  printf("poradi, %i %lf %lf \n", i, K(points[i-6], layer), points[i-6]);
+	  printf("poradi, %i %lf %lf \n", i, constitutive->K(points[i-6], layer), points[i-6]);
 
-	  Bside[i] = K(points[i-6], layer) ;
+	  Bside[i] = constitutive->K(points[i-6], layer) ;
 	  printf("layer, %i \n", layer);
 	}
 
-	gem_full(Aside, Bside, POLYNOMIALS[layer][0], (n_inside_points+6));
+	gem_full(Aside, Bside, constitutive->polynomials[layer][0], (n_inside_points+6));
 	
 	for (int i=1; i<3; i++){
 	  for (int j=0; j< (n_inside_points+5); j++){
-	    POLYNOMIALS[layer][i][j] = (j+1)*POLYNOMIALS[layer][i-1][j+1];
+	    constitutive->polynomials[layer][i][j] = (j+1)*constitutive->polynomials[layer][i-1][j+1];
 	  }
-	  POLYNOMIALS[layer][i][n_inside_points+6-i] = 0.0;
+	  constitutive->polynomials[layer][i][n_inside_points+6-i] = 0.0;
 	}
 	
 	
 	delete [] Aside;
 	delete [] Bside;
 	break ;
-      // polynomial approximation for all functions at interval (TABLE_LIMIT, 0)
+      // polynomial approximation for all functions at interval (table_limit, 0)
       case 2 :
 	
 	int pts = 0;
 	
-	if (POLYNOMIALS_ALLOCATED == false) {
+	if (constitutive->polynomials_allocated == false) {
 	  // K(h) function is approximated by quintic spline.
-	  K_POLS = new double***[NUM_OF_INTERVALS];
+	  constitutive->k_pols = new double***[num_of_intervals];
 	  //C(h) function is approximated by cubic spline.
-	  C_POLS = new double***[NUM_OF_INTERVALS];
+	  constitutive->c_pols = new double***[num_of_intervals];
 	  
-	  for (int i=0; i<NUM_OF_INTERVALS; i++){
-	    K_POLS[i] = new double**[MATERIAL_COUNT];
-	    C_POLS[i] = new double**[MATERIAL_COUNT];
-	    for (int j=0; j<MATERIAL_COUNT; j++){
-	      K_POLS[i][j] = new double*[3];
-	      C_POLS[i][j] = new double*[2];
+	  for (int i=0; i<num_of_intervals; i++){
+	    constitutive->k_pols[i] = new double**[material_count];
+	    constitutive->c_pols[i] = new double**[material_count];
+	    for (int j=0; j<material_count; j++){
+	      constitutive->k_pols[i][j] = new double*[3];
+	      constitutive->c_pols[i][j] = new double*[2];
 	      for (int k=0; k<3; k++) {
-		K_POLS[i][j][k] = new double[6 + pts];
+		constitutive->k_pols[i][j][k] = new double[6 + pts];
 		if (k<2)
-		  C_POLS[i][j][k] = new double[4];
+		  constitutive->c_pols[i][j][k] = new double[4];
 	      }
 	    }
 	  }
 	  
-// 	  //allocate POL_SEARCH_HELP array -- an index array with locations for particular pressure head functions
-	  POL_SEARCH_HELP = new int[int(-TABLE_LIMIT)+1];
+// 	  //allocate constitutive->pol_search_help array -- an index array with locations for particular pressure head functions
+	  constitutive->pol_search_help = new int[int(-constitutive->table_limit)+1];
 	  
-	  for (int i=0; i<int(-TABLE_LIMIT); i++){
-	    for (int j=0; j<NUM_OF_INTERVALS; j++){
+	  for (int i=0; i<int(-constitutive->table_limit); i++){
+	    for (int j=0; j<num_of_intervals; j++){
 	      if (j < 1) {
-		if (-i > INTERVALS_4_APPROX[j]) {
-		  POL_SEARCH_HELP[i] = j ;
+		if (-i > intervals_4_approx[j]) {
+		  constitutive->pol_search_help[i] = j ;
 		  break ;
 		}
 	      }
 	      else {
-		if (-i > INTERVALS_4_APPROX[j] && -i <= INTERVALS_4_APPROX[j-1]) {
-		  POL_SEARCH_HELP[i] = j ;
+		if (-i > intervals_4_approx[j] && -i <= intervals_4_approx[j-1]) {
+		  constitutive->pol_search_help[i] = j ;
 		  break ;
 		 }
 	       }
 	     }
 	   }
 	  
-	  POLYNOMIALS_ALLOCATED = true;
+	  constitutive->polynomials_allocated = true;
 	}
 	//create matrix
 	Aside = new double*[6 + pts];
@@ -309,7 +305,7 @@ bool init_polynomials(int n, double low_limit, double *points, int n_inside_poin
 	Bside = new double[6 + pts];
 
 
-        for (int i=0; i<NUM_OF_INTERVALS; i++) {
+        for (int i=0; i<num_of_intervals; i++) {
 
 	  if (i < 1){
 	    for (int j=0; j<3; j++){
@@ -327,24 +323,24 @@ bool init_polynomials(int n, double low_limit, double *points, int n_inside_poin
 	  }
 	  else {
 	   for (int j=0; j<(6+pts); j++){
-	     Aside[0][j] = pow(INTERVALS_4_APPROX[i-1],j);
-	     Aside[1][j] = j*pow(INTERVALS_4_APPROX[i-1], j-1);
-	     Aside[2][j] = j*(j-1)*pow(INTERVALS_4_APPROX[i-1], j-2);
+	     Aside[0][j] = pow(intervals_4_approx[i-1],j);
+	     Aside[1][j] = j*pow(intervals_4_approx[i-1], j-1);
+	     Aside[2][j] = j*(j-1)*pow(intervals_4_approx[i-1], j-2);
 	   }
 	  }
 	  for (int j=0; j<(6+pts); j++){	   
-	    Aside[3][j] = pow(INTERVALS_4_APPROX[i],j);
-	    Aside[4][j] = j*pow(INTERVALS_4_APPROX[i], j-1);
-	    Aside[5][j] =  j*(j-1)*pow(INTERVALS_4_APPROX[i], j-2);
+	    Aside[3][j] = pow(intervals_4_approx[i],j);
+	    Aside[4][j] = j*pow(intervals_4_approx[i], j-1);
+	    Aside[5][j] =  j*(j-1)*pow(intervals_4_approx[i], j-2);
 	    switch (pts) {
 	      case 0 :
 		break;
 	      case 1 : 
 		if (i > 0) {
-		  Aside[6][j] =  pow((INTERVALS_4_APPROX[i]+INTERVALS_4_APPROX[i-1])/2, j);
+		  Aside[6][j] =  pow((intervals_4_approx[i]+intervals_4_approx[i-1])/2, j);
 		}
 		else {
-		  Aside[6][j] =  pow((INTERVALS_4_APPROX[i])/2, j) ;
+		  Aside[6][j] =  pow((intervals_4_approx[i])/2, j) ;
 		}
 		break;
 	      default :
@@ -354,72 +350,72 @@ bool init_polynomials(int n, double low_limit, double *points, int n_inside_poin
 	  }
 	  //Evaluate K(h) function.
 	  if (i<1){
-	    Bside[0] = K(0.0, layer);
+	    Bside[0] = constitutive->K(0.0, layer);
 	    Bside[1] = 0.0;
 	    Bside[2] = 0.0;
 	  }
 	  else {
-	    Bside[0] = K(INTERVALS_4_APPROX[i-1], layer);
-	    Bside[1] = dKdh(INTERVALS_4_APPROX[i-1], layer);
-	    Bside[2] = ddKdhh(INTERVALS_4_APPROX[i-1], layer);
+	    Bside[0] = constitutive->K(intervals_4_approx[i-1], layer);
+	    Bside[1] = constitutive->dKdh(intervals_4_approx[i-1], layer);
+	    Bside[2] = constitutive->ddKdhh(intervals_4_approx[i-1], layer);
 	  }
 	 
-	  Bside[3] = K(INTERVALS_4_APPROX[i], layer);
-	  Bside[4] = dKdh(INTERVALS_4_APPROX[i], layer);
-	  Bside[5] = ddKdhh(INTERVALS_4_APPROX[i], layer);  
+	  Bside[3] = constitutive->K(intervals_4_approx[i], layer);
+	  Bside[4] = constitutive->dKdh(intervals_4_approx[i], layer);
+	  Bside[5] = constitutive->ddKdhh(intervals_4_approx[i], layer);  
 	  
 	  switch (pts) {
 	      case 0 :
 		break;
 	      case 1 :
 		if (i > 0) {
-		  Bside[6] = K((INTERVALS_4_APPROX[i]+INTERVALS_4_APPROX[i-1])/2, layer);
+		  Bside[6] = constitutive->K((intervals_4_approx[i]+intervals_4_approx[i-1])/2, layer);
 		}
 		else {
-		  Bside[6] = K((INTERVALS_4_APPROX[i])/2, layer);
+		  Bside[6] = constitutive->K((intervals_4_approx[i])/2, layer);
 		}
 		break;
 	  }
 
 
 
-	  gem_full(Aside, Bside, K_POLS[i][layer][0], (6+pts));
+	  gem_full(Aside, Bside, constitutive->k_pols[i][layer][0], (6+pts));
 
 	  for (int j=1; j<3; j++){
 	    for (int k=0; k<5; k++){
-	      K_POLS[i][layer][j][k] = (k+1)*K_POLS[i][layer][j-1][k+1];
+	      constitutive->k_pols[i][layer][j][k] = (k+1)*constitutive->k_pols[i][layer][j-1][k+1];
 	    }
-	    K_POLS[i][layer][j][6-j] = 0.0;
+	    constitutive->k_pols[i][layer][j][6-j] = 0.0;
 	  }
 	  
 	  //Evaluate C(h) functions.
 	  if (i<1){
-	    Bside[0] = C(0.0, layer);
-	    Bside[1] = dCdh(0.0, layer);
+	    Bside[0] = constitutive->C(0.0, layer);
+	    Bside[1] = constitutive->dCdh(0.0, layer);
 	  }
 	  else {
-	    Bside[0] = C(INTERVALS_4_APPROX[i-1], layer);
-	    Bside[1] = dCdh(INTERVALS_4_APPROX[i-1], layer);
+	    Bside[0] = constitutive->C(intervals_4_approx[i-1], layer);
+	    Bside[1] = constitutive->dCdh(intervals_4_approx[i-1], layer);
 	  }
 	 
 	  //The first two lines of the matrix Aside stays the same.
 	  for (int j=0; j<4; j++){	   
-	    Aside[2][j] = pow(INTERVALS_4_APPROX[i],j);
-	    Aside[3][j] = j*pow(INTERVALS_4_APPROX[i], j-1);
+	    Aside[2][j] = pow(intervals_4_approx[i],j);
+	    Aside[3][j] = j*pow(intervals_4_approx[i], j-1);
 	  }
 
 	  
-	  Bside[2] = C(INTERVALS_4_APPROX[i], layer);
-	  Bside[3] = dCdh(INTERVALS_4_APPROX[i], layer);
+	  Bside[2] = constitutive->C(intervals_4_approx[i], layer);
+	  Bside[3] = constitutive->dCdh(intervals_4_approx[i], layer);
 	 
 	  
-	  gem_full(Aside, Bside, C_POLS[i][layer][0], 4);
+	  gem_full(Aside, Bside, constitutive->c_pols[i][layer][0], 4);
 	  
 	  for (int k=0; k<5; k++){
-	    C_POLS[i][layer][1][k] = (k+1)*C_POLS[i][layer][0][k+1];
+	    constitutive->c_pols[i][layer][1][k] = (k+1)*constitutive->c_pols[i][layer][0][k+1];
 	  }
 	  
-	  C_POLS[i][layer][1][5] = 0.0;
+	  constitutive->c_pols[i][layer][1][5] = 0.0;
 	
     }
     delete [] Aside;
@@ -427,7 +423,6 @@ bool init_polynomials(int n, double low_limit, double *points, int n_inside_poin
     break ;
   }
       
- 
   return true;
 }
 

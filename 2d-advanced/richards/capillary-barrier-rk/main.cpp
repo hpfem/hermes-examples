@@ -22,9 +22,6 @@
 //
 //  The following parameters can be changed:
 
-// Constitutive relations - van Genuchten or Gardner.
-#define CONSTITUTIVE_GENUCHTEN                    
-
 // Choose full domain or half domain.
 //const char* mesh_file = "domain-full.mesh";
 const char* mesh_file = "domain-half.mesh";
@@ -57,6 +54,14 @@ const int INIT_REF_NUM_BDY_TOP = 1;
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
 
+
+// Constitutive relations.
+enum CONSTITUTIVE_RELATIONS {
+    CONSTITUTIVE_GENUCHTEN,    // Van Genuchten.
+    CONSTITUTIVE_GARDNER       // Gardner.
+};
+// Use van Genuchten's constitutive relations, or Gardner's.
+CONSTITUTIVE_RELATIONS constitutive_relations_type = CONSTITUTIVE_GENUCHTEN;
 // Choose one of the following time-integration methods, or define your own Butcher's table. The last number 
 // in the name of each method is its order. The one before last, if present, is the number of stages.
 // Explicit methods:
@@ -95,15 +100,14 @@ double current_time = 0;
 double H_INIT = -15.0;                            
 // Top constant pressure head -- an infiltration experiment.
 double H_ELEVATION = 10.0;                        
-const double K_S_vals[4] = {350.2, 712.8, 1.68, 18.64}; 
-const double ALPHA_vals[4] = {0.01, 1.0, 0.01, 0.01};
-const double N_vals[4] = {2.5, 2.0, 1.23, 2.5};
-const double M_vals[4] = {0.864, 0.626, 0.187, 0.864};
+double K_S_vals[4] = {350.2, 712.8, 1.68, 18.64}; 
+double ALPHA_vals[4] = {0.01, 1.0, 0.01, 0.01};
+double N_vals[4] = {2.5, 2.0, 1.23, 2.5};
+double M_vals[4] = {0.864, 0.626, 0.187, 0.864};
 
-const double THETA_R_vals[4] = {0.064, 0.0, 0.089, 0.064};
-const double THETA_S_vals[4] = {0.14, 0.43, 0.43, 0.24};
-const double STORATIVITY_vals[4] = {0.1, 0.1, 0.1, 0.1};
-
+double THETA_R_vals[4] = {0.064, 0.0, 0.089, 0.064};
+double THETA_S_vals[4] = {0.14, 0.43, 0.43, 0.24};
+double STORATIVITY_vals[4] = {0.1, 0.1, 0.1, 0.1};
 
 // Precalculation of constitutive tables.
 const int MATERIAL_COUNT = 4;
@@ -112,21 +116,20 @@ const int MATERIAL_COUNT = 4;
 //     <TABLE_LIMIT; LOW_LIMIT> (very efficient CPU utilization less 
 //     efficient memory consumption (depending on TABLE_PRECISION)).
 // 2 - constitutive functions are aproximated by quintic splines.
-const int CONSTITUTIVE_TABLE_METHOD = 2;          
+const int CONSTITUTIVE_TABLE_METHOD = 2;
 						  
 /* Use only if CONSTITUTIVE_TABLE_METHOD == 2 */					  
 // Number of intervals.        
 const int NUM_OF_INTERVALS = 16;                                
 // Low limits of intervals approximated by quintic splines.
-const double INTERVALS_4_APPROX[16] = 
+double INTERVALS_4_APPROX[16] = 
       {-1.0, -2.0, -3.0, -4.0, -5.0, -8.0, -10.0, -12.0, 
       -15.0, -20.0, -30.0, -50.0, -75.0, -100.0,-300.0, -1000.0}; 
 // This array contains for each integer of h function appropriate polynomial ID.
-int* POL_SEARCH_HELP;                             
+                      
 // First DIM is the interval ID, second DIM is the material ID, 
 // third DIM is the derivative degree, fourth DIM are the coefficients.
-double**** K_POLS;                                
-double**** C_POLS;
+
 /* END OF Use only if CONSTITUTIVE_TABLE_METHOD == 2 */					  
 
 /* Use only if CONSTITUTIVE_TABLE_METHOD == 1 */
@@ -135,11 +138,7 @@ double**** C_POLS;
 double TABLE_LIMIT = -1000.0; 		          
 // Precision of precalculated table use 1.0, 0,1, 0.01, etc.....
 const double TABLE_PRECISION = 0.1;               
-double** K_TABLE;                                  
-double** dKdh_TABLE;
-double** ddKdhh_TABLE;
-double** C_TABLE;
-double** dCdh_TABLE;
+
 bool CONSTITUTIVE_TABLES_READY = false;
 // Polynomial approximation of the K(h) function close to saturation.
 // This function has singularity in its second derivative.
@@ -158,67 +157,37 @@ bool POLYNOMIALS_ALLOCATED = false;
 // Global variables for forms.
 double K_S, ALPHA, THETA_R, THETA_S, N, M, STORATIVITY;
 
-// Choose here which constitutive relations should be used.
-#ifdef CONSTITUTIVE_GENUCHTEN
-#include "constitutive_genuchten.cpp"
-#else
-#include "constitutive_gardner.cpp"
-#endif
-
-// Boundary markers.
-const int BDY_TOP = 1;
-const int BDY_RIGHT = 2;
-const int BDY_BOTTOM = 3;
-const int BDY_LEFT = 4;
-
-// Initial condition.
-double init_cond(double x, double y, double& dx, double& dy) {
-  dx = 0;
-  dy = 0;
-  return H_INIT;
-}
-
-// Essential (Dirichlet) boundary condition values.
-double essential_bc_values(double x, double y, double time)
-{
-  if (time < STARTUP_TIME)
-    return H_INIT + time/STARTUP_TIME*(H_ELEVATION-H_INIT);
-  else if (time > PULSE_END_TIME)
-    return H_INIT;
-  else
-    return H_ELEVATION;
-}
-
-// Weak forms.
-#include "definitions.cpp"
-
-// Additional functionality.
-#include "extras.cpp"
-
 // Main function.
 int main(int argc, char* argv[])
 {
+  ConstitutiveRelationsGenuchtenWithLayer constitutive_relations(CONSTITUTIVE_TABLE_METHOD, NUM_OF_INSIDE_PTS, LOW_LIMIT, TABLE_PRECISION, TABLE_LIMIT, K_S_vals, ALPHA_vals, N_vals, M_vals, THETA_R_vals, THETA_S_vals, STORATIVITY_vals);
+
   // Either use exact constitutive relations (slow) (method 0) or precalculate 
   // their linear approximations (faster) (method 1) or
   // precalculate their quintic polynomial approximations (method 2) -- managed by 
   // the following loop "Initializing polynomial approximation".
   if (CONSTITUTIVE_TABLE_METHOD == 1)
-    CONSTITUTIVE_TABLES_READY = get_constitutive_tables(1);  // 1 stands for the Newton's method.
-  // Points to be used for polynomial approximation of K(h).
-  double* points = new double[NUM_OF_INSIDE_PTS];
+    constitutive_relations.constitutive_tables_ready = get_constitutive_tables(1, &constitutive_relations, MATERIAL_COUNT);  // 1 stands for the Newton's method.
+  
 
   // The van Genuchten + Mualem K(h) function is approximated by polynomials close 
   // to zero in case of CONSTITUTIVE_TABLE_METHOD==1.
   // In case of CONSTITUTIVE_TABLE_METHOD==2, all constitutive functions are approximated by polynomials.
   info("Initializing polynomial approximations.");
-  for (int i=0; i < MATERIAL_COUNT; i++) {
-    init_polynomials(6 + NUM_OF_INSIDE_PTS, LOW_LIMIT, points, NUM_OF_INSIDE_PTS, i);
+  for (int i=0; i < MATERIAL_COUNT; i++)
+  {
+    // Points to be used for polynomial approximation of K(h).
+    double* points = new double[NUM_OF_INSIDE_PTS];
+
+    init_polynomials(6 + NUM_OF_INSIDE_PTS, LOW_LIMIT, points, NUM_OF_INSIDE_PTS, i, &constitutive_relations, MATERIAL_COUNT, NUM_OF_INTERVALS, INTERVALS_4_APPROX);
   }
-  POLYNOMIALS_READY = true;
-  if (CONSTITUTIVE_TABLE_METHOD == 2) {
-    CONSTITUTIVE_TABLES_READY = true ;
+  
+  constitutive_relations.polynomials_ready = true;
+  if (CONSTITUTIVE_TABLE_METHOD == 2)
+  {
+    constitutive_relations.constitutive_tables_ready = true;
     //Assign table limit to global definition.
-    TABLE_LIMIT = INTERVALS_4_APPROX[NUM_OF_INTERVALS-1];
+    constitutive_relations.table_limit = INTERVALS_4_APPROX[NUM_OF_INTERVALS-1];
   }
   
   // Choose a Butcher's table or define your own.
@@ -235,81 +204,107 @@ int main(int argc, char* argv[])
   // Perform initial mesh refinements.
   mesh.copy(&basemesh);
   for(int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
-  mesh.refine_towards_boundary(BDY_TOP, INIT_REF_NUM_BDY_TOP);
+  mesh.refine_towards_boundary("Top", INIT_REF_NUM_BDY_TOP);
 
   // Initialize boundary conditions.
-  BCTypes bc_types;
-  bc_types.add_bc_dirichlet(BDY_TOP);
-  bc_types.add_bc_neumann(Hermes::vector<int>(BDY_RIGHT, BDY_BOTTOM, BDY_LEFT));
-
-  // Enter Dirichlet boundary values.
-  BCValues bc_values(&current_time);
-  bc_values.add_timedep_function(BDY_TOP, essential_bc_values);
+  RichardsEssentialBC bc_essential("Top", H_ELEVATION, PULSE_END_TIME, H_INIT, STARTUP_TIME);
+  EssentialBCs<double> bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.
-  H1Space* space = new H1Space(&mesh, &bc_types, &bc_values, P_INIT);
-  int ndof = Space<double>::get_num_dofs(space);
+  H1Space<double> space(&mesh, &bcs, P_INIT);
+  int ndof = space.get_num_dofs();
   info("ndof = %d.", ndof);
 
-  // Solution<double> (initialized by the initial condition) and error function.
-  Solution<double>* sln_time_prev = new Solution(&mesh, init_cond);
-  Solution<double>* sln_time_new = new Solution(&mesh);
-  Solution<double>* time_error_fn = new Solution(&mesh, 0.0);
-  
+  // Initial condition vector is the zero vector. This is why we
+  // use the H_OFFSET. 
+  double* coeff_vec = new double[ndof];
+  memset(coeff_vec, 0, ndof*sizeof(double));
+
+  // Convert initial condition into a Solution.
+  Solution<double> h_time_prev, h_time_new, time_error_fn;
+  Solution<double>::vector_to_solution(coeff_vec, &space, &h_time_prev);
+  Solution<double>::vector_to_solution(coeff_vec, &space, &time_error_fn);
+  delete [] coeff_vec;
+
+  // Initialize views.
+  ScalarView view("Initial condition", new WinGeom(0, 0, 600, 500));
+  view.fix_scale_width(80);
+
+  // Visualize the initial condition.
+  view.show(&h_time_prev);
+
   // Initialize the weak formulation.
-  WeakForm wf;
-  info("Registering forms for the Newton's method.");
-  wf.add_matrix_form(jac_form_vol, jac_form_vol_ord, HERMES_NONSYM, HERMES_ANY, sln_time_prev);
-  wf.add_vector_form(res_form_vol, res_form_vol_ord, HERMES_ANY, sln_time_prev);
+  CustomWeakFormRichardsRK wf(&constitutive_relations);
 
-  // Initialize the FE problem.
-  bool is_linear = false;
-  DiscreteProblem<double> dp(&wf, space, is_linear);
-
-  // Visualize the projection and mesh.
+   // Visualize the projection and mesh.
   ScalarView sview("Initial condition", new WinGeom(0, 0, 400, 350));
   sview.fix_scale_width(50);
-  sview.show(sln_time_prev, HERMES_EPS_VERYHIGH);
+  sview.show(&h_time_prev, HERMES_EPS_VERYHIGH);
   ScalarView eview("Temporal error", new WinGeom(405, 0, 400, 350));
   eview.fix_scale_width(50);
-  eview.show(time_error_fn, HERMES_EPS_VERYHIGH);
+  eview.show(&time_error_fn, HERMES_EPS_VERYHIGH);
   OrderView oview("Initial mesh", new WinGeom(810, 0, 350, 350));
-  oview.show(space);
+  oview.show(&space);
 
   // Graph for time step history.
   SimpleGraph time_step_graph;
   info("Time step history will be saved to file time_step_history.dat.");
 
-  // Time stepping loop:
+  // Initialize the FE problem.
+  DiscreteProblem<double> dp(&wf, &space);
+
+  // Initialize Runge-Kutta time stepping.
+  RungeKutta<double> runge_kutta(&dp, &bt, matrix_solver_type);
+
+  // Time stepping:
+  double current_time = 0;
   int ts = 1;
   do 
   {
+    info("---- Time step %d, time %3.5f s", ts, current_time);
+
+    Space<double>::update_essential_bc_values(&space, current_time);
+
     // Perform one Runge-Kutta time step according to the selected Butcher's table.
-    info("Runge-Kutta time step (t = %g, tau = %g, stages: %d).", 
+    info("Runge-Kutta time step (t = %g s, time step = %g s, stages: %d).", 
          current_time, time_step, bt.get_size());
+    bool freeze_jacobian = false;
+    bool block_diagonal_jacobian = false;
     bool verbose = true;
-    bool is_linear = false;
-    if (!rk_time_step_newton(current_time, time_step, &bt, sln_time_prev, sln_time_new, time_error_fn, &dp, matrix_solver_type,
-		      verbose, is_linear, NEWTON_TOL, NEWTON_MAX_ITER)) {
+    double damping_coeff = 1.0;
+    double max_allowed_residual_norm = 1e10;
+
+    try
+    {
+      runge_kutta.rk_time_step_newton(current_time, time_step, &h_time_prev, 
+          &h_time_new, &time_error_fn, freeze_jacobian, block_diagonal_jacobian, verbose,
+          NEWTON_TOL, NEWTON_MAX_ITER, damping_coeff, max_allowed_residual_norm);
+    }
+    catch(Exceptions::Exception& e)
+    {
       info("Runge-Kutta time step failed, decreasing time step size from %g to %g days.", 
            time_step, time_step * time_step_dec);
-           time_step *= time_step_dec;
-           if (time_step < time_step_min) error("Time step became too small.");
-	   continue;
+      time_step *= time_step_dec;
+      if (time_step < time_step_min) 
+        error("Time step became too small.");
+      continue;
     }
+    
+    // Copy solution for the new time step.
+    h_time_prev.copy(&h_time_new);
 
     // Show error function.
     char title[100];
     sprintf(title, "Temporal error, t = %g", current_time);
     eview.set_title(title);
-    eview.show(time_error_fn, HERMES_EPS_VERYHIGH);
+    eview.show(&time_error_fn, HERMES_EPS_VERYHIGH);
 
     // Calculate relative time stepping error and decide whether the 
     // time step can be accepted. If not, then the time step size is 
     // reduced and the entire time step repeated. If yes, then another
     // check is run, and if the relative error is very low, time step 
     // is increased.
-    double rel_err_time = calc_norm(time_error_fn, HERMES_H1_NORM) / calc_norm(sln_time_new, HERMES_H1_NORM) * 100;
+    double rel_err_time = Global<double>::calc_norm(&time_error_fn, HERMES_H1_NORM) / Global<double>::calc_norm(&h_time_new, HERMES_H1_NORM) * 100;
     info("rel_err_time = %g%%", rel_err_time);
     if (rel_err_time > time_tol_upper) {
       info("rel_err_time above upper limit %g%% -> decreasing time step from %g to %g days and repeating time step.", 
@@ -333,31 +328,25 @@ int main(int argc, char* argv[])
     // Show the new time level solution.
     sprintf(title, "Solution, t = %g", current_time);
     sview.set_title(title);
-    sview.show(sln_time_new, HERMES_EPS_VERYHIGH);
-    oview.show(space);
+    sview.show(&h_time_new, HERMES_EPS_VERYHIGH);
+    oview.show(&space);
 
     // Save complete Solution.
     char filename[100];
     sprintf(filename, "outputs/tsln_%f.dat", current_time);
-    bool compress = false;   // Gzip compression not used as it only works on Linux.
-    sln_time_new->save(filename, compress);
+    h_time_new.save(filename);
     info("Solution at time %g saved to file %s.", current_time, filename);
 
     // Save solution for the next time step.
-    sln_time_prev->copy(sln_time_new);
+    h_time_prev.copy(&h_time_new);
 
-    // Increase counter of time steps.
+    // Increase time step counter.
     ts++;
   } 
   while (current_time < T_FINAL);
 
-  // Cleanup.
-  delete space;
-  delete sln_time_prev;
-  delete sln_time_new;
-  delete time_error_fn;
-
-  // Wait for all views to be closed.
+  // Wait for the view to be closed.
   View::wait();
   return 0;
 }
+
