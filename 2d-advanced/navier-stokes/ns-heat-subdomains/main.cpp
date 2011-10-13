@@ -86,18 +86,10 @@ int main(int argc, char* argv[])
   MeshReaderH2DXML mloader;
   mloader.load("subdomains.xml", meshes);
 
-  MeshView mv;
-  mv.show(meshes[0]);
+  MeshView m1,m2;
+  m1.show(&mesh_whole_domain);
+  m2.show(&mesh_without_hole);
   View::wait();
-
-    for(unsigned int meshes_i = 0; meshes_i < meshes.size(); meshes_i++)
-      meshes[meshes_i]->refine_all_elements();
-
-  MeshView mv2;
-  mv2.show(meshes[0]);
-  View::wait();
-
-
 
   // Perform initial mesh refinements (optional).
   // Uniform.
@@ -110,10 +102,6 @@ int main(int argc, char* argv[])
   // Towards the top and bottom edges.
   for(unsigned int meshes_i = 0; meshes_i < meshes.size(); meshes_i++)
     meshes[meshes_i]->refine_towards_boundary("Outer Wall", INIT_REF_NUM_WALL);
-
-  MeshView mv3;
-  mv3.show(meshes[0]);
-  View::wait();
 
   // Initialize boundary conditions.
   // Flow.

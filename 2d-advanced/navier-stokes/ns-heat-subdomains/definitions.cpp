@@ -64,29 +64,29 @@ CustomWeakFormHeatAndFlow::CustomWeakFormHeatAndFlow(bool Stokes, double Reynold
     add_vector_form(F_2);
 
     // Jacobian volumetric part.
-    add_matrix_form(new BilinearFormTime(3, 3, "Outside", specific_heat_water, rho_water, time_step));
-    add_matrix_form(new BilinearFormTime(3, 3, "Graphite Circle", specific_heat_graphite, rho_graphite, time_step));
+    add_matrix_form(new BilinearFormTime(3, 3, "Water", specific_heat_water, rho_water, time_step));
+    add_matrix_form(new BilinearFormTime(3, 3, "Graphite", specific_heat_graphite, rho_graphite, time_step));
 
-    add_matrix_form(new WeakFormsH1::DefaultJacobianDiffusion<double>(3, 3, "Outside", new Hermes1DFunction<double>(thermal_conductivity_water)));
-    add_matrix_form(new WeakFormsH1::DefaultJacobianDiffusion<double>(3, 3, "Graphite Circle", new Hermes1DFunction<double>(thermal_conductivity_graphite)));
-    add_matrix_form(new CustomJacobianAdvection(3, 3, "Outside"));
+    add_matrix_form(new WeakFormsH1::DefaultJacobianDiffusion<double>(3, 3, "Water", new Hermes1DFunction<double>(thermal_conductivity_water)));
+    add_matrix_form(new WeakFormsH1::DefaultJacobianDiffusion<double>(3, 3, "Graphite", new Hermes1DFunction<double>(thermal_conductivity_graphite)));
+    add_matrix_form(new CustomJacobianAdvection(3, 3, "Water"));
 
     // Residual - volumetric.
-    VectorFormTime *vft = new VectorFormTime(3, "Outside", specific_heat_water, rho_water, time_step);
+    VectorFormTime *vft = new VectorFormTime(3, "Water", specific_heat_water, rho_water, time_step);
     Hermes::vector<MeshFunction<double>*> mesh_function_vector_outside;
     mesh_function_vector_outside.push_back(T_prev_time);
     vft->ext = mesh_function_vector_outside;
     add_vector_form(vft);
 
-    vft = new VectorFormTime(3, "Graphite Circle", specific_heat_graphite, rho_graphite, time_step);
+    vft = new VectorFormTime(3, "Graphite", specific_heat_graphite, rho_graphite, time_step);
     Hermes::vector<MeshFunction<double>*> mesh_function_vector_graphite;
     mesh_function_vector_graphite.push_back(T_prev_time);
     vft->ext = mesh_function_vector_graphite;
     add_vector_form(vft);
 
-    add_vector_form(new WeakFormsH1::DefaultResidualDiffusion<double>(3, "Outside", new Hermes1DFunction<double>(thermal_conductivity_water)));
-    add_vector_form(new WeakFormsH1::DefaultResidualDiffusion<double>(3, "Graphite Circle", new Hermes1DFunction<double>(thermal_conductivity_graphite)));
-    add_vector_form(new CustomResidualAdvection(3, "Outside"));
+    add_vector_form(new WeakFormsH1::DefaultResidualDiffusion<double>(3, "Water", new Hermes1DFunction<double>(thermal_conductivity_water)));
+    add_vector_form(new WeakFormsH1::DefaultResidualDiffusion<double>(3, "Graphite", new Hermes1DFunction<double>(thermal_conductivity_graphite)));
+    add_vector_form(new CustomResidualAdvection(3, "Water"));
     
-    add_vector_form(new WeakFormsH1::DefaultVectorFormVol<double>(3, "Graphite Circle", new Hermes::Hermes2DFunction<double>(-heat_source)));
+    add_vector_form(new WeakFormsH1::DefaultVectorFormVol<double>(3, "Graphite", new Hermes::Hermes2DFunction<double>(-heat_source)));
   };

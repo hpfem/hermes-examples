@@ -36,7 +36,6 @@
     <domain:quad v1="7" v2="6" v3="2" v4="3" marker="Water" i="3"/>
     <domain:quad v1="0" v2="4" v3="15" v4="14" marker="Water" i="4"/>
     <domain:quad v1="14" v2="15" v3="7" v4="3" marker="Water" i="5"/>
-    <domain:quad v1="0" v2="1" v3="5" v4="4" marker="Water" i="6"/>
     <domain:quad v1="1" v2="12" v3="20" v4="19" marker="Water" i="7"/>
     <domain:quad v1="19" v2="20" v3="13" v4="2" marker="Water" i="8"/>
                 
@@ -90,7 +89,6 @@
         <i>3</i>
         <i>4</i>
         <i>5</i>
-        <i>6</i>
         <i>7</i>
         <i>8</i>
       </elements>
