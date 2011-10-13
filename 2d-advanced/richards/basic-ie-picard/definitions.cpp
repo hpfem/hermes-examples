@@ -1,53 +1,11 @@
 #include "definitions.h"
 
-// Problem parameters.
-double k_s = 20.464;
-double alpha = 0.001;
-double theta_r = 0;
-double theta_s = 0.45;
-
 // The pressure head is raised by H_OFFSET 
 // so that the initial condition can be taken
 // as the zero vector. Note: the resulting 
 // pressure head will also be greater than the 
 // true one by this offset.
 double H_OFFSET = 1000;
-
-double K(double h)
-{
-  if (h < 0) return k_s * exp(alpha * h);
-  else return k_s;    
-}
-
-double dKdh(double h)
-{
-  if (h < 0) return k_s * alpha * exp(alpha * h);
-  else return 0;
-}
-
-double ddKdhh(double h)
-{
-  if (h < 0) return k_s * alpha * alpha * exp(alpha * h);
-  else return 0;
-}
-
-double C(double h)
-{
-  if (h < 0) return alpha * (theta_s - theta_r) * exp(alpha * h);
-  else return alpha * (theta_s - theta_r);    
-}
-
-double dCdh(double h)
-{
-  if (h < 0) return alpha * (theta_s - theta_r) * alpha * exp(alpha * h);
-  else return 0;    
-}
-
-double ddCdhh(double h)
-{
-  if (h < 0) return alpha * alpha * (theta_s - theta_r) * alpha * exp(alpha * h);
-  else return 0;    
-}
 
 /* Custom non-constant Dirichlet condition */
 
@@ -64,7 +22,7 @@ double CustomEssentialBCNonConst::value(double x, double y, double n_x, double n
 
 /* Custom weak forms */
 
-CustomWeakFormRichardsIEPicard::CustomWeakFormRichardsIEPicard(double time_step, Solution<double>* h_time_prev, Solution<double>* h_iter_prev) : WeakForm<double>(1)
+CustomWeakFormRichardsIEPicard::CustomWeakFormRichardsIEPicard(double time_step, Solution<double>* h_time_prev, Solution<double>* h_iter_prev, ConstitutiveRelations* constitutive) : WeakForm<double>(1), constitutive(constitutive) 
 {
   // Jacobian.
   CustomJacobian* matrix_form = new CustomJacobian(0, 0, time_step);
@@ -91,9 +49,9 @@ double CustomWeakFormRichardsIEPicard::CustomJacobian::value(int n, double *wt, 
     double h_prev_newton_i = h_prev_newton->val[i] - H_OFFSET;
     double h_prev_picard_i = h_prev_picard->val[i] - H_OFFSET;
     double h_prev_time_i = h_prev_time->val[i] - H_OFFSET;
-    result += wt[i] * (   C(h_prev_picard_i) * u->val[i] * v->val[i]
-                        + K(h_prev_picard_i) * (u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i]) * time_step
-                        - dKdh(h_prev_picard_i) * u->dy[i] * v->val[i] * time_step
+    result += wt[i] * (   static_cast<CustomWeakFormRichardsIEPicard*>(wf)->constitutive->C(h_prev_picard_i) * u->val[i] * v->val[i]
+                        + static_cast<CustomWeakFormRichardsIEPicard*>(wf)->constitutive->K(h_prev_picard_i) * (u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i]) * time_step
+                        - static_cast<CustomWeakFormRichardsIEPicard*>(wf)->constitutive->dKdh(h_prev_picard_i) * u->dy[i] * v->val[i] * time_step
                       );
   }
   return result;
@@ -122,10 +80,10 @@ double CustomWeakFormRichardsIEPicard::CustomResidual::value(int n, double *wt, 
     double h_prev_newton_i = h_prev_newton->val[i] - H_OFFSET;
     double h_prev_picard_i = h_prev_picard->val[i] - H_OFFSET;
     double h_prev_time_i = h_prev_time->val[i] - H_OFFSET;
-    result += wt[i] * (   C(h_prev_picard_i) * (h_prev_newton_i - h_prev_time_i) * v->val[i]
-                        + K(h_prev_picard_i) * (h_prev_newton->dx[i] * v->dx[i] + h_prev_newton->dy[i] * v->dy[i]) * time_step
-                        - dKdh(h_prev_picard_i) * h_prev_newton->dy[i] * v->val[i] * time_step
-                      );
+    result += wt[i] * (   static_cast<CustomWeakFormRichardsIEPicard*>(wf)->constitutive->C(h_prev_picard_i) * (h_prev_newton_i - h_prev_time_i) * v->val[i]
+                        + static_cast<CustomWeakFormRichardsIEPicard*>(wf)->constitutive->K(h_prev_picard_i) * (h_prev_newton->dx[i] * v->dx[i] + h_prev_newton->dy[i] * v->dy[i]) * time_step
+                        - static_cast<CustomWeakFormRichardsIEPicard*>(wf)->constitutive->dKdh(h_prev_picard_i) * h_prev_newton->dy[i] * v->val[i] * time_step
+                       );
   }
   return result;
 }
