@@ -1,35 +1,12 @@
 #include "hermes2d.h"
 
-// Choose here which constitutive relations should be used.
-#ifdef CONSTITUTIVE_GENUCHTEN
-#include "../constitutive_genuchten.cpp"
-#else
-#include "../constitutive_gardner.cpp"
-#endif
+#include "../constitutive.h"
 
 using namespace Hermes;
 using namespace Hermes::Hermes2D;
 using namespace Hermes::Hermes2D::WeakFormsH1;
 using namespace Hermes::Hermes2D::Views;
 using namespace Hermes::Hermes2D::RefinementSelectors;
-
-// K (Gardner).
-double K(double h);
-
-// dK/dh (Gardner).
-double dKdh(double h);
-
-// ddK/dhh (Gardner).
-double ddKdhh(double h);
-
-// C (Gardner).
-double C(double h);
-
-// dC/dh (Gardner).
-double dCdh(double h);
-
-// ddC/dhh (Gardner).
-double ddCdhh(double h);
 
 /* Custom non-constant Dirichlet condition */
 
@@ -52,15 +29,15 @@ public:
 class CustomWeakFormRichardsRK : public WeakForm<double>
 {
 public:
-  CustomWeakFormRichardsRK();
+  CustomWeakFormRichardsRK(ConstitutiveRelations* constitutive);
 
 private:
 
   class CustomJacobianFormVol : public MatrixFormVol<double>
   {
   public:
-    CustomJacobianFormVol(int i, int j) 
-          : MatrixFormVol<double>(i, j) 
+    CustomJacobianFormVol(int i, int j, ConstitutiveRelations* constitutive)
+      : MatrixFormVol<double>(i, j), constitutive(constitutive)
     {
     }
 
@@ -71,13 +48,14 @@ private:
                     Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const;
 
     virtual MatrixFormVol<double>* clone();
+    ConstitutiveRelations* constitutive;
   };
 
   class CustomResidualFormVol : public VectorFormVol<double>
   {
   public:
-    CustomResidualFormVol(int i)
-          : VectorFormVol<double>(i) 
+    CustomResidualFormVol(int i, ConstitutiveRelations* constitutive)
+      : VectorFormVol<double>(i), constitutive(constitutive)
     {
     }
 
@@ -88,6 +66,6 @@ private:
                     ExtData<Ord> *ext) const;
 
     virtual VectorFormVol<double>* clone();
+    ConstitutiveRelations* constitutive;
   };
 };
-
