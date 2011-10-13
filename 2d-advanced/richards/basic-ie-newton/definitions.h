@@ -1,27 +1,11 @@
 #include "hermes2d.h"
 
+#include "../constitutive.h"
+
 using namespace Hermes;
 using namespace Hermes::Hermes2D;
 using namespace Hermes::Hermes2D::WeakFormsH1;
 using namespace Hermes::Hermes2D::Views;
-
-// K (Gardner).
-double K(double h);
-
-// dK/dh (Gardner).
-double dKdh(double h);
-
-// ddK/dhh (Gardner).
-double ddKdhh(double h);
-
-// C (Gardner).
-double C(double h);
-
-// dC/dh (Gardner).
-double dCdh(double h);
-
-// ddC/dhh (Gardner).
-double ddCdhh(double h);
 
 /* Custom non-constant Dirichlet condition */
 
@@ -44,7 +28,7 @@ public:
 class CustomWeakFormRichardsIE : public WeakForm<double>
 {
 public:
-  CustomWeakFormRichardsIE(double time_step, Solution<double>* h_time_prev);
+  CustomWeakFormRichardsIE(double time_step, Solution<double>* h_time_prev, ConstitutiveRelations* constitutive);
 
 private:
 
@@ -83,5 +67,6 @@ private:
 
     double time_step;
   };
-};
 
+  ConstitutiveRelations* constitutive;
+};
