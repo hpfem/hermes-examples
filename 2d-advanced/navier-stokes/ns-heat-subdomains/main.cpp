@@ -26,7 +26,7 @@ const int P_INIT_TEMP = 2;
 // Number of initial uniform mesh refinements.
 const int INIT_REF_NUM = 3;        
 // Number of initial mesh refinements towards the hole.
-const int INIT_REF_NUM_HOLE = 4;   
+const int INIT_REF_NUM_WALL = 3;   
 
 // Domain sizes (need to be compatible with mesh file).
 // Domain height (necessary to define the parabolic
@@ -73,7 +73,7 @@ const double T_FINAL = 30000.0;
 // Stopping criterion for the Newton's method.
 const double NEWTON_TOL = 1e-4;                   
 // Maximum allowed number of Newton iterations.
-const int NEWTON_MAX_ITER = 10;                   
+const int NEWTON_MAX_ITER = 100;                   
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 Hermes::MatrixSolverType matrix_solver_type = Hermes::SOLVER_UMFPACK;  
@@ -86,26 +86,46 @@ int main(int argc, char* argv[])
   MeshReaderH2DXML mloader;
   mloader.load("subdomains.xml", meshes);
 
-  // Perform initial mesh refinements (optional).
-  for(int i = 0; i < INIT_REF_NUM; i++)
+  MeshView mv;
+  mv.show(meshes[0]);
+  View::wait();
+
     for(unsigned int meshes_i = 0; meshes_i < meshes.size(); meshes_i++)
       meshes[meshes_i]->refine_all_elements();
 
-  // Perform refinement towards the hole.
+  MeshView mv2;
+  mv2.show(meshes[0]);
+  View::wait();
+
+
+
+  // Perform initial mesh refinements (optional).
+  // Uniform.
+  for(int i = 0; i < INIT_REF_NUM; i++)
+    for(unsigned int meshes_i = 0; meshes_i < meshes.size(); meshes_i++)
+      meshes[meshes_i]->refine_all_elements();
+  // Towards the hole.
   for(unsigned int meshes_i = 0; meshes_i < meshes.size(); meshes_i++)
-    meshes[meshes_i]->refine_towards_boundary("Inner", INIT_REF_NUM_HOLE);
+    meshes[meshes_i]->refine_towards_boundary("Inner Wall", INIT_REF_NUM_WALL);
+  // Towards the top and bottom edges.
+  for(unsigned int meshes_i = 0; meshes_i < meshes.size(); meshes_i++)
+    meshes[meshes_i]->refine_towards_boundary("Outer Wall", INIT_REF_NUM_WALL);
+
+  MeshView mv3;
+  mv3.show(meshes[0]);
+  View::wait();
 
   // Initialize boundary conditions.
   // Flow.
   EssentialBCNonConst bc_inlet_vel_x("Inlet", VEL_INLET, H, STARTUP_TIME);
-  DefaultEssentialBCConst<double> bc_other_vel_x(Hermes::vector<std::string>("Outer", "Inner"), 0.0);
+  DefaultEssentialBCConst<double> bc_other_vel_x(Hermes::vector<std::string>("Outer Wall", "Inner Wall"), 0.0);
   EssentialBCs<double> bcs_vel_x(Hermes::vector<EssentialBoundaryCondition<double> *>(&bc_inlet_vel_x, &bc_other_vel_x));
-  DefaultEssentialBCConst<double> bc_vel_y(Hermes::vector<std::string>("Inlet", "Outer", "Inner"), 0.0);
+  DefaultEssentialBCConst<double> bc_vel_y(Hermes::vector<std::string>("Inlet", "Outer Wall", "Inner Wall"), 0.0);
   EssentialBCs<double> bcs_vel_y(&bc_vel_y);
   EssentialBCs<double> bcs_pressure;
 
   // Temperature.
-  DefaultEssentialBCConst<double> bc_temperature(Hermes::vector<std::string>("Inlet", "Outer"), 20.0);
+  DefaultEssentialBCConst<double> bc_temperature(Hermes::vector<std::string>("Inlet", "Outer Wall"), 20.0);
   EssentialBCs<double> bcs_temperature(&bc_temperature);
 
   // Spaces for velocity components and pressure.
@@ -163,14 +183,16 @@ int main(int argc, char* argv[])
   NewtonSolver<double> newton(&dp, matrix_solver_type);
 
   // Initialize views.
-  Views::VectorView vview("velocity [m/s]", new Views::WinGeom(0, 0, 500, 300));
-  Views::ScalarView pview("pressure [Pa]", new Views::WinGeom(0, 310, 500, 300));
-  Views::ScalarView tempview("temperature [C]", new Views::WinGeom(510, 0, 500, 300));
+  Views::VectorView vview("velocity [m/s]", new Views::WinGeom(0, 0, 700, 360));
+  Views::ScalarView pview("pressure [Pa]", new Views::WinGeom(0, 415, 700, 350));
+  Views::ScalarView tempview("temperature [C]", new Views::WinGeom(0, 795, 700, 350));
   vview.set_min_max_range(0, 1.6);
   vview.fix_scale_width(80);
   //pview.set_min_max_range(-0.9, 1.0);
   pview.fix_scale_width(80);
-  pview.show_mesh(true);
+  pview.show_mesh(false);
+  tempview.fix_scale_width(80);
+  tempview.show_mesh(false);
 
   // Project the initial condition on the FE space to obtain initial
   // coefficient vector for the Newton's method.
@@ -215,7 +237,7 @@ int main(int argc, char* argv[])
     {
       Hermes::vector<Solution<double> *> tmp(&xvel_prev_time, &yvel_prev_time, &p_prev_time, &temperature_prev_time);
       Solution<double>::vector_to_solutions(newton.get_sln_vector(), Hermes::vector<Space<double> *>(&xvel_space, 
-                                            &yvel_space, &p_space, &temperature_space), tmp);
+          &yvel_space, &p_space, &temperature_space), tmp);
     }
     
     // Show the solution at the end of time step.
