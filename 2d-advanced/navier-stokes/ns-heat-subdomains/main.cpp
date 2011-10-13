@@ -31,12 +31,12 @@ const int INIT_REF_NUM_HOLE = 4;
 // Domain sizes (need to be compatible with mesh file).
 // Domain height (necessary to define the parabolic
 // velocity profile at inlet).
-const double H = 6;                               
+const double H = 10;                               
 // For the calculation of Reynolds number.
-const double OBSTACLE_DIAMETER = 2.8284;     
+const double OBSTACLE_DIAMETER = 7.0710678118654752440084436210485;     
 // For the definition of custom initial condition.     
-const double HOLE_MID_X = 3.0;
-const double HOLE_MID_Y = 3.0;
+const double HOLE_MID_X = 5.0;
+const double HOLE_MID_Y = 5.0;
 
 // Problem parameters.
 // Inlet velocity (reached after STARTUP_TIME).

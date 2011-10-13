@@ -5,32 +5,48 @@
   <vertices>
     <vertex x="0" y="0" i="0"/>
     <vertex x="10" y="0" i="1"/>
-    <vertex x="10" y="6" i="2"/>
-    <vertex x="0" y="6" i="3"/>
-    <vertex x="2" y="2" i="4"/>
-    <vertex x="4" y="2" i="5"/>
-    <vertex x="4" y="4" i="6"/>
-    <vertex x="2" y="4" i="7"/>
+    <vertex x="10" y="10" i="2"/>
+    <vertex x="0" y="10" i="3"/>
+    <vertex x="2.5" y="2.5" i="4"/>
+    <vertex x="7.5" y="2.5" i="5"/>
+    <vertex x="7.5" y="7.5" i="6"/>
+    <vertex x="2.5" y="7.5" i="7"/>
+    <vertex x="4" y="4" i="8"/>
+    <vertex x="6" y="4" i="9"/>
+    <vertex x="6" y="6" i="10"/>
+    <vertex x="4" y="6" i="11"/>
+    
+    <vertex x="20" y="0" i="12"/>
+    <vertex x="20" y="10" i="13"/>
   </vertices>
 
   <elements>
     <domain:quad v1="0" v2="1" v3="5" v4="4" marker="Outside" i="0"/>
-    <domain:quad v1="1" v2="2" v3="6" v4="5" marker="Outside" i="1"/>
-    <domain:quad v1="2" v2="3" v3="7" v4="6" marker="Outside" i="2"/>
-    <domain:quad v1="3" v2="0" v3="4" v4="7" marker="Outside" i="3"/>
-    <domain:quad v1="4" v2="5" v3="6" v4="7" marker="Graphite Circle" i="4"/>
+    <domain:quad v1="5" v2="1" v3="2" v4="6" marker="Outside" i="1"/>
+    <domain:quad v1="7" v2="6" v3="2" v4="3" marker="Outside" i="2"/>
+    <domain:quad v1="0" v2="4" v3="7" v4="3" marker="Outside" i="3"/>
+    <domain:quad v1="1" v2="12" v3="13" v4="2" marker="Outside" i="4"/>
+                
+    <domain:quad v1="4" v2="5" v3="9" v4="8" marker="Graphite Circle" i="5"/>
+    <domain:quad v1="9" v2="5" v3="6" v4="10" marker="Graphite Circle" i="6"/>
+    <domain:quad v1="11" v2="10" v3="6" v4="7" marker="Graphite Circle" i="7"/>
+    <domain:quad v1="4" v2="8" v3="11" v4="7" marker="Graphite Circle" i="8"/>
+    <domain:quad v1="8" v2="9" v3="10" v4="11" marker="Graphite Circle" i="9"/>
   </elements>
 
   <edges>
     <edge v1="0" v2="1" marker="Outer" i="0"/>
-    <edge v1="1" v2="2" marker="Outlet" i="1"/>
-    <edge v1="2" v2="3" marker="Outer" i="2"/>
-    <edge v1="3" v2="0" marker="Inlet" i="3"/>
+    <edge v1="1" v2="12" marker="Outer" i="1"/>
+    <edge v1="12" v2="13" marker="Outlet" i="2"/>
+    <edge v1="13" v2="2" marker="Outer" i="3"/>
+    <edge v1="2" v2="3" marker="Outer" i="4"/>
+    
+    <edge v1="3" v2="0" marker="Inlet" i="5"/>
 
-    <edge v1="4" v2="5" marker="Inner" i="4"/>
-    <edge v1="5" v2="6" marker="Inner" i="5"/>
-    <edge v1="6" v2="7" marker="Inner" i="6"/>
-    <edge v1="7" v2="4" marker="Inner" i="7"/>
+    <edge v1="4" v2="5" marker="Inner" i="6"/>
+    <edge v1="5" v2="6" marker="Inner" i="7"/>
+    <edge v1="6" v2="7" marker="Inner" i="8"/>
+    <edge v1="7" v2="4" marker="Inner" i="9"/>
   </edges> 
   
   <curves>
@@ -43,11 +59,13 @@
   <subdomains>
     <subdomain name="Whole domain" />
     <subdomain name="The inner circle">
+
       <elements>
         <i>0</i>
         <i>1</i>
         <i>2</i>
         <i>3</i>
+        <i>4</i>
       </elements>
     </subdomain>
   </subdomains>
