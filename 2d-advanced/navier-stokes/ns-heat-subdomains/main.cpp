@@ -24,7 +24,7 @@ const int P_INIT_PRESSURE = 1;
 // Initial polynomial degree for temperature.
 const int P_INIT_TEMP = 2;         
 // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM = 3;        
+const int INIT_REF_NUM = 2;        
 // Number of initial mesh refinements towards the hole.
 const int INIT_REF_NUM_WALL = 3;   
 
@@ -33,7 +33,7 @@ const int INIT_REF_NUM_WALL = 3;
 // velocity profile at inlet).
 const double H = 10;                               
 // For the calculation of Reynolds number.
-const double OBSTACLE_DIAMETER = 7.0710678118654752440084436210485;     
+const double OBSTACLE_DIAMETER = 4*std::sqrt(2.0);    
 // For the definition of custom initial condition.     
 const double HOLE_MID_X = 5.0;
 const double HOLE_MID_Y = 5.0;
@@ -67,7 +67,7 @@ const double HEAT_SOURCE_GRAPHITE = 1e7;
 // from 0 to VEL_INLET, then it stays constant.
 const double STARTUP_TIME = 1.0;                  
 // Time step.
-const double time_step = 0.1;                     
+const double time_step = 0.2;                     
 // Time interval length.
 const double T_FINAL = 30000.0;                   
 // Stopping criterion for the Newton's method.
@@ -81,14 +81,14 @@ Hermes::MatrixSolverType matrix_solver_type = Hermes::SOLVER_UMFPACK;
 int main(int argc, char* argv[])
 {
   // Load the mesh.
-  Mesh mesh_whole_domain, mesh_without_hole;
-  Hermes::vector<Mesh*> meshes (&mesh_whole_domain, &mesh_without_hole);
+  Mesh mesh_whole_domain, mesh_with_hole;
+  Hermes::vector<Mesh*> meshes (&mesh_whole_domain, &mesh_with_hole);
   MeshReaderH2DXML mloader;
   mloader.load("subdomains.xml", meshes);
 
-  MeshView m1,m2;
+  MeshView m1("Mesh for temperature"), m2("Mesh for flow");
   m1.show(&mesh_whole_domain);
-  m2.show(&mesh_without_hole);
+  m2.show(&mesh_with_hole);
   View::wait();
 
   // Perform initial mesh refinements (optional).
@@ -117,12 +117,12 @@ int main(int argc, char* argv[])
   EssentialBCs<double> bcs_temperature(&bc_temperature);
 
   // Spaces for velocity components and pressure.
-  H1Space<double> xvel_space(&mesh_without_hole, &bcs_vel_x, P_INIT_VEL);
-  H1Space<double> yvel_space(&mesh_without_hole, &bcs_vel_y, P_INIT_VEL);
+  H1Space<double> xvel_space(&mesh_with_hole, &bcs_vel_x, P_INIT_VEL);
+  H1Space<double> yvel_space(&mesh_with_hole, &bcs_vel_y, P_INIT_VEL);
 #ifdef PRESSURE_IN_L2
-  L2Space<double> p_space(&mesh_without_hole, P_INIT_PRESSURE);
+  L2Space<double> p_space(&mesh_with_hole, P_INIT_PRESSURE);
 #else
-  H1Space<double> p_space(&mesh_without_hole, &bcs_pressure, P_INIT_PRESSURE);
+  H1Space<double> p_space(&mesh_with_hole, &bcs_pressure, P_INIT_PRESSURE);
 #endif
   // Space<double> for temperature.
   H1Space<double> temperature_space(&mesh_whole_domain, &bcs_temperature, P_INIT_TEMP);
@@ -142,7 +142,7 @@ int main(int argc, char* argv[])
 
   // Solutions for the Newton's iteration and time stepping.
   info("Setting initial conditions.");
-  ZeroSolution xvel_prev_time(&mesh_without_hole), yvel_prev_time(&mesh_without_hole), p_prev_time(&mesh_without_hole);
+  ZeroSolution xvel_prev_time(&mesh_with_hole), yvel_prev_time(&mesh_with_hole), p_prev_time(&mesh_with_hole);
 
   // Initial solution for temperature.
   CustomInitialCondition temperature_ic(&mesh_whole_domain, HOLE_MID_X, HOLE_MID_Y, 
