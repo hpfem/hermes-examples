@@ -25,9 +25,6 @@
 //
 //  The following parameters can be changed:
 
-// Use van Genuchten's constitutive relations, or Gardner's.
-#define CONSTITUTIVE_GENUCHTEN
-
 // Number of initial uniform mesh refinements.
 const int INIT_GLOB_REF_NUM = 3;                  
 // Number of initial refinements towards boundary.
@@ -41,6 +38,22 @@ const double T_FINAL = 0.4;
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
+
+// Problem parameters.
+double K_S = 20.464;
+double ALPHA = 0.001;
+double THETA_R = 0;
+double THETA_S = 0.45;
+
+double M, N, STORATIVITY;
+
+// Constitutive relations.
+enum CONSTITUTIVE_RELATIONS {
+    CONSTITUTIVE_GENUCHTEN,    // Van Genuchten.
+    CONSTITUTIVE_GARDNER       // Gardner.
+};
+// Use van Genuchten's constitutive relations, or Gardner's.
+CONSTITUTIVE_RELATIONS constitutive_relations_type = CONSTITUTIVE_GARDNER;
 
 // Newton's method.
 // Stopping criterion for the Newton's method.
@@ -109,8 +122,15 @@ int main(int argc, char* argv[])
   // Visualize the initial condition.
   view.show(&h_time_prev);
 
+  // Initialize the constitutive relations.
+  ConstitutiveRelations* constitutive_relations;
+  if(constitutive_relations_type == CONSTITUTIVE_GENUCHTEN)
+    constitutive_relations = new ConstitutiveRelationsGenuchten(ALPHA, M, N, THETA_S, THETA_R, K_S, STORATIVITY);
+  else
+    constitutive_relations = new ConstitutiveRelationsGardner(ALPHA, THETA_S, THETA_R, K_S);
+
   // Initialize the weak formulation.
-  CustomWeakFormRichardsRK wf;
+  CustomWeakFormRichardsRK wf(constitutive_relations);
 
   // Initialize the FE problem.
   DiscreteProblem<double> dp(&wf, &space);

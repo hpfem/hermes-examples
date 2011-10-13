@@ -9,7 +9,7 @@ public:
   virtual double ddKdhh(double h) = 0;
   virtual double C(double h) = 0;
   virtual double dCdh(double h) = 0;
-
+  virtual double ddCdhh(double h) = 0;
 protected:
   double alpha, theta_s, theta_r, k_s;
 };
@@ -55,6 +55,12 @@ public:
     else return 0;    
   }
 
+  // ddC/dhh (Gardner).
+  double ddCdhh(double h)
+  {
+    if (h < 0) return alpha * alpha * (theta_s - theta_r) * alpha * exp(alpha * h);
+    else return 0;    
+  }
 };
 
 class ConstitutiveRelationsGenuchten : public ConstitutiveRelations
@@ -158,6 +164,13 @@ public:
     else return 0;    
   }
 
+  // ddC/dhh (Gardner).
+  /// \todo This is not correct, the correct relation should be here.
+  // it is e.g. used in basic-rk-newton.
+  double ddCdhh(double h)
+  {
+    return 0.0;
+  }
 private:
   double m, n, storativity;
 };

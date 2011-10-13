@@ -1,27 +1,11 @@
 #include "hermes2d.h"
 
+#include "../constitutive.h"
+
 using namespace Hermes;
 using namespace Hermes::Hermes2D;
 using namespace Hermes::Hermes2D::WeakFormsH1;
 using namespace Hermes::Hermes2D::Views;
-
-// K (Gardner).
-double K(double h);
-
-// dK/dh (Gardner).
-double dKdh(double h);
-
-// ddK/dhh (Gardner).
-double ddKdhh(double h);
-
-// C (Gardner).
-double C(double h);
-
-// dC/dh (Gardner).
-double dCdh(double h);
-
-// ddC/dhh (Gardner).
-double ddCdhh(double h);
 
 /* Custom non-constant Dirichlet condition */
 
@@ -29,14 +13,14 @@ class CustomEssentialBCNonConst : public EssentialBoundaryCondition<double>
 {
 public:
   CustomEssentialBCNonConst(Hermes::vector<std::string>(markers))       
-        : EssentialBoundaryCondition<double>(markers) 
+    : EssentialBoundaryCondition<double>(markers) 
   {
   }
 
   virtual EssentialBCValueType get_value_type() const;
 
   virtual double value(double x, double y, double n_x, double n_y, 
-                       double t_x, double t_y) const;
+    double t_x, double t_y) const;
 };
 
 /* Weak forms */
@@ -44,42 +28,43 @@ public:
 class CustomWeakFormRichardsRK : public WeakForm<double>
 {
 public:
-  CustomWeakFormRichardsRK();
+  CustomWeakFormRichardsRK(ConstitutiveRelations* constitutive);
 
 private:
 
   class CustomJacobianFormVol : public MatrixFormVol<double>
   {
   public:
-    CustomJacobianFormVol(int i, int j) 
-          : MatrixFormVol<double>(i, j) 
+    CustomJacobianFormVol(int i, int j, ConstitutiveRelations* constitutive)
+      : MatrixFormVol<double>(i, j), constitutive(constitutive)
     {
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
-                         Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
+      Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, 
-                    Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const;
+      Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const;
 
     virtual MatrixFormVol<double>* clone();
+    ConstitutiveRelations* constitutive;
   };
 
   class CustomResidualFormVol : public VectorFormVol<double>
   {
   public:
-    CustomResidualFormVol(int i)
-          : VectorFormVol<double>(i) 
+    CustomResidualFormVol(int i, ConstitutiveRelations* constitutive)
+      : VectorFormVol<double>(i), constitutive(constitutive)
     {
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e,
-                         ExtData<double> *ext) const;
+      ExtData<double> *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
-                    ExtData<Ord> *ext) const;
+      ExtData<Ord> *ext) const;
 
     virtual VectorFormVol<double>* clone();
+    ConstitutiveRelations* constitutive;
   };
 };
-

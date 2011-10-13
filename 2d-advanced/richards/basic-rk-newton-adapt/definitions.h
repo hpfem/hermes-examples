@@ -1,5 +1,12 @@
 #include "hermes2d.h"
 
+// Choose here which constitutive relations should be used.
+#ifdef CONSTITUTIVE_GENUCHTEN
+#include "../constitutive_genuchten.cpp"
+#else
+#include "../constitutive_gardner.cpp"
+#endif
+
 using namespace Hermes;
 using namespace Hermes::Hermes2D;
 using namespace Hermes::Hermes2D::WeakFormsH1;
