@@ -60,9 +60,8 @@ const double RHO_WATER = 1000;
 // Also found on Wikipedia.
 const double SPECIFIC_HEAT_GRAPHITE = 711;        
 const double SPECIFIC_HEAT_WATER = 4187;            
-// Heat source inside of the inner circle. This value is not 
-// realistic - we just want this thing to heat up quickly.
-const double HEAT_SOURCE_GRAPHITE = 1e7;          
+// Heat source in graphite. This value is not realistic.
+const double HEAT_SOURCE_GRAPHITE = 1e5;          
 // During this time, inlet velocity increases gradually
 // from 0 to VEL_INLET, then it stays constant.
 const double STARTUP_TIME = 1.0;                  
