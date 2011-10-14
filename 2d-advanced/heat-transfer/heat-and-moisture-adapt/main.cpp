@@ -145,7 +145,7 @@ int main(int argc, char* argv[])
   // Load the mesh.
   Mesh basemesh, T_mesh, w_mesh;
   MeshReaderH2D mloader;
-  mloader.load("domain2.mesh", &basemesh);
+  mloader.load("domain.mesh", &basemesh);
 
   // Create temperature and moisture meshes.
   // This also initializes the multimesh hp-FEM.
