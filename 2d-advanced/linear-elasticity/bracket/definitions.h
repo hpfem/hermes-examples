@@ -1,67 +1,15 @@
 #include "hermes2d.h"
 
-/* Namespaces used */
-
 using namespace Hermes;
 using namespace Hermes::Hermes2D;
-using namespace Hermes::Hermes2D::Views;
-using namespace Hermes::Hermes2D::RefinementSelectors;
+using namespace Hermes::Hermes2D::WeakFormsH1;
 using namespace Hermes::Hermes2D::WeakFormsElasticity;
+using namespace Hermes::Hermes2D::Views;
+using namespace RefinementSelectors;
 
-class CustomWeakForm : public DefaultWeakFormLinearElasticity
+class CustomWeakFormLinearElasticity : public WeakForm<double>
 {
 public:
-  CustomWeakForm(double E, double nu, double rho_g, std::string non_zero_neumann_bnd, double f0, double f1) 
-            : DefaultWeakFormLinearElasticity(E, nu, rho_g) {
-    double lambda = (E * nu) / ((1 + nu) * (1 - 2*nu));  // First Lame constant.
-    double mu = E / (2*(1 + nu));                        // Second Lame constant.
-
-    add_vector_form_surf(new VectorFormSurfForce_0(non_zero_neumann_bnd, f0));
-    add_vector_form_surf(new VectorFormSurfForce_1(non_zero_neumann_bnd, f1));
-  };
-
-private:
-  class VectorFormSurfForce_0 : public VectorFormSurf<double>
-  {
-  public:
-    VectorFormSurfForce_0(std::string marker, double f0) : VectorFormSurf<double>(0, marker), f0(f0) {}
-
-    template<typename Real, typename Scalar>
-    Scalar vector_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const {
-      return f0 * int_v<Real, Scalar>(n, wt, v);
-    }
-
-    virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, ExtData<double> *ext) const {
-      return vector_form<double, double>(n, wt, u_ext, v, e, ext);
-    }
-
-    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const {
-      return vector_form<Ord, Ord>(n, wt, u_ext, v, e, ext);
-    }
-
-    // Member.
-    double f0;
-  };
-
-  class VectorFormSurfForce_1 : public VectorFormSurf<double>
-  {
-  public:
-    VectorFormSurfForce_1(std::string marker, double f1) : VectorFormSurf<double>(1, marker), f1(f1) {}
-
-    template<typename Real, typename Scalar>
-    Scalar vector_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const {
-      return f1 * int_v<Real, Scalar>(n, wt, v);
-    }
-
-    virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, ExtData<double> *ext) const {
-      return vector_form<double, double>(n, wt, u_ext, v, e, ext);
-    }
-
-    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const {
-      return vector_form<Ord, Ord>(n, wt, u_ext, v, e, ext);
-    }
-
-    // Member.
-    double f1;
-  };
+  CustomWeakFormLinearElasticity(double E, double nu, double rho_g,
+      std::string surface_force_bdy, double f0, double f1);
 };

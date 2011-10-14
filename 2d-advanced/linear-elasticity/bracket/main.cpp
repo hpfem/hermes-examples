@@ -57,12 +57,13 @@ const double ERR_STOP = 0.3;
 // Adaptivity process stops when the number of degrees of freedom grows over
 // this limit. This is mainly to prevent h-adaptivity to go on forever.
 const int NDOF_STOP = 60000;                      
+// Stopping criterion for the Newton's method.
+const double NEWTON_TOL = 1e-6;                            
+// Maximum allowed number of Newton iterations.
+const int NEWTON_MAX_ITER = 100;                           
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
-
-// Boundary markers.
-const std::string BDY_RIGHT = "1", BDY_TOP = "2";
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
 
 // Problem parameters.
 // Young modulus for steel: 200 GPa.
@@ -76,10 +77,7 @@ const double g1 = -9.81;
 // Surface force in x-direction.
 const double f0  = 0;                             
 // Surface force in y-direction.
-const double f1  = 1e3;                           
-
-// Weak forms.
-#include "definitions.cpp"
+const double f1  = -1e3;
 
 int main(int argc, char* argv[])
 {
@@ -90,7 +88,7 @@ int main(int argc, char* argv[])
   // Load the mesh.
   Mesh u1_mesh, u2_mesh;
   MeshReaderH2D mloader;
-  mloader.load("bracket.mesh", &u1_mesh);
+  mloader.load("domain.mesh", &u1_mesh);
 
   // Initial mesh refinements.
   u1_mesh.refine_element_id(1);
@@ -101,7 +99,7 @@ int main(int argc, char* argv[])
   u2_mesh.copy(&u1_mesh);
 
   // Initialize boundary conditions.
-  DefaultEssentialBCConst<double> zero_disp(BDY_RIGHT, 0.0);
+  DefaultEssentialBCConst<double> zero_disp("bdy_right", 0.0);
   EssentialBCs<double> bcs(&zero_disp);
 
   // Create x- and y- displacement space using the default H1 shapeset.
@@ -111,13 +109,14 @@ int main(int argc, char* argv[])
 
   // Initialize the weak formulation.
   // NOTE; These weak forms are identical to those in example P01-linear/08-system.
-  CustomWeakForm wf(E, nu, rho*g1, BDY_TOP, f0, f1);
+  CustomWeakFormLinearElasticity wf(E, nu, rho*g1, "bdy_top", f0, f1);
 
   // Initialize the FE problem.
   DiscreteProblem<double> dp(&wf, Hermes::vector<Space<double> *>(&u1_space, &u2_space));
 
   // Initialize coarse and reference mesh solutions.
-  Solution<double> u1_sln, u2_sln, u1_ref_sln, u2_ref_sln;
+  Solution<double> u1_sln, u2_sln;
+  Solution<double> u1_sln_ref, u2_sln_ref;
 
   // Initialize refinement selector.
   H1ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
@@ -142,33 +141,50 @@ int main(int argc, char* argv[])
     info("---- Adaptivity step %d:", as);
 
     // Construct globally refined reference mesh and setup reference space.
-    Hermes::vector<Space<double> *>* ref_spaces = Space<double>::construct_refined_spaces(Hermes::vector<Space<double> *>(&u1_space, &u2_space));
+    Hermes::vector<Space<double> *>* ref_spaces = 
+        Space<double>::construct_refined_spaces(Hermes::vector<Space<double> *>(&u1_space, &u2_space));
+    Space<double>* u_ref_space = (*ref_spaces)[0];
+    Space<double>* v_ref_space = (*ref_spaces)[1];
+    int ndof_ref = Space<double>::get_num_dofs(*ref_spaces);
 
-    // Initialize matrix solver.
-    SparseMatrix<double>* matrix = create_matrix<double>(matrix_solver_type);
-    Vector<double>* rhs = create_vector<double>(matrix_solver_type);
-    LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver_type, matrix, rhs);
-
-    // Assemble the reference problem.
-    info("Solving on reference mesh.");
+    // Initialize the FE problem.
     DiscreteProblem<double> dp(&wf, *ref_spaces);
-    dp.assemble(matrix, rhs);
+
+    // Initial coefficient vector for the Newton's method.  
+    double* coeff_vec_ref = new double[ndof_ref];
+    memset(coeff_vec_ref, 0, ndof_ref*sizeof(double));
+
+    // Initialize Newton solver.
+    NewtonSolver<double> newton(&dp, matrix_solver);
+    newton.set_verbose_output(true);
+
     // Time measurement.
     cpu_time.tick();
-    
-    // Solve the linear system of the reference problem. If successful, obtain the solutions.
-    if(solver->solve()) Solution<double>::vector_to_solutions(solver->get_sln_vector(), *ref_spaces, 
-                                            Hermes::vector<Solution *>(&u1_ref_sln, &u2_ref_sln));
-    else error ("Matrix solver failed.\n");
+
+    // Perform Newton's iteration.
+    info("Solving on reference mesh.");
+    try
+    {
+      newton.solve(coeff_vec_ref, NEWTON_TOL, NEWTON_MAX_ITER);
+    }
+    catch(Hermes::Exceptions::Exception e)
+    {
+      e.printMsg();
+      error("Newton's iteration failed.");
+    }
   
     // Time measurement.
     cpu_time.tick();
 
+    // Translate the resulting coefficient vector into the Solution sln.
+    Solution<double>::vector_to_solutions(coeff_vec_ref, *ref_spaces, 
+        Hermes::vector<Solution<double> *>(&u1_sln_ref, &u2_sln_ref));
+
     // Project the fine mesh solution onto the coarse mesh.
     info("Projecting reference solution on coarse mesh.");
     OGProjection<double>::project_global(Hermes::vector<Space<double> *>(&u1_space, &u2_space), 
-                                 Hermes::vector<Solution<double> *>(&u1_ref_sln, &u2_ref_sln), 
-                                 Hermes::vector<Solution<double> *>(&u1_sln, &u2_sln), matrix_solver_type); 
+        Hermes::vector<Solution<double> *>(&u1_sln_ref, &u2_sln_ref), 
+        Hermes::vector<Solution<double> *>(&u1_sln, &u2_sln), matrix_solver); 
    
     // View the coarse mesh solution and polynomial orders.
     s_view_0.show(&u1_sln); 
@@ -199,7 +215,7 @@ int main(int argc, char* argv[])
     info("Calculating error estimate and exact error."); 
     Hermes::vector<double> err_est_rel;
     double err_est_rel_total = adaptivity->calc_err_est(Hermes::vector<Solution<double> *>(&u1_sln, &u2_sln), 
-                               Hermes::vector<Solution<double> *>(&u1_ref_sln, &u2_ref_sln), &err_est_rel) * 100;
+                               Hermes::vector<Solution<double> *>(&u1_sln_ref, &u2_sln_ref), &err_est_rel) * 100;
 
     // Time measurement.
     cpu_time.tick();
@@ -232,14 +248,12 @@ int main(int argc, char* argv[])
     if (Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&u1_space, &u2_space)) >= NDOF_STOP) done = true;
 
     // Clean up.
-    delete solver;
-    delete matrix;
-    delete rhs;
     delete adaptivity;
     if(done == false)
       for(unsigned int i = 0; i < ref_spaces->size(); i++)
         delete (*ref_spaces)[i]->get_mesh();
     delete ref_spaces;
+    delete [] coeff_vec_ref;
     
     // Increase counter.
     as++;
@@ -250,14 +264,14 @@ int main(int argc, char* argv[])
 
   // Show the reference solution - the final result.
   s_view_0.set_title("Fine mesh solution (x-displacement)");
-  s_view_0.show(&u1_ref_sln);
+  s_view_0.show(&u1_sln_ref);
   s_view_1.set_title("Fine mesh solution (y-displacement)");
-  s_view_1.show(&u2_ref_sln);
+  s_view_1.show(&u2_sln_ref);
   // For von Mises stress Filter.
   double lambda = (E * nu) / ((1 + nu) * (1 - 2*nu));
   double mu = E / (2*(1 + nu));
-  VonMisesFilter stress(Hermes::vector<MeshFunction<double> *>(&u1_ref_sln, &u2_ref_sln), lambda, mu);
-  mises_view.show(&stress, HERMES_EPS_HIGH, H2D_FN_VAL_0, &u1_ref_sln, &u2_ref_sln, 1e4);
+  VonMisesFilter stress(Hermes::vector<MeshFunction<double> *>(&u1_sln_ref, &u2_sln_ref), lambda, mu);
+  mises_view.show(&stress, HERMES_EPS_HIGH, H2D_FN_VAL_0, &u1_sln_ref, &u2_sln_ref, 1e4);
 
   // Wait for all views to be closed.
   View::wait();
