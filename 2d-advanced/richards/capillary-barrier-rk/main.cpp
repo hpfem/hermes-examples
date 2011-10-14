@@ -18,7 +18,6 @@
 //         time: days
 //
 //  BC: Dirichlet, given by the initial condition.
-//  IC: See the function init_cond().
 //
 //  The following parameters can be changed:
 
@@ -62,6 +61,7 @@ enum CONSTITUTIVE_RELATIONS {
 };
 // Use van Genuchten's constitutive relations, or Gardner's.
 CONSTITUTIVE_RELATIONS constitutive_relations_type = CONSTITUTIVE_GENUCHTEN;
+
 // Choose one of the following time-integration methods, or define your own Butcher's table. The last number 
 // in the name of each method is its order. The one before last, if present, is the number of stages.
 // Explicit methods:

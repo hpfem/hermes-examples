@@ -21,13 +21,9 @@
 //  Units: length: cm
 //         time: days
 //
-//
 //  BC: Dirichlet, given by the initial condition.
 //
 //  The following parameters can be changed:
-
-// Choose either CONSTITUTIVE_GARDNER or CONSTITUTIVE_GENUCHTEN.
-CONSTITUTIVE_RELATIONS constitutive_relations = CONSTITUTIVE_GENUCHTEN;
 
 // Choose full domain or half domain.
 // const char* mesh_file = "domain-full.mesh";
@@ -101,6 +97,14 @@ const int NDOF_STOP = 60000;
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
 
+// Constitutive relations.
+enum CONSTITUTIVE_RELATIONS {
+    CONSTITUTIVE_GENUCHTEN,    // Van Genuchten.
+    CONSTITUTIVE_GARDNER       // Gardner.
+};
+// Use van Genuchten's constitutive relations, or Gardner's.
+CONSTITUTIVE_RELATIONS constitutive_relations_type = CONSTITUTIVE_GENUCHTEN;
+
 // Newton's and Picard's methods.
 // Stopping criterion for Newton on fine mesh.
 const double NEWTON_TOL = 1e-5;                   
@@ -118,8 +122,64 @@ const double STARTUP_TIME = 5.0;
 const double T_FINAL = 1000.0;                    
 // Time interval of the top layer infiltration.
 const double PULSE_END_TIME = 1000.0;             
-// Global time variable initialized with first time step.
-double current_time = time_step;                  
+// Global time variable.
+double current_time = time_step;                          
+
+// Problem parameters.
+// Initial pressure head.
+double H_INIT = -15.0;                            
+// Top constant pressure head -- an infiltration experiment.
+double H_ELEVATION = 10.0;                        
+double K_S_vals[4] = {350.2, 712.8, 1.68, 18.64}; 
+double ALPHA_vals[4] = {0.01, 1.0, 0.01, 0.01};
+double N_vals[4] = {2.5, 2.0, 1.23, 2.5};
+double M_vals[4] = {0.864, 0.626, 0.187, 0.864};
+
+double THETA_R_vals[4] = {0.064, 0.0, 0.089, 0.064};
+double THETA_S_vals[4] = {0.14, 0.43, 0.43, 0.24};
+double STORATIVITY_vals[4] = {0.1, 0.1, 0.1, 0.1};
+
+// Precalculation of constitutive tables.
+const int MATERIAL_COUNT = 4;
+// 0 - constitutive functions are evaluated directly (slow performance).
+// 1 - constitutive functions are linearly approximated on interval 
+//     <TABLE_LIMIT; LOW_LIMIT> (very efficient CPU utilization less 
+//     efficient memory consumption (depending on TABLE_PRECISION)).
+// 2 - constitutive functions are aproximated by quintic splines.
+const int CONSTITUTIVE_TABLE_METHOD = 2;
+						  
+/* Use only if CONSTITUTIVE_TABLE_METHOD == 2 */					  
+// Number of intervals.        
+const int NUM_OF_INTERVALS = 16;                                
+// Low limits of intervals approximated by quintic splines.
+double INTERVALS_4_APPROX[16] = 
+      {-1.0, -2.0, -3.0, -4.0, -5.0, -8.0, -10.0, -12.0, 
+      -15.0, -20.0, -30.0, -50.0, -75.0, -100.0,-300.0, -1000.0}; 
+// This array contains for each integer of h function appropriate polynomial ID.
+                      
+// First DIM is the interval ID, second DIM is the material ID, 
+// third DIM is the derivative degree, fourth DIM are the coefficients.
+
+/* END OF Use only if CONSTITUTIVE_TABLE_METHOD == 2 */					  
+
+/* Use only if CONSTITUTIVE_TABLE_METHOD == 1 */
+// Limit of precalculated functions (should be always negative value lower 
+// then the lowest expect value of the solution (consider DMP!!)
+double TABLE_LIMIT = -1000.0; 		          
+// Precision of precalculated table use 1.0, 0,1, 0.01, etc.....
+const double TABLE_PRECISION = 0.1;               
+
+bool CONSTITUTIVE_TABLES_READY = false;
+// Polynomial approximation of the K(h) function close to saturation.
+// This function has singularity in its second derivative.
+// First dimension is material ID
+// Second dimension is the polynomial derivative.
+// Third dimension are the polynomial's coefficients.
+double*** POLYNOMIALS;                            	  
+// Lower bound of K(h) function approximated by polynomials.						  
+const double LOW_LIMIT = -1.0;                    
+const int NUM_OF_INSIDE_PTS = 0;
+/* END OF Use only if CONSTITUTIVE_TABLE_METHOD == 1 */
 
 // Boundary markers.
 const std::string BDY_TOP = "1";
@@ -130,30 +190,34 @@ const std::string BDY_LEFT = "4";
 // Main function.
 int main(int argc, char* argv[])
 {
-  ConstitutiveRelations* relations;
-  if(constitutive_relations == CONSTITUTIVE_GENUCHTEN)
-    relations = new ConstitutiveGenuchten(LOW_LIMIT, POLYNOMIALS_READY, CONSTITUTIVE_TABLE_METHOD, 
-                NUM_OF_INSIDE_PTS, TABLE_LIMIT, ALPHA_vals, N_vals, M_vals, K_S_vals, THETA_R_vals,
-    THETA_S_vals, STORATIVITY_vals, TABLE_PRECISION, MATERIAL_COUNT, POLYNOMIALS_ALLOCATED, 
-                NUM_OF_INTERVALS, ITERATIVE_METHOD);
-  else
-    relations = new ConstitutiveGardner(K_S_vals[0], ALPHA_vals[0], THETA_S_vals[0], THETA_R_vals[0], 
-                CONSTITUTIVE_TABLE_METHOD);
+  ConstitutiveRelationsGenuchtenWithLayer constitutive_relations(CONSTITUTIVE_TABLE_METHOD, NUM_OF_INSIDE_PTS, LOW_LIMIT, TABLE_PRECISION, TABLE_LIMIT, K_S_vals, ALPHA_vals, N_vals, M_vals, THETA_R_vals, THETA_S_vals, STORATIVITY_vals);
 
-  // Points to be used for polynomial approximation of K(h).
-  double* points = new double[NUM_OF_INSIDE_PTS];
+  // Either use exact constitutive relations (slow) (method 0) or precalculate 
+  // their linear approximations (faster) (method 1) or
+  // precalculate their quintic polynomial approximations (method 2) -- managed by 
+  // the following loop "Initializing polynomial approximation".
+  if (CONSTITUTIVE_TABLE_METHOD == 1)
+    constitutive_relations.constitutive_tables_ready = get_constitutive_tables(1, &constitutive_relations, MATERIAL_COUNT);  // 1 stands for the Newton's method.
+
 
   // The van Genuchten + Mualem K(h) function is approximated by polynomials close 
   // to zero in case of CONSTITUTIVE_TABLE_METHOD==1.
   // In case of CONSTITUTIVE_TABLE_METHOD==2, all constitutive functions are approximated by polynomials.
   info("Initializing polynomial approximations.");
   for (int i=0; i < MATERIAL_COUNT; i++)
-    relations->init_polynomials(6 + NUM_OF_INSIDE_PTS, LOW_LIMIT, points, NUM_OF_INSIDE_PTS, i);
-  relations->polynomials_ready = true;
-  if (CONSTITUTIVE_TABLE_METHOD == 2) {
-    relations->constitutive_tables_ready = true ;
+  {
+    // Points to be used for polynomial approximation of K(h).
+    double* points = new double[NUM_OF_INSIDE_PTS];
+
+    init_polynomials(6 + NUM_OF_INSIDE_PTS, LOW_LIMIT, points, NUM_OF_INSIDE_PTS, i, &constitutive_relations, MATERIAL_COUNT, NUM_OF_INTERVALS, INTERVALS_4_APPROX);
+  }
+  
+  constitutive_relations.polynomials_ready = true;
+  if (CONSTITUTIVE_TABLE_METHOD == 2)
+  {
+    constitutive_relations.constitutive_tables_ready = true;
     //Assign table limit to global definition.
-    relations->table_limit = INTERVALS_4_APPROX[NUM_OF_INTERVALS-1];
+    constitutive_relations.table_limit = INTERVALS_4_APPROX[NUM_OF_INTERVALS-1];
   }
 
   // Time measurement.
@@ -168,10 +232,10 @@ int main(int argc, char* argv[])
   // Perform initial mesh refinements.
   mesh.copy(&basemesh);
   for(int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
-  mesh.refine_towards_boundary(BDY_TOP, INIT_REF_NUM_BDY_TOP);
+  mesh.refine_towards_boundary("Top", INIT_REF_NUM_BDY_TOP);
 
   // Initialize boundary conditions.
-  RichardsEssentialBC bc_essential(BDY_TOP, H_ELEVATION, PULSE_END_TIME, H_INIT, STARTUP_TIME);
+  RichardsEssentialBC bc_essential("Top", H_ELEVATION, PULSE_END_TIME, H_INIT, STARTUP_TIME);
   EssentialBCs<double> bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.
@@ -192,17 +256,17 @@ int main(int argc, char* argv[])
   if (ITERATIVE_METHOD == 1) {
     if (TIME_INTEGRATION == 1) {
       info("Creating weak formulation for the Newton's method (implicit Euler in time).");
-      wf = new WeakFormRichardsNewtonEuler(relations, time_step, &sln_prev_time, &mesh);
+      wf = new WeakFormRichardsNewtonEuler(&constitutive_relations, time_step, &sln_prev_time, &mesh);
     }
     else {
       info("Creating weak formulation for the Newton's method (Crank-Nicolson in time).");
-      wf = new WeakFormRichardsNewtonCrankNicolson(relations, time_step, &sln_prev_time, &mesh);
+      wf = new WeakFormRichardsNewtonCrankNicolson(&constitutive_relations, time_step, &sln_prev_time, &mesh);
     }
   }
   else {
     if (TIME_INTEGRATION == 1) {
       info("Creating weak formulation for the Picard's method (implicit Euler in time).");
-      wf = new WeakFormRichardsPicardEuler(relations, time_step, &sln_prev_iter, &sln_prev_time, &mesh);
+      wf = new WeakFormRichardsPicardEuler(&constitutive_relations, time_step, &sln_prev_iter, &sln_prev_time, &mesh);
     }
     else {
       info("Creating weak formulation for the Picard's method (Crank-Nicolson in time).");
