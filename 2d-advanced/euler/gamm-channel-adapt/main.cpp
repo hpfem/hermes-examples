@@ -49,9 +49,9 @@ bool REUSE_SOLUTION = false;
 // Initial polynomial degree. 
 const int P_INIT = 0;                                                  
 // Number of initial uniform mesh refinements.  
-const int INIT_REF_NUM = 2;                                            
+const int INIT_REF_NUM = 2;
 // CFL value.
-double CFL_NUMBER = 1.0;                          
+double CFL_NUMBER = 0.5;                          
 // Initial time step.
 double time_step_n = 1E-6;                        
 // Initial time step.
@@ -78,7 +78,7 @@ const double THRESHOLD = 0.3;
 //   than THRESHOLD times maximum element error.
 // STRATEGY = 2 ... refine all elements whose error is larger
 //   than THRESHOLD.
-const int STRATEGY = 1;                           
+const int STRATEGY = 1;
 
 // Predefined list of element refinement candidates. Possible values are
 // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
@@ -101,7 +101,7 @@ const int MESH_REGULARITY = -1;
 const double CONV_EXP = 1;                        
 
 // Stopping criterion for adaptivity.
-const double ERR_STOP = 0.5;                     
+const double ERR_STOP = 0.4;                     
 
 // Adaptivity process stops when the number of degrees of freedom grows over
 // this limit. This is mainly to prevent h-adaptivity to go on forever.
@@ -208,8 +208,9 @@ int main(int argc, char* argv[])
   }
 
   // Time stepping loop.
-  for(; t < 3.0; t += time_step_n)
+  for(; t < 3.5; t += time_step_n)
   {
+    CFL.set_number(CFL_NUMBER + (t/3.5) * 1.0);
     info("---- Time step %d, time %3.5f.", iteration++, t);
     // Periodic global derefinements.
     if (iteration > 1 && iteration % UNREF_FREQ == 0 && REFINEMENT_COUNT > 0) 
