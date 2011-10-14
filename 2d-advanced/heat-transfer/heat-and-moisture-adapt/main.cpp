@@ -2,7 +2,7 @@
 #define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
 
-
+using namespace RefinementSelectors;
 
 // This example solves adaptively a time-dependent coupled problem of heat and moisture 
 // transfer in massive concrete walls of a nuclear reactor vessel (simplified axi-symmetric 
@@ -63,13 +63,36 @@ const int NDOF_STOP = 100000;
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
 
+// Newton's method
+// Stopping criterion for Newton on fine mesh.
+const double NEWTON_TOL = 1e-5;                   
+// Maximum allowed number of Newton iterations.
+const int NEWTON_MAX_ITER = 20;                   
+
+// Choose one of the following time-integration methods, or define your own Butcher's table. The last number
+// in the name of each method is its order. The one before last, if present, is the number of stages.
+// Explicit methods:
+//   Explicit_RK_1, Explicit_RK_2, Explicit_RK_3, Explicit_RK_4.
+// Implicit methods:
+//   Implicit_RK_1, Implicit_Crank_Nicolson_2_2, Implicit_SIRK_2_2, Implicit_ESIRK_2_2, Implicit_SDIRK_2_2,
+//   Implicit_Lobatto_IIIA_2_2, Implicit_Lobatto_IIIB_2_2, Implicit_Lobatto_IIIC_2_2, Implicit_Lobatto_IIIA_3_4,
+//   Implicit_Lobatto_IIIB_3_4, Implicit_Lobatto_IIIC_3_4, Implicit_Radau_IIA_3_5, Implicit_SDIRK_5_4.
+// Embedded explicit methods:
+//   Explicit_HEUN_EULER_2_12_embedded, Explicit_BOGACKI_SHAMPINE_4_23_embedded, Explicit_FEHLBERG_6_45_embedded,
+//   Explicit_CASH_KARP_6_45_embedded, Explicit_DORMAND_PRINCE_7_45_embedded.
+// Embedded implicit methods:
+//   Implicit_SDIRK_CASH_3_23_embedded, Implicit_ESDIRK_TRBDF2_3_23_embedded, Implicit_ESDIRK_TRX2_3_23_embedded,
+//   Implicit_SDIRK_BILLINGTON_3_23_embedded, Implicit_SDIRK_CASH_5_24_embedded, Implicit_SDIRK_CASH_5_34_embedded,
+//   Implicit_DIRK_ISMAIL_7_45_embedded.
+ButcherTableType butcher_table_type = Implicit_RK_1;
+
 // Time step and simulation time.
 // Time step: 120 hours.
-const double TAU = 5.*24*60*60;                  
+const double time_step = 5.*24*60*60;                  
 // Physical time [seconds].
-const double SIMULATION_TIME = 100*TAU + 0.001;  
+const double SIMULATION_TIME = 100*time_step + 0.001;  
 
-// Equation parameters.
+// Problem parameters.
 const double c_TT = 2.18e+6;
 const double d_TT = 2.1;
 const double d_Tw = 2.37e-2;
@@ -94,14 +117,11 @@ const double TEMP_REACTOR_MAX = 550.0;
 // need to warm up linearly from TEMP_INITIAL
 // to TEMP_REACTOR_MAX [seconds].
 const double REACTOR_START_TIME = 3600*24;   
-// Materials and boundary markers.
-const int BDY_SYMMETRY = 1;               
-const int BDY_REACTOR_WALL = 2;           
-const int BDY_EXTERIOR_WALL = 5;          
 
 // Physical time in seconds.
-double CURRENT_TIME = 0.0;
+double current_time = 0.0;
 
+/*
 // Essential (Dirichlet) boundary condition values for T.
 scalar essential_bc_values_T(double x, double y, double time)
 {
@@ -112,213 +132,210 @@ scalar essential_bc_values_T(double x, double y, double time)
   }
   return current_reactor_temperature;
 }
-
-// Weak forms.
-#include "forms.cpp"
+*/
 
 int main(int argc, char* argv[])
 {
+  // Choose a Butcher's table or define your own.
+  ButcherTable bt(butcher_table_type);
+  if (bt.is_explicit()) info("Using a %d-stage explicit R-K method.", bt.get_size());
+  if (bt.is_diagonally_implicit()) info("Using a %d-stage diagonally implicit R-K method.", bt.get_size());
+  if (bt.is_fully_implicit()) info("Using a %d-stage fully implicit R-K method.", bt.get_size());
+
   // Load the mesh.
-  Mesh basemesh, T_mesh, M_mesh;
-  H2DReader mloader;
+  Mesh basemesh, T_mesh, w_mesh;
+  MeshReaderH2D mloader;
   mloader.load("domain2.mesh", &basemesh);
 
   // Create temperature and moisture meshes.
   // This also initializes the multimesh hp-FEM.
   T_mesh.copy(&basemesh);
-  M_mesh.copy(&basemesh);
+  w_mesh.copy(&basemesh);
 
   // Initialize boundary conditions.
-  BCTypes temp_bc_type, moist_bc_type;
-  temp_bc_type.add_bc_dirichlet(BDY_REACTOR_WALL);
-  temp_bc_type.add_bc_neumann(BDY_SYMMETRY);
-  temp_bc_type.add_bc_newton(BDY_EXTERIOR_WALL);
-  moist_bc_type.add_bc_neumann(Hermes::vector<int>(BDY_SYMMETRY, BDY_REACTOR_WALL));
-  moist_bc_type.add_bc_newton(BDY_EXTERIOR_WALL);
-
-  // Enter Dirichlet boundary values.
-  BCValues bc_values(&CURRENT_TIME);
-  bc_values.add_timedep_function(BDY_REACTOR_WALL, essential_bc_values_T);
+  DefaultEssentialBCConst<double> temp_reactor("bdy_react", 900.0);
+  EssentialBCs<double> bcs_T(&temp_reactor);
 
   // Create H1 spaces with default shapesets.
-  H1Space T_space(&T_mesh, &temp_bc_type, &bc_values, P_INIT);
-  H1Space M_space(MULTI ? &M_mesh : &T_mesh, &moist_bc_type, P_INIT);
+  H1Space<double> T_space(&T_mesh, &bcs_T, P_INIT);
+  H1Space<double> w_space(MULTI ? &w_mesh : &T_mesh, P_INIT);
 
   // Define constant initial conditions.
   info("Setting initial conditions.");
-  Solution T_prev_time(&T_mesh, TEMP_INITIAL);
-  Solution M_prev_time(&M_mesh, MOIST_INITIAL);
+  ConstantSolution<double> T_time_prev(&T_mesh, TEMP_INITIAL);
+  ConstantSolution<double> w_time_prev(&w_mesh, MOIST_INITIAL);
+  Solution<double> T_time_new(&T_mesh);
+  Solution<double> w_time_new(&w_mesh);
 
   // Initialize the weak formulation.
-  WeakForm wf(2);
-  wf.add_matrix_form(0, 0, callback(bilinear_form_sym_0_0));
-  wf.add_matrix_form(0, 1, callback(bilinear_form_sym_0_1));
-  wf.add_matrix_form(1, 1, callback(bilinear_form_sym_1_1));
-  wf.add_matrix_form(1, 0, callback(bilinear_form_sym_1_0));
-  wf.add_vector_form(0, callback(linear_form_0), HERMES_ANY, &T_prev_time);
-  wf.add_vector_form(1, callback(linear_form_1), HERMES_ANY, &M_prev_time);
-  wf.add_matrix_form_surf(0, 0, callback(bilinear_form_surf_0_0_ext), BDY_EXTERIOR_WALL);
-  wf.add_matrix_form_surf(1, 1, callback(bilinear_form_surf_1_1_ext), BDY_EXTERIOR_WALL);
-  wf.add_vector_form_surf(0, callback(linear_form_surf_0_ext), BDY_EXTERIOR_WALL);
-  wf.add_vector_form_surf(1, callback(linear_form_surf_1_ext), BDY_EXTERIOR_WALL);
+  CustomWeakFormHeatMoistureRK wf(c_TT, c_ww, d_TT, d_Tw, d_wT, d_ww, 
+				  k_TT, k_ww, TEMP_EXTERIOR, MOIST_EXTERIOR, "bdy_ext");
 
   // Initialize refinement selector.
-  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
+  H1ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Solutions.
-  Solution T_coarse, M_coarse, T_fine, M_fine;
+  Solution<double> T_coarse, w_coarse, T_fine, w_fine;
 
   // Geometry and position of visualization windows.
   WinGeom* T_sln_win_geom = new WinGeom(0, 0, 300, 450);
-  WinGeom* M_sln_win_geom = new WinGeom(310, 0, 300, 450);
+  WinGeom* w_sln_win_geom = new WinGeom(310, 0, 300, 450);
   WinGeom* T_mesh_win_geom = new WinGeom(620, 0, 280, 450);
-  WinGeom* M_mesh_win_geom = new WinGeom(910, 0, 280, 450);
+  WinGeom* w_mesh_win_geom = new WinGeom(910, 0, 280, 450);
 
   // Initialize views.
   ScalarView T_sln_view("Temperature", T_sln_win_geom);
-  ScalarView M_sln_view("Moisture", M_sln_win_geom);
+  ScalarView w_sln_view("Moisture", w_sln_win_geom);
   OrderView T_order_view("Temperature mesh", T_mesh_win_geom);
-  OrderView M_order_view("Moisture mesh", M_mesh_win_geom);
+  OrderView w_order_view("Moisture mesh", w_mesh_win_geom);
 
   // Show initial conditions.
-  T_sln_view.show(&T_prev_time);
-  M_sln_view.show(&M_prev_time);
+  T_sln_view.show(&T_time_prev);
+  w_sln_view.show(&w_time_prev);
   T_order_view.show(&T_space);
-  M_order_view.show(&M_space);
+  w_order_view.show(&w_space);
 
   // Time stepping loop:
-  // Print info during adaptivity.
-  bool verbose = true;  
-  double comp_time = 0.0;
-  static int ts = 1;
-  while (CURRENT_TIME < SIMULATION_TIME)
+  int ts = 1;
+  while (current_time < SIMULATION_TIME)
   {
     info("Simulation time = %g s (%d h, %d d, %d y)",
-        (CURRENT_TIME + TAU), (int) (CURRENT_TIME + TAU) / 3600,
-        (int) (CURRENT_TIME + TAU) / (3600*24), (int) (CURRENT_TIME + TAU) / (3600*24*364));
+        (current_time + current_time), (int) (current_time + current_time) / 3600,
+        (int) (current_time + current_time) / (3600*24), (int) (current_time + current_time) / (3600*24*364));
 
     // Uniform mesh derefinement.
     if (ts > 1 && ts % UNREF_FREQ == 0) {
       info("Global mesh derefinement.");
       switch (UNREF_METHOD) {
         case 1: T_mesh.copy(&basemesh);
-                M_mesh.copy(&basemesh);
+                w_mesh.copy(&basemesh);
                 T_space.set_uniform_order(P_INIT);
-                M_space.set_uniform_order(P_INIT);
+                w_space.set_uniform_order(P_INIT);
                 break;
         case 2: T_mesh.unrefine_all_elements();
-                M_mesh.unrefine_all_elements();
+                w_mesh.unrefine_all_elements();
                 T_space.set_uniform_order(P_INIT);
-                M_space.set_uniform_order(P_INIT);
+                w_space.set_uniform_order(P_INIT);
                 break;
         case 3: T_mesh.unrefine_all_elements();
-                M_mesh.unrefine_all_elements();
-                //space.adjust_element_order(-1, P_INIT);
+                w_mesh.unrefine_all_elements();
                 T_space.adjust_element_order(-1, -1, P_INIT, P_INIT);
-                M_space.adjust_element_order(-1, -1, P_INIT, P_INIT);
+                w_space.adjust_element_order(-1, -1, P_INIT, P_INIT);
                 break;
         default: error("Wrong global derefinement method.");
       }
     }
 
-    // Spatial adaptivity loop. Note: T_prev_time and M_prev_time must not be changed during 
+    // Spatial adaptivity loop. Note: T_time_prev and w_time_prev must not be changed during 
     // spatial adaptivity.
-    int as = 1; 
-    bool done = false;
+    bool done = false; int as = 1; 
     do
     {
-      info("---- Adaptivity step %d:", as);
+      info("Time step %d, adaptivity step %d:", ts, as);
 
       // Construct globally refined reference mesh and setup reference space.
-      Hermes::vector<Space *>* ref_spaces = Space::construct_refined_spaces(Hermes::vector<Space *>(&T_space, &M_space));
+      Hermes::vector<Space<double> *>* ref_spaces 
+          = Space<double>::construct_refined_spaces(Hermes::vector<Space<double> *>(&T_space, &w_space));
 
-      // Initialize matrix solver.
-      SparseMatrix* matrix = create_matrix(matrix_solver);
-      Vector* rhs = create_vector(matrix_solver);
-      Solver* solver = create_linear_solver(matrix_solver, matrix, rhs);
+      // Initialize discrete problem on reference meshes.
+      DiscreteProblem<double> dp(&wf, *ref_spaces);
 
-      // Assemble the reference problem.
-      info("Solving on reference mesh.");
-      bool is_linear = true;
-      DiscreteProblem* dp = new DiscreteProblem(&wf, *ref_spaces, is_linear);
-      dp->assemble(matrix, rhs);
+      // Initialize Runge-Kutta time stepping.
+      RungeKutta<double> runge_kutta(&dp, &bt, matrix_solver);
 
-      // Now we can deallocate the previous fine meshes.
-      if(as > 1){ delete T_fine.get_mesh(); delete M_fine.get_mesh(); }
+      // Perform one Runge-Kutta time step according to the selected Butcher's table.
+      info("Runge-Kutta time step (t = %g s, tau = %g s, stages: %d).",
+           current_time, time_step, bt.get_size());
+      bool freeze_jacobian = true;
+      bool block_diagonal_jacobian = true;
+      bool verbose = true;
+      
+      try
+      {
+        runge_kutta.rk_time_step_newton(current_time, time_step, 
+            Hermes::vector<Solution<double> *>(&T_time_prev, &w_time_prev), 
+            Hermes::vector<Solution<double> *>(&T_time_new, &w_time_new), 
+            freeze_jacobian, block_diagonal_jacobian, verbose, NEWTON_TOL, NEWTON_MAX_ITER);
+      }
+      catch(Exceptions::Exception& e)
+      {
+        e.printMsg();
+        error("Runge-Kutta time step failed");
+      }
 
-      // Solve the linear system of the reference problem. If successful, obtain the solutions.
-      if(solver->solve()) Solution::vector_to_solutions(solver->get_solution(), *ref_spaces, 
-                                              Hermes::vector<Solution *>(&T_fine, &M_fine));
-      else error ("Matrix solver failed.\n");
+      // Project the fine mesh solution onto the coarse meshes.
+      Solution<double> T_coarse, w_coarse;
+      info("Projecting fine mesh solutions on coarse meshes for error estimation.");
+      OGProjection<double>::project_global(Hermes::vector<Space<double> *>(&T_space, &w_space), 
+          Hermes::vector<Solution<double> *>(&T_time_new, &w_time_new), 
+	  Hermes::vector<Solution<double> *>(&T_coarse, &w_coarse),
+          matrix_solver); 
 
-      // Project the fine mesh solution onto the coarse mesh.
-      info("Projecting reference solution on coarse mesh.");
-      OGProjection::project_global(Hermes::vector<Space *>(&T_space, &M_space), 
-                                   Hermes::vector<Solution *>(&T_fine, &M_fine), 
-                                   Hermes::vector<Solution *>(&T_coarse, &M_coarse), matrix_solver); 
-
+      /*
       // Registering custom forms for error calculation.
-      Adapt* adaptivity = new Adapt(Hermes::vector<Space *>(&T_space, &M_space));
+      Adapt* adaptivity = new Adapt(Hermes::vector<Space *>(&T_space, &w_space));
       adaptivity->set_error_form(0, 0, callback(bilinear_form_sym_0_0));
       adaptivity->set_error_form(0, 1, callback(bilinear_form_sym_0_1));
       adaptivity->set_error_form(1, 0, callback(bilinear_form_sym_1_0));
       adaptivity->set_error_form(1, 1, callback(bilinear_form_sym_1_1));
+      */
 
       // Calculate element errors and total error estimate.
       info("Calculating error estimate."); 
-      double err_est_rel_total = adaptivity->calc_err_est(Hermes::vector<Solution *>(&T_coarse, &M_coarse), 
-                                 Hermes::vector<Solution *>(&T_fine, &M_fine)) * 100;
+      Adapt<double>* adaptivity = new Adapt<double>(Hermes::vector<Space<double> *>(&T_space, &w_space));
+      double err_est_rel_total = adaptivity->calc_err_est(Hermes::vector<Solution<double> *>(&T_coarse, &w_coarse), 
+                                 Hermes::vector<Solution<double> *>(&T_time_new, &w_time_new)) * 100;
 
       // Report results.
       info("ndof_coarse: %d, ndof_fine: %d, err_est_rel: %g%%", 
-        Space::get_num_dofs(Hermes::vector<Space *>(&T_space, &M_space)), 
-                            Space::get_num_dofs(*ref_spaces), err_est_rel_total);
+	   Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&T_space, &w_space)), 
+           Space<double>::get_num_dofs(*ref_spaces), err_est_rel_total);
 
-      // If err_est too large, adapt the mesh.
-      if (err_est_rel_total < ERR_STOP) 
-        done = true;
+      // If err_est too large, adapt the meshes.
+      if (err_est_rel_total < ERR_STOP) done = true;
       else 
       {
-        info("Adapting coarse mesh.");
-        done = adaptivity->adapt(Hermes::vector<RefinementSelectors::Selector *>(&selector, &selector), 
-                                 THRESHOLD, STRATEGY, MESH_REGULARITY);
-        if (Space::get_num_dofs(Hermes::vector<Space *>(&T_space, &M_space)) >= NDOF_STOP) 
+        info("Adapting the coarse mesh.");
+        done = adaptivity->adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
+
+        if (Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&T_space, &w_space)) >= NDOF_STOP) 
           done = true;
         else
           // Increase the counter of performed adaptivity steps.
           as++;
       }
-
+ 
       // Clean up.
-      delete solver;
-      delete matrix;
-      delete rhs;
       delete adaptivity;
-      delete ref_spaces;
-      delete dp;
-      
+      if(!done)
+      {
+        delete ref_spaces;
+        delete T_time_new.get_mesh();
+        delete w_time_new.get_mesh();
+      }
+
       // Increase counter.
       as++;
     }
     while (done == false);
 
     // Update time.
-    CURRENT_TIME += TAU;
+    current_time += current_time;
 
     // Show new coarse meshes and solutions.
     char title[100];
-    sprintf(title, "Temperature, t = %g days", CURRENT_TIME/3600./24);
+    sprintf(title, "Temperature, t = %g days", current_time/3600./24);
     T_sln_view.set_title(title);
     T_sln_view.show(&T_coarse);
-    sprintf(title, "Moisture, t = %g days", CURRENT_TIME/3600./24);
-    M_sln_view.set_title(title);
-    M_sln_view.show(&M_coarse);
+    sprintf(title, "Moisture, t = %g days", current_time/3600./24);
+    w_sln_view.set_title(title);
+    w_sln_view.show(&w_coarse);
     T_order_view.show(&T_space);
-    M_order_view.show(&M_space);
+    w_order_view.show(&w_space);
 
     // Save fine mesh solutions for the next time step.
-    T_prev_time.copy(&T_fine);
-    M_prev_time.copy(&M_fine);
+    T_time_prev.copy(&T_fine);
+    w_time_prev.copy(&w_fine);
 
     ts++;
   }

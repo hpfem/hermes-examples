@@ -172,7 +172,6 @@ int main(int argc, char* argv[])
                 space.set_uniform_order(P_INIT);
                 break;
         case 3: mesh.unrefine_all_elements();
-                //space.adjust_element_order(-1, P_INIT);
                 space.adjust_element_order(-1, -1, P_INIT, P_INIT);
                 break;
         default: error("Wrong global derefinement method.");
@@ -208,8 +207,7 @@ int main(int argc, char* argv[])
       try
       {
         runge_kutta.rk_time_step_newton(current_time, time_step, &sln_time_prev, &sln_time_new, 
-                                    freeze_jacobian, block_diagonal_jacobian,
-                                    verbose, NEWTON_TOL, NEWTON_MAX_ITER);
+            freeze_jacobian, block_diagonal_jacobian, verbose, NEWTON_TOL, NEWTON_MAX_ITER);
       }
       catch(Exceptions::Exception& e)
       {

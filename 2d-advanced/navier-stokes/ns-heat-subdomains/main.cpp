@@ -67,7 +67,7 @@ const double HEAT_SOURCE_GRAPHITE = 1e7;
 // from 0 to VEL_INLET, then it stays constant.
 const double STARTUP_TIME = 1.0;                  
 // Time step.
-const double time_step = 0.2;                     
+const double time_step = 0.1;                     
 // Time interval length.
 const double T_FINAL = 30000.0;                   
 // Stopping criterion for the Newton's method.
