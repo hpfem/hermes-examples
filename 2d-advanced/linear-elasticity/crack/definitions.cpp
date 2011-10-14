@@ -15,7 +15,7 @@ CustomWeakFormLinearElasticity::CustomWeakFormLinearElasticity(double E, double 
   add_vector_form(new DefaultResidualElasticity_0_0<double>(0, HERMES_ANY, lambda, mu));
   add_vector_form(new DefaultResidualElasticity_0_1<double>(0, HERMES_ANY, lambda, mu));
   // Surface force (first component).
-  add_vector_form_surf(new DefaultVectorFormSurf<double>(0, surface_force_bdy, new Hermes2DFunction<double>(f0))); 
+  add_vector_form_surf(new DefaultVectorFormSurf<double>(0, surface_force_bdy, new Hermes2DFunction<double>(-f0))); 
 
   // Residual - second equation.
   add_vector_form(new DefaultResidualElasticity_1_0<double>(1, HERMES_ANY, lambda, mu));
@@ -23,5 +23,5 @@ CustomWeakFormLinearElasticity::CustomWeakFormLinearElasticity(double E, double 
   // Gravity loading in the second vector component.
   add_vector_form(new DefaultVectorFormVol<double>(1, HERMES_ANY, new Hermes2DFunction<double>(-rho_g)));
   // Surface force (second component).
-  add_vector_form_surf(new DefaultVectorFormSurf<double>(1, surface_force_bdy, new Hermes2DFunction<double>(f1))); 
+  add_vector_form_surf(new DefaultVectorFormSurf<double>(1, surface_force_bdy, new Hermes2DFunction<double>(-f1))); 
 }

@@ -123,13 +123,13 @@ int main(int argc, char* argv[])
   H1ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Initialize views.
-  ScalarView s_view_0("Solution (x-displacement)", new WinGeom(0, 0, 400, 350));
+  ScalarView s_view_0("Solution (x-displacement)", new WinGeom(0, 0, 500, 350));
   s_view_0.show_mesh(false);
-  ScalarView s_view_1("Solution (y-displacement)", new WinGeom(760, 0, 400, 350));
+  ScalarView s_view_1("Solution (y-displacement)", new WinGeom(760, 0, 500, 350));
   s_view_1.show_mesh(false);
-  OrderView  o_view_0("Mesh (x-displacement)", new WinGeom(410, 0, 340, 350));
-  OrderView  o_view_1("Mesh (y-displacement)", new WinGeom(1170, 0, 340, 350));
-  ScalarView mises_view("Von Mises stress [Pa]", new WinGeom(0, 405, 400, 350));
+  OrderView  o_view_0("Mesh (x-displacement)", new WinGeom(410, 0, 440, 350));
+  OrderView  o_view_1("Mesh (y-displacement)", new WinGeom(1170, 0, 440, 350));
+  ScalarView mises_view("Von Mises stress [Pa]", new WinGeom(0, 405, 500, 350));
 
   // DOF and CPU convergence graphs.
   SimpleGraph graph_dof_est, graph_cpu_est;
