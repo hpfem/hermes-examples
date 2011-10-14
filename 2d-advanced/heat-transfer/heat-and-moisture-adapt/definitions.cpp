@@ -25,3 +25,26 @@ CustomWeakFormHeatMoistureRK::CustomWeakFormHeatMoistureRK(double c_TT, double c
   add_vector_form_surf(new WeakFormsH1::DefaultVectorFormSurf<double>(1, bdy_ext, new Hermes2DFunction<double>(k_ww/c_ww * w_ext), HERMES_AXISYM_Y));
   add_vector_form_surf(new WeakFormsH1::DefaultResidualSurf<double>(1, bdy_ext, new Hermes2DFunction<double>(-k_ww/c_ww), HERMES_AXISYM_Y));
 }
+
+EssentialBCNonConst::EssentialBCNonConst(std::string marker, double reactor_start_time, double temp_initial, double temp_reactor_max) 
+    : EssentialBoundaryCondition<double>(Hermes::vector<std::string>()), reactor_start_time(reactor_start_time), 
+    temp_initial(temp_initial), temp_reactor_max(temp_reactor_max)  
+{
+  markers.push_back(marker);
+}
+
+EssentialBoundaryCondition<double>::EssentialBCValueType EssentialBCNonConst::get_value_type() const 
+{ 
+  return BC_FUNCTION; 
+}
+
+double EssentialBCNonConst::value(double x, double y, double n_x, double n_y, double t_x, double t_y) const 
+{
+  double current_reactor_temperature = temp_reactor_max;
+  if (current_time < reactor_start_time) 
+  {
+    current_reactor_temperature = temp_initial + (current_time/reactor_start_time) * (temp_reactor_max - temp_initial);
+  }
+  return current_reactor_temperature;
+}
+

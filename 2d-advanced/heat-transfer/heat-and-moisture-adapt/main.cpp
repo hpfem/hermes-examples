@@ -121,19 +121,6 @@ const double REACTOR_START_TIME = 3600*24;
 // Physical time in seconds.
 double current_time = 0.0;
 
-/*
-// Essential (Dirichlet) boundary condition values for T.
-scalar essential_bc_values_T(double x, double y, double time)
-{
-  double current_reactor_temperature = TEMP_REACTOR_MAX;
-  if (time < REACTOR_START_TIME) {
-    current_reactor_temperature = TEMP_INITIAL +
-      (time/REACTOR_START_TIME)*(TEMP_REACTOR_MAX - TEMP_INITIAL);
-  }
-  return current_reactor_temperature;
-}
-*/
-
 int main(int argc, char* argv[])
 {
   // Choose a Butcher's table or define your own.
@@ -153,7 +140,7 @@ int main(int argc, char* argv[])
   w_mesh.copy(&basemesh);
 
   // Initialize boundary conditions.
-  DefaultEssentialBCConst<double> temp_reactor("bdy_react", 900.0);
+  EssentialBCNonConst temp_reactor("bdy_react", REACTOR_START_TIME, TEMP_INITIAL, TEMP_REACTOR_MAX);
   EssentialBCs<double> bcs_T(&temp_reactor);
 
   // Create H1 spaces with default shapesets.
@@ -202,6 +189,12 @@ int main(int argc, char* argv[])
     info("Simulation time = %g s (%d h, %d d, %d y)",
         (current_time + current_time), (int) (current_time + current_time) / 3600,
         (int) (current_time + current_time) / (3600*24), (int) (current_time + current_time) / (3600*24*364));
+
+    // Update time-dependent essential BCs.
+    if (current_time <= REACTOR_START_TIME) {
+      info("Updating time-dependent essential BC.");
+      Space<double>::update_essential_bc_values(Hermes::vector<Space<double>*>(&T_space, &w_space), current_time);
+    }
 
     // Uniform mesh derefinement.
     if (ts > 1 && ts % UNREF_FREQ == 0) {
