@@ -232,10 +232,10 @@ int main(int argc, char* argv[])
   // Perform initial mesh refinements.
   mesh.copy(&basemesh);
   for(int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
-  mesh.refine_towards_boundary("Top", INIT_REF_NUM_BDY_TOP);
+  mesh.refine_towards_boundary(BDY_TOP, INIT_REF_NUM_BDY_TOP);
 
   // Initialize boundary conditions.
-  RichardsEssentialBC bc_essential("Top", H_ELEVATION, PULSE_END_TIME, H_INIT, STARTUP_TIME);
+  RichardsEssentialBC bc_essential(BDY_TOP, H_ELEVATION, PULSE_END_TIME, H_INIT, STARTUP_TIME);
   EssentialBCs<double> bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.
