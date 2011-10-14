@@ -212,6 +212,7 @@ int main(int argc, char* argv[])
   {
     CFL.set_number(CFL_NUMBER + (t/3.5) * 1.0);
     info("---- Time step %d, time %3.5f.", iteration++, t);
+
     // Periodic global derefinements.
     if (iteration > 1 && iteration % UNREF_FREQ == 0 && REFINEMENT_COUNT > 0) 
     {
@@ -482,11 +483,11 @@ int main(int argc, char* argv[])
         Linearizer lin;
         char filename[40];
         sprintf(filename, "Pressure-%i.vtk", iteration - 1);
-        lin.save_solution_vtk(&pressure, filename, "Pressure");
+        lin.save_solution_vtk(&pressure, filename, "Pressure", false);
         sprintf(filename, "Mach number-%i.vtk", iteration - 1);
-        lin.save_solution_vtk(&Mach_number, filename, "MachNumber");
+        lin.save_solution_vtk(&Mach_number, filename, "MachNumber", false);
         sprintf(filename, "Entropy-%i.vtk", iteration - 1);
-        lin.save_solution_vtk(&entropy, filename, "Entropy");
+        lin.save_solution_vtk(&entropy, filename, "Entropy", false);
       }
     }
   }
