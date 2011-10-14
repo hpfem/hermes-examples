@@ -264,18 +264,19 @@ int main(int argc, char* argv[])
 	  Hermes::vector<Solution<double> *>(&T_coarse, &w_coarse),
           matrix_solver); 
 
-      /*
-      // Registering custom forms for error calculation.
-      Adapt* adaptivity = new Adapt(Hermes::vector<Space *>(&T_space, &w_space));
-      adaptivity->set_error_form(0, 0, callback(bilinear_form_sym_0_0));
-      adaptivity->set_error_form(0, 1, callback(bilinear_form_sym_0_1));
-      adaptivity->set_error_form(1, 0, callback(bilinear_form_sym_1_0));
-      adaptivity->set_error_form(1, 1, callback(bilinear_form_sym_1_1));
-      */
+      // Initialize an instance of the Adapt class and register custom error forms.
+      Adapt<double>* adaptivity = new Adapt<double>(Hermes::vector<Space<double> *>(&T_space, &w_space));
+      CustomErrorForm cef_0_0(d_TT, c_TT);
+      CustomErrorForm cef_0_1(d_Tw, c_TT);
+      CustomErrorForm cef_1_0(d_wT, c_ww);
+      CustomErrorForm cef_1_1(d_ww, c_ww);
+      adaptivity->set_error_form(0, 0, &cef_0_0);
+      adaptivity->set_error_form(0, 1, &cef_0_1);
+      adaptivity->set_error_form(1, 0, &cef_1_0);
+      adaptivity->set_error_form(1, 1, &cef_1_1);
 
       // Calculate element errors and total error estimate.
       info("Calculating error estimate."); 
-      Adapt<double>* adaptivity = new Adapt<double>(Hermes::vector<Space<double> *>(&T_space, &w_space));
       double err_est_rel_total = adaptivity->calc_err_est(Hermes::vector<Solution<double> *>(&T_coarse, &w_coarse), 
                                  Hermes::vector<Solution<double> *>(&T_time_new, &w_time_new)) * 100;
 
