@@ -28,7 +28,8 @@ const int P_INIT = 2;
 const bool MULTI = true;                          
 // This is a quantitative parameter of the adapt(...) function and
 // it has different meanings for various adaptive strategies.
-const double THRESHOLD = 0.3;                     
+const double THRESHOLD_MULTI = 0.35;              
+const double THRESHOLD_SINGLE = 0.7;              
 // Adaptive strategy:
 // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
 //   error is processed. If more elements have similar errors, refine
@@ -74,9 +75,9 @@ const double nu = 0.3;
 const double rho = 8000.0;                        
 // Gravitational acceleration.
 const double g1 = -9.81;                          
-// Surface force in x-direction.
+// Top surface force in x-direction.
 const double f0  = 0;                             
-// Surface force in y-direction.
+// Top surface force in y-direction.
 const double f1  = -1e3;
 
 int main(int argc, char* argv[])
@@ -243,7 +244,7 @@ int main(int argc, char* argv[])
     {
       info("Adapting coarse mesh.");
       done = adaptivity->adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&selector, &selector), 
-                               THRESHOLD, STRATEGY, MESH_REGULARITY);
+                               MULTI == true ? THRESHOLD_MULTI : THRESHOLD_SINGLE, STRATEGY, MESH_REGULARITY);
     }
     if (Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&u1_space, &u2_space)) >= NDOF_STOP) done = true;
 
