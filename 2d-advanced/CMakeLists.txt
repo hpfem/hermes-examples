@@ -5,7 +5,6 @@ add_subdirectory(heat-transfer)
 add_subdirectory(helmholtz)
 add_subdirectory(linear-elasticity)
 add_subdirectory(maxwell)
-add_subdirectory(miscellaneous)
 add_subdirectory(navier-stokes)
 add_subdirectory(nernst-planck)
 
