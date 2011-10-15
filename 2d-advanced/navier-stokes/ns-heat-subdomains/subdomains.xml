@@ -4,27 +4,27 @@
   xsi:schemaLocation="XMLSubdomains ../../../xml_schemas/subdomains_h2d_xml.xsd">
   <vertices>
     <vertex x="0" y="0" i="0"/>
-    <vertex x="10" y="0" i="1"/>
-    <vertex x="10" y="10" i="2"/>
-    <vertex x="0" y="10" i="3"/>
-    <vertex x="3" y="3" i="4"/>
-    <vertex x="7" y="3" i="5"/>
-    <vertex x="7" y="7" i="6"/>
-    <vertex x="3" y="7" i="7"/>
-    <vertex x="4" y="4" i="8"/>
-    <vertex x="6" y="4" i="9"/>
-    <vertex x="6" y="6" i="10"/>
-    <vertex x="4" y="6" i="11"/>
-    <vertex x="20" y="0" i="12"/>
-    <vertex x="20" y="10" i="13"/>
+    <vertex x="1.0" y="0" i="1"/>
+    <vertex x="1.0" y="1.0" i="2"/>
+    <vertex x="0" y="1.0" i="3"/>
+    <vertex x="0.35" y="0.35" i="4"/>
+    <vertex x="0.65" y="0.35" i="5"/>
+    <vertex x="0.65" y="0.65" i="6"/>
+    <vertex x="0.35" y="0.65" i="7"/>
+    <vertex x="0.4" y="0.4" i="8"/>
+    <vertex x="0.6" y="0.4" i="9"/>
+    <vertex x="0.6" y="0.6" i="10"/>
+    <vertex x="0.4" y="0.6" i="11"/>
+    <vertex x="2.0" y="0.0" i="12"/>
+    <vertex x="2.0" y="1.0" i="13"/>
 
-    <vertex x="0" y="5" i="14"/>
-    <vertex x="2.1715729" y="5" i="15"/>
-    <vertex x="4" y="5" i="16"/>
-    <vertex x="6" y="5" i="17"/>
-    <vertex x="7.8284271" y="5" i="18"/>
-    <vertex x="10" y="5" i="19"/>
-    <vertex x="20" y="5" i="20"/>
+    <vertex x="0" y="0.5" i="14"/>
+    <vertex x="0.28786797" y="0.5" i="15"/>
+    <vertex x="0.4" y="0.5" i="16"/>
+    <vertex x="0.6" y="0.5" i="17"/>
+    <vertex x="0.71213203" y="0.5" i="18"/>
+    <vertex x="1.0" y="0.5" i="19"/>
+    <vertex x="2.0" y="0.5" i="20"/>
 
   </vertices>
 

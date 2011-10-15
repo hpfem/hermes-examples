@@ -300,7 +300,8 @@ public:
   public:
     CustomJacobianTempAdvection_3_3(int i, int j, std::string area) : MatrixFormVol<double>(i, j, area) {}
 
-    double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<double> *ext) const{
+    double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<double> *ext) const
+    {
       double result = 0;
       Func<double>* xvel_prev_newton = u_ext[0];
       Func<double>* yvel_prev_newton = u_ext[1];
@@ -346,10 +347,10 @@ public:
     double time_step;
   };
 
-  class CustomResidualTempAdvection_3 : public VectorFormVol<double>
+  class CustomResidualTempAdvection : public VectorFormVol<double>
   {
   public:
-    CustomResidualTempAdvection_3(int i, std::string area) : VectorFormVol<double>(i, area) {}
+  CustomResidualTempAdvection(int i, std::string area) : VectorFormVol<double>(i, area) {}
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, ExtData<double> *ext) const
     {
@@ -357,9 +358,15 @@ public:
       Func<double>* xvel_prev_newton = u_ext[0];
       Func<double>* yvel_prev_newton = u_ext[1];
       Func<double>* T_prev_newton = u_ext[3];
-      for (int i = 0; i < n; i++)
-        result += wt[i] * (  xvel_prev_newton->dx[i] * T_prev_newton->val[i] + xvel_prev_newton->val[i] * T_prev_newton->dx[i] 
-			     + yvel_prev_newton->dy[i] * T_prev_newton->val[i] + yvel_prev_newton->val[i] * T_prev_newton->dy[i]) * v->val[i]; 
+      for (int i = 0; i < n; i++) {
+        // Contribution from implicit Euler.
+        //result += wt[i] * (T_prev_newton->val[i] - T_prev_time->val[i]) / time_step;
+        // Contribution from temperature diffusion.
+        //result += wt[i] * thermal_cond / (rho * heat_cap) * (T_prev_newton->dx[i]*v->dx[i] + T_prev_newton->dy[i]*v->dy[i]);
+        // Contribution from advection.
+        result += wt[i] * (  (xvel_prev_newton->dx[i] + yvel_prev_newton->dy[i]) * T_prev_newton->val[i] 
+                             + (xvel_prev_newton->val[i] * T_prev_newton->dx[i] + yvel_prev_newton->val[i] * T_prev_newton->dy[i])) * v->val[i]; 
+      }
       return result;
     }
 
@@ -369,9 +376,15 @@ public:
       Func<Ord>* xvel_prev_newton = u_ext[0];
       Func<Ord>* yvel_prev_newton = u_ext[1];
       Func<Ord>* T_prev_newton = u_ext[3];
-      for (int i = 0; i < n; i++)
-        result += wt[i] * (  xvel_prev_newton->dx[i] * T_prev_newton->val[i] + xvel_prev_newton->val[i] * T_prev_newton->dx[i] 
-			     + yvel_prev_newton->dy[i] * T_prev_newton->val[i] + yvel_prev_newton->val[i] * T_prev_newton->dy[i]) * v->val[i]; 
+      for (int i = 0; i < n; i++) {
+        // Contribution from implicit Euler.
+        //result += wt[i] * (T_prev_newton->val[i] - T_prev_time->val[i]) / time_step;
+        // Contribution from temperature diffusion.
+        //result += wt[i] * thermal_cond / (rho * heat_cap) * (T_prev_newton->dx[i]*v->dx[i] + T_prev_newton->dy[i]*v->dy[i]);
+        // Contribution from advection.
+        result += wt[i] * (  (xvel_prev_newton->dx[i] + yvel_prev_newton->dy[i]) * T_prev_newton->val[i] 
+                             + (xvel_prev_newton->val[i] * T_prev_newton->dx[i] + yvel_prev_newton->val[i] * T_prev_newton->dy[i])) * v->val[i]; 
+      }
       return result;
     }
   };
@@ -517,7 +530,8 @@ public:
       };
 
       virtual double value(double x, double y, double n_x, double n_y, double t_x, double t_y) const {
-        double val_y = vel_inlet * y*(H-y) / (H/2.)/(H/2.);
+        double val_y = vel_inlet * y*(H-y) / (H/2.)/(H/2.);  // Parabolic profile.
+        //double val_y = vel_inlet;                            // Constant profile.
         if (current_time <= startup_time) 
           return val_y * current_time/startup_time;
         else 
