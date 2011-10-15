@@ -55,7 +55,7 @@ const int MESH_REGULARITY = -1;
 // candidates in hp-adaptivity. Default value is 1.0. 
 const double CONV_EXP = 1.0;                      
 // Stopping criterion for adaptivity.
-const double ERR_STOP = 0.3;                      
+const double ERR_STOP = 20.3;                      
 // Adaptivity process stops when the number of degrees of freedom grows over
 // this limit. This is mainly to prevent h-adaptivity to go on forever.
 const int NDOF_STOP = 100000;                     
@@ -153,6 +153,9 @@ int main(int argc, char* argv[])
   ConstantSolution<double> w_time_prev(&w_mesh, MOIST_INITIAL);
   Solution<double> T_time_new(&T_mesh);
   Solution<double> w_time_new(&w_mesh);
+  
+  // Solutions.
+  Solution<double> T_coarse, w_coarse;
 
   // Initialize the weak formulation.
   CustomWeakFormHeatMoistureRK wf(c_TT, c_ww, d_TT, d_Tw, d_wT, d_ww, 
@@ -160,9 +163,6 @@ int main(int argc, char* argv[])
 
   // Initialize refinement selector.
   H1ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
-
-  // Solutions.
-  Solution<double> T_coarse, w_coarse, T_fine, w_fine;
 
   // Geometry and position of visualization windows.
   WinGeom* T_sln_win_geom = new WinGeom(0, 0, 300, 450);
@@ -187,8 +187,8 @@ int main(int argc, char* argv[])
   while (current_time < SIMULATION_TIME)
   {
     info("Simulation time = %g s (%d h, %d d, %d y)",
-        (current_time + current_time), (int) (current_time + current_time) / 3600,
-        (int) (current_time + current_time) / (3600*24), (int) (current_time + current_time) / (3600*24*364));
+        current_time, (int) current_time / 3600,
+        (int) current_time / (3600*24), (int) current_time / (3600*24*364));
 
     // Update time-dependent essential BCs.
     if (current_time <= REACTOR_START_TIME) {
@@ -206,12 +206,14 @@ int main(int argc, char* argv[])
                 w_space.set_uniform_order(P_INIT);
                 break;
         case 2: T_mesh.unrefine_all_elements();
-                w_mesh.unrefine_all_elements();
+                if(MULTI)
+                  w_mesh.unrefine_all_elements();
                 T_space.set_uniform_order(P_INIT);
                 w_space.set_uniform_order(P_INIT);
                 break;
         case 3: T_mesh.unrefine_all_elements();
-                w_mesh.unrefine_all_elements();
+                if(MULTI)
+                  w_mesh.unrefine_all_elements();
                 T_space.adjust_element_order(-1, -1, P_INIT, P_INIT);
                 w_space.adjust_element_order(-1, -1, P_INIT, P_INIT);
                 break;
@@ -257,7 +259,6 @@ int main(int argc, char* argv[])
       }
 
       // Project the fine mesh solution onto the coarse meshes.
-      Solution<double> T_coarse, w_coarse;
       info("Projecting fine mesh solutions on coarse meshes for error estimation.");
       OGProjection<double>::project_global(Hermes::vector<Space<double> *>(&T_space, &w_space), 
           Hermes::vector<Solution<double> *>(&T_time_new, &w_time_new), 
@@ -286,11 +287,12 @@ int main(int argc, char* argv[])
            Space<double>::get_num_dofs(*ref_spaces), err_est_rel_total);
 
       // If err_est too large, adapt the meshes.
-      if (err_est_rel_total < ERR_STOP) done = true;
+      if (err_est_rel_total < ERR_STOP)
+        done = true;
       else 
       {
         info("Adapting the coarse mesh.");
-        done = adaptivity->adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
+        done = adaptivity->adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&selector, &selector), THRESHOLD, STRATEGY, MESH_REGULARITY);
 
         if (Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&T_space, &w_space)) >= NDOF_STOP) 
           done = true;
@@ -314,7 +316,7 @@ int main(int argc, char* argv[])
     while (done == false);
 
     // Update time.
-    current_time += current_time;
+    current_time += time_step;
 
     // Show new coarse meshes and solutions.
     char title[100];
@@ -328,8 +330,8 @@ int main(int argc, char* argv[])
     w_order_view.show(&w_space);
 
     // Save fine mesh solutions for the next time step.
-    T_time_prev.copy(&T_fine);
-    w_time_prev.copy(&w_fine);
+    T_time_prev.copy(&T_time_new);
+    w_time_prev.copy(&w_time_new);
 
     ts++;
   }
