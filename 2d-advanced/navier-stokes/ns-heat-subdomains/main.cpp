@@ -22,11 +22,13 @@ const int P_INIT_VEL = 2;
 // P_INIT_PRESSURE because of the inf-sup condition.
 const int P_INIT_PRESSURE = 1;     
 // Initial polynomial degree for temperature.
-const int P_INIT_TEMP = 2;         
-// Number of initial uniform mesh refinements.
-const int INIT_REF_NUM = 2;        
-// Number of initial mesh refinements towards the hole.
-const int INIT_REF_NUM_WALL = 3;   
+const int P_INIT_TEMP = 1;         
+// Initial uniform mesh refinements.
+const int INIT_REF_NUM_TEMP_GRAPHITE = 1;        
+const int INIT_REF_NUM_TEMP_WATER = 3;        
+const int INIT_REF_NUM_FLOW = 3;        
+const int INIT_REF_NUM_BDY_GRAPHITE = 2;   
+const int INIT_REF_NUM_BDY_WALL = 2;   
 
 // Domain sizes (need to be compatible with mesh file!).
 // Domain height (necessary to define the parabolic
@@ -40,7 +42,7 @@ const double HOLE_MID_Y = 0.5;
 
 // Problem parameters.
 // Inlet velocity (reached after STARTUP_TIME).
-const double VEL_INLET = 0.5;              
+const double VEL_INLET = 1.0;              
 // Initial temperature.
 const double TEMP_INIT_WATER = 20.0;                       
 const double TEMP_INIT_GRAPHITE = 100.0;                       
@@ -52,7 +54,7 @@ const double KINEMATIC_VISCOSITY_WATER = 1.004e-2;
 // number that one needs to be careful about.
 const double THERMAL_CONDUCTIVITY_GRAPHITE = 450;    
 // At 25 deg Celsius.
-const double THERMAL_CONDUCTIVITY_WATER = 0.6;       
+const double THERMAL_CONDUCTIVITY_WATER = 1000;   // Water has 0.6;       
 // Density of graphite from Wikipedia, one should be 
 // careful about this number.    
 const double RHO_GRAPHITE = 2220;                      
@@ -77,32 +79,99 @@ const int NEWTON_MAX_ITER = 100;
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 Hermes::MatrixSolverType matrix_solver_type = Hermes::SOLVER_UMFPACK;  
 
+// Temperature advection treatment.
+// simple... temperature from previous time level is advected
+// otherwise... full Newton's method is used.
+bool SIMPLE_TEMP_ADVECTION = false; 
+
+bool point_in_graphite(double x, double y)
+{
+  double dist_from_center = std::sqrt(sqr(x - HOLE_MID_X) + sqr(y - HOLE_MID_Y));
+  if (dist_from_center < 0.5 * OBSTACLE_DIAMETER) return true;
+  else return false;
+}
+
+int element_in_graphite(Element* e)
+{
+  // Calculate element center.
+  int nvert;
+  if (e->is_triangle()) nvert = 3;
+  else nvert = 4;
+  double elem_center_x = 0, elem_center_y = 0;
+  for (int i=0; i < nvert; i++)
+  {
+    elem_center_x += e->vn[i]->x;
+    elem_center_y += e->vn[i]->y;
+  }
+  elem_center_x /= nvert;
+  elem_center_y /= nvert;
+  // Check if center is in graphite.
+  if (point_in_graphite(elem_center_x, elem_center_y)) 
+  {
+    return 0;  // 0... refine uniformly.
+  }
+  else 
+  {
+    return -1; //-1... do not refine.
+  }
+}
+
+int element_in_water(Element* e)
+{
+  // Calculate element center.
+  int nvert;
+  if (e->is_triangle()) nvert = 3;
+  else nvert = 4;
+  double elem_center_x = 0, elem_center_y = 0;
+  for (int i=0; i < nvert; i++)
+  {
+    elem_center_x += e->vn[i]->x;
+    elem_center_y += e->vn[i]->y;
+  }
+  elem_center_x /= nvert;
+  elem_center_y /= nvert;
+  // Check if center is in graphite.
+  if (point_in_graphite(elem_center_x, elem_center_y)) 
+  {
+    return -1;  //-1... do not refine.
+  }
+  else 
+  {
+    return 0;  // 0... refine uniformly.
+  }
+}
+
 int main(int argc, char* argv[])
 {
   // Load the mesh.
   Mesh mesh_whole_domain, mesh_with_hole;
   Hermes::vector<Mesh*> meshes (&mesh_whole_domain, &mesh_with_hole);
   MeshReaderH2DXML mloader;
-  mloader.load("subdomains.xml", meshes);
+  mloader.load("domain.xml", meshes);
 
-  /* View both meshes.
+  // Temperature mesh: Initial uniform mesh refinements in graphite.
+  meshes[0]->refine_by_criterion(element_in_graphite, INIT_REF_NUM_TEMP_GRAPHITE);
+
+  // Temperature mesh: Initial uniform mesh refinements in water.
+  meshes[0]->refine_by_criterion(element_in_water, INIT_REF_NUM_TEMP_WATER);
+
+  // Flow mesh: Initial uniform mesh refinements.
+  for(int i = 0; i < INIT_REF_NUM_FLOW; i++)
+    meshes[1]->refine_all_elements();
+
+  // Initial refinements towards boundary of graphite.
+  for(unsigned int meshes_i = 0; meshes_i < meshes.size(); meshes_i++)
+    meshes[meshes_i]->refine_towards_boundary("Inner Wall", INIT_REF_NUM_BDY_GRAPHITE);
+
+  // Initial refinements towards the top and bottom edges.
+  for(unsigned int meshes_i = 0; meshes_i < meshes.size(); meshes_i++)
+    meshes[meshes_i]->refine_towards_boundary("Outer Wall", INIT_REF_NUM_BDY_WALL);
+
+  /* View both meshes. */
   MeshView m1("Mesh for temperature"), m2("Mesh for flow");
   m1.show(&mesh_whole_domain);
   m2.show(&mesh_with_hole);
   View::wait();
-  */
-
-  // Perform initial mesh refinements (optional).
-  // Uniform.
-  for(int i = 0; i < INIT_REF_NUM; i++)
-    for(unsigned int meshes_i = 0; meshes_i < meshes.size(); meshes_i++)
-      meshes[meshes_i]->refine_all_elements();
-  // Towards the hole.
-  for(unsigned int meshes_i = 0; meshes_i < meshes.size(); meshes_i++)
-    meshes[meshes_i]->refine_towards_boundary("Inner Wall", INIT_REF_NUM_WALL);
-  // Towards the top and bottom edges.
-  for(unsigned int meshes_i = 0; meshes_i < meshes.size(); meshes_i++)
-    meshes[meshes_i]->refine_towards_boundary("Outer Wall", INIT_REF_NUM_WALL);
 
   // Initialize boundary conditions.
   // Flow.
@@ -159,11 +228,12 @@ int main(int argc, char* argv[])
   // Calculate Reynolds number.
   double reynolds_number = VEL_INLET * OBSTACLE_DIAMETER / KINEMATIC_VISCOSITY_WATER;
   info("RE = %g", reynolds_number);
+  if (reynolds_number < 1e-8) error("Re == 0 will not work - the equations use 1/Re.");
 
   // Initialize weak formulation.
   CustomWeakFormHeatAndFlow wf(STOKES, reynolds_number, time_step, &xvel_prev_time, &yvel_prev_time, &temperature_prev_time, 
       HEAT_SOURCE_GRAPHITE, SPECIFIC_HEAT_GRAPHITE, SPECIFIC_HEAT_WATER, RHO_GRAPHITE, RHO_WATER, 
-      THERMAL_CONDUCTIVITY_GRAPHITE, THERMAL_CONDUCTIVITY_WATER);
+      THERMAL_CONDUCTIVITY_GRAPHITE, THERMAL_CONDUCTIVITY_WATER, SIMPLE_TEMP_ADVECTION);
   
   // Initialize the FE problem.
   DiscreteProblem<double> dp(&wf, Hermes::vector<Space<double> *>(&xvel_space, &yvel_space, &p_space, &temperature_space));

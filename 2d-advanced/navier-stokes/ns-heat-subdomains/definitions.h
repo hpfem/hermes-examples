@@ -31,7 +31,8 @@ class CustomWeakFormHeatAndFlow : public WeakForm<double>
 public:
   CustomWeakFormHeatAndFlow(bool Stokes, double Reynolds, double time_step, Solution<double>* x_vel_previous_time, 
     Solution<double>* y_vel_previous_time, Solution<double>* T_prev_time, double heat_source, double specific_heat_graphite, 
-    double specific_heat_water, double rho_graphite, double rho_water, double thermal_conductivity_graphite, double thermal_conductivity_water);
+    double specific_heat_water, double rho_graphite, double rho_water, double thermal_conductivity_graphite, 
+    double thermal_conductivity_water, bool simple_temp_advection);
 
   class BilinearFormTime: public MatrixFormVol<double>
   {
@@ -254,15 +255,13 @@ public:
   public:
     CustomJacobianTempAdvection_3_0(int i, int j, std::string area) : MatrixFormVol<double>(i, j, area) {}
 
-    double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<double> *ext) const{
+    double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<double> *ext) const
+    {
       double result = 0;
       Func<double>* T_prev_newton = u_ext[3];
       for (int i = 0; i < n; i++) 
       {
-        // Version without integration by parts.
-        result += wt[i] * (u->dx[i] * T_prev_newton->val[i] + u->val[i] * T_prev_newton->dx[i]) * v->val[i];
-        // Version with integration by parts.
-        //result -= wt[i] * u->val[i] * T_prev_newton->val[i] * v->dx[i];
+        result += wt[i] * u->val[i] * T_prev_newton->dx[i] * v->val[i];
       }
       return result;
     }
@@ -273,10 +272,35 @@ public:
       Func<Ord>* T_prev_newton = u_ext[3];
       for (int i = 0; i < n; i++) 
       {
-        // Version without integration by parts.
-        result += wt[i] * (u->dx[i] * T_prev_newton->val[i] + u->val[i] * T_prev_newton->dx[i]) * v->val[i];
-        // Version with integration by parts.
-        //result -= wt[i] * u->val[i] * T_prev_newton->val[i] * v->dx[i];
+        result += wt[i] * u->val[i] * T_prev_newton->dx[i] * v->val[i];
+      }
+      return result;
+    }
+  };
+
+  class CustomJacobianTempAdvection_3_0_simple : public MatrixFormVol<double>
+  {
+  public:
+    CustomJacobianTempAdvection_3_0_simple(int i, int j, std::string area) : MatrixFormVol<double>(i, j, area) {}
+
+    double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<double> *ext) const
+    {
+      double result = 0;
+      Func<double>* T_prev_time = ext->fn[0];
+      for (int i = 0; i < n; i++) 
+      {
+        result += wt[i] * u->val[i] * T_prev_time->dx[i] * v->val[i];
+      }
+      return result;
+    }
+
+    Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const
+    {
+      Ord result = Ord(0);
+      Func<Ord>* T_prev_time = ext->fn[0];
+      for (int i = 0; i < n; i++) 
+      {
+        result += wt[i] * u->val[i] * T_prev_time->dx[i] * v->val[i];
       }
       return result;
     }
@@ -292,10 +316,7 @@ public:
       Func<double>* T_prev_newton = u_ext[3];
       for (int i = 0; i < n; i++) 
       {
-        // Version without integration by parts.
-        result += wt[i] * (u->dy[i] * T_prev_newton->val[i] + u->val[i] * T_prev_newton->dy[i]) * v->val[i];
-        // Version with integration by parts.
-        //result -= wt[i] * u->val[i] * T_prev_newton->val[i] * v->dy[i];
+        result += wt[i] * u->val[i] * T_prev_newton->dy[i] * v->val[i];
       }
       return result;
     }
@@ -306,10 +327,35 @@ public:
       Func<Ord>* T_prev_newton = u_ext[3];
       for (int i = 0; i < n; i++)
       {
-        // Version without integration by parts.
-        result += wt[i] * (u->dy[i] * T_prev_newton->val[i] + u->val[i] * T_prev_newton->dy[i]) * v->val[i];
-        // Version with integration by parts.
-        //result -= wt[i] * u->val[i] * T_prev_newton->val[i] * v->dy[i];
+        result += wt[i] * u->val[i] * T_prev_newton->dy[i] * v->val[i];
+      }
+      return result;
+    }
+  };
+
+  class CustomJacobianTempAdvection_3_1_simple : public MatrixFormVol<double>
+  {
+  public:
+    CustomJacobianTempAdvection_3_1_simple(int i, int j, std::string area) : MatrixFormVol<double>(i, j, area) {}
+
+    double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<double> *ext) const
+    {
+      double result = 0;
+      Func<double>* T_prev_time = ext->fn[0];
+      for (int i = 0; i < n; i++) 
+      {
+        result += wt[i] * u->val[i] * T_prev_time->dy[i] * v->val[i];
+      }
+      return result;
+    }
+
+    Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const
+    {
+      Ord result = Ord(0);
+      Func<Ord>* T_prev_time = ext->fn[0];
+      for (int i = 0; i < n; i++) 
+      {
+        result += wt[i] * u->val[i] * T_prev_time->dy[i] * v->val[i];
       }
       return result;
     }
@@ -327,13 +373,7 @@ public:
       Func<double>* yvel_prev_newton = u_ext[1];
       for (int i = 0; i < n; i++) 
       {
-        // Version without integration by parts.
-        result += wt[i] * (  xvel_prev_newton->dx[i] * u->val[i] + xvel_prev_newton->val[i] * u->dx[i] 
-                           + yvel_prev_newton->dy[i] * u->val[i] + yvel_prev_newton->val[i] * u->dy[i]) * v->val[i];
-        // Version with integration by parts.
-        //result -= wt[i] * (   xvel_prev_newton->val[i] * u->val[i] * v->dx[i] 
-        //                    + yvel_prev_newton->val[i] * u->val[i] * v->dy[i] 
-	//		  );
+        result += wt[i] * (  xvel_prev_newton->val[i] * u->dx[i] + yvel_prev_newton->val[i] * u->dy[i] ) * v->val[i];
       }
       return result;
     }
@@ -345,18 +385,11 @@ public:
       Func<Ord>* yvel_prev_newton = u_ext[1];
       for (int i = 0; i < n; i++)
       {
-        // Version without integration by parts.
-        result += wt[i] * (  xvel_prev_newton->dx[i] * u->val[i] + xvel_prev_newton->val[i] * u->dx[i] 
-                           + yvel_prev_newton->dy[i] * u->val[i] + yvel_prev_newton->val[i] * u->dy[i]) * v->val[i];
-        // Version with integration by parts.
-        //result -= wt[i] * (  xvel_prev_newton->val[i] * u->val[i] * v->dx[i] 
-        //                   + yvel_prev_newton->val[i] * u->val[i] * v->dy[i] 
-	//		  );
+        result += wt[i] * (  xvel_prev_newton->val[i] * u->dx[i] + yvel_prev_newton->val[i] * u->dy[i] ) * v->val[i];
       }
       return result;
     }
   };
-
 
   class VectorFormTime: public VectorFormVol<double>
   {
@@ -394,13 +427,7 @@ public:
       Func<double>* T_prev_newton = u_ext[3];
       for (int i = 0; i < n; i++) 
       {
-        // Version without integration by parts.
-        result += wt[i] * (   (xvel_prev_newton->dx[i] + yvel_prev_newton->dy[i]) * T_prev_newton->val[i] 
-                            + (xvel_prev_newton->val[i] * T_prev_newton->dx[i] + yvel_prev_newton->val[i] * T_prev_newton->dy[i])) * v->val[i]; 
-        // Version with integration by parts.
-        //result -= wt[i] * (   xvel_prev_newton->val[i] * T_prev_newton->val[i] * v->dx[i] 
-        //                    + yvel_prev_newton->val[i] * T_prev_newton->val[i] * v->dy[i]
-        //                  );
+        result += wt[i] * ( xvel_prev_newton->val[i] * T_prev_newton->dx[i] + yvel_prev_newton->val[i] * T_prev_newton->dy[i] ) * v->val[i]; 
       }
       return result;
     }
@@ -413,13 +440,39 @@ public:
       Func<Ord>* T_prev_newton = u_ext[3];
       for (int i = 0; i < n; i++) 
       {
-        // Version without integration by parts.
-        result += wt[i] * (   (xvel_prev_newton->dx[i] + yvel_prev_newton->dy[i]) * T_prev_newton->val[i] 
-                            + (xvel_prev_newton->val[i] * T_prev_newton->dx[i] + yvel_prev_newton->val[i] * T_prev_newton->dy[i])) * v->val[i]; 
-        // Version with integration by parts.
-        //result -= wt[i] * (   xvel_prev_newton->val[i] * T_prev_newton->val[i] * v->dx[i] 
-        //                    + yvel_prev_newton->val[i] * T_prev_newton->val[i] * v->dy[i]
-        //                  );
+        result += wt[i] * ( xvel_prev_newton->val[i] * T_prev_newton->dx[i] + yvel_prev_newton->val[i] * T_prev_newton->dy[i] ) * v->val[i]; 
+      }
+      return result;
+    }
+  };
+
+  class CustomResidualTempAdvection_simple : public VectorFormVol<double>
+  {
+  public:
+  CustomResidualTempAdvection_simple(int i, std::string area) : VectorFormVol<double>(i, area) {}
+
+    double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, ExtData<double> *ext) const
+    {
+      double result = 0;
+      Func<double>* xvel_prev_newton = u_ext[0];
+      Func<double>* yvel_prev_newton = u_ext[1];
+      Func<double>* T_prev_time = ext->fn[0];
+      for (int i = 0; i < n; i++) 
+      {
+        result += wt[i] * ( xvel_prev_newton->val[i] * T_prev_time->dx[i] + yvel_prev_newton->val[i] * T_prev_time->dy[i] ) * v->val[i]; 
+      }
+      return result;
+    }
+
+    Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const
+    {
+      Ord result = Ord(0);
+      Func<Ord>* xvel_prev_newton = u_ext[0];
+      Func<Ord>* yvel_prev_newton = u_ext[1];
+      Func<Ord>* T_prev_time = ext->fn[0];
+      for (int i = 0; i < n; i++) 
+      {
+        result += wt[i] * ( xvel_prev_newton->val[i] * T_prev_time->dx[i] + yvel_prev_newton->val[i] * T_prev_time->dy[i] ) * v->val[i]; 
       }
       return result;
     }

@@ -27,8 +27,9 @@ Ord CustomInitialCondition::ord(Ord x, Ord y) const
 /* Weak forms */
 
 CustomWeakFormHeatAndFlow::CustomWeakFormHeatAndFlow(bool Stokes, double Reynolds, double time_step, Solution<double>* x_vel_previous_time, 
-  Solution<double>* y_vel_previous_time, Solution<double>* T_prev_time, double heat_source, double specific_heat_graphite, 
-  double specific_heat_water, double rho_graphite, double rho_water, double thermal_conductivity_graphite, double thermal_conductivity_water) 
+    Solution<double>* y_vel_previous_time, Solution<double>* T_prev_time, double heat_source, double specific_heat_graphite, 
+    double specific_heat_water, double rho_graphite, double rho_water, double thermal_conductivity_graphite, double thermal_conductivity_water,
+    bool simple_temp_advection) 
   : WeakForm<double>(4), Stokes(Stokes), Reynolds(Reynolds), time_step(time_step), x_vel_previous_time(x_vel_previous_time), y_vel_previous_time(y_vel_previous_time)
   {
     // Jacobian - flow part.
@@ -49,9 +50,21 @@ CustomWeakFormHeatAndFlow::CustomWeakFormHeatAndFlow(bool Stokes, double Reynold
     add_matrix_form(new WeakFormsH1::DefaultJacobianDiffusion<double>(3, 3, "Water", new Hermes1DFunction<double>(thermal_conductivity_water/(rho_water * specific_heat_water)), HERMES_NONSYM));
     add_matrix_form(new WeakFormsH1::DefaultJacobianDiffusion<double>(3, 3, "Graphite", new Hermes1DFunction<double>(thermal_conductivity_graphite/(rho_graphite * specific_heat_graphite)), HERMES_NONSYM));
     // Contribution from temperature advection - only in water.
-    add_matrix_form(new CustomJacobianTempAdvection_3_0(3, 0, "Water"));
-    add_matrix_form(new CustomJacobianTempAdvection_3_1(3, 1, "Water"));
-    add_matrix_form(new CustomJacobianTempAdvection_3_3(3, 3, "Water"));
+    if (simple_temp_advection)     
+    {
+      CustomJacobianTempAdvection_3_0_simple* cjta_3_0_simple = new CustomJacobianTempAdvection_3_0_simple(3, 0, "Water");
+      cjta_3_0_simple->ext.push_back(T_prev_time);
+      add_matrix_form(cjta_3_0_simple);
+      CustomJacobianTempAdvection_3_1_simple* cjta_3_1_simple = new CustomJacobianTempAdvection_3_1_simple(3, 1, "Water");
+      cjta_3_1_simple->ext.push_back(T_prev_time);
+      add_matrix_form(cjta_3_1_simple);
+    }
+    else 
+    {
+      add_matrix_form(new CustomJacobianTempAdvection_3_0(3, 0, "Water"));
+      add_matrix_form(new CustomJacobianTempAdvection_3_1(3, 1, "Water"));
+      add_matrix_form(new CustomJacobianTempAdvection_3_3(3, 3, "Water"));
+    }
 
     // Residual - flow part. 
     VectorFormNS_0* F_0 = new VectorFormNS_0(0, Stokes, Reynolds, time_step);
@@ -79,5 +92,11 @@ CustomWeakFormHeatAndFlow::CustomWeakFormHeatAndFlow(bool Stokes, double Reynold
     // Contribution from heat sources.
     add_vector_form(new WeakFormsH1::DefaultVectorFormVol<double>(3, "Graphite", new Hermes::Hermes2DFunction<double>(-heat_source/(rho_graphite * specific_heat_graphite))));
     // Contribution from temperature advection.
-    add_vector_form(new CustomResidualTempAdvection(3, "Water"));
+    if (simple_temp_advection)     
+    {
+      CustomResidualTempAdvection_simple* crta_simple = new CustomResidualTempAdvection_simple(3, "Water");
+      crta_simple->ext.push_back(T_prev_time);
+      add_vector_form(crta_simple);
+    }
+    else add_vector_form(new CustomResidualTempAdvection(3, "Water"));
   };
