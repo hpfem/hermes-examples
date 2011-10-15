@@ -257,8 +257,13 @@ public:
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<double> *ext) const{
       double result = 0;
       Func<double>* T_prev_newton = u_ext[3];
-      for (int i = 0; i < n; i++)
+      for (int i = 0; i < n; i++) 
+      {
+        // Version without integration by parts.
         result += wt[i] * (u->dx[i] * T_prev_newton->val[i] + u->val[i] * T_prev_newton->dx[i]) * v->val[i];
+        // Version with integration by parts.
+        //result -= wt[i] * u->val[i] * T_prev_newton->val[i] * v->dx[i];
+      }
       return result;
     }
 
@@ -266,8 +271,13 @@ public:
     {
       Ord result = Ord(0);
       Func<Ord>* T_prev_newton = u_ext[3];
-      for (int i = 0; i < n; i++)
+      for (int i = 0; i < n; i++) 
+      {
+        // Version without integration by parts.
         result += wt[i] * (u->dx[i] * T_prev_newton->val[i] + u->val[i] * T_prev_newton->dx[i]) * v->val[i];
+        // Version with integration by parts.
+        //result -= wt[i] * u->val[i] * T_prev_newton->val[i] * v->dx[i];
+      }
       return result;
     }
   };
@@ -280,8 +290,13 @@ public:
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<double> *ext) const{
       double result = 0;
       Func<double>* T_prev_newton = u_ext[3];
-      for (int i = 0; i < n; i++)
+      for (int i = 0; i < n; i++) 
+      {
+        // Version without integration by parts.
         result += wt[i] * (u->dy[i] * T_prev_newton->val[i] + u->val[i] * T_prev_newton->dy[i]) * v->val[i];
+        // Version with integration by parts.
+        //result -= wt[i] * u->val[i] * T_prev_newton->val[i] * v->dy[i];
+      }
       return result;
     }
 
@@ -290,7 +305,12 @@ public:
       Ord result = Ord(0);
       Func<Ord>* T_prev_newton = u_ext[3];
       for (int i = 0; i < n; i++)
+      {
+        // Version without integration by parts.
         result += wt[i] * (u->dy[i] * T_prev_newton->val[i] + u->val[i] * T_prev_newton->dy[i]) * v->val[i];
+        // Version with integration by parts.
+        //result -= wt[i] * u->val[i] * T_prev_newton->val[i] * v->dy[i];
+      }
       return result;
     }
   };
@@ -305,9 +325,16 @@ public:
       double result = 0;
       Func<double>* xvel_prev_newton = u_ext[0];
       Func<double>* yvel_prev_newton = u_ext[1];
-      for (int i = 0; i < n; i++)
+      for (int i = 0; i < n; i++) 
+      {
+        // Version without integration by parts.
         result += wt[i] * (  xvel_prev_newton->dx[i] * u->val[i] + xvel_prev_newton->val[i] * u->dx[i] 
                            + yvel_prev_newton->dy[i] * u->val[i] + yvel_prev_newton->val[i] * u->dy[i]) * v->val[i];
+        // Version with integration by parts.
+        //result -= wt[i] * (   xvel_prev_newton->val[i] * u->val[i] * v->dx[i] 
+        //                    + yvel_prev_newton->val[i] * u->val[i] * v->dy[i] 
+	//		  );
+      }
       return result;
     }
 
@@ -317,8 +344,15 @@ public:
       Func<Ord>* xvel_prev_newton = u_ext[0];
       Func<Ord>* yvel_prev_newton = u_ext[1];
       for (int i = 0; i < n; i++)
+      {
+        // Version without integration by parts.
         result += wt[i] * (  xvel_prev_newton->dx[i] * u->val[i] + xvel_prev_newton->val[i] * u->dx[i] 
                            + yvel_prev_newton->dy[i] * u->val[i] + yvel_prev_newton->val[i] * u->dy[i]) * v->val[i];
+        // Version with integration by parts.
+        //result -= wt[i] * (  xvel_prev_newton->val[i] * u->val[i] * v->dx[i] 
+        //                   + yvel_prev_newton->val[i] * u->val[i] * v->dy[i] 
+	//		  );
+      }
       return result;
     }
   };
@@ -358,14 +392,15 @@ public:
       Func<double>* xvel_prev_newton = u_ext[0];
       Func<double>* yvel_prev_newton = u_ext[1];
       Func<double>* T_prev_newton = u_ext[3];
-      for (int i = 0; i < n; i++) {
-        // Contribution from implicit Euler.
-        //result += wt[i] * (T_prev_newton->val[i] - T_prev_time->val[i]) / time_step;
-        // Contribution from temperature diffusion.
-        //result += wt[i] * thermal_cond / (rho * heat_cap) * (T_prev_newton->dx[i]*v->dx[i] + T_prev_newton->dy[i]*v->dy[i]);
-        // Contribution from advection.
-        result += wt[i] * (  (xvel_prev_newton->dx[i] + yvel_prev_newton->dy[i]) * T_prev_newton->val[i] 
-                             + (xvel_prev_newton->val[i] * T_prev_newton->dx[i] + yvel_prev_newton->val[i] * T_prev_newton->dy[i])) * v->val[i]; 
+      for (int i = 0; i < n; i++) 
+      {
+        // Version without integration by parts.
+        result += wt[i] * (   (xvel_prev_newton->dx[i] + yvel_prev_newton->dy[i]) * T_prev_newton->val[i] 
+                            + (xvel_prev_newton->val[i] * T_prev_newton->dx[i] + yvel_prev_newton->val[i] * T_prev_newton->dy[i])) * v->val[i]; 
+        // Version with integration by parts.
+        //result -= wt[i] * (   xvel_prev_newton->val[i] * T_prev_newton->val[i] * v->dx[i] 
+        //                    + yvel_prev_newton->val[i] * T_prev_newton->val[i] * v->dy[i]
+        //                  );
       }
       return result;
     }
@@ -376,14 +411,15 @@ public:
       Func<Ord>* xvel_prev_newton = u_ext[0];
       Func<Ord>* yvel_prev_newton = u_ext[1];
       Func<Ord>* T_prev_newton = u_ext[3];
-      for (int i = 0; i < n; i++) {
-        // Contribution from implicit Euler.
-        //result += wt[i] * (T_prev_newton->val[i] - T_prev_time->val[i]) / time_step;
-        // Contribution from temperature diffusion.
-        //result += wt[i] * thermal_cond / (rho * heat_cap) * (T_prev_newton->dx[i]*v->dx[i] + T_prev_newton->dy[i]*v->dy[i]);
-        // Contribution from advection.
-        result += wt[i] * (  (xvel_prev_newton->dx[i] + yvel_prev_newton->dy[i]) * T_prev_newton->val[i] 
-                             + (xvel_prev_newton->val[i] * T_prev_newton->dx[i] + yvel_prev_newton->val[i] * T_prev_newton->dy[i])) * v->val[i]; 
+      for (int i = 0; i < n; i++) 
+      {
+        // Version without integration by parts.
+        result += wt[i] * (   (xvel_prev_newton->dx[i] + yvel_prev_newton->dy[i]) * T_prev_newton->val[i] 
+                            + (xvel_prev_newton->val[i] * T_prev_newton->dx[i] + yvel_prev_newton->val[i] * T_prev_newton->dy[i])) * v->val[i]; 
+        // Version with integration by parts.
+        //result -= wt[i] * (   xvel_prev_newton->val[i] * T_prev_newton->val[i] * v->dx[i] 
+        //                    + yvel_prev_newton->val[i] * T_prev_newton->val[i] * v->dy[i]
+        //                  );
       }
       return result;
     }
