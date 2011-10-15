@@ -28,22 +28,22 @@ const int INIT_REF_NUM = 2;
 // Number of initial mesh refinements towards the hole.
 const int INIT_REF_NUM_WALL = 3;   
 
-// Domain sizes (need to be compatible with mesh file).
+// Domain sizes (need to be compatible with mesh file!).
 // Domain height (necessary to define the parabolic
 // velocity profile at inlet).
-const double H = 10;                               
+const double H = 1.0;                               
 // For the calculation of Reynolds number.
-const double OBSTACLE_DIAMETER = 4*std::sqrt(2.0);    
+const double OBSTACLE_DIAMETER = 0.3 * std::sqrt(2.0);    
 // For the definition of custom initial condition.     
-const double HOLE_MID_X = 5.0;
-const double HOLE_MID_Y = 5.0;
+const double HOLE_MID_X = 0.5;
+const double HOLE_MID_Y = 0.5;
 
 // Problem parameters.
 // Inlet velocity (reached after STARTUP_TIME).
-const double VEL_INLET = 1.0;                        
+const double VEL_INLET = 0.5;              
 // Initial temperature.
 const double TEMP_INIT_WATER = 20.0;                       
-const double TEMP_INIT_GRAPHITE = 200.0;                       
+const double TEMP_INIT_GRAPHITE = 100.0;                       
 // Correct is 1.004e-6 (at 20 deg Celsius) but then RE = 2.81713e+06 which 
 // is too much for this simple model, so we use a larger viscosity. Note
 // that kinematic viscosity decreases with rising temperature.
@@ -60,9 +60,8 @@ const double RHO_WATER = 1000;
 // Also found on Wikipedia.
 const double SPECIFIC_HEAT_GRAPHITE = 711;        
 const double SPECIFIC_HEAT_WATER = 4187;            
-// Heat source inside of the inner circle. This value is not 
-// realistic - we just want this thing to heat up quickly.
-const double HEAT_SOURCE_GRAPHITE = 1e7;          
+// Heat source in graphite. This value is not realistic.
+const double HEAT_SOURCE_GRAPHITE = 1e6;          
 // During this time, inlet velocity increases gradually
 // from 0 to VEL_INLET, then it stays constant.
 const double STARTUP_TIME = 1.0;                  
@@ -86,10 +85,12 @@ int main(int argc, char* argv[])
   MeshReaderH2DXML mloader;
   mloader.load("subdomains.xml", meshes);
 
+  /* View both meshes.
   MeshView m1("Mesh for temperature"), m2("Mesh for flow");
   m1.show(&mesh_whole_domain);
   m2.show(&mesh_with_hole);
   View::wait();
+  */
 
   // Perform initial mesh refinements (optional).
   // Uniform.
@@ -113,7 +114,7 @@ int main(int argc, char* argv[])
   EssentialBCs<double> bcs_pressure;
 
   // Temperature.
-  DefaultEssentialBCConst<double> bc_temperature(Hermes::vector<std::string>("Inlet", "Outer Wall"), 20.0);
+  DefaultEssentialBCConst<double> bc_temperature("Inlet", 20.0);
   EssentialBCs<double> bcs_temperature(&bc_temperature);
 
   // Spaces for velocity components and pressure.
@@ -174,7 +175,7 @@ int main(int argc, char* argv[])
   Views::VectorView vview("velocity [m/s]", new Views::WinGeom(0, 0, 700, 360));
   Views::ScalarView pview("pressure [Pa]", new Views::WinGeom(0, 415, 700, 350));
   Views::ScalarView tempview("temperature [C]", new Views::WinGeom(0, 795, 700, 350));
-  vview.set_min_max_range(0, 1.6);
+  //vview.set_min_max_range(0, 0.5);
   vview.fix_scale_width(80);
   //pview.set_min_max_range(-0.9, 1.0);
   pview.fix_scale_width(80);

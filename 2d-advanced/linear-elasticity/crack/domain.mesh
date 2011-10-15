@@ -1,0 +1,115 @@
+
+a = 0.25   # horizontal size of an element
+b = 0.1    # vertical size of an element
+w = 0.001  # width of the cracks
+
+a2 = 0.50
+a3 = 0.75
+a4 = 1.00
+a5 = 1.25
+a6 = 1.50
+
+b2 = 0.2
+b3 = 0.3
+
+bw1 = 0.0995 # b - w/2
+bw2 = 0.1005 # b + w/2
+bw3 = 0.1995 # b2 - w/2
+bw4 = 0.2005 # b2 + w/2
+
+vertices = [
+  [  0, 0 ],         # vertex 0
+  [  a, 0 ],         # vertex 1
+  [ a2, 0 ],         # vertex 2
+  [ a3, 0 ],         # vertex 3
+  [ a4, 0 ],         # vertex 4
+  [ a5, 0 ],         # vertex 5
+  [ a6, 0 ],         # vertex 6
+
+  [ 0, b ],          # vertex 7
+  [ a, b ],          # vertex 8
+  [ a2, b ],         # vertex 9
+  [ a3, b ],         # vertex 10
+  [ a4, bw1 ],       # vertex 11
+  [ a4, bw2 ],       # vertex 12
+  [ a5, b ],         # vertex 13
+  [ a6, b ],         # vertex 14
+
+  [ 0, b2 ],         # vertex 15
+  [ a, b2 ],         # vertex 16
+  [ a2, bw3 ],       # vertex 17
+  [ a2, bw4 ],       # vertex 18
+  [ a3, b2 ],        # vertex 19
+  [ a4, b2 ],        # vertex 20
+  [ a5, b2 ],        # vertex 21
+  [ a6, b2 ],        # vertex 22
+
+  [ 0, b3 ],         # vertex 23
+  [ a, b3 ],         # vertex 24
+  [ a2, b3 ],        # vertex 25
+  [ a3, b3 ],        # vertex 26
+  [ a4, b3 ],        # vertex 27
+  [ a5, b3 ],        # vertex 28
+  [ a6, b3 ]         # vertex 29
+]
+
+elements = [
+  [ 0, 1, 8, 7, "e" ],      # quad 0
+  [ 1, 2, 9, 8, "e" ],      # quad 1
+  [ 2, 3, 10, 9, "e" ],     # quad 2
+  [ 3, 4, 11, 10, "e" ],    # quad 3
+  [ 4, 5, 13, 11, "e" ],    # quad 4
+  [ 5, 6, 14, 13, "e" ],    # quad 5
+
+  [ 7, 8, 16, 15, "e" ],    # quad 6
+  [ 8, 9, 17, 16, "e" ],    # quad 7
+  [ 9, 10, 19, 17, "e" ],   # quad 8
+  [ 10, 12, 20, 19, "e" ],  # quad 9
+  [ 12, 13, 21, 20, "e" ],  # quad 10
+  [ 13, 14, 22, 21, "e" ],  # quad 11
+
+  [ 15, 16, 24, 23, "e" ],  # quad 12
+  [ 16, 18, 25, 24, "e" ],  # quad 13
+  [ 18, 19, 26, 25, "e" ],  # quad 14
+  [ 19, 20, 27, 26, "e" ],  # quad 15
+  [ 20, 21, 28, 27, "e" ],  # quad 16
+  [ 21, 22, 29, 28, "e" ]   # quad 17
+]
+
+boundaries = [
+  [ 0, 1, "bdy rest" ],   # bottom edges
+  [ 1, 2, "bdy rest" ],
+  [ 2, 3, "bdy rest" ],
+  [ 3, 4, "bdy rest" ],
+  [ 4, 5, "bdy rest" ],
+  [ 5, 6, "bdy rest" ],
+
+  [ 6, 14, "bdy rest" ],  # right edges
+  [ 14, 22, "bdy rest" ],
+  [ 22, 29, "bdy rest" ],
+
+  [ 29, 28, "bdy rest" ], # top edges
+  [ 28, 27, "bdy rest" ],
+  [ 27, 26, "bdy rest" ],
+  [ 26, 25, "bdy rest" ],
+  [ 25, 24, "bdy rest" ],
+  [ 24, 23, "bdy rest" ],
+
+
+  [ 23, 15, "bdy left" ], # left edges
+  [ 15, 7, "bdy left" ],
+  [ 7, 0, "bdy left" ],
+
+  [ 16, 17, "bdy rest" ], # left crack
+  [ 17, 19, "bdy rest" ],
+  [ 19, 18, "bdy rest" ],
+  [ 18, 16, "bdy rest" ],
+
+  [ 10, 11, "bdy rest" ], # right crack
+  [ 11, 13, "bdy rest" ],
+  [ 13, 12, "bdy rest" ],
+  [ 12, 10, "bdy rest" ]
+
+
+]
+

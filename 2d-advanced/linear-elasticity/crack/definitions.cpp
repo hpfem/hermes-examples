@@ -1,38 +1,27 @@
-template<typename Real, typename Scalar>
-Scalar bilinear_form_0_0(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return (lambda + 2*mu) * int_dudx_dvdx<Real, Scalar>(n, wt, u, v) +
-                      mu * int_dudy_dvdy<Real, Scalar>(n, wt, u, v);
-}
+#include "definitions.h"
 
-template<typename Real, typename Scalar>
-Scalar bilinear_form_0_1(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+CustomWeakFormLinearElasticity::CustomWeakFormLinearElasticity(double E, double nu, double rho_g,
+                                 std::string surface_force_bdy, double f0, double f1) : WeakForm<double>(2)
 {
-  return lambda * int_dudy_dvdx<Real, Scalar>(n, wt, u, v) +
-             mu * int_dudx_dvdy<Real, Scalar>(n, wt, u, v);
-}
+  double lambda = (E * nu) / ((1 + nu) * (1 - 2*nu));
+  double mu = E / (2*(1 + nu));
 
-template<typename Real, typename Scalar>
-Scalar bilinear_form_1_0(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return     mu * int_dudy_dvdx<Real, Scalar>(n, wt, u, v) +
-         lambda * int_dudx_dvdy<Real, Scalar>(n, wt, u, v);
-}
+  // Jacobian.
+  add_matrix_form(new DefaultJacobianElasticity_0_0<double>(0, 0, lambda, mu));
+  add_matrix_form(new DefaultJacobianElasticity_0_1<double>(0, 1, lambda, mu));
+  add_matrix_form(new DefaultJacobianElasticity_1_1<double>(1, 1, lambda, mu));
 
-template<typename Real, typename Scalar>
-Scalar bilinear_form_1_1(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return              mu * int_dudx_dvdx<Real, Scalar>(n, wt, u, v) +
-         (lambda + 2*mu) * int_dudy_dvdy<Real, Scalar>(n, wt, u, v);
-}
+  // Residual - first equation.
+  add_vector_form(new DefaultResidualElasticity_0_0<double>(0, HERMES_ANY, lambda, mu));
+  add_vector_form(new DefaultResidualElasticity_0_1<double>(0, HERMES_ANY, lambda, mu));
+  // Surface force (first component).
+  add_vector_form_surf(new DefaultVectorFormSurf<double>(0, surface_force_bdy, new Hermes2DFunction<double>(-f0))); 
 
-template<typename Real, typename Scalar>
-Scalar linear_form_surf_1(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
-{
-  return -f * int_v<Real, Scalar>(n, wt, v);
-}
-
-Ord linear_form_surf_1_ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext)
-{
-  return Ord(30);
+  // Residual - second equation.
+  add_vector_form(new DefaultResidualElasticity_1_0<double>(1, HERMES_ANY, lambda, mu));
+  add_vector_form(new DefaultResidualElasticity_1_1<double>(1, HERMES_ANY, lambda, mu));
+  // Gravity loading in the second vector component.
+  add_vector_form(new DefaultVectorFormVol<double>(1, HERMES_ANY, new Hermes2DFunction<double>(-rho_g)));
+  // Surface force (second component).
+  add_vector_form_surf(new DefaultVectorFormSurf<double>(1, surface_force_bdy, new Hermes2DFunction<double>(-f1))); 
 }

@@ -121,19 +121,6 @@ const double REACTOR_START_TIME = 3600*24;
 // Physical time in seconds.
 double current_time = 0.0;
 
-/*
-// Essential (Dirichlet) boundary condition values for T.
-scalar essential_bc_values_T(double x, double y, double time)
-{
-  double current_reactor_temperature = TEMP_REACTOR_MAX;
-  if (time < REACTOR_START_TIME) {
-    current_reactor_temperature = TEMP_INITIAL +
-      (time/REACTOR_START_TIME)*(TEMP_REACTOR_MAX - TEMP_INITIAL);
-  }
-  return current_reactor_temperature;
-}
-*/
-
 int main(int argc, char* argv[])
 {
   // Choose a Butcher's table or define your own.
@@ -153,7 +140,7 @@ int main(int argc, char* argv[])
   w_mesh.copy(&basemesh);
 
   // Initialize boundary conditions.
-  DefaultEssentialBCConst<double> temp_reactor("bdy_react", 900.0);
+  EssentialBCNonConst temp_reactor("bdy_react", REACTOR_START_TIME, TEMP_INITIAL, TEMP_REACTOR_MAX);
   EssentialBCs<double> bcs_T(&temp_reactor);
 
   // Create H1 spaces with default shapesets.
@@ -202,6 +189,12 @@ int main(int argc, char* argv[])
     info("Simulation time = %g s (%d h, %d d, %d y)",
         (current_time + current_time), (int) (current_time + current_time) / 3600,
         (int) (current_time + current_time) / (3600*24), (int) (current_time + current_time) / (3600*24*364));
+
+    // Update time-dependent essential BCs.
+    if (current_time <= REACTOR_START_TIME) {
+      info("Updating time-dependent essential BC.");
+      Space<double>::update_essential_bc_values(Hermes::vector<Space<double>*>(&T_space, &w_space), current_time);
+    }
 
     // Uniform mesh derefinement.
     if (ts > 1 && ts % UNREF_FREQ == 0) {
@@ -271,18 +264,19 @@ int main(int argc, char* argv[])
 	  Hermes::vector<Solution<double> *>(&T_coarse, &w_coarse),
           matrix_solver); 
 
-      /*
-      // Registering custom forms for error calculation.
-      Adapt* adaptivity = new Adapt(Hermes::vector<Space *>(&T_space, &w_space));
-      adaptivity->set_error_form(0, 0, callback(bilinear_form_sym_0_0));
-      adaptivity->set_error_form(0, 1, callback(bilinear_form_sym_0_1));
-      adaptivity->set_error_form(1, 0, callback(bilinear_form_sym_1_0));
-      adaptivity->set_error_form(1, 1, callback(bilinear_form_sym_1_1));
-      */
+      // Initialize an instance of the Adapt class and register custom error forms.
+      Adapt<double>* adaptivity = new Adapt<double>(Hermes::vector<Space<double> *>(&T_space, &w_space));
+      CustomErrorForm cef_0_0(d_TT, c_TT);
+      CustomErrorForm cef_0_1(d_Tw, c_TT);
+      CustomErrorForm cef_1_0(d_wT, c_ww);
+      CustomErrorForm cef_1_1(d_ww, c_ww);
+      adaptivity->set_error_form(0, 0, &cef_0_0);
+      adaptivity->set_error_form(0, 1, &cef_0_1);
+      adaptivity->set_error_form(1, 0, &cef_1_0);
+      adaptivity->set_error_form(1, 1, &cef_1_1);
 
       // Calculate element errors and total error estimate.
       info("Calculating error estimate."); 
-      Adapt<double>* adaptivity = new Adapt<double>(Hermes::vector<Space<double> *>(&T_space, &w_space));
       double err_est_rel_total = adaptivity->calc_err_est(Hermes::vector<Solution<double> *>(&T_coarse, &w_coarse), 
                                  Hermes::vector<Solution<double> *>(&T_time_new, &w_time_new)) * 100;
 
