@@ -1,6 +1,12 @@
+#include "hermes2d.h"
 #define HERMES_REPORT_ALL
 #define HERMES_REPORT_FILE "application.log"
-//#include "definitions.h"
+
+using namespace Hermes;
+using namespace Hermes::Hermes2D;
+using namespace Hermes::Hermes2D::WeakFormsH1;
+using namespace Hermes::Hermes2D::Views;
+using namespace RefinementSelectors;
 
 //  This example is a standard nuclear engineering benchmark describing an external-force-driven
 //  configuration without fissile materials present, using one-group neutron diffusion approximation.
@@ -96,24 +102,24 @@ const std::string ZERO_FLUX_BOUNDARY = "2";
 
 int main(int argc, char* argv[])
 {
-  // Instantiate a class with global functions.
-  Hermes2D hermes2d;
-
   // Load the mesh.
   Mesh mesh;
-  ExodusIIReader mloader;
+  MeshReaderExodusII mloader;
   if (!mloader.load("iron-water.e", &mesh)) error("ExodusII mesh load failed.");
    
   // Perform initial uniform mesh refinement.
   for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
   
   // Set essential boundary conditions.
-  DefaultEssentialBCConst bc_essential(ZERO_FLUX_BOUNDARY, 0.0);
-  EssentialBCs bcs(&bc_essential);
+  DefaultEssentialBCConst<double> bc_essential(ZERO_FLUX_BOUNDARY, 0.0);
+  EssentialBCs<double> bcs(&bc_essential);
   
   // Create an H1 space with default shapeset.
-  H1Space space(&mesh, &bcs, P_INIT);
+  H1Space<double> space(&mesh, &bcs, P_INIT);
   
+  // Initialize coarse and fine mesh solution.
+  Solution<double> sln, ref_sln;
+
   // Associate element markers (corresponding to physical regions) 
   // with material properties (diffusion coefficient, absorption 
   // cross-section, external sources).
@@ -123,11 +129,11 @@ int main(int argc, char* argv[])
   Hermes::vector<double> Sources_map(Q_EXT, 0.0, 0.0);
   
   // Initialize the weak formulation.
-  WeakFormsNeutronics::Monoenergetic::Diffusion::DefaultWeakFormFixedSource
-    wf(regions, D_map, Sigma_a_map, Sources_map);
+  WeakFormsNeutronics::Monoenergetic::Diffusion::DefaultWeakFormFixedSource<double>
+      wf(regions, D_map, Sigma_a_map, Sources_map);
   
   // Initialize refinement selector.
-  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
+  H1ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Initialize views.
   ScalarView sview("Solution", new WinGeom(0, 0, 440, 350));
@@ -144,43 +150,50 @@ int main(int argc, char* argv[])
 
   // Adaptivity loop:
   int as = 1; bool done = false;
-  Solution ref_sln;
   do
   {
     info("---- Adaptivity step %d:", as);
+    
+    // Time measurement.
+    cpu_time.tick();
 
-    // Construct globally refined reference mesh and setup reference space.
-    Space* ref_space = Space::construct_refined_space(&space);
-    int ndof_ref = Space::get_num_dofs(ref_space);
+    // Construct globally refined mesh and setup fine mesh space.
+    Space<double>* ref_space = Space<double>::construct_refined_space(&space);
+    int ndof_ref = ref_space->get_num_dofs();
 
-    // Initialize the FE problem.
-    DiscreteProblem dp(&wf, ref_space);
-
-    // Initialize the FE problem.
-    SparseMatrix* matrix = create_matrix(matrix_solver);
-    Vector* rhs = create_vector(matrix_solver);
-    Solver* solver = create_linear_solver(matrix_solver, matrix, rhs);
+    // Initialize fine mesh problem.
+    info("Solving on fine mesh.");
+    DiscreteProblem<double> dp(&wf, ref_space);
+    
+    NewtonSolver<double> newton(&dp, matrix_solver);
+    newton.set_verbose_output(false);
 
     // Initial coefficient vector for the Newton's method.  
-    scalar* coeff_vec = new scalar[ndof_ref];
-    memset(coeff_vec, 0, ndof_ref*sizeof(scalar));
+    double* coeff_vec = new double[ndof_ref];
+    memset(coeff_vec, 0, ndof_ref * sizeof(double));
 
-    // Perform Newton's iteration on reference emesh.
-    info("Solving on reference mesh.");
-    if (!hermes2d.solve_newton(coeff_vec, &dp, solver, matrix, rhs)) error("Newton's iteration failed.");
+    // Perform Newton's iteration.
+    try
+    {
+      newton.solve(coeff_vec);
+    }
+    catch(Hermes::Exceptions::Exception e)
+    {
+      e.printMsg();
+      error("Newton's iteration failed.");
+    }
 
-    // Translate the resulting coefficient vector into the Solution sln.
-    Solution::vector_to_solution(coeff_vec, ref_space, &ref_sln);
-
+    // Translate the resulting coefficient vector into the instance of Solution.
+    Solution<double>::vector_to_solution(newton.get_sln_vector(), ref_space, &ref_sln);
+    
     // Project the fine mesh solution onto the coarse mesh.
-    Solution sln;
-    info("Projecting reference solution on coarse mesh.");
-    OGProjection::project_global(&space, &ref_sln, &sln, matrix_solver); 
+    info("Projecting fine mesh solution on coarse mesh.");
+    OGProjection<double>::project_global(&space, &ref_sln, &sln, matrix_solver);
 
     // Time measurement.
     cpu_time.tick();
-   
-    // View the coarse mesh solution and polynomial orders.
+
+    // Visualize the solution and mesh.
     sview.show(&sln);
     oview.show(&space);
 
@@ -188,54 +201,60 @@ int main(int argc, char* argv[])
     cpu_time.tick(HERMES_SKIP);
 
     // Calculate element errors and total error estimate.
-    info("Calculating error estimate."); 
-    Adapt* adaptivity = new Adapt(&space);
-    double err_est_rel = adaptivity->calc_err_est(&sln, &ref_sln) * 100;
+    info("Calculating error estimate.");
+    Adapt<double> adaptivity(&space);
+    bool solutions_for_adapt = true;
+    double err_est_rel = adaptivity.calc_err_est(&sln, &ref_sln, solutions_for_adapt,
+                         HERMES_TOTAL_ERROR_REL | HERMES_ELEMENT_ERROR_REL) * 100;
 
     // Report results.
-    info("ndof_coarse: %d, ndof_fine: %d, err_est_rel: %g%%", 
-    Space::get_num_dofs(&space), Space::get_num_dofs(ref_space), err_est_rel);
-
-    // Time measurement.
-    cpu_time.tick();
+    info("ndof_coarse: %d, ndof_fine: %d, err_est_rel: %g%%",
+      space.get_num_dofs(), ref_space->get_num_dofs(), err_est_rel);
 
     // Add entry to DOF and CPU convergence graphs.
-    graph_dof.add_values(Space::get_num_dofs(&space), err_est_rel);
-    graph_dof.save("conv_dof_est.dat");
+    cpu_time.tick();    
     graph_cpu.add_values(cpu_time.accumulated(), err_est_rel);
     graph_cpu.save("conv_cpu_est.dat");
+    graph_dof.add_values(space.get_num_dofs(), err_est_rel);
+    graph_dof.save("conv_dof_est.dat");
+    
+    // Skip the time spent to save the convergence graphs.
+    cpu_time.tick(HERMES_SKIP);
 
     // If err_est too large, adapt the mesh.
-    if (err_est_rel < ERR_STOP) done = true;
-    else 
+    if (err_est_rel < ERR_STOP) 
+      done = true;
+    else
     {
       info("Adapting coarse mesh.");
-      done = adaptivity->adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
-      
+      done = adaptivity.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
+
       // Increase the counter of performed adaptivity steps.
-      if (done == false)  as++;
+      if (done == false)  
+        as++;
     }
-    if (Space::get_num_dofs(&space) >= NDOF_STOP) done = true;
+    if (space.get_num_dofs() >= NDOF_STOP) 
+      done = true;
 
     // Clean up.
     delete [] coeff_vec;
-    delete solver;
-    delete matrix;
-    delete rhs;
-    delete adaptivity;
-    if(done == false) delete ref_space->get_mesh();
+    // Keep the mesh from final step to allow further work with the final fine mesh solution.
+    if(done == false) 
+      delete ref_space->get_mesh(); 
     delete ref_space;
   }
   while (done == false);
-  
+
   verbose("Total running time: %g s", cpu_time.accumulated());
 
-  // Show the reference solution - the final result.
+  // Show the fine mesh solution - final result.
   sview.set_title("Fine mesh solution");
   sview.show_mesh(false);
   sview.show(&ref_sln);
 
   // Wait for all views to be closed.
-  View::wait();
+  Views::View::wait();
+
   return 0;
 }
+
