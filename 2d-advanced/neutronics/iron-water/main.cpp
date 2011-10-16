@@ -97,9 +97,6 @@ const std::string IRON = "3";
 // Boundaries.
 const std::string ZERO_FLUX_BOUNDARY = "2";
 
-// Weak forms.
-#include "weakform_library/weakforms_neutronics.h"
-
 int main(int argc, char* argv[])
 {
   // Load the mesh.
