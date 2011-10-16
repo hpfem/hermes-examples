@@ -71,38 +71,35 @@ double k_eff = 1.0;
 
 int main(int argc, char* argv[])
 {
-  // Instantiate a class with global functions.
-  Hermes2D hermes2d;
-  
   // Load the mesh.
   Mesh mesh;
-  H2DReader mloader;
+  MeshReaderH2D mloader;
   mloader.load(mesh_file.c_str(), &mesh);
 
   // Perform initial mesh refinements.
   for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
 
   // Solution variables.
-  Solution sln1, sln2, sln3, sln4;
-  Hermes::vector<Solution*> solutions(&sln1, &sln2, &sln3, &sln4);
+  Solution<double> sln1, sln2, sln3, sln4;
+  Hermes::vector<Solution<double>*> solutions(&sln1, &sln2, &sln3, &sln4);
   
   // Define initial conditions.
   info("Setting initial conditions.");
-  Solution iter1, iter2, iter3, iter4;
+  Solution<double> iter1, iter2, iter3, iter4;
   iter1.set_const(&mesh, 1.00);
   iter2.set_const(&mesh, 1.00);
   iter3.set_const(&mesh, 1.00);
   iter4.set_const(&mesh, 1.00);
-  Hermes::vector<MeshFunction*> iterates(&iter1, &iter2, &iter3, &iter4);
+  Hermes::vector<MeshFunction<double>*> iterates(&iter1, &iter2, &iter3, &iter4);
 
   // Create H1 spaces with default shapesets.
-  H1Space space1(&mesh, P_INIT_1);
-  H1Space space2(&mesh, P_INIT_2);
-  H1Space space3(&mesh, P_INIT_3);
-  H1Space space4(&mesh, P_INIT_4);
-  Hermes::vector<Space*> spaces(&space1, &space2, &space3, &space4);
+  H1Space<double> space1(&mesh, P_INIT_1);
+  H1Space<double> space2(&mesh, P_INIT_2);
+  H1Space<double> space3(&mesh, P_INIT_3);
+  H1Space<double> space4(&mesh, P_INIT_4);
+  Hermes::vector<Space<double>*> spaces(&space1, &space2, &space3, &space4);
   
-  int ndof = Space::get_num_dofs(spaces);
+  int ndof = Space<double>::get_num_dofs(spaces);
   info("ndof = %d.", ndof);
   
   // Initialize views.
@@ -134,7 +131,7 @@ int main(int argc, char* argv[])
   CustomWeakForm wf(matprop, iterates, k_eff, bdy_vacuum);
 
   // Initialize the FE problem.
-  DiscreteProblem dp(&wf, spaces);
+  DiscreteProblem<double> dp(&wf, spaces);
   
   SparseMatrix* matrix = create_matrix(matrix_solver);
   Vector* rhs = create_vector(matrix_solver);
