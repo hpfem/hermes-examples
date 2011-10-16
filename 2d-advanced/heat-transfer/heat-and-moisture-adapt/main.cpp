@@ -13,8 +13,11 @@ using namespace RefinementSelectors;
 //
 // The following parameters can be changed:
 
+// Scaling factor for moisture. Since temperature is in hundreds of Kelvins and moisture between
+// (0, 1), adaptivity works better when moisture is scaled. 
+const double W_SCALING_FACTOR = 100.;
 // Initial polynomial degrees.
-const int P_INIT = 1;                             
+const int P_INIT = 2;                             
 // MULTI = true  ... use multi-mesh,
 // MULTI = false ... use single-mesh.
 // Note: In the single mesh option, the meshes are
@@ -39,7 +42,7 @@ const double THRESHOLD = 0.3;
 //   than THRESHOLD times maximum element error.
 // STRATEGY = 2 ... refine all elements whose error is larger
 //   than THRESHOLD.
-const int STRATEGY = 1;                           
+const int STRATEGY = 0;                           
 // Predefined list of element refinement candidates. Possible values are
 // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
 // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
@@ -55,7 +58,7 @@ const int MESH_REGULARITY = -1;
 // candidates in hp-adaptivity. Default value is 1.0. 
 const double CONV_EXP = 1.0;                      
 // Stopping criterion for adaptivity.
-const double ERR_STOP = 20.3;                      
+const double ERR_STOP = 2.0;                      
 // Adaptivity process stops when the number of degrees of freedom grows over
 // this limit. This is mainly to prevent h-adaptivity to go on forever.
 const int NDOF_STOP = 100000;                     
@@ -67,7 +70,7 @@ MatrixSolverType matrix_solver = SOLVER_UMFPACK;
 // Stopping criterion for Newton on fine mesh.
 const double NEWTON_TOL = 1e-5;                   
 // Maximum allowed number of Newton iterations.
-const int NEWTON_MAX_ITER = 20;                   
+const int NEWTON_MAX_ITER = 50;                   
 
 // Choose one of the following time-integration methods, or define your own Butcher's table. The last number
 // in the name of each method is its order. The one before last, if present, is the number of stages.
@@ -87,35 +90,35 @@ const int NEWTON_MAX_ITER = 20;
 ButcherTableType butcher_table_type = Implicit_RK_1;
 
 // Time step and simulation time.
-// Time step: 120 hours.
-const double time_step = 5.*24*60*60;                  
+// Time step: 10 days
+const double time_step = 10.*24*60*60;                  
 // Physical time [seconds].
-const double SIMULATION_TIME = 100*time_step + 0.001;  
+const double SIMULATION_TIME = 10000*time_step + 0.001;  
 
 // Problem parameters.
 const double c_TT = 2.18e+6;
 const double d_TT = 2.1;
-const double d_Tw = 2.37e-2;
+const double d_Tw = 2.37e-2 / W_SCALING_FACTOR;
 const double k_TT = 25;
 const double c_ww = 24.9;
-const double d_wT = 1.78e-10;
+const double d_wT = 1.78e-10 * W_SCALING_FACTOR;
 const double d_ww = 3.02e-8;
 const double k_ww = 1.84e-7;
 
 // Initial and boundary conditions.
 // (Kelvins)
-const double TEMP_INITIAL = 293.0;           
+const double T_INITIAL = 293.0;           
 // (dimensionless)
-const double MOIST_INITIAL = 0.9;            
+const double W_INITIAL = 0.9 * W_SCALING_FACTOR;            
 // (Kelvins)
-const double TEMP_EXTERIOR = 293.0;          
+const double T_EXTERIOR = 293.0;          
 // (dimensionless)
-const double MOIST_EXTERIOR = 0.55;          
+const double W_EXTERIOR = 0.55 * W_SCALING_FACTOR;          
 // (Kelvins)
-const double TEMP_REACTOR_MAX = 550.0;       
+const double T_REACTOR_MAX = 550.0;       
 // How long does the reactor
-// need to warm up linearly from TEMP_INITIAL
-// to TEMP_REACTOR_MAX [seconds].
+// need to warm up linearly from T_INITIAL
+// to T_REACTOR_MAX [seconds].
 const double REACTOR_START_TIME = 3600*24;   
 
 // Physical time in seconds.
@@ -140,7 +143,7 @@ int main(int argc, char* argv[])
   w_mesh.copy(&basemesh);
 
   // Initialize boundary conditions.
-  EssentialBCNonConst temp_reactor("bdy_react", REACTOR_START_TIME, TEMP_INITIAL, TEMP_REACTOR_MAX);
+  EssentialBCNonConst temp_reactor("bdy_react", REACTOR_START_TIME, T_INITIAL, T_REACTOR_MAX);
   EssentialBCs<double> bcs_T(&temp_reactor);
 
   // Create H1 spaces with default shapesets.
@@ -149,8 +152,8 @@ int main(int argc, char* argv[])
 
   // Define constant initial conditions.
   info("Setting initial conditions.");
-  ConstantSolution<double> T_time_prev(&T_mesh, TEMP_INITIAL);
-  ConstantSolution<double> w_time_prev(&w_mesh, MOIST_INITIAL);
+  ConstantSolution<double> T_time_prev(&T_mesh, T_INITIAL);
+  ConstantSolution<double> w_time_prev(&w_mesh, W_INITIAL);
   Solution<double> T_time_new(&T_mesh);
   Solution<double> w_time_new(&w_mesh);
   
@@ -159,7 +162,7 @@ int main(int argc, char* argv[])
 
   // Initialize the weak formulation.
   CustomWeakFormHeatMoistureRK wf(c_TT, c_ww, d_TT, d_Tw, d_wT, d_ww, 
-				  k_TT, k_ww, TEMP_EXTERIOR, MOIST_EXTERIOR, "bdy_ext");
+				  k_TT, k_ww, T_EXTERIOR, W_EXTERIOR, "bdy_ext");
 
   // Initialize refinement selector.
   H1ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
@@ -172,7 +175,7 @@ int main(int argc, char* argv[])
 
   // Initialize views.
   ScalarView T_sln_view("Temperature", T_sln_win_geom);
-  ScalarView w_sln_view("Moisture", w_sln_win_geom);
+  ScalarView w_sln_view("Moisture (scaled)", w_sln_win_geom);
   OrderView T_order_view("Temperature mesh", T_mesh_win_geom);
   OrderView w_order_view("Moisture mesh", w_mesh_win_geom);
 
@@ -267,6 +270,7 @@ int main(int argc, char* argv[])
 
       // Initialize an instance of the Adapt class and register custom error forms.
       Adapt<double>* adaptivity = new Adapt<double>(Hermes::vector<Space<double> *>(&T_space, &w_space));
+      /* ADAPT IN ENERGY NORM 
       CustomErrorForm cef_0_0(d_TT, c_TT);
       CustomErrorForm cef_0_1(d_Tw, c_TT);
       CustomErrorForm cef_1_0(d_wT, c_ww);
@@ -275,6 +279,7 @@ int main(int argc, char* argv[])
       adaptivity->set_error_form(0, 1, &cef_0_1);
       adaptivity->set_error_form(1, 0, &cef_1_0);
       adaptivity->set_error_form(1, 1, &cef_1_1);
+      */
 
       // Calculate element errors and total error estimate.
       info("Calculating error estimate."); 
@@ -323,7 +328,7 @@ int main(int argc, char* argv[])
     sprintf(title, "Temperature, t = %g days", current_time/3600./24);
     T_sln_view.set_title(title);
     T_sln_view.show(&T_coarse);
-    sprintf(title, "Moisture, t = %g days", current_time/3600./24);
+    sprintf(title, "Moisture (scaled), t = %g days", current_time/3600./24);
     w_sln_view.set_title(title);
     w_sln_view.show(&w_coarse);
     T_order_view.show(&T_space);
