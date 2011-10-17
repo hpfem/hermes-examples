@@ -99,8 +99,10 @@ int main(int argc, char* argv[])
   // Load the mesh.
   Mesh mesh;
   MeshReaderH2D mloader;
-  if (ALIGN_MESH) mloader.load("oven_load_circle.mesh", &mesh);
-  else mloader.load("oven_load_square.mesh", &mesh);
+  if (ALIGN_MESH) 
+    mloader.load("oven_load_circle.mesh", &mesh);
+  else 
+    mloader.load("oven_load_square.mesh", &mesh);
   
   // Perform initial mesh refinemets.
   for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
@@ -116,7 +118,7 @@ int main(int argc, char* argv[])
   info("ndof = %d", ndof);
 
   // Initialize the weak formulation.
-  CustomWeakForm wf(e_0, mu_0, mu_r, kappa, omega, J, ALIGN_MESH);
+  CustomWeakForm wf(e_0, mu_0, mu_r, kappa, omega, J, ALIGN_MESH, &mesh);
 
   // Initialize coarse and reference mesh solution.
   Solution<std::complex<double> > sln, ref_sln;

@@ -31,8 +31,8 @@ Ord CustomMatrixForm::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, F
 
 double CustomMatrixForm::gamma(int marker, double x, double y) const
 {
-  if (align_mesh && marker == 1) return 0.03;
-  if (!align_mesh && in_load(x,y)) 
+  if (align_mesh && (static_cast<CustomWeakForm*>(wf))->get_mesh()->get_element_markers_conversion().get_user_marker(marker).marker == "e1") return 0.03;
+  if (!align_mesh && in_load(x,y))
   {
     double cx = -0.152994121;  double cy =  0.030598824;
     double r = std::sqrt(sqr(cx - x) + sqr(cy - y));
@@ -42,13 +42,13 @@ double CustomMatrixForm::gamma(int marker, double x, double y) const
 }
 
 Ord CustomMatrixForm::gamma(int marker, Ord x, Ord y) const
-{  
-  return Ord(0.0); 
+{
+  return Ord(0.0);
 }
 
 double CustomMatrixForm::er(int marker, double x, double y) const
 {
-  if (align_mesh && marker == 1) return 7.5;
+  if (align_mesh && (static_cast<CustomWeakForm*>(wf))->get_mesh()->get_element_markers_conversion().get_user_marker(marker).marker == "e1") return 7.5;
   if (!align_mesh && in_load(x,y)) 
   {
     double cx = -0.152994121;  double cy =  0.030598824;
@@ -106,7 +106,7 @@ Ord CustomResidualForm::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v,
 
 double CustomResidualForm::gamma(int marker, double x, double y) const
 {
-  if (align_mesh && marker == 1) return 0.03;
+  if (align_mesh && (static_cast<CustomWeakForm*>(wf))->get_mesh()->get_element_markers_conversion().get_user_marker(marker).marker == "e1") return 0.03;
   if (!align_mesh && in_load(x,y)) 
   {
     double cx = -0.152994121;  double cy =  0.030598824;
@@ -123,7 +123,7 @@ Ord CustomResidualForm::gamma(int marker, Ord x, Ord y) const
 
 double CustomResidualForm::er(int marker, double x, double y) const
 {
-  if (align_mesh && marker == 1) return 7.5;
+  if (align_mesh && (static_cast<CustomWeakForm*>(wf))->get_mesh()->get_element_markers_conversion().get_user_marker(marker).marker == "e1") return 7.5;
   if (!align_mesh && in_load(x,y)) 
   {
     double cx = -0.152994121;  double cy =  0.030598824;
@@ -169,7 +169,7 @@ Ord CustomVectorFormSurf::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *
 
 
 CustomWeakForm::CustomWeakForm(double e_0, double mu_0, double mu_r, double kappa, double omega, 
-                               double J, bool align_mesh) : WeakForm<std::complex<double> >(1) 
+                               double J, bool align_mesh, Mesh* mesh) : WeakForm<std::complex<double> >(1), mesh(mesh)
 {
   // Jacobian forms - volumetric.
   add_matrix_form(new CustomMatrixForm(0, 0, e_0, mu_0, mu_r, kappa, omega, J, align_mesh));
@@ -179,5 +179,10 @@ CustomWeakForm::CustomWeakForm(double e_0, double mu_0, double mu_r, double kapp
 
   // Residual forms - surface.
   add_vector_form_surf(new CustomVectorFormSurf(omega, J));
+}
+
+Mesh* CustomWeakForm::get_mesh()
+{
+  return this->mesh;
 }
 
