@@ -18,3 +18,4 @@ add_subdirectory(flame-propagation)
 add_subdirectory(thermoelasticity)
 add_subdirectory(wave-equation)
 
+add_subdirectory(miscellaneous)
