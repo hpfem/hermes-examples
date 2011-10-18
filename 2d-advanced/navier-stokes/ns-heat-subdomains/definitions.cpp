@@ -48,16 +48,15 @@ CustomWeakFormHeatAndFlow::CustomWeakFormHeatAndFlow(bool Stokes, double Reynold
     add_matrix_form(new WeakFormsH1::DefaultMatrixFormVol<double>(3, 3, "Graphite", new Hermes2DFunction<double>(1.0/time_step), HERMES_NONSYM));
     // Contribution from temperature diffusion. 
     add_matrix_form(new WeakFormsH1::DefaultJacobianDiffusion<double>(3, 3, "Water", new Hermes1DFunction<double>(thermal_conductivity_water/(rho_water * specific_heat_water)), HERMES_NONSYM));
-    add_matrix_form(new WeakFormsH1::DefaultJacobianDiffusion<double>(3, 3, "Graphite", new Hermes1DFunction<double>(thermal_conductivity_graphite/(rho_graphite * specific_heat_graphite)), HERMES_NONSYM));
+    add_matrix_form(new WeakFormsH1::DefaultJacobianDiffusion<double>(3, 3, "Graphite", 
+        new Hermes1DFunction<double>(thermal_conductivity_graphite/(rho_graphite * specific_heat_graphite)), HERMES_NONSYM));
     // Contribution from temperature advection - only in water.
     if (simple_temp_advection)     
     {
-      CustomJacobianTempAdvection_3_0_simple* cjta_3_0_simple = new CustomJacobianTempAdvection_3_0_simple(3, 0, "Water");
-      cjta_3_0_simple->ext.push_back(T_prev_time);
-      add_matrix_form(cjta_3_0_simple);
-      CustomJacobianTempAdvection_3_1_simple* cjta_3_1_simple = new CustomJacobianTempAdvection_3_1_simple(3, 1, "Water");
-      cjta_3_1_simple->ext.push_back(T_prev_time);
-      add_matrix_form(cjta_3_1_simple);
+      CustomJacobianTempAdvection_3_3_simple* cjta_3_3_simple = new CustomJacobianTempAdvection_3_3_simple(3, 3, "Water");
+      cjta_3_3_simple->ext.push_back(x_vel_previous_time);
+      cjta_3_3_simple->ext.push_back(y_vel_previous_time);
+      add_matrix_form(cjta_3_3_simple);
     }
     else 
     {
@@ -95,8 +94,67 @@ CustomWeakFormHeatAndFlow::CustomWeakFormHeatAndFlow(bool Stokes, double Reynold
     if (simple_temp_advection)     
     {
       CustomResidualTempAdvection_simple* crta_simple = new CustomResidualTempAdvection_simple(3, "Water");
-      crta_simple->ext.push_back(T_prev_time);
+      crta_simple->ext.push_back(x_vel_previous_time);
+      crta_simple->ext.push_back(y_vel_previous_time);
       add_vector_form(crta_simple);
     }
     else add_vector_form(new CustomResidualTempAdvection(3, "Water"));
   };
+
+
+bool point_in_graphite(double x, double y)
+{
+  double dist_from_center = std::sqrt(sqr(x - HOLE_MID_X) + sqr(y - HOLE_MID_Y));
+  if (dist_from_center < 0.5 * OBSTACLE_DIAMETER) return true;
+  else return false;
+}
+
+int element_in_graphite(Element* e)
+{
+  // Calculate element center.
+  int nvert;
+  if (e->is_triangle()) nvert = 3;
+  else nvert = 4;
+  double elem_center_x = 0, elem_center_y = 0;
+  for (int i=0; i < nvert; i++)
+  {
+    elem_center_x += e->vn[i]->x;
+    elem_center_y += e->vn[i]->y;
+  }
+  elem_center_x /= nvert;
+  elem_center_y /= nvert;
+  // Check if center is in graphite.
+  if (point_in_graphite(elem_center_x, elem_center_y)) 
+  {
+    return 0;  // 0... refine uniformly.
+  }
+  else 
+  {
+    return -1; //-1... do not refine.
+  }
+}
+
+int element_in_water(Element* e)
+{
+  // Calculate element center.
+  int nvert;
+  if (e->is_triangle()) nvert = 3;
+  else nvert = 4;
+  double elem_center_x = 0, elem_center_y = 0;
+  for (int i=0; i < nvert; i++)
+  {
+    elem_center_x += e->vn[i]->x;
+    elem_center_y += e->vn[i]->y;
+  }
+  elem_center_x /= nvert;
+  elem_center_y /= nvert;
+  // Check if center is in graphite.
+  if (point_in_graphite(elem_center_x, elem_center_y)) 
+  {
+    return -1;  //-1... do not refine.
+  }
+  else 
+  {
+    return 0;  // 0... refine uniformly.
+  }
+}

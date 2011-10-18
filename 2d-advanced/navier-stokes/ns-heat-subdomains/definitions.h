@@ -7,6 +7,14 @@ using namespace Hermes::Hermes2D;
 using namespace Hermes::Hermes2D::Views;
 using namespace Hermes::Hermes2D::RefinementSelectors;
 
+/* These numbers must be compatible with mesh file */
+
+// These numbers must be compatible with mesh file.
+const double H = 1.0;                               
+const double OBSTACLE_DIAMETER = 0.3 * 1.4142136;    
+const double HOLE_MID_X = 0.5;
+const double HOLE_MID_Y = 0.5;
+
 /* Custom initial condition */
 
 class CustomInitialCondition : public ExactSolutionScalar<double>
@@ -278,18 +286,19 @@ public:
     }
   };
 
-  class CustomJacobianTempAdvection_3_0_simple : public MatrixFormVol<double>
+  class CustomJacobianTempAdvection_3_3_simple : public MatrixFormVol<double>
   {
   public:
-    CustomJacobianTempAdvection_3_0_simple(int i, int j, std::string area) : MatrixFormVol<double>(i, j, area) {}
+    CustomJacobianTempAdvection_3_3_simple(int i, int j, std::string area) : MatrixFormVol<double>(i, j, area) {}
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<double> *ext) const
     {
       double result = 0;
-      Func<double>* T_prev_time = ext->fn[0];
+      Func<double>* xvel_prev_time = ext->fn[0];
+      Func<double>* yvel_prev_time = ext->fn[1];
       for (int i = 0; i < n; i++) 
       {
-        result += wt[i] * u->val[i] * T_prev_time->dx[i] * v->val[i];
+        result += wt[i] * (xvel_prev_time->val[i] * u->dx[i] + yvel_prev_time->val[i] * u->dy[i]) * v->val[i];
       }
       return result;
     }
@@ -297,10 +306,11 @@ public:
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const
     {
       Ord result = Ord(0);
-      Func<Ord>* T_prev_time = ext->fn[0];
+      Func<Ord>* xvel_prev_time = ext->fn[0];
+      Func<Ord>* yvel_prev_time = ext->fn[1];
       for (int i = 0; i < n; i++) 
       {
-        result += wt[i] * u->val[i] * T_prev_time->dx[i] * v->val[i];
+        result += wt[i] * (xvel_prev_time->val[i] * u->dx[i] + yvel_prev_time->val[i] * u->dy[i]) * v->val[i];
       }
       return result;
     }
@@ -328,34 +338,6 @@ public:
       for (int i = 0; i < n; i++)
       {
         result += wt[i] * u->val[i] * T_prev_newton->dy[i] * v->val[i];
-      }
-      return result;
-    }
-  };
-
-  class CustomJacobianTempAdvection_3_1_simple : public MatrixFormVol<double>
-  {
-  public:
-    CustomJacobianTempAdvection_3_1_simple(int i, int j, std::string area) : MatrixFormVol<double>(i, j, area) {}
-
-    double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<double> *ext) const
-    {
-      double result = 0;
-      Func<double>* T_prev_time = ext->fn[0];
-      for (int i = 0; i < n; i++) 
-      {
-        result += wt[i] * u->val[i] * T_prev_time->dy[i] * v->val[i];
-      }
-      return result;
-    }
-
-    Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const
-    {
-      Ord result = Ord(0);
-      Func<Ord>* T_prev_time = ext->fn[0];
-      for (int i = 0; i < n; i++) 
-      {
-        result += wt[i] * u->val[i] * T_prev_time->dy[i] * v->val[i];
       }
       return result;
     }
@@ -454,12 +436,12 @@ public:
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, ExtData<double> *ext) const
     {
       double result = 0;
-      Func<double>* xvel_prev_newton = u_ext[0];
-      Func<double>* yvel_prev_newton = u_ext[1];
-      Func<double>* T_prev_time = ext->fn[0];
+      Func<double>* xvel_prev_time = ext->fn[0];
+      Func<double>* yvel_prev_time = ext->fn[1];
+      Func<double>* T_prev_newton = u_ext[0];
       for (int i = 0; i < n; i++) 
       {
-        result += wt[i] * ( xvel_prev_newton->val[i] * T_prev_time->dx[i] + yvel_prev_newton->val[i] * T_prev_time->dy[i] ) * v->val[i]; 
+        result += wt[i] * ( xvel_prev_time->val[i] * T_prev_newton->dx[i] + yvel_prev_time->val[i] * T_prev_newton->dy[i] ) * v->val[i]; 
       }
       return result;
     }
@@ -467,12 +449,12 @@ public:
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const
     {
       Ord result = Ord(0);
-      Func<Ord>* xvel_prev_newton = u_ext[0];
-      Func<Ord>* yvel_prev_newton = u_ext[1];
-      Func<Ord>* T_prev_time = ext->fn[0];
+      Func<Ord>* xvel_prev_time = ext->fn[0];
+      Func<Ord>* yvel_prev_time = ext->fn[1];
+      Func<Ord>* T_prev_newton = u_ext[0];
       for (int i = 0; i < n; i++) 
       {
-        result += wt[i] * ( xvel_prev_newton->val[i] * T_prev_time->dx[i] + yvel_prev_newton->val[i] * T_prev_time->dy[i] ) * v->val[i]; 
+        result += wt[i] * ( xvel_prev_time->val[i] * T_prev_newton->dx[i] + yvel_prev_time->val[i] * T_prev_newton->dy[i] ) * v->val[i]; 
       }
       return result;
     }
@@ -633,3 +615,7 @@ protected:
   double H;
   double startup_time;
 };
+
+bool point_in_graphite(double x, double y);
+int element_in_graphite(Element* e);
+int element_in_water(Element* e);

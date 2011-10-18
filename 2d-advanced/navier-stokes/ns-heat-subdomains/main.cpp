@@ -1,14 +1,13 @@
 #define HERMES_REPORT_ALL
 #define HERMES_REPORT_FILE "application.log"
-#include "definitions.h"
 
-using namespace Hermes;
-using namespace Hermes::Hermes2D;
+#include "definitions.h"
 
 // This example shows the use of subdomains. It models a round graphite object that is 
 // heated through internal heat sources and cooled with water flowing past it. This 
 // model is semi-realistic, double-check all parameter values and equations before 
-// using it for your applications.
+// using it for your applications. NOTE: The file definitions.h contains numbers 
+// that need to be compatible with the mesh file.
 
 // If true, then just Stokes equation will be considered, not Navier-Stokes.
 const bool STOKES = false;         
@@ -27,18 +26,8 @@ const int P_INIT_TEMP = 1;
 const int INIT_REF_NUM_TEMP_GRAPHITE = 1;        
 const int INIT_REF_NUM_TEMP_WATER = 3;        
 const int INIT_REF_NUM_FLOW = 3;        
-const int INIT_REF_NUM_BDY_GRAPHITE = 2;   
+const int INIT_REF_NUM_BDY_GRAPHITE = 0;   
 const int INIT_REF_NUM_BDY_WALL = 2;   
-
-// Domain sizes (need to be compatible with mesh file!).
-// Domain height (necessary to define the parabolic
-// velocity profile at inlet).
-const double H = 1.0;                               
-// For the calculation of Reynolds number.
-const double OBSTACLE_DIAMETER = 0.3 * std::sqrt(2.0);    
-// For the definition of custom initial condition.     
-const double HOLE_MID_X = 0.5;
-const double HOLE_MID_Y = 0.5;
 
 // Problem parameters.
 // Inlet velocity (reached after STARTUP_TIME).
@@ -80,66 +69,10 @@ const int NEWTON_MAX_ITER = 100;
 Hermes::MatrixSolverType matrix_solver_type = Hermes::SOLVER_UMFPACK;  
 
 // Temperature advection treatment.
-// simple... temperature from previous time level is advected
-// otherwise... full Newton's method is used.
-bool SIMPLE_TEMP_ADVECTION = false; 
-
-bool point_in_graphite(double x, double y)
-{
-  double dist_from_center = std::sqrt(sqr(x - HOLE_MID_X) + sqr(y - HOLE_MID_Y));
-  if (dist_from_center < 0.5 * OBSTACLE_DIAMETER) return true;
-  else return false;
-}
-
-int element_in_graphite(Element* e)
-{
-  // Calculate element center.
-  int nvert;
-  if (e->is_triangle()) nvert = 3;
-  else nvert = 4;
-  double elem_center_x = 0, elem_center_y = 0;
-  for (int i=0; i < nvert; i++)
-  {
-    elem_center_x += e->vn[i]->x;
-    elem_center_y += e->vn[i]->y;
-  }
-  elem_center_x /= nvert;
-  elem_center_y /= nvert;
-  // Check if center is in graphite.
-  if (point_in_graphite(elem_center_x, elem_center_y)) 
-  {
-    return 0;  // 0... refine uniformly.
-  }
-  else 
-  {
-    return -1; //-1... do not refine.
-  }
-}
-
-int element_in_water(Element* e)
-{
-  // Calculate element center.
-  int nvert;
-  if (e->is_triangle()) nvert = 3;
-  else nvert = 4;
-  double elem_center_x = 0, elem_center_y = 0;
-  for (int i=0; i < nvert; i++)
-  {
-    elem_center_x += e->vn[i]->x;
-    elem_center_y += e->vn[i]->y;
-  }
-  elem_center_x /= nvert;
-  elem_center_y /= nvert;
-  // Check if center is in graphite.
-  if (point_in_graphite(elem_center_x, elem_center_y)) 
-  {
-    return -1;  //-1... do not refine.
-  }
-  else 
-  {
-    return 0;  // 0... refine uniformly.
-  }
-}
+// true... velocity from previous time level is used in temperature 
+//         equation (which makes it linear).
+// false... full Newton's method is used.
+bool SIMPLE_TEMP_ADVECTION = true; 
 
 int main(int argc, char* argv[])
 {
