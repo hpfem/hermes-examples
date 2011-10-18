@@ -26,7 +26,7 @@
 // The following parameters can be changed:
 
 // Read the original or XML mesh file.
-const bool USE_XML_FORMAT = true;                 
+const bool USE_XML_FORMAT = false;                 
 // Set to "false" to suppress Hermes OpenGL visualization. 
 const bool HERMES_VISUALIZATION = true;           
 // Set to "true" to enable VTK output.
@@ -34,7 +34,7 @@ const bool VTK_VISUALIZATION = false;
 // Uniform polynomial degree of mesh elements.
 const int P_INIT = 5;                             
 // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM = 0;                       
+const int INIT_REF_NUM = 2;                       
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
@@ -67,12 +67,13 @@ int main(int argc, char* argv[])
   }
 
   // Perform initial mesh refinements (optional).
-  mesh.refine_all_elements();
+  for (int i = 0; i < INIT_REF_NUM; i++) 
+      mesh.refine_all_elements();
 
   // Initialize the weak formulation.
   CustomWeakFormPoisson wf("Aluminum", new Hermes1DFunction<double>(LAMBDA_AL), 
-                           "Copper", new Hermes1DFunction<double>(LAMBDA_CU), 
-                           new Hermes2DFunction<double>(-VOLUME_HEAT_SRC));
+      "Copper", new Hermes1DFunction<double>(LAMBDA_CU), 
+      new Hermes2DFunction<double>(-VOLUME_HEAT_SRC));
   
   // Initialize essential boundary conditions.
   DefaultEssentialBCConst<double> bc_essential(
@@ -114,7 +115,6 @@ int main(int argc, char* argv[])
   ScalarView view1("Projection", new WinGeom(0, 0, 440, 350));
   view1.show(&sln_proj, HERMES_EPS_HIGH);
   View::wait();
-
 
   // Get info about time spent during assembling in its respective parts.
   dp.get_all_profiling_output(std::cout);
