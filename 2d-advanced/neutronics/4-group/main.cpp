@@ -85,11 +85,8 @@ int main(int argc, char* argv[])
   
   // Define initial conditions.
   info("Setting initial conditions.");
-  Solution<double> iter1, iter2, iter3, iter4;
-  iter1.set_const(&mesh, 1.00);
-  iter2.set_const(&mesh, 1.00);
-  iter3.set_const(&mesh, 1.00);
-  iter4.set_const(&mesh, 1.00);
+  ConstantSolution<double> iter1(&mesh, 1.00), iter2(&mesh, 1.00), iter3(&mesh, 1.00), iter4(&mesh, 1.00);
+
   Hermes::vector<MeshFunction<double>*> iterates(&iter1, &iter2, &iter3, &iter4);
 
   // Create H1 spaces with default shapesets.
@@ -133,22 +130,24 @@ int main(int argc, char* argv[])
   // Initialize the FE problem.
   DiscreteProblem<double> dp(&wf, spaces);
   
-  SparseMatrix* matrix = create_matrix(matrix_solver);
-  Vector* rhs = create_vector(matrix_solver);
-  Solver* solver = create_linear_solver(matrix_solver, matrix, rhs);
+  SparseMatrix<double>* matrix = create_matrix<double>(matrix_solver);
+  Vector<double>* rhs = create_vector<double>(matrix_solver);
+  LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver, matrix, rhs);
 
+#ifdef HAVE_AZTECOO
   if (matrix_solver == SOLVER_AZTECOO) 
   {
-    ((AztecOOSolver*) solver)->set_solver(iterative_method);
-    ((AztecOOSolver*) solver)->set_precond(preconditioner);
+    dynamic_cast<Hermes::Solvers::AztecOOSolver<double>*>(solver)->set_solver(iterative_method);
+    dynamic_cast<Hermes::Solvers::AztecOOSolver<double> *>(solver)->set_precond(preconditioner);
     // Using default iteration parameters (see solver/aztecoo.h).
   }
+#endif
    
   // Time measurement.
   TimePeriod cpu_time, solver_time;
   
   // Initial coefficient vector for the Newton's method.
-  scalar* coeff_vec = new scalar[ndof];
+  double* coeff_vec = new double[ndof];
   
   // Force the Jacobian assembling in the first iteration.
   bool Jacobian_changed = true;
@@ -166,7 +165,7 @@ int main(int argc, char* argv[])
     info("Newton's method (matrix problem solved by %s).", MatrixSolverNames[matrix_solver].c_str());
     
     //TODO: Why it doesn't work without zeroing coeff_vec in each iteration?
-    memset(coeff_vec, 0.0, ndof*sizeof(scalar)); 
+    memset(coeff_vec, 0.0, ndof*sizeof(double)); 
     
     solver_time.tick(HERMES_SKIP);      
     if (!hermes2d.solve_newton(coeff_vec, &dp, solver, matrix, rhs, Jacobian_changed, 1e-8, 10, true)) 
