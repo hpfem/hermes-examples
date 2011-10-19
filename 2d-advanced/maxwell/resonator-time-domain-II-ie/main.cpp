@@ -15,13 +15,13 @@
 // PDE: \frac{1}{SPEED_OF_LIGHT**2}\frac{\partial^2 E}{\partial t^2} + curl curl E = 0,
 // converted into
 //
-//      \frac{\partial E}{\partial t} = F,
-//      \frac{\partial F}{\partial t} = - SPEED_OF_LIGHT**2 * curl curl E.
+//      \frac{\partial E}{\partial t} - F = 0,
+//      \frac{\partial F}{\partial t} + SPEED_OF_LIGHT**2 * curl curl E = 0.
 //
 // Approximated by
 // 
-//      \frac{E^{n+1}}{tau}                   - F^{n+1}             = \frac{E^{n}}{tau},
-//      SPEED_OF_LIGHT**2 * curl curl E^{n+1} + \frac{F^{n+1}}{tau} = \frac{F^{n}}{tau}.
+//      \frac{E^{n+1} - E^{n}}{tau} - F^{n+1} = 0,
+//      \frac{F^{n+1} - F^{n}}{tau} + SPEED_OF_LIGHT**2 * curl curl E^{n+1} = 0.
 //
 // Domain: Square (-pi/2, pi/2) x (-pi/2, pi/2)... See mesh file domain.mesh.
 //
@@ -40,9 +40,13 @@ const int INIT_REF_NUM = 1;
 const double time_step = 0.05;                     
 // Final time.
 const double T_FINAL = 35.0;                       
+// Stopping criterion for the Newton's method.
+const double NEWTON_TOL = 1e-8;                   
+// Maximum allowed number of Newton iterations.
+const int NEWTON_MAX_ITER = 100;                  
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;   
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;   
 
 // Problem parameters.
 // Square of wave speed.  
@@ -74,17 +78,23 @@ int main(int argc, char* argv[])
   HcurlSpace<double> E_space(&mesh, &bcs, P_INIT);
   HcurlSpace<double> F_space(&mesh, &bcs, P_INIT);
   Hermes::vector<Space<double> *> spaces = Hermes::vector<Space<double> *>(&E_space, &F_space);
+  int ndof = HcurlSpace<double>::get_num_dofs(spaces);
 
   info("ndof = %d.", Space<double>::get_num_dofs(spaces));
 
   // Initialize the FE problem.
   DiscreteProblem<double> dp(&wf, spaces);
 
-  // Set up the solver, matrix, and rhs according to the solver selection.
-  SparseMatrix<double>* matrix = create_matrix<double>(matrix_solver_type);
-  Vector<double>* rhs = create_vector<double>(matrix_solver_type);
-  LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver_type, matrix, rhs);
-  solver->set_factorization_scheme(HERMES_REUSE_FACTORIZATION_COMPLETELY);
+  // Project the initial condition on the FE space to obtain initial 
+  // coefficient vector for the Newton's method.
+  // NOTE: If you want to start from the zero vector, just define 
+  // coeff_vec to be a vector of ndof zeros (no projection is needed).
+  info("Projecting to obtain initial vector for the Newton's method.");
+  double* coeff_vec = new double[ndof];
+  OGProjection<double>::project_global(spaces, slns, coeff_vec, matrix_solver); 
+
+  // Initialize Newton solver.
+  NewtonSolver<double> newton(&dp, matrix_solver);
 
   // Initialize views.
   ScalarView E1_view("Solution E1", new WinGeom(0, 0, 400, 350));
@@ -99,26 +109,19 @@ int main(int argc, char* argv[])
     // Perform one implicit Euler time step.
     info("Implicit Euler time step (t = %g s, time_step = %g s).", current_time, time_step);
 
-    // First time assemble both the stiffness matrix and right-hand side vector,
-    // then just the right-hand side vector.
-    if (ts == 1) {
-      info("Assembling the stiffness matrix and right-hand side vector.");
-      dp.assemble(matrix, rhs);
-      static char file_name[1024];
-      sprintf(file_name, "matrix.m");
-      FILE *f = fopen(file_name, "w");
-      matrix->dump(f, "A");
-      fclose(f);
+    // Perform Newton's iteration.
+    try
+    {
+      newton.solve_keep_jacobian(coeff_vec, NEWTON_TOL, NEWTON_MAX_ITER);
     }
-    else {
-      info("Assembling the right-hand side vector (only).");
-      dp.assemble(rhs);
+    catch(Hermes::Exceptions::Exception e)
+    {
+      e.printMsg();
+      error("Newton's iteration failed.");
     }
 
-    // Solve the linear system and if successful, obtain the solution.
-    info("Solving the matrix problem.");
-    if(solver->solve()) Solution<double>::vector_to_solutions(solver->get_sln_vector(), spaces, slns);
-    else error ("Matrix solver failed.\n");
+    // Translate the resulting coefficient vector into Solutions.
+    Solution<double>::vector_to_solutions(newton.get_sln_vector(), spaces, slns);
 
     // Visualize the solutions.
     char title[100];

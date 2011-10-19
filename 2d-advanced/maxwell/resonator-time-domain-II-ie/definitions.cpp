@@ -12,7 +12,7 @@ CustomWeakFormWave::CustomWeakFormWave(double tau, double c_squared, Solution<do
   VectorFormVolWave_0* vector_form_0 = new VectorFormVolWave_0(tau);
   vector_form_0->ext.push_back(E_prev_sln);
   add_vector_form(vector_form_0);
-  VectorFormVolWave_1* vector_form_1 = new VectorFormVolWave_1(tau);
+  VectorFormVolWave_1* vector_form_1 = new VectorFormVolWave_1(tau, c_squared);
   vector_form_1->ext.push_back(F_prev_sln);
   add_vector_form(vector_form_1);
 }
@@ -68,28 +68,44 @@ Ord CustomWeakFormWave::MatrixFormVolWave_1_1::ord(int n, double *wt, Func<Ord> 
 double CustomWeakFormWave::VectorFormVolWave_0::value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
                                                       Geom<double> *e, ExtData<double> *ext) const 
 {
-  Func<double>* sln_prev_time = ext->fn[0];
-  return int_e_f<double, double>(n, wt, sln_prev_time, v) / tau;
+  Func<double>* E_prev_newton = u_ext[0];
+  Func<double>* F_prev_newton = u_ext[1];
+  Func<double>* E_prev_time = ext->fn[0];
+  return   int_e_f<double, double>(n, wt, E_prev_newton, v) / tau 
+         - int_e_f<double, double>(n, wt, E_prev_time, v) / tau
+         - int_e_f<double, double>(n, wt, F_prev_newton, v);
 }
 
 Ord CustomWeakFormWave::VectorFormVolWave_0::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, 
                                                  Geom<Ord> *e, ExtData<Ord> *ext) const 
 {
-  Func<Ord>* sln_prev_time = ext->fn[0];
-  return int_e_f<Ord, Ord>(n, wt, sln_prev_time, v) / tau;
+  Func<Ord>* E_prev_newton = u_ext[0];
+  Func<Ord>* F_prev_newton = u_ext[1];
+  Func<Ord>* E_prev_time = ext->fn[0];
+  return   int_e_f<Ord, Ord>(n, wt, E_prev_newton, v) / tau 
+         - int_e_f<Ord, Ord>(n, wt, E_prev_time, v) / tau
+         - int_e_f<Ord, Ord>(n, wt, F_prev_newton, v);
 }
 
 double CustomWeakFormWave::VectorFormVolWave_1::value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
                                                       Geom<double> *e, ExtData<double> *ext) const 
 {
-  Func<double>* sln_prev_time = ext->fn[0];
-  return int_e_f<double, double>(n, wt, sln_prev_time, v) / tau;
+  Func<double>* E_prev_newton = u_ext[0];
+  Func<double>* F_prev_newton = u_ext[1];
+  Func<double>* F_prev_time = ext->fn[0];
+  return   int_e_f<double, double>(n, wt, F_prev_newton, v) / tau 
+         - int_e_f<double, double>(n, wt, F_prev_time, v) / tau
+         + c_squared * int_curl_e_curl_f<double, double>(n, wt, E_prev_newton, v);
 }
 
 Ord CustomWeakFormWave::VectorFormVolWave_1::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const 
 {
-  Func<Ord>* sln_prev_time = ext->fn[0];
-  return int_e_f<Ord, Ord>(n, wt, sln_prev_time, v) / tau;
+  Func<Ord>* E_prev_newton = u_ext[0];
+  Func<Ord>* F_prev_newton = u_ext[1];
+  Func<Ord>* F_prev_time = ext->fn[0];
+  return   int_e_f<Ord, Ord>(n, wt, F_prev_newton, v) / tau 
+    - int_e_f<Ord, Ord>(n, wt, F_prev_time, v) / tau
+    + c_squared * int_curl_e_curl_f<Ord, Ord>(n, wt, E_prev_newton, v);
 }
 
 Scalar2<double> CustomInitialConditionWave::value (double x, double y) const 

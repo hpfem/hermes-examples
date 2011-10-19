@@ -88,15 +88,15 @@ private:
   class VectorFormVolWave_1 : public VectorFormVol<double>
   {
   public:
-    VectorFormVolWave_1(double tau) 
-          : VectorFormVol<double>(1), tau(tau) {};
+  VectorFormVolWave_1(double tau, double c_squared) 
+    : VectorFormVol<double>(1), tau(tau), c_squared(c_squared) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
                          Geom<double> *e, ExtData<double> *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const;
 
-    double tau;
+    double tau, c_squared;
   };
 };
 
