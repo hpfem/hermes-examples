@@ -30,13 +30,17 @@
 // The following parameters can be changed:
 
 // Initial polynomial degree of mesh elements.
-const int P_INIT = 8;                              
+const int P_INIT = 6;                              
 // Number of initial uniform mesh refinements.
 const int INIT_REF_NUM = 0;                        
 // Time step.
 const double time_step = 0.05;                     
 // Final time.
 const double T_FINAL = 35.0;                       
+// Stopping criterion for the Newton's method.
+const double NEWTON_TOL = 1e-5;                  
+// Maximum allowed number of Newton iterations.
+const int NEWTON_MAX_ITER = 100;                  
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;   
@@ -116,12 +120,17 @@ int main(int argc, char* argv[])
     // Perform one Runge-Kutta time step according to the selected Butcher's table.
     info("Runge-Kutta time step (t = %g s, time_step = %g s, stages: %d).", 
          current_time, time_step, bt.get_size());
+    bool freeze_jacobian = false;
+    bool block_diagonal_jacobian = false;
     bool verbose = true;
-    bool jacobian_changed = true;
-    
+    double damping_coeff = 1.0;
+    double max_allowed_residual_norm = 1e10;
+
     try
     {
-      runge_kutta.rk_time_step_newton(current_time, time_step, slns, slns, jacobian_changed, verbose);
+      runge_kutta.rk_time_step_newton(current_time, time_step, slns, slns, freeze_jacobian, 
+          block_diagonal_jacobian, verbose, NEWTON_TOL, NEWTON_MAX_ITER, damping_coeff,
+          max_allowed_residual_norm);
     }
     catch(Exceptions::Exception& e)
     {
