@@ -21,10 +21,6 @@ private:
   public:
     MatrixFormVolWave_0_0(double tau) : MatrixFormVol<double>(0, 0, HERMES_ANY, HERMES_SYM), tau(tau) {};
 
-    template<typename Real, typename Scalar>
-    Scalar matrix_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, 
-                       Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const;
-
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
                          Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
 
@@ -39,10 +35,6 @@ private:
   public:
     MatrixFormVolWave_0_1() : MatrixFormVol<double>(0, 1, HERMES_ANY, HERMES_NONSYM) {};
 
-    template<typename Real, typename Scalar>
-    Scalar matrix_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, 
-                       Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const;
-
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
                          Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
 
@@ -55,10 +47,6 @@ private:
   public:
     MatrixFormVolWave_1_0(double c_squared) 
           : MatrixFormVol<double>(1, 0, HERMES_ANY, HERMES_NONSYM), c_squared(c_squared) {};
-
-    template<typename Real, typename Scalar>
-    Scalar matrix_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, 
-                       Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const;
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
                          Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
@@ -73,10 +61,6 @@ private:
   {
   public:
     MatrixFormVolWave_1_1(double tau) : MatrixFormVol<double>(1, 1, HERMES_ANY, HERMES_SYM), tau(tau) {};
-
-    template<typename Real, typename Scalar>
-    Scalar matrix_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, 
-                       Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const;
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
                          Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
