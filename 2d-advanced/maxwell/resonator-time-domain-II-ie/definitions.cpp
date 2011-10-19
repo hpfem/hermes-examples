@@ -68,36 +68,28 @@ Ord CustomWeakFormWave::MatrixFormVolWave_1_1::ord(int n, double *wt, Func<Ord> 
 double CustomWeakFormWave::VectorFormVolWave_0::value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
                                                       Geom<double> *e, ExtData<double> *ext) const 
 {
-  double result = 0;
   Func<double>* sln_prev_time = ext->fn[0];
-  for (int i = 0; i < n; i++) result += wt[i] * (sln_prev_time->val0[i] * v->val0[i] + sln_prev_time->val1[i] * v->val1[i]);
-  return result / tau;
+  return int_e_f<double, double>(n, wt, sln_prev_time, v) / tau;
 }
 
 Ord CustomWeakFormWave::VectorFormVolWave_0::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, 
                                                  Geom<Ord> *e, ExtData<Ord> *ext) const 
 {
-  Ord result = Ord(0);
   Func<Ord>* sln_prev_time = ext->fn[0];
-  for (int i = 0; i < n; i++) result += wt[i] * (sln_prev_time->val0[i] * v->val0[i] + sln_prev_time->val1[i] * v->val1[i]);
-  return result / tau;
+  return int_e_f<Ord, Ord>(n, wt, sln_prev_time, v) / tau;
 }
 
 double CustomWeakFormWave::VectorFormVolWave_1::value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
                                                       Geom<double> *e, ExtData<double> *ext) const 
 {
-  double result = 0;
   Func<double>* sln_prev_time = ext->fn[0];
-  for (int i = 0; i < n; i++) result += wt[i] * (sln_prev_time->val0[i] * v->val0[i] + sln_prev_time->val1[i] * v->val1[i]);
-  return result / tau;
+  return int_e_f<double, double>(n, wt, sln_prev_time, v) / tau;
 }
 
 Ord CustomWeakFormWave::VectorFormVolWave_1::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const 
 {
-  Ord result = Ord(0);
   Func<Ord>* sln_prev_time = ext->fn[0];
-  for (int i = 0; i < n; i++) result += wt[i] * (sln_prev_time->val0[i] * v->val0[i] + sln_prev_time->val1[i] * v->val1[i]);
-  return result / tau;  
+  return int_e_f<Ord, Ord>(n, wt, sln_prev_time, v) / tau;
 }
 
 Scalar2<double> CustomInitialConditionWave::value (double x, double y) const 
