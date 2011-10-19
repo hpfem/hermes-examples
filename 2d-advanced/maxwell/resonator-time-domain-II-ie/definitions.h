@@ -76,10 +76,6 @@ private:
   public:
     VectorFormVolWave_0(double tau) : VectorFormVol<double>(0), tau(tau) {};
 
-    template<typename Real, typename Scalar>
-    Scalar vector_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, 
-                       Geom<Real> *e, ExtData<Scalar> *ext) const;
-
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
                          Geom<double> *e, ExtData<double> *ext) const;
 
@@ -94,10 +90,6 @@ private:
   public:
     VectorFormVolWave_1(double tau) 
           : VectorFormVol<double>(1), tau(tau) {};
-
-    template<typename Real, typename Scalar>
-    Scalar vector_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, 
-                       Geom<Real> *e, ExtData<Scalar> *ext) const;
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
                          Geom<double> *e, ExtData<double> *ext) const;
