@@ -56,15 +56,10 @@ const double ERROR_STOP = 1e-5;
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
 
-// Name of the iterative method employed by AztecOO (ignored
-// by the other solvers). 
-// Possibilities: gmres, cg, cgs, tfqmr, bicgstab.
-const char* iterative_method = "bicgstab";        
-// Name of the preconditioner employed by AztecOO (ignored by
-// the other solvers). 
-// Possibilities: none, jacobi, neumann, least-squares, or a
-// preconditioner from IFPACK (see solver/aztecoo.h).
-const char* preconditioner = "jacobi";            
+// Stopping criterion for the Newton's method.
+const double NEWTON_TOL = 1e-8;                   
+// Maximum allowed number of Newton iterations.
+const int NEWTON_MAX_ITER = 100;                  
 
 // Initial eigenvalue approximation.
 double k_eff = 1.0;         
@@ -112,7 +107,7 @@ int main(int argc, char* argv[])
   view4.show_mesh(false); view4.set_3d_mode(true);
   
   // Load physical data of the problem for the 4 energy groups.
-  MaterialPropertyMaps matprop(4);
+  Hermes::Hermes2D::WeakFormsNeutronics::Multigroup::MaterialProperties::Diffusion::MaterialPropertyMaps matprop(4);
   matprop.set_D(D);
   matprop.set_Sigma_r(Sr);
   matprop.set_Sigma_s(Ss);
@@ -129,33 +124,16 @@ int main(int argc, char* argv[])
 
   // Initialize the FE problem.
   DiscreteProblem<double> dp(&wf, spaces);
-  
-  SparseMatrix<double>* matrix = create_matrix<double>(matrix_solver);
-  Vector<double>* rhs = create_vector<double>(matrix_solver);
-  LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver, matrix, rhs);
 
-#ifdef HAVE_AZTECOO
-  if (matrix_solver == SOLVER_AZTECOO) 
-  {
-    dynamic_cast<Hermes::Solvers::AztecOOSolver<double>*>(solver)->set_solver(iterative_method);
-    dynamic_cast<Hermes::Solvers::AztecOOSolver<double> *>(solver)->set_precond(preconditioner);
-    // Using default iteration parameters (see solver/aztecoo.h).
-  }
-#endif
-   
+  // Initialize Newton solver.
+  NewtonSolver<double> newton(&dp, matrix_solver);
+
   // Time measurement.
-  TimePeriod cpu_time, solver_time;
+  TimePeriod cpu_time;
   
   // Initial coefficient vector for the Newton's method.
   double* coeff_vec = new double[ndof];
-  
-  // Force the Jacobian assembling in the first iteration.
-  bool Jacobian_changed = true;
-  
-  // In the following iterations, Jacobian will not be changing; its LU factorization
-  // may be reused.
-  solver->set_factorization_scheme(HERMES_REUSE_FACTORIZATION_COMPLETELY);
-  
+      
   // Main power iteration loop:
   int it = 1; bool done = false;
   do
@@ -167,12 +145,20 @@ int main(int argc, char* argv[])
     //TODO: Why it doesn't work without zeroing coeff_vec in each iteration?
     memset(coeff_vec, 0.0, ndof*sizeof(double)); 
     
-    solver_time.tick(HERMES_SKIP);      
-    if (!hermes2d.solve_newton(coeff_vec, &dp, solver, matrix, rhs, Jacobian_changed, 1e-8, 10, true)) 
+    // Perform Newton's iteration.
+    try
+    {
+      newton.solve_keep_jacobian(coeff_vec, NEWTON_TOL, NEWTON_MAX_ITER);
+    }
+    catch(Hermes::Exceptions::Exception e)
+    {
+      e.printMsg();
       error("Newton's iteration failed.");
-    solver_time.tick();
+    }
     
-    Solution::vector_to_solutions(solver->get_solution(), spaces, solutions);
+    // Translate the resulting coefficient vector into a Solution.
+    Solution<double> sln;
+    Solution<double>::vector_to_solutions(newton.get_sln_vector(), spaces, solutions);
     
     // Show intermediate solutions.
     view1.show(&sln1);    
@@ -181,7 +167,6 @@ int main(int argc, char* argv[])
     view4.show(&sln4);
     
     // Compute eigenvalue.
-    using WeakFormsNeutronics::Multigroup::SupportClasses::Common::SourceFilter;
     SourceFilter source(solutions, &matprop, core);
     SourceFilter source_prev(iterates, &matprop, core);
     
@@ -203,10 +188,6 @@ int main(int argc, char* argv[])
       iter3.copy(&sln3);    
       iter4.copy(&sln4);
       
-      // Don't need to reassemble the system matrix in further iterations,
-      // only the rhs changes to reflect the progressively updated source.
-      Jacobian_changed = false;
-
       it++;
     }
   }
@@ -216,16 +197,7 @@ int main(int argc, char* argv[])
   
   // Time measurement.
   cpu_time.tick();
-  solver_time.tick(HERMES_SKIP);
   
-  // Print timing information.
-  verbose("Average solver time for one power iteration: %g s", solver_time.accumulated() / it);
-  
-  // Clean up.
-  delete matrix;
-  delete rhs;
-  delete solver;
-
   // Show solutions.
   view1.show(&sln1);
   view2.show(&sln2);
