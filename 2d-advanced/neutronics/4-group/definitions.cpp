@@ -5,12 +5,12 @@
 CustomWeakForm::CustomWeakForm( const Hermes::Hermes2D::WeakFormsNeutronics::Multigroup::MaterialProperties::Diffusion::MaterialPropertyMaps& matprop,
                                 Hermes::vector<MeshFunction<double>*>& iterates,
                                 double init_keff, std::string bdy_vacuum )
-  : DefaultWeakFormSourceIteration(matprop, iterates, init_keff, HERMES_AXISYM_Y)
+  :  Hermes::Hermes2D::WeakFormsNeutronics::Multigroup::CompleteWeakForms::Diffusion::DefaultWeakFormSourceIteration<double>(matprop, iterates, init_keff, HERMES_AXISYM_Y)
 {
   for (unsigned int g = 0; g < matprop.get_G(); g++)
   {
-    add_matrix_form_surf(new VacuumBoundaryCondition::Jacobian<double>(g, bdy_vacuum, HERMES_AXISYM_Y));
-    add_vector_form_surf(new VacuumBoundaryCondition::Residual<double>(g, bdy_vacuum, HERMES_AXISYM_Y));
+    add_matrix_form_surf(new Hermes::Hermes2D::WeakFormsNeutronics::Multigroup::ElementaryForms::Diffusion::VacuumBoundaryCondition::Jacobian<double>(g, bdy_vacuum, HERMES_AXISYM_Y));
+    add_vector_form_surf(new Hermes::Hermes2D::WeakFormsNeutronics::Multigroup::ElementaryForms::Diffusion::VacuumBoundaryCondition::Residual<double>(g, bdy_vacuum, HERMES_AXISYM_Y));
   }
 }
 
