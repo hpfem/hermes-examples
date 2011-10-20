@@ -17,8 +17,8 @@
 // PDE: \frac{1}{SPEED_OF_LIGHT**2}\frac{\partial^2 E}{\partial t^2} + curl curl E = 0,
 // converted into
 //
-//      \frac{\partial E}{\partial t} - F = 0,
-//      \frac{\partial F}{\partial t} + SPEED_OF_LIGHT**2 * curl curl E = 0.
+//      \frac{\partial E}{\partial t} = F,
+//      \frac{\partial F}{\partial t} = -SPEED_OF_LIGHT**2 * curl curl E.
 //
 // Domain: Square (-pi/2, pi/2) x (-pi/2, pi/2)... See mesh file domain.mesh.
 //
@@ -32,7 +32,7 @@
 // Initial polynomial degree of mesh elements.
 const int P_INIT = 6;                              
 // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM = 0;                        
+const int INIT_REF_NUM = 1;                        
 // Time step.
 const double time_step = 0.05;                     
 // Final time.
@@ -43,7 +43,7 @@ const double NEWTON_TOL = 1e-5;
 const int NEWTON_MAX_ITER = 100;                  
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;   
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;   
 
 // Choose one of the following time-integration methods, or define your own Butcher's table. The last number 
 // in the name of each method is its order. The one before last, if present, is the number of stages.
@@ -60,8 +60,8 @@ MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;
 //   Implicit_SDIRK_CASH_3_23_embedded, Implicit_ESDIRK_TRBDF2_3_23_embedded, Implicit_ESDIRK_TRX2_3_23_embedded, 
 //   Implicit_SDIRK_BILLINGTON_3_23_embedded, Implicit_SDIRK_CASH_5_24_embedded, Implicit_SDIRK_CASH_5_34_embedded, 
 //   Implicit_DIRK_ISMAIL_7_45_embedded. 
-//ButcherTableType butcher_table_type = Implicit_RK_1;
-ButcherTableType butcher_table_type = Implicit_SDIRK_2_2;
+ButcherTableType butcher_table = Implicit_RK_1;
+//ButcherTableType butcher_table = Implicit_SDIRK_2_2;
 
 // Problem parameters.
 // Square of wave speed.      
@@ -70,7 +70,7 @@ const double C_SQUARED = 1;
 int main(int argc, char* argv[])
 {
   // Choose a Butcher's table or define your own.
-  ButcherTable bt(butcher_table_type);
+  ButcherTable bt(butcher_table);
   if (bt.is_explicit()) info("Using a %d-stage explicit R-K method.", bt.get_size());
   if (bt.is_diagonally_implicit()) info("Using a %d-stage diagonally implicit R-K method.", bt.get_size());
   if (bt.is_fully_implicit()) info("Using a %d-stage fully implicit R-K method.", bt.get_size());
@@ -84,12 +84,14 @@ int main(int argc, char* argv[])
   for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
 
   // Initialize solutions.
-  CustomInitialConditionWave E_sln(&mesh);
-  ZeroSolutionVector F_sln(&mesh);
-  Hermes::vector<Solution<double>*> slns(&E_sln, &F_sln);
+  CustomInitialConditionWave E_time_prev(&mesh);
+  ZeroSolutionVector F_time_prev(&mesh);
+  Hermes::vector<Solution<double>*> slns_time_prev(&E_time_prev, &F_time_prev);
+  Solution<double> E_time_new, F_time_new;
+  Hermes::vector<Solution<double>*> slns_time_new(&E_time_new, &F_time_new);
 
   // Initialize the weak formulation.
-  CustomWeakFormWave wf(C_SQUARED);
+  CustomWeakFormWaveRK wf(C_SQUARED);
   
   // Initialize boundary conditions
   DefaultEssentialBCConst<double> bc_essential("Perfect conductor", 0.0);
@@ -99,7 +101,8 @@ int main(int argc, char* argv[])
   HcurlSpace<double> E_space(&mesh, &bcs, P_INIT);
   HcurlSpace<double> F_space(&mesh, &bcs, P_INIT);
   Hermes::vector<Space<double> *> spaces = Hermes::vector<Space<double> *>(&E_space, &F_space);
-  info("ndof = %d.", Space<double>::get_num_dofs(spaces));
+  int ndof = HcurlSpace<double>::get_num_dofs(spaces);
+  info("ndof = %d.", ndof);
 
   // Initialize the FE problem.
   DiscreteProblem<double> dp(&wf, spaces);
@@ -109,9 +112,13 @@ int main(int argc, char* argv[])
   E1_view.fix_scale_width(50);
   ScalarView E2_view("Solution E2", new WinGeom(410, 0, 400, 350));
   E2_view.fix_scale_width(50);
+  ScalarView F1_view("Solution F1", new WinGeom(0, 410, 400, 350));
+  F1_view.fix_scale_width(50);
+  ScalarView F2_view("Solution F2", new WinGeom(410, 410, 400, 350));
+  F2_view.fix_scale_width(50);
 
   // Initialize Runge-Kutta time stepping.
-  RungeKutta<double> runge_kutta(&dp, &bt, matrix_solver_type);
+  RungeKutta<double> runge_kutta(&dp, &bt, matrix_solver);
 
   // Time stepping loop.
   double current_time = 0; int ts = 1;
@@ -120,7 +127,7 @@ int main(int argc, char* argv[])
     // Perform one Runge-Kutta time step according to the selected Butcher's table.
     info("Runge-Kutta time step (t = %g s, time_step = %g s, stages: %d).", 
          current_time, time_step, bt.get_size());
-    bool freeze_jacobian = false;
+    bool freeze_jacobian = true;
     bool block_diagonal_jacobian = false;
     bool verbose = true;
     double damping_coeff = 1.0;
@@ -128,7 +135,7 @@ int main(int argc, char* argv[])
 
     try
     {
-      runge_kutta.rk_time_step_newton(current_time, time_step, slns, slns, freeze_jacobian, 
+      runge_kutta.rk_time_step_newton(current_time, time_step, slns_time_prev, slns_time_new, freeze_jacobian, 
           block_diagonal_jacobian, verbose, NEWTON_TOL, NEWTON_MAX_ITER, damping_coeff,
           max_allowed_residual_norm);
     }
@@ -140,12 +147,25 @@ int main(int argc, char* argv[])
 
     // Visualize the solutions.
     char title[100];
-    sprintf(title, "E1, t = %g", current_time);
+    sprintf(title, "E1, t = %g", current_time + time_step);
     E1_view.set_title(title);
-    E1_view.show(&E_sln, HERMES_EPS_NORMAL, H2D_FN_VAL_0);
-    sprintf(title, "E2, t = %g", current_time);
+    E1_view.show(&E_time_new, HERMES_EPS_NORMAL, H2D_FN_VAL_0);
+    sprintf(title, "E2, t = %g", current_time + time_step);
     E2_view.set_title(title);
-    E2_view.show(&E_sln, HERMES_EPS_NORMAL, H2D_FN_VAL_1);
+    E2_view.show(&E_time_new, HERMES_EPS_NORMAL, H2D_FN_VAL_1);
+
+    sprintf(title, "F1, t = %g", current_time + time_step);
+    F1_view.set_title(title);
+    F1_view.show(&F_time_new, HERMES_EPS_NORMAL, H2D_FN_VAL_0);
+    sprintf(title, "F2, t = %g", current_time + time_step);
+    F2_view.set_title(title);
+    F2_view.show(&F_time_new, HERMES_EPS_NORMAL, H2D_FN_VAL_1);
+
+    //View::wait();
+
+    // Update solutions.
+    E_time_prev.copy(&E_time_new);
+    F_time_prev.copy(&F_time_new);
 
     // Update time.
     current_time += time_step;

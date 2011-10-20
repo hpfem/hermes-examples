@@ -23,11 +23,11 @@ public:
 
 /* Weak forms */
 
-class CustomWeakFormWave : public WeakForm<double>
+class CustomWeakFormWaveRK : public WeakForm<double>
 {
 public:
 
-  CustomWeakFormWave(double c_squared);
+  CustomWeakFormWaveRK(double c_squared);
 
 private:
   class MatrixFormVolWave_0_1 : public MatrixFormVol<double>

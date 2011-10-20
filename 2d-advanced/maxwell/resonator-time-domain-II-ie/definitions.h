@@ -9,11 +9,11 @@ using namespace Hermes::Hermes2D::RefinementSelectors;
 
 /* Weak forms */
 
-class CustomWeakFormWave : public WeakForm<double>
+class CustomWeakFormWaveIE : public WeakForm<double>
 {
 public:
 
-  CustomWeakFormWave(double tau, double c_squared, Solution<double>* E_prev_sln, Solution<double>* F_prev_sln);
+  CustomWeakFormWaveIE(double tau, double c_squared, Solution<double>* E_prev_sln, Solution<double>* F_prev_sln);
 
 private:
   class MatrixFormVolWave_0_0 : public MatrixFormVol<double>
