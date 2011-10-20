@@ -8,9 +8,7 @@ add_subdirectory(maxwell)
 add_subdirectory(navier-stokes)
 add_subdirectory(nernst-planck)
 
-if((NOT NMAKE) AND (NOT MSVC))
 add_subdirectory(neutronics)
-endif((NOT NMAKE) AND (NOT MSVC))
 
 add_subdirectory(richards)
 add_subdirectory(schroedinger)
