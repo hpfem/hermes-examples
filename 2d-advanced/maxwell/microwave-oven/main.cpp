@@ -65,21 +65,21 @@ const int MESH_REGULARITY = -1;
 // candidates in hp-adaptivity. Default value is 1.0. 
 const double CONV_EXP = 1.0;                      
 // Stopping criterion for adaptivity.
-const double ERR_STOP = 2.0;                      
+const double ERR_STOP = 0.5;                      
 // Adaptivity process stops when the number of degrees of freedom grows
 // over this limit. This is to prevent h-adaptivity to go on forever.
 const int NDOF_STOP = 60000;                      
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
 
 // Newton's method.
 const double NEWTON_TOL = 1e-6;
 const int NEWTON_MAX_ITER = 100;
 
 // Problem parameters.
-const double e_0   = 8.8541878176 * 1e-12;
-const double mu_0   = 1.256 * 1e-6;
+const double e_0 = 8.8541878176 * 1e-12;
+const double mu_0 = 1.256 * 1e-6;
 const double e_r = 1.0;
 const double mu_r = 1.0;
 const double rho = 3820.0;
@@ -159,7 +159,7 @@ int main(int argc, char* argv[])
     memset(coeff_vec, 0, ndof_ref * sizeof(std::complex<double>));
 
     // Perform Newton's iteration.
-    Hermes::Hermes2D::NewtonSolver<std::complex<double> > newton(&dp, matrix_solver_type);
+    Hermes::Hermes2D::NewtonSolver<std::complex<double> > newton(&dp, matrix_solver);
     try
     {
       newton.solve(coeff_vec, NEWTON_TOL, NEWTON_MAX_ITER);
@@ -174,14 +174,14 @@ int main(int argc, char* argv[])
   
     // Project the fine mesh solution onto the coarse mesh.
     info("Projecting reference solution on coarse mesh.");
-    OGProjection<std::complex<double> >::project_global(&space, &ref_sln, &sln, matrix_solver_type); 
+    OGProjection<std::complex<double> >::project_global(&space, &ref_sln, &sln, matrix_solver, HERMES_HCURL_NORM); 
    
     // View the coarse mesh solution and polynomial orders.
-    ComplexAbsFilter real(&sln);
+    ComplexAbsFilter magn(&sln);
     char title[100];
     sprintf(title, "Electric field, adaptivity step %d", as);
     eview.set_title(title);
-    eview.show(&real);
+    eview.show(&magn);
     sprintf(title, "Polynomial orders, adaptivity step %d", as);
     oview.set_title(title);
     oview.show(&space);
@@ -216,7 +216,7 @@ int main(int argc, char* argv[])
       info("Adapting coarse mesh.");
       done = adaptivity->adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
     }
-    if (Space<std::complex<double> >::get_num_dofs(&space) >= NDOF_STOP) done = true;
+    if (space.get_num_dofs() >= NDOF_STOP) done = true;
 
     delete [] coeff_vec;
     delete adaptivity;
@@ -231,9 +231,9 @@ int main(int argc, char* argv[])
   verbose("Total running time: %g s", cpu_time.accumulated());
 
   // Show the reference solution - the final result.
-  eview.set_title("Fine mesh solution - real part");
-  RealFilter ref_real(&ref_sln);
-  eview.show(&ref_real);
+  eview.set_title("Fine mesh solution - magnitude");
+  RealFilter ref_magn(&ref_sln);
+  eview.show(&ref_magn);
 
   // Wait for all views to be closed.
   View::wait();
