@@ -78,8 +78,14 @@
     <arc v1="15" v2="4" angle="45" />
   </curves>
   
+  <!-- NOTE: These are the actual meshes -->
+  <!-- If this section is missing, then there is just one mesh 
+       that uses all vertices, elements, and edges from above -->
   <subdomains>
     <subdomain name="Whole domain">
+      <!-- List of elements is not here since all defined elements are used. --> 
+      <!-- List of edges is here since edges that form the boundary of the hole
+           are not used. -->
       <edges>
         <i>0</i>
         <i>1</i>
@@ -92,6 +98,8 @@
       </edges>
     </subdomain>
     <subdomain name="Domain with hole">
+      <!-- List of elements is here since elements in the hole are not used. --> 
+      <!-- List of boundary edges is not here since all defined edges are used. --> 
       <elements>
         <i>0</i>
         <i>1</i>
