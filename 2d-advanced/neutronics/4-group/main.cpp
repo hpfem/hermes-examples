@@ -117,6 +117,7 @@ int main(int argc, char* argv[])
   matprop.set_chi(chi);
   matprop.validate();
   
+  // Printing table of material properties.
   std::cout << matprop;
   
   // Initialize the weak formulation.
