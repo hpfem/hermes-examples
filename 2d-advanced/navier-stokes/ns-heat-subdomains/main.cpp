@@ -26,7 +26,7 @@ const int P_INIT_TEMP = 1;
 const int INIT_REF_NUM_TEMP_GRAPHITE = 1;        
 const int INIT_REF_NUM_TEMP_WATER = 3;        
 const int INIT_REF_NUM_FLOW = 3;        
-const int INIT_REF_NUM_BDY_GRAPHITE = 0;   
+const int INIT_REF_NUM_BDY_GRAPHITE = 2;   
 const int INIT_REF_NUM_BDY_WALL = 2;   
 
 // Problem parameters.
