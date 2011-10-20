@@ -15,12 +15,12 @@ const double OBSTACLE_DIAMETER = 0.3 * 1.4142136;
 const double HOLE_MID_X = 0.5;
 const double HOLE_MID_Y = 0.5;
 
-/* Custom initial condition */
+/* Custom initial condition for temperature*/
 
-class CustomInitialCondition : public ExactSolutionScalar<double>
+class CustomInitialConditionTemperature : public ExactSolutionScalar<double>
 {
 public:
-  CustomInitialCondition(Mesh *mesh, double mid_x, double mid_y, double radius, double temp_water, double temp_graphite);
+  CustomInitialConditionTemperature(Mesh *mesh, double mid_x, double mid_y, double radius, double temp_water, double temp_graphite);
 
   virtual double value(double x, double y) const;
 

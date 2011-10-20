@@ -21,10 +21,10 @@ const int P_INIT_VEL = 2;
 // P_INIT_PRESSURE because of the inf-sup condition.
 const int P_INIT_PRESSURE = 1;     
 // Initial polynomial degree for temperature.
-const int P_INIT_TEMP = 1;         
+const int P_INIT_TEMPERATURE = 2;         
 // Initial uniform mesh refinements.
-const int INIT_REF_NUM_TEMP_GRAPHITE = 1;        
-const int INIT_REF_NUM_TEMP_WATER = 3;        
+const int INIT_REF_NUM_TEMPERATURE_GRAPHITE = 1;        
+const int INIT_REF_NUM_TEMPERATURE_WATER = 3;        
 const int INIT_REF_NUM_FLOW = 3;        
 const int INIT_REF_NUM_BDY_GRAPHITE = 2;   
 const int INIT_REF_NUM_BDY_WALL = 2;   
@@ -33,8 +33,8 @@ const int INIT_REF_NUM_BDY_WALL = 2;
 // Inlet velocity (reached after STARTUP_TIME).
 const double VEL_INLET = 1.0;              
 // Initial temperature.
-const double TEMP_INIT_WATER = 20.0;                       
-const double TEMP_INIT_GRAPHITE = 100.0;                       
+const double TEMPERATURE_INIT_WATER = 20.0;                       
+const double TEMPERATURE_INIT_GRAPHITE = 100.0;                       
 // Correct is 1.004e-6 (at 20 deg Celsius) but then RE = 2.81713e+06 which 
 // is too much for this simple model, so we use a larger viscosity. Note
 // that kinematic viscosity decreases with rising temperature.
@@ -66,13 +66,13 @@ const double NEWTON_TOL = 1e-4;
 const int NEWTON_MAX_ITER = 100;                   
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-Hermes::MatrixSolverType matrix_solver_type = Hermes::SOLVER_UMFPACK;  
+Hermes::MatrixSolverType matrix_solver = Hermes::SOLVER_UMFPACK;  
 
 // Temperature advection treatment.
 // true... velocity from previous time level is used in temperature 
 //         equation (which makes it linear).
 // false... full Newton's method is used.
-bool SIMPLE_TEMP_ADVECTION = true; 
+bool SIMPLE_TEMPERATURE_ADVECTION = true; 
 
 int main(int argc, char* argv[])
 {
@@ -83,10 +83,10 @@ int main(int argc, char* argv[])
   mloader.load("domain.xml", meshes);
 
   // Temperature mesh: Initial uniform mesh refinements in graphite.
-  meshes[0]->refine_by_criterion(element_in_graphite, INIT_REF_NUM_TEMP_GRAPHITE);
+  meshes[0]->refine_by_criterion(element_in_graphite, INIT_REF_NUM_TEMPERATURE_GRAPHITE);
 
   // Temperature mesh: Initial uniform mesh refinements in water.
-  meshes[0]->refine_by_criterion(element_in_water, INIT_REF_NUM_TEMP_WATER);
+  meshes[0]->refine_by_criterion(element_in_water, INIT_REF_NUM_TEMPERATURE_WATER);
 
   // Flow mesh: Initial uniform mesh refinements.
   for(int i = 0; i < INIT_REF_NUM_FLOW; i++)
@@ -107,19 +107,16 @@ int main(int argc, char* argv[])
   View::wait();
 
   // Initialize boundary conditions.
-  // Flow.
   EssentialBCNonConst bc_inlet_vel_x("Inlet", VEL_INLET, H, STARTUP_TIME);
   DefaultEssentialBCConst<double> bc_other_vel_x(Hermes::vector<std::string>("Outer Wall", "Inner Wall"), 0.0);
   EssentialBCs<double> bcs_vel_x(Hermes::vector<EssentialBoundaryCondition<double> *>(&bc_inlet_vel_x, &bc_other_vel_x));
   DefaultEssentialBCConst<double> bc_vel_y(Hermes::vector<std::string>("Inlet", "Outer Wall", "Inner Wall"), 0.0);
   EssentialBCs<double> bcs_vel_y(&bc_vel_y);
   EssentialBCs<double> bcs_pressure;
-
-  // Temperature.
-  DefaultEssentialBCConst<double> bc_temperature("Inlet", 20.0);
+  DefaultEssentialBCConst<double> bc_temperature(Hermes::vector<std::string>("Outer Wall", "Inlet"), 20.0);
   EssentialBCs<double> bcs_temperature(&bc_temperature);
 
-  // Spaces for velocity components and pressure.
+  // Spaces for velocity components, pressure and temperature.
   H1Space<double> xvel_space(&mesh_with_hole, &bcs_vel_x, P_INIT_VEL);
   H1Space<double> yvel_space(&mesh_with_hole, &bcs_vel_y, P_INIT_VEL);
 #ifdef PRESSURE_IN_L2
@@ -127,11 +124,13 @@ int main(int argc, char* argv[])
 #else
   H1Space<double> p_space(&mesh_with_hole, &bcs_pressure, P_INIT_PRESSURE);
 #endif
-  // Space<double> for temperature.
-  H1Space<double> temperature_space(&mesh_whole_domain, &bcs_temperature, P_INIT_TEMP);
+  H1Space<double> temperature_space(&mesh_whole_domain, &bcs_temperature, P_INIT_TEMPERATURE);
+  Hermes::vector<Space<double> *> all_spaces = Hermes::vector<Space<double> *>(&xvel_space, 
+      &yvel_space, &p_space, &temperature_space);
 
   // Calculate and report the number of degrees of freedom.
-  int ndof = Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&xvel_space, &yvel_space, &p_space, &temperature_space));
+  int ndof = Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&xvel_space, 
+      &yvel_space, &p_space, &temperature_space));
   info("ndof = %d.", ndof);
 
   // Define projection norms.
@@ -142,21 +141,38 @@ int main(int argc, char* argv[])
   ProjNormType p_proj_norm = HERMES_H1_NORM;
 #endif
   ProjNormType temperature_proj_norm = HERMES_H1_NORM;
+  Hermes::vector<ProjNormType> all_proj_norms = Hermes::vector<ProjNormType>(vel_proj_norm, 
+      vel_proj_norm, p_proj_norm, temperature_proj_norm);
 
-  // Solutions for the Newton's iteration and time stepping.
+  // Initial conditions.
   info("Setting initial conditions.");
   ZeroSolution xvel_prev_time(&mesh_with_hole), yvel_prev_time(&mesh_with_hole), p_prev_time(&mesh_with_hole);
+  CustomInitialConditionTemperature temperature_prev_time(&mesh_whole_domain, HOLE_MID_X, HOLE_MID_Y, 
+      0.5*OBSTACLE_DIAMETER, TEMPERATURE_INIT_WATER, TEMPERATURE_INIT_GRAPHITE); 
+  Hermes::vector<Solution<double> *> all_solutions = Hermes::vector<Solution<double> *>(&xvel_prev_time, 
+      &yvel_prev_time, &p_prev_time, &temperature_prev_time);
 
-  // Initial solution for temperature.
-  CustomInitialCondition temperature_ic(&mesh_whole_domain, HOLE_MID_X, HOLE_MID_Y, 
-      0.5*OBSTACLE_DIAMETER, TEMP_INIT_WATER, TEMP_INIT_GRAPHITE); 
+  // Project all initial conditions on their FE spaces to obtain aninitial
+  // coefficient vector for the Newton's method. We use local projection
+  // to avoid oscillations in temperature on the graphite-water interface
+  // FIXME - the LocalProjection only does the lowest-order part (linear
+  // interpolation) at the moment. Higher-order part needs to be added.
+  double* coeff_vec = new double[ndof];
+  info("Projecting initial condition to obtain initial vector for the Newton's method.");
+  //OGProjection<double>::project_global(all_spaces, all_solutions, coeff_vec, matrix_solver, all_proj_norms);
+  LocalProjection<double>::project_local(all_spaces, all_solutions, coeff_vec, matrix_solver, all_proj_norms);
 
-  // Project it to obtain continuous initial condition for temperature.
-  double *coeff_vec_temp = new double[temperature_space.get_num_dofs()];
-  OGProjection<double>::project_global(&temperature_space, &temperature_ic, coeff_vec_temp, matrix_solver_type, HERMES_L2_NORM);
-  Solution<double> temperature_prev_time;
-  Solution<double>::vector_to_solution(coeff_vec_temp, &temperature_space, &temperature_prev_time);
-  delete [] coeff_vec_temp;
+  ScalarView t0;
+  t0.show(all_solutions[3]);
+  View::wait();
+
+  // Translate the solution vector back to Solutions. This is needed to replace
+  // the discontinuous initial condition for temperature_prev_time with its projection.
+  Solution<double>::vector_to_solutions(coeff_vec, all_spaces, all_solutions);
+
+  ScalarView t1;
+  t1.show(all_solutions[3]);
+  View::wait();
 
   // Calculate Reynolds number.
   double reynolds_number = VEL_INLET * OBSTACLE_DIAMETER / KINEMATIC_VISCOSITY_WATER;
@@ -166,13 +182,13 @@ int main(int argc, char* argv[])
   // Initialize weak formulation.
   CustomWeakFormHeatAndFlow wf(STOKES, reynolds_number, time_step, &xvel_prev_time, &yvel_prev_time, &temperature_prev_time, 
       HEAT_SOURCE_GRAPHITE, SPECIFIC_HEAT_GRAPHITE, SPECIFIC_HEAT_WATER, RHO_GRAPHITE, RHO_WATER, 
-      THERMAL_CONDUCTIVITY_GRAPHITE, THERMAL_CONDUCTIVITY_WATER, SIMPLE_TEMP_ADVECTION);
+      THERMAL_CONDUCTIVITY_GRAPHITE, THERMAL_CONDUCTIVITY_WATER, SIMPLE_TEMPERATURE_ADVECTION);
   
   // Initialize the FE problem.
-  DiscreteProblem<double> dp(&wf, Hermes::vector<Space<double> *>(&xvel_space, &yvel_space, &p_space, &temperature_space));
+  DiscreteProblem<double> dp(&wf, all_spaces);
 
   // Initialize the Newton solver.
-  NewtonSolver<double> newton(&dp, matrix_solver_type);
+  NewtonSolver<double> newton(&dp, matrix_solver);
 
   // Initialize views.
   Views::VectorView vview("velocity [m/s]", new Views::WinGeom(0, 0, 700, 360));
@@ -185,15 +201,6 @@ int main(int argc, char* argv[])
   pview.show_mesh(false);
   tempview.fix_scale_width(80);
   tempview.show_mesh(false);
-
-  // Project the initial condition on the FE space to obtain initial
-  // coefficient vector for the Newton's method.
-  double* coeff_vec = new double[ndof];
-  info("Projecting initial condition to obtain initial vector for the Newton's method.");
-  OGProjection<double>::project_global(Hermes::vector<Space<double> *>(&xvel_space, &yvel_space, &p_space, &temperature_space), 
-    Hermes::vector<MeshFunction<double> *>(&xvel_prev_time, &yvel_prev_time, &p_prev_time, &temperature_prev_time), 
-    coeff_vec, matrix_solver_type, 
-    Hermes::vector<ProjNormType>(vel_proj_norm, vel_proj_norm, p_proj_norm, temperature_proj_norm));
 
   // Time-stepping loop:
   char title[100];

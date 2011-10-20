@@ -1,11 +1,11 @@
 #include "definitions.h"
 
-/* Custom initial condition */
+/* Custom initial condition for temperature*/
 
-CustomInitialCondition::CustomInitialCondition(Mesh *mesh, double mid_x, double mid_y, double radius, double temp_water, double temp_graphite) 
+CustomInitialConditionTemperature::CustomInitialConditionTemperature(Mesh *mesh, double mid_x, double mid_y, double radius, double temp_water, double temp_graphite) 
   : ExactSolutionScalar<double>(mesh), mid_x(mid_x), mid_y(mid_y), radius(radius), temp_water(temp_water), temp_graphite(temp_graphite) {}
 
-double CustomInitialCondition::value(double x, double y) const 
+double CustomInitialConditionTemperature::value(double x, double y) const 
 {
   bool in_graphite = (std::sqrt(sqr(mid_x - x) + sqr(mid_y - y)) < radius);
   double temp = temp_water;
@@ -13,13 +13,13 @@ double CustomInitialCondition::value(double x, double y) const
   return temp;
 }
 
-void CustomInitialCondition::derivatives(double x, double y, double& dx, double& dy) const 
+void CustomInitialConditionTemperature::derivatives(double x, double y, double& dx, double& dy) const 
 {   
   dx = 0;
   dy = 0;
 }
 
-Ord CustomInitialCondition::ord(Ord x, Ord y) const 
+Ord CustomInitialConditionTemperature::ord(Ord x, Ord y) const 
 {
   return Ord(1);
 }
