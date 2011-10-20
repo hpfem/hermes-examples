@@ -169,7 +169,7 @@ Ord CustomVectorFormSurf::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *
 
 
 CustomWeakForm::CustomWeakForm(double e_0, double mu_0, double mu_r, double kappa, double omega, 
-  double J, bool align_mesh, Mesh* mesh) : WeakForm<std::complex<double> >(1), marker(mesh->get_element_markers_conversion().get_internal_marker("e1").marker)
+  double J, bool align_mesh, Mesh* mesh, std::string current_bdy) : WeakForm<std::complex<double> >(1), marker(mesh->get_element_markers_conversion().get_internal_marker("e1").marker)
 {
   // Jacobian forms - volumetric.
   add_matrix_form(new CustomMatrixForm(0, 0, e_0, mu_0, mu_r, kappa, omega, J, align_mesh));
@@ -178,7 +178,7 @@ CustomWeakForm::CustomWeakForm(double e_0, double mu_0, double mu_r, double kapp
   add_vector_form(new CustomResidualForm(0, e_0, mu_0, mu_r, kappa, omega, J, align_mesh));
 
   // Residual forms - surface.
-  add_vector_form_surf(new CustomVectorFormSurf(omega, J));
+  add_vector_form_surf(new CustomVectorFormSurf(omega, J, current_bdy));
 }
 
 int CustomWeakForm::get_marker()

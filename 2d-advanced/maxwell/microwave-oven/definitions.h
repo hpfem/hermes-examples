@@ -87,8 +87,8 @@ public:
 class CustomVectorFormSurf : public VectorFormSurf<std::complex<double> >
 {
 public:
-  CustomVectorFormSurf(double omega, double J) 
-        : VectorFormSurf<std::complex<double> >(0), omega(omega), J(J) {};
+  CustomVectorFormSurf(double omega, double J, std::string bnd) 
+        : VectorFormSurf<std::complex<double> >(0, bnd), omega(omega), J(J) {};
 
   template<typename Scalar, typename Real>
   Scalar vector_form_surf(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, 
@@ -107,7 +107,7 @@ class CustomWeakForm : public WeakForm<std::complex<double> >
 {
 public:
   CustomWeakForm(double e_0, double mu_0, double mu_r, double kappa, double omega, 
-                 double J, bool align_mesh, Mesh* mesh);
+                 double J, bool align_mesh, Mesh* mesh, std::string current_bdy);
   int get_marker();
 
 private:

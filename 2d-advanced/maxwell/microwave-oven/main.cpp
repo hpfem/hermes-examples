@@ -103,7 +103,7 @@ int main(int argc, char* argv[])
     mloader.load("oven_load_circle.mesh", &mesh);
   else 
     mloader.load("oven_load_square.mesh", &mesh);
-  
+
   // Perform initial mesh refinemets.
   for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
 
@@ -118,7 +118,7 @@ int main(int argc, char* argv[])
   info("ndof = %d", ndof);
 
   // Initialize the weak formulation.
-  CustomWeakForm wf(e_0, mu_0, mu_r, kappa, omega, J, ALIGN_MESH, &mesh);
+  CustomWeakForm wf(e_0, mu_0, mu_r, kappa, omega, J, ALIGN_MESH, &mesh, BDY_CURRENT);
 
   // Initialize coarse and reference mesh solution.
   Solution<std::complex<double> > sln, ref_sln;
@@ -181,6 +181,7 @@ int main(int argc, char* argv[])
     char title[100];
     sprintf(title, "Electric field, adaptivity step %d", as);
     eview.set_title(title);
+    eview.set_min_max_range(0.0, 4e3);
     eview.show(&magn);
     sprintf(title, "Polynomial orders, adaptivity step %d", as);
     oview.set_title(title);
