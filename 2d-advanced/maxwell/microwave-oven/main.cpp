@@ -174,7 +174,7 @@ int main(int argc, char* argv[])
   
     // Project the fine mesh solution onto the coarse mesh.
     info("Projecting reference solution on coarse mesh.");
-    OGProjection<std::complex<double> >::project_global(&space, &ref_sln, &sln, matrix_solver, HERMES_HCURL_NORM); 
+    OGProjection<std::complex<double> >::project_global(&space, &ref_sln, &sln, matrix_solver); 
    
     // View the coarse mesh solution and polynomial orders.
     ComplexAbsFilter magn(&sln);
