@@ -5,7 +5,7 @@ CustomWeakForm::CustomWeakForm(double Le, double alpha, double beta, double kapp
                                Filter* omega, Filter* omega_dt, Filter* omega_dc, 
                                Solution* t_prev_time_1, Solution* c_prev_time_1, 
                                Solution* t_prev_time_2, Solution* c_prev_time_2) 
-                               : WeakForm(2, JFNK ? true : false), Le(Le), alpha(alpha), beta(beta), kappa(kappa), x1(x1)
+  : WeakForm<double>(2, JFNK ? true : false), Le(Le), alpha(alpha), beta(beta), kappa(kappa), x1(x1)
 {
   if (!JFNK || (JFNK && PRECOND == 1))
   {

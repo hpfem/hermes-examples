@@ -1,6 +1,6 @@
 #include "definitions.h"
 
-CustomWeakFormWaveIE::CustomWeakFormWaveIE(double tau, double c_squared, Solution<double>* E_prev_sln, Solution<double>* F_prev_sln) : WeakForm(2) 
+CustomWeakFormWaveIE::CustomWeakFormWaveIE(double tau, double c_squared, Solution<double>* E_prev_sln, Solution<double>* F_prev_sln) : WeakForm<double>(2) 
 {
   // Jacobian.
   add_matrix_form(new MatrixFormVolWave_0_0(tau));

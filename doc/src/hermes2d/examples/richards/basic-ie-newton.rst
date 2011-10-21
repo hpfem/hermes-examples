@@ -44,7 +44,7 @@ Defining weak forms
 
 The weak formulation is a combination of custom Jacobian and Residual weak forms::
 
-    CustomWeakFormRichardsIE::CustomWeakFormRichardsIE(double time_step, Solution* h_time_prev) : WeakForm(1)
+    CustomWeakFormRichardsIE::CustomWeakFormRichardsIE(double time_step, Solution* h_time_prev) : WeakForm<double>(1)
     {
       // Jacobian volumetric part.
       CustomJacobianFormVol* jac_form_vol = new CustomJacobianFormVol(0, 0, time_step);

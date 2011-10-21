@@ -43,7 +43,7 @@ Defining weak forms
 
 The weak formulation is a combination of custom Jacobian and Residual weak forms::
 
-    CustomWeakFormRichardsIEPicard::CustomWeakFormRichardsIEPicard(double time_step, Solution* h_time_prev, Solution* h_iter_prev) : WeakForm(1)
+    CustomWeakFormRichardsIEPicard::CustomWeakFormRichardsIEPicard(double time_step, Solution* h_time_prev, Solution* h_iter_prev) : WeakForm<double>(1)
     {
       // Jacobian.
       CustomJacobian* matrix_form = new CustomJacobian(0, 0, time_step);
