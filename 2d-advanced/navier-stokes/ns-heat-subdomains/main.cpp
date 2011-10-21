@@ -15,35 +15,33 @@ const bool STOKES = false;
 // otherwise continuous (H1).   
 #define PRESSURE_IN_L2                           
 // Initial polynomial degree for velocity components.
-const int P_INIT_VEL = 2;          
+const int P_INIT_VEL = 1;          
 // Initial polynomial degree for pressure.
 // Note: P_INIT_VEL should always be greater than
 // P_INIT_PRESSURE because of the inf-sup condition.
 const int P_INIT_PRESSURE = 1;     
 // Initial polynomial degree for temperature.
-const int P_INIT_TEMPERATURE = 2;         
+const int P_INIT_TEMPERATURE = 1;         
 // Initial uniform mesh refinements.
-const int INIT_REF_NUM_TEMPERATURE_GRAPHITE = 1;        
-const int INIT_REF_NUM_TEMPERATURE_WATER = 3;        
-const int INIT_REF_NUM_FLOW = 3;        
-const int INIT_REF_NUM_BDY_GRAPHITE = 2;   
-const int INIT_REF_NUM_BDY_WALL = 2;   
+const int INIT_REF_NUM_TEMPERATURE_GRAPHITE = 0;        
+const int INIT_REF_NUM_TEMPERATURE_WATER = 0;        
+const int INIT_REF_NUM_FLOW = 0;        
+const int INIT_REF_NUM_BDY_GRAPHITE = 0;   
+const int INIT_REF_NUM_BDY_WALL = 0;   
 
 // Problem parameters.
 // Inlet velocity (reached after STARTUP_TIME).
-const double VEL_INLET = 1.0;              
+const double VEL_INLET = 0.1;              
 // Initial temperature.
 const double TEMPERATURE_INIT_WATER = 20.0;                       
 const double TEMPERATURE_INIT_GRAPHITE = 100.0;                       
-// Correct is 1.004e-6 (at 20 deg Celsius) but then RE = 2.81713e+06 which 
-// is too much for this simple model, so we use a larger viscosity. Note
-// that kinematic viscosity decreases with rising temperature.
-const double KINEMATIC_VISCOSITY_WATER = 1.004e-2;   
+// Kinematic viscosity (we use a larger number to reduce Re).
+const double KINEMATIC_VISCOSITY_WATER = 1e-4;   // Water has 1.004e-6, air 1.5e-5.
 // We found a range of 25 - 470, but this is another 
 // number that one needs to be careful about.
 const double THERMAL_CONDUCTIVITY_GRAPHITE = 450;    
 // At 25 deg Celsius.
-const double THERMAL_CONDUCTIVITY_WATER = 1000;   // Water has 0.6;       
+const double THERMAL_CONDUCTIVITY_WATER = 0.6;   // Water has 0.6, air 0.024.      
 // Density of graphite from Wikipedia, one should be 
 // careful about this number.    
 const double RHO_GRAPHITE = 2220;                      
@@ -144,33 +142,48 @@ int main(int argc, char* argv[])
   Hermes::vector<ProjNormType> all_proj_norms = Hermes::vector<ProjNormType>(vel_proj_norm, 
       vel_proj_norm, p_proj_norm, temperature_proj_norm);
 
-  // Initial conditions.
+  // Initial conditions and such.
   info("Setting initial conditions.");
   ZeroSolution xvel_prev_time(&mesh_with_hole), yvel_prev_time(&mesh_with_hole), p_prev_time(&mesh_with_hole);
-  CustomInitialConditionTemperature temperature_prev_time(&mesh_whole_domain, HOLE_MID_X, HOLE_MID_Y, 
+  CustomInitialConditionTemperature temperature_init_cond(&mesh_whole_domain, HOLE_MID_X, HOLE_MID_Y, 
       0.5*OBSTACLE_DIAMETER, TEMPERATURE_INIT_WATER, TEMPERATURE_INIT_GRAPHITE); 
+  Solution<double> temperature_prev_time;
   Hermes::vector<Solution<double> *> all_solutions = Hermes::vector<Solution<double> *>(&xvel_prev_time, 
       &yvel_prev_time, &p_prev_time, &temperature_prev_time);
+  Hermes::vector<MeshFunction<double> *> all_meshfns = Hermes::vector<MeshFunction<double> *>(&xvel_prev_time, 
+      &yvel_prev_time, &p_prev_time, &temperature_init_cond);
 
   // Project all initial conditions on their FE spaces to obtain aninitial
   // coefficient vector for the Newton's method. We use local projection
   // to avoid oscillations in temperature on the graphite-water interface
-  // FIXME - the LocalProjection only does the lowest-order part (linear
+  // FIXME - currently the LocalProjection only does the lowest-order part (linear
   // interpolation) at the moment. Higher-order part needs to be added.
   double* coeff_vec = new double[ndof];
   info("Projecting initial condition to obtain initial vector for the Newton's method.");
   //OGProjection<double>::project_global(all_spaces, all_solutions, coeff_vec, matrix_solver, all_proj_norms);
-  LocalProjection<double>::project_local(all_spaces, all_solutions, coeff_vec, matrix_solver, all_proj_norms);
+  LocalProjection<double>::project_local(all_spaces, all_meshfns, coeff_vec, matrix_solver, all_proj_norms);
 
-  ScalarView t0;
-  t0.show(all_solutions[3]);
+  // DEBUG - REMOVE WHEN THE PROBLEM IS FIXED.
+  printf("Global vector = ");
+  for (int i=0; i<ndof; i++) printf("%g ", coeff_vec[i]);
+  printf("\n");
+  ScalarView t0("Discontinuous temperature IC");
+  t0.show(all_meshfns[3]);
+  View::wait();
+
+  // DEBUG - CASE I
+  double coeff_vec_3[14] = {100, 100, 20, 100, 100, 100, 100, 20, 100, 100, 100, 100, 100, 100};
+  Solution<double>::vector_to_solution(coeff_vec_3, all_spaces[3], all_solutions[3]);
+  ScalarView t3("Continuous projection of temperature IC - case I");
+  t3.show(all_solutions[3]);
   View::wait();
 
   // Translate the solution vector back to Solutions. This is needed to replace
   // the discontinuous initial condition for temperature_prev_time with its projection.
   Solution<double>::vector_to_solutions(coeff_vec, all_spaces, all_solutions);
 
-  ScalarView t1;
+  // DEBUG - CASE II
+  ScalarView t1("Continuous projection of temperature IC - case II");
   t1.show(all_solutions[3]);
   View::wait();
 
