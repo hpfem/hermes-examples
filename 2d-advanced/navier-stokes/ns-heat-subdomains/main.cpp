@@ -23,11 +23,11 @@ const int P_INIT_PRESSURE = 1;
 // Initial polynomial degree for temperature.
 const int P_INIT_TEMPERATURE = 1;         
 // Initial uniform mesh refinements.
-const int INIT_REF_NUM_TEMPERATURE_GRAPHITE = 0;        
-const int INIT_REF_NUM_TEMPERATURE_WATER = 0;        
-const int INIT_REF_NUM_FLOW = 0;        
-const int INIT_REF_NUM_BDY_GRAPHITE = 0;   
-const int INIT_REF_NUM_BDY_WALL = 0;   
+const int INIT_REF_NUM_TEMPERATURE_GRAPHITE = 2;        
+const int INIT_REF_NUM_TEMPERATURE_WATER = 2;        
+const int INIT_REF_NUM_FLOW = 2;        
+const int INIT_REF_NUM_BDY_GRAPHITE = 2;   
+const int INIT_REF_NUM_BDY_WALL = 2;   
 
 // Problem parameters.
 // Inlet velocity (reached after STARTUP_TIME).
@@ -163,28 +163,13 @@ int main(int argc, char* argv[])
   //OGProjection<double>::project_global(all_spaces, all_solutions, coeff_vec, matrix_solver, all_proj_norms);
   LocalProjection<double>::project_local(all_spaces, all_meshfns, coeff_vec, matrix_solver, all_proj_norms);
 
-  // DEBUG - REMOVE WHEN THE PROBLEM IS FIXED.
-  printf("Global vector = ");
-  for (int i=0; i<ndof; i++) printf("%g ", coeff_vec[i]);
-  printf("\n");
-  ScalarView t0("Discontinuous temperature IC");
-  t0.show(all_meshfns[3]);
-  View::wait();
-
-  // DEBUG - CASE I
-  double coeff_vec_3[14] = {100, 100, 20, 100, 100, 100, 100, 20, 100, 100, 100, 100, 100, 100};
-  Solution<double>::vector_to_solution(coeff_vec_3, all_spaces[3], all_solutions[3]);
-  ScalarView t3("Continuous projection of temperature IC - case I");
-  t3.show(all_solutions[3]);
-  View::wait();
-
   // Translate the solution vector back to Solutions. This is needed to replace
   // the discontinuous initial condition for temperature_prev_time with its projection.
-  Solution<double>::vector_to_solutions(coeff_vec, all_spaces, all_solutions);
+  Solution<double>::vector_to_solution(coeff_vec, aspaces, all_solutions);
 
-  // DEBUG - CASE II
-  ScalarView t1("Continuous projection of temperature IC - case II");
-  t1.show(all_solutions[3]);
+  // Debug.
+  ScalarView t0("Projected temperature");
+  t0.show(&temperature_prev_time);
   View::wait();
 
   // Calculate Reynolds number.
