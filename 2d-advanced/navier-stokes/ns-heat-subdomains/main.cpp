@@ -165,7 +165,7 @@ int main(int argc, char* argv[])
 
   // Translate the solution vector back to Solutions. This is needed to replace
   // the discontinuous initial condition for temperature_prev_time with its projection.
-  Solution<double>::vector_to_solution(coeff_vec, aspaces, all_solutions);
+  Solution<double>::vector_to_solutions(coeff_vec, all_spaces, all_solutions);
 
   // Debug.
   ScalarView t0("Projected temperature");

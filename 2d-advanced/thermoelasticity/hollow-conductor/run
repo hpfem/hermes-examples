@@ -1,4 +1,0 @@
-rm *~ 
-./hollow-conductor
-python plot_graph.py &
-
