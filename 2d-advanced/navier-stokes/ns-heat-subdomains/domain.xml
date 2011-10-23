@@ -86,7 +86,7 @@
       <!-- List of elements is not here since all defined elements are used. --> 
       <!-- List of edges is here since edges that form the boundary of the hole
            are not used. -->
-      <edges>
+      <boundary_edges>
         <i>0</i>
         <i>1</i>
         <i>2</i>
@@ -95,7 +95,7 @@
         <i>5</i>
         <i>6</i>
         <i>7</i>
-      </edges>
+      </boundary_edges>
       
       <inner_edges>
         <i>8</i>
