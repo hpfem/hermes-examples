@@ -160,8 +160,8 @@ int main(int argc, char* argv[])
   // interpolation) at the moment. Higher-order part needs to be added.
   double* coeff_vec = new double[ndof];
   info("Projecting initial condition to obtain initial vector for the Newton's method.");
-  OGProjection<double>::project_global(all_spaces, all_meshfns, coeff_vec, matrix_solver, all_proj_norms);
-  //LocalProjection<double>::project_local(all_spaces, all_meshfns, coeff_vec, matrix_solver, all_proj_norms);
+  //OGProjection<double>::project_global(all_spaces, all_meshfns, coeff_vec, matrix_solver, all_proj_norms);
+  LocalProjection<double>::project_local(all_spaces, all_meshfns, coeff_vec, matrix_solver, all_proj_norms);
 
   // Translate the solution vector back to Solutions. This is needed to replace
   // the discontinuous initial condition for temperature_prev_time with its projection.
