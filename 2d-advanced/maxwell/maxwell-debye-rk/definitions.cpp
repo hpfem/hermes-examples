@@ -17,33 +17,34 @@ Scalar2<double> CustomInitialConditionE::value (double x, double y) const
 
 void CustomInitialConditionE::derivatives (double x, double y, Scalar2<double>& dx, Scalar2<double>& dy) const 
 {
-  dx[0] = 0;
-  dx[1] = 0;
-  dy[0] = 0;
-  dy[1] = 0;
+  dx[0] = -omega*k_y*exp(-omega*time) * (-1.0*std::sin(k_x * M_PI * x)*k_x*M_PI) * std::sin(k_y * M_PI * y);
+  dx[1] = omega*k_x*exp(-omega*time) * std::cos(k_x * M_PI * x)*k_x*M_PI * std::cos(k_y * M_PI * y);
+  dy[0] = -omega*k_y*exp(-omega*time) * std::cos(k_x * M_PI * x) * std::cos(k_y * M_PI * y)*k_y*M_PI;
+  dy[1] = omega*k_x*exp(-omega*time) * std::sin(k_x * M_PI * x) * (-1.0*std::sin(k_y * M_PI * y)*k_y*M_PI);
 }
 
 Ord CustomInitialConditionE::ord(Ord x, Ord y) const 
 {
-  return Ord(10);
+  return Ord(20);
 }
 
 // **************
 double CustomInitialConditionH::value (double x, double y) const 
 {
-  double k_squared = std::abs(Hermes::sqr(k_x) + Hermes::sqr(k_y));
-  return k_squared * M_PI * exp(-omega*time) * std::cos(k_x * M_PI * x) * std::sin(k_y * M_PI * y);
+  double k_squared = Hermes::sqr(k_x) + Hermes::sqr(k_y);
+  return k_squared * M_PI * exp(-omega*time) * std::cos(k_x * M_PI * x) * std::cos(k_y * M_PI * y);
 }
 
 void CustomInitialConditionH::derivatives (double x, double y, double& dx, double& dy) const 
 {
-  dx = 0;
-  dy = 0;
+  double k_squared = Hermes::sqr(k_x) + Hermes::sqr(k_y);
+  dx = k_squared * M_PI * exp(-omega*time) * (-1.0*std::sin(k_x * M_PI * x)*k_x*M_PI) * std::cos(k_y * M_PI * y);
+  dy = k_squared * M_PI * exp(-omega*time) * std::cos(k_x * M_PI * x) * (-1.0*std::sin(k_y * M_PI * y)*k_y*M_PI);
 }
 
 Ord CustomInitialConditionH::ord(Ord x, Ord y) const 
 {
-  return Ord(10);
+  return Ord(20);
 }
 
 // **************
@@ -58,15 +59,17 @@ Scalar2<double> CustomInitialConditionP::value (double x, double y) const
 
 void CustomInitialConditionP::derivatives (double x, double y, Scalar2<double>& dx, Scalar2<double>& dy) const 
 {
-  dx[0] = 0;
-  dx[1] = 0;
-  dy[0] = 0;
-  dy[1] = 0;
+  double k_squared = std::abs(Hermes::sqr(k_x) + Hermes::sqr(k_y));
+  double k = std::sqrt(k_squared);
+  dx[0] = alpha(omega, k)*k_y*exp(-omega*time) * (-1.0*std::sin(k_x * M_PI * x)*k_x*M_PI) * std::sin(k_y * M_PI * y);
+  dx[1] = -k_x*alpha(omega, k)*exp(-omega*time) * std::cos(k_x * M_PI * x)*k_x*M_PI * std::cos(k_y * M_PI * y);
+  dy[0] = alpha(omega, k)*k_y*exp(-omega*time) * std::cos(k_x * M_PI * x) * std::cos(k_y * M_PI * y)*k_y*M_PI;
+  dy[1] = -k_x*alpha(omega, k)*exp(-omega*time) * std::sin(k_x * M_PI * x) * (-1.0*std::sin(k_y * M_PI * y)*k_y*M_PI);
 }
 
 Ord CustomInitialConditionP::ord(Ord x, Ord y) const 
 {
-  return Ord(10);
+  return Ord(20);
 }
 
 // **************

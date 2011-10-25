@@ -24,9 +24,9 @@
 // The following parameters can be changed:
 
 // Initial polynomial degree of mesh elements.
-const int P_INIT = 1;                              
+const int P_INIT = 4;                              
 // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM = 5;                        
+const int INIT_REF_NUM = 2;                        
 // Time step.
 const double time_step = 0.05;                     
 // Final time.
@@ -75,7 +75,7 @@ const double K_y = 1.0;
 const double K = std::sqrt(Hermes::sqr(K_x) + Hermes::sqr(K_y));
 // Angular frequency. Depends on wave number K. Must satisfy: 
 // omega^3 - 2 omega^2 + K^2 M_PI^2 omega - K^2 M_PI^2 = 0.
-const double OMEGA = 20.0;
+const double OMEGA = 5.0;
 const double EPS_Q = EPS_S / EPS_INF;
 
 int main(int argc, char* argv[])
@@ -95,10 +95,10 @@ int main(int argc, char* argv[])
   for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
 
   // Initialize solutions.
-  double initial_time = 0;
-  CustomInitialConditionE E_time_prev(&mesh, initial_time, OMEGA, K_x, K_y);
-  CustomInitialConditionH H_time_prev(&mesh, initial_time, OMEGA, K_x, K_y);
-  CustomInitialConditionP P_time_prev(&mesh, initial_time, OMEGA, K_x, K_y);
+  double current_time = 0;
+  CustomInitialConditionE E_time_prev(&mesh, current_time, OMEGA, K_x, K_y);
+  CustomInitialConditionH H_time_prev(&mesh, current_time, OMEGA, K_x, K_y);
+  CustomInitialConditionP P_time_prev(&mesh, current_time, OMEGA, K_x, K_y);
   Hermes::vector<Solution<double>*> slns_time_prev(&E_time_prev, &H_time_prev, &P_time_prev);
   Solution<double> E_time_new, H_time_new, P_time_new;
   Hermes::vector<Solution<double>*> slns_time_new(&E_time_new, &H_time_new, &P_time_new);
@@ -112,7 +112,8 @@ int main(int argc, char* argv[])
 
   // Create x- and y- displacement space using the default H1 shapeset.
   HcurlSpace<double> E_space(&mesh, &bcs, P_INIT);
-  H1Space<double> H_space(&mesh, &bcs, P_INIT);
+  H1Space<double> H_space(&mesh, NULL, P_INIT);
+  //L2Space<double> H_space(&mesh, P_INIT);
   HcurlSpace<double> P_space(&mesh, &bcs, P_INIT);
   Hermes::vector<Space<double> *> spaces = Hermes::vector<Space<double> *>(&E_space, &H_space, &P_space);
   int ndof = Space<double>::get_num_dofs(spaces);
@@ -133,11 +134,33 @@ int main(int argc, char* argv[])
   ScalarView P2_view("Solution P2", new WinGeom(820, 410, 400, 350));
   P2_view.fix_scale_width(50);
 
+  // Visualize initial conditions.
+  char title[100];
+  sprintf(title, "E1 - Initial Condition");
+  E1_view.set_title(title);
+  E1_view.show(&E_time_prev, HERMES_EPS_HIGH, H2D_FN_VAL_0);
+  sprintf(title, "E2 - Initial Condition");
+  E2_view.set_title(title);
+  E2_view.show(&E_time_prev, HERMES_EPS_HIGH, H2D_FN_VAL_1);
+
+  sprintf(title, "H - Initial Condition");
+  H_view.set_title(title);
+  H_view.show(&H_time_prev, HERMES_EPS_HIGH);
+
+  sprintf(title, "P1 - Initial Condition");
+  P1_view.set_title(title);
+  P1_view.show(&P_time_prev, HERMES_EPS_HIGH, H2D_FN_VAL_0);
+  sprintf(title, "P2 - Initial Condition");
+  P2_view.set_title(title);
+  P2_view.show(&P_time_prev, HERMES_EPS_HIGH, H2D_FN_VAL_1);
+
+  View::wait(HERMES_WAIT_KEYPRESS);
+
   // Initialize Runge-Kutta time stepping.
   RungeKutta<double> runge_kutta(&dp, &bt, matrix_solver);
 
   // Time stepping loop.
-  double current_time = 0; int ts = 1;
+  int ts = 1;
   do
   {
     // Perform one Runge-Kutta time step according to the selected Butcher's table.
@@ -165,21 +188,21 @@ int main(int argc, char* argv[])
     char title[100];
     sprintf(title, "E1, t = %g", current_time + time_step);
     E1_view.set_title(title);
-    E1_view.show(&E_time_new, HERMES_EPS_NORMAL, H2D_FN_VAL_0);
+    E1_view.show(&E_time_new, HERMES_EPS_HIGH, H2D_FN_VAL_0);
     sprintf(title, "E2, t = %g", current_time + time_step);
     E2_view.set_title(title);
-    E2_view.show(&E_time_new, HERMES_EPS_NORMAL, H2D_FN_VAL_1);
+    E2_view.show(&E_time_new, HERMES_EPS_HIGH, H2D_FN_VAL_1);
 
     sprintf(title, "H, t = %g", current_time + time_step);
     H_view.set_title(title);
-    H_view.show(&H_time_new, HERMES_EPS_NORMAL);
+    H_view.show(&H_time_new, HERMES_EPS_HIGH);
 
     sprintf(title, "P1, t = %g", current_time + time_step);
     P1_view.set_title(title);
-    P1_view.show(&P_time_new, HERMES_EPS_NORMAL, H2D_FN_VAL_0);
+    P1_view.show(&P_time_new, HERMES_EPS_HIGH, H2D_FN_VAL_0);
     sprintf(title, "P2, t = %g", current_time + time_step);
     P2_view.set_title(title);
-    P2_view.show(&P_time_new, HERMES_EPS_NORMAL, H2D_FN_VAL_1);
+    P2_view.show(&P_time_new, HERMES_EPS_HIGH, H2D_FN_VAL_1);
 
     //View::wait();
 

@@ -16,7 +16,8 @@ double alpha(double omega, double k);
 class CustomInitialConditionE : public ExactSolutionVector<double>
 {
 public:
- CustomInitialConditionE(Mesh* mesh, double time, double omega, double k_x, double k_y) : ExactSolutionVector<double>(mesh), time(time), omega(omega), k_x(k_x), k_y(k_y) {};
+ CustomInitialConditionE(Mesh* mesh, double time, double omega, double k_x, double k_y) 
+     : ExactSolutionVector<double>(mesh), time(time), omega(omega), k_x(k_x), k_y(k_y) {};
 
   virtual Scalar2<double> value (double x, double y) const;
 
@@ -32,7 +33,8 @@ public:
 class CustomInitialConditionH : public ExactSolutionScalar<double>
 {
 public:
-  CustomInitialConditionH(Mesh* mesh, double time, double omega, double k_x, double k_y) : ExactSolutionScalar<double>(mesh), time(time), omega(omega), k_x(k_x), k_y(k_y) {};
+  CustomInitialConditionH(Mesh* mesh, double time, double omega, double k_x, double k_y) 
+      : ExactSolutionScalar<double>(mesh), time(time), omega(omega), k_x(k_x), k_y(k_y) {};
 
   virtual double value (double x, double y) const;
 
@@ -48,7 +50,8 @@ public:
 class CustomInitialConditionP : public ExactSolutionVector<double>
 {
 public:
-  CustomInitialConditionP(Mesh* mesh, double time, double omega, double k_x, double k_y) : ExactSolutionVector<double>(mesh), time(time), omega(omega), k_x(k_x), k_y(k_y) {};
+  CustomInitialConditionP(Mesh* mesh, double time, double omega, double k_x, double k_y) 
+      : ExactSolutionVector<double>(mesh), time(time), omega(omega), k_x(k_x), k_y(k_y) {};
 
   virtual Scalar2<double> value (double x, double y) const;
 
@@ -65,13 +68,15 @@ class CustomWeakFormMD : public WeakForm<double>
 {
 public:
 
-  CustomWeakFormMD(double omega, double k_x, double k_y, double mu_0, double eps_0, double eps_inf, double eps_q, double tau);
+  CustomWeakFormMD(double omega, double k_x, double k_y, double mu_0, 
+      double eps_0, double eps_inf, double eps_q, double tau);
 
 private:
   class MatrixFormVolMD_0_0 : public MatrixFormVol<double>
   {
   public:
-  MatrixFormVolMD_0_0(double eps_q, double tau) : MatrixFormVol<double>(0, 0, HERMES_ANY, HERMES_NONSYM), eps_q(eps_q), tau(tau) {};
+  MatrixFormVolMD_0_0(double eps_q, double tau) 
+      : MatrixFormVol<double>(0, 0, HERMES_ANY, HERMES_NONSYM), eps_q(eps_q), tau(tau) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
         Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
