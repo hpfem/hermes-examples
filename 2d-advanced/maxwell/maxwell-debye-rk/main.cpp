@@ -24,9 +24,9 @@
 // The following parameters can be changed:
 
 // Initial polynomial degree of mesh elements.
-const int P_INIT = 6;                              
+const int P_INIT = 1;                              
 // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM = 1;                        
+const int INIT_REF_NUM = 5;                        
 // Time step.
 const double time_step = 0.05;                     
 // Final time.
@@ -107,7 +107,7 @@ int main(int argc, char* argv[])
   CustomWeakFormMD wf(OMEGA, K_x, K_y, MU_0, EPS_0, EPS_INF, EPS_Q, TAU);
   
   // Initialize boundary conditions
-  DefaultEssentialBCConst<double> bc_essential("BDY", 0.0);
+  DefaultEssentialBCConst<double> bc_essential("Bdy", 0.0);
   EssentialBCs<double> bcs(&bc_essential);
 
   // Create x- and y- displacement space using the default H1 shapeset.
