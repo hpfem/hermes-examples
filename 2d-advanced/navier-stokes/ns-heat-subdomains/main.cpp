@@ -21,13 +21,14 @@ const int P_INIT_VEL = 1;
 // P_INIT_PRESSURE because of the inf-sup condition.
 const int P_INIT_PRESSURE = 1;     
 // Initial polynomial degree for temperature.
-const int P_INIT_TEMPERATURE = 1;         
+const int P_INIT_TEMPERATURE = 1;
+
 // Initial uniform mesh refinements.
 const int INIT_REF_NUM_TEMPERATURE_GRAPHITE = 2;        
 const int INIT_REF_NUM_TEMPERATURE_WATER = 2;        
 const int INIT_REF_NUM_FLOW = 2;        
-const int INIT_REF_NUM_BDY_GRAPHITE = 2;   
-const int INIT_REF_NUM_BDY_WALL = 2;   
+const int INIT_REF_NUM_BDY_GRAPHITE = 0;   
+const int INIT_REF_NUM_BDY_WALL = 0;   
 
 // Problem parameters.
 // Inlet velocity (reached after STARTUP_TIME).
@@ -70,7 +71,7 @@ Hermes::MatrixSolverType matrix_solver = Hermes::SOLVER_UMFPACK;
 // true... velocity from previous time level is used in temperature 
 //         equation (which makes it linear).
 // false... full Newton's method is used.
-bool SIMPLE_TEMPERATURE_ADVECTION = true; 
+bool SIMPLE_TEMPERATURE_ADVECTION = false; 
 
 int main(int argc, char* argv[])
 {
