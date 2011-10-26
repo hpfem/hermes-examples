@@ -42,14 +42,8 @@
 
 // Number of initial uniform mesh refinements.
 const int INIT_REF_NUM = 2;                       
-// Initial polynomial degree for approximation of group 1 fluxes.
-const int P_INIT_1 = 1,                           
-// Initial polynomial degree for approximation of group 2 fluxes.
-          P_INIT_2 = 1,                           
-// Initial polynomial degree for approximation of group 3 fluxes.
-          P_INIT_3 = 2,                           
-// Initial polynomial degree for approximation of group 4 fluxes.
-          P_INIT_4 = 2;                           
+// Initial polynomial degrees for approximation of group fluxes.
+const int P_INIT_1 = 2, P_INIT_2 = 2, P_INIT_3 = 2, P_INIT_4 = 2;                           
 // Tolerance for the eigenvalue.
 const double ERROR_STOP = 1e-5;                   
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
@@ -90,9 +84,8 @@ int main(int argc, char* argv[])
   H1Space<double> space3(&mesh, P_INIT_3);
   H1Space<double> space4(&mesh, P_INIT_4);
   Hermes::vector<Space<double>*> spaces(&space1, &space2, &space3, &space4);
-  
   int ndof = Space<double>::get_num_dofs(spaces);
-  info("ndof = %d.", ndof);
+  info("ndof = %d", ndof);
   
   // Initialize views.
   ScalarView view1("Neutron flux 1", new WinGeom(0, 0, 320, 600));
@@ -100,7 +93,7 @@ int main(int argc, char* argv[])
   ScalarView view3("Neutron flux 3", new WinGeom(700, 0, 320, 600));
   ScalarView view4("Neutron flux 4", new WinGeom(1050, 0, 320, 600));
   
-  // Do not show meshes.
+  // Do not show meshes, set 3D mode.
   view1.show_mesh(false); view1.set_3d_mode(true);
   view2.show_mesh(false); view2.set_3d_mode(true);
   view3.show_mesh(false); view3.set_3d_mode(true);
