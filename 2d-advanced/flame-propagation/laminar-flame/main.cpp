@@ -2,8 +2,6 @@
 #define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
 
-
-
 //  This example is a very simple flame propagation model (laminar flame,
 //  zero flow velocity), and its purpose is to show how the Newton's method
 //  is applied to a time-dependent two-equation system.
@@ -57,28 +55,25 @@ const double x1    = 9.0;
 
 int main(int argc, char* argv[])
 {
-  // Instantiate a class with global functions.
-  Hermes2D hermes_2D;
-
   // Load the mesh.
   Mesh mesh;
-  H2DReader mloader;
+  MeshReaderH2D mloader;
   mloader.load("domain.mesh", &mesh);
 
   // Initial mesh refinements.
   for(int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
 
   // Initialize boundary conditions.
-  DefaultEssentialBCConst left_t("Left", 1.0);
-  EssentialBCs bcs_t(&left_t);
+  DefaultEssentialBCConst<double> left_t("Left", 1.0);
+  EssentialBCs<double> bcs_t(&left_t);
 
-  DefaultEssentialBCConst left_c("Left", 0.0);
-  EssentialBCs bcs_c(&left_c);
+  DefaultEssentialBCConst<double> left_c("Left", 0.0);
+  EssentialBCs<double> bcs_c(&left_c);
 
   // Create H1 spaces with default shapesets.
-  H1Space* t_space = new H1Space(&mesh, &bcs_t, P_INIT);
-  H1Space* c_space = new H1Space(&mesh, &bcs_c, P_INIT);
-  int ndof = Space::get_num_dofs(Hermes::vector<Space*>(t_space, c_space));
+  H1Space<double>* t_space = new H1Space<double>(&mesh, &bcs_t, P_INIT);
+  H1Space<double>* c_space = new H1Space<double>(&mesh, &bcs_c, P_INIT);
+  int ndof = Space<double>::get_num_dofs(Hermes::vector<Space<double>*>(t_space, c_space));
   info("ndof = %d.", ndof);
 
   // Define initial conditions.
@@ -86,36 +81,36 @@ int main(int argc, char* argv[])
   InitialSolutionConcentration c_prev_time_1(&mesh, x1, Le);
   InitialSolutionTemperature t_prev_time_2(&mesh, x1);
   InitialSolutionConcentration c_prev_time_2(&mesh, x1, Le);
-  Solution t_prev_newton;
-  Solution c_prev_newton;
+  Solution<double> t_prev_newton;
+  Solution<double> c_prev_newton;
 
   // Filters for the reaction rate omega and its derivatives.
-  CustomFilter omega(Hermes::vector<MeshFunction*>(&t_prev_time_1, &c_prev_time_1), Le, alpha, beta, kappa, x1, TAU);
-  CustomFilterDt omega_dt(Hermes::vector<MeshFunction*>(&t_prev_time_1, &c_prev_time_1), Le, alpha, beta, kappa, x1, TAU);
-  CustomFilterDc omega_dc(Hermes::vector<MeshFunction*>(&t_prev_time_1, &c_prev_time_1), Le, alpha, beta, kappa, x1, TAU);
+  CustomFilter omega(Hermes::vector<Solution<double>*>(&t_prev_time_1, &c_prev_time_1), Le, alpha, beta, kappa, x1, TAU);
+  CustomFilterDt omega_dt(Hermes::vector<Solution<double>*>(&t_prev_time_1, &c_prev_time_1), Le, alpha, beta, kappa, x1, TAU);
+  CustomFilterDc omega_dc(Hermes::vector<Solution<double>*>(&t_prev_time_1, &c_prev_time_1), Le, alpha, beta, kappa, x1, TAU);
 
   // Initialize visualization.
   ScalarView rview("Reaction rate", new WinGeom(0, 0, 800, 230));
 
-  scalar* coeff_vec = new scalar[Space::get_num_dofs(Hermes::vector<Space*>(t_space, c_space))];
+  double* coeff_vec = new double[Space<double>::get_num_dofs(Hermes::vector<Space<double>*>(t_space, c_space))];
   memset(coeff_vec, 0, ndof * sizeof(double));
-  Solution::vector_to_solutions(coeff_vec, Hermes::vector<Space*>(t_space, c_space), 
-                                Hermes::vector<Solution *>(&t_prev_time_1, &c_prev_time_1));
+  Solution<double>::vector_to_solutions(coeff_vec, Hermes::vector<Space<double>*>(t_space, c_space), 
+                                Hermes::vector<Solution<double> *>(&t_prev_time_1, &c_prev_time_1));
 
-  // Initialize the weak formulation.
-  double current_time = 0;
-  CustomWeakForm wf(Le, alpha, beta, kappa, x1, TAU, false, PRECOND, &omega, &omega_dt, 
+  // Initialize weak formulation.
+  CustomWeakForm wf(Le, alpha, beta, kappa, x1, TAU, &omega, &omega_dt, 
                     &omega_dc, &t_prev_time_1, &c_prev_time_1, &t_prev_time_2, &c_prev_time_2);
 
   // Initialize the FE problem.
-  DiscreteProblem dp(&wf, Hermes::vector<Space*>(t_space, c_space));
+  DiscreteProblem<double> dp(&wf, Hermes::vector<Space<double>*>(t_space, c_space));
 
   // Set up the solver, matrix, and rhs according to the solver selection.
-  SparseMatrix* matrix = create_matrix(matrix_solver);
-  Vector* rhs = create_vector(matrix_solver);
-  Solver* solver = create_linear_solver(matrix_solver, matrix, rhs);
+  SparseMatrix<double>* matrix = create_matrix<double>(matrix_solver);
+  Vector<double>* rhs = create_vector<double>(matrix_solver);
+  LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver, matrix, rhs);
 
   // Time stepping:
+  double current_time = 0.0;
   int ts = 1;
   bool jacobian_changed = true;
   do 
@@ -126,14 +121,22 @@ int main(int argc, char* argv[])
     {
       // Perform Newton's iteration.
       info("Solving nonlinear problem:");
-      bool verbose = true;
-      bool jacobian_changed = true;
-      if (!hermes_2D.solve_newton(coeff_vec, &dp, solver, matrix, rhs, jacobian_changed,
-                                  NEWTON_TOL, NEWTON_MAX_ITER, verbose)) error("Newton's iteration failed.");
 
-      Solution::vector_to_solutions(coeff_vec, Hermes::vector<Space*>(t_space, c_space), 
-                                    Hermes::vector<Solution*>(&t_prev_newton, &c_prev_newton));
- 
+      NewtonSolver<double> newton(&dp, matrix_solver);
+      newton.set_verbose_output(false);
+      try
+      {
+        newton.solve(coeff_vec, NEWTON_TOL, NEWTON_MAX_ITER);
+      }
+      catch(Hermes::Exceptions::Exception e)
+      {
+        e.printMsg();
+        error("Newton's iteration failed.");
+      };
+      // Translate the resulting coefficient vector into the instance of Solution.
+      Solution<double>::vector_to_solutions(newton.get_sln_vector(), Hermes::vector<Space<double>*>(t_space, c_space), 
+                                    Hermes::vector<Solution<double>*>(&t_prev_newton, &c_prev_newton));
+
       // Saving solutions for the next time step.
       if(ts > 1)
       {

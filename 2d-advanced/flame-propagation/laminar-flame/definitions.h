@@ -1,26 +1,22 @@
 #include "hermes2d.h"
 
-
-/* Namespaces used */
-
 using namespace Hermes;
 using namespace Hermes::Hermes2D;
 using namespace Hermes::Hermes2D::Views;
-using namespace Hermes::Hermes2D::RefinementSelectors;
 
-class CustomWeakForm : public WeakForm
+class CustomWeakForm : public WeakForm<double>
 {
 public:
-  CustomWeakForm(double Le, double alpha, double beta, double kappa, double x1, double tau, bool JFNK, bool PRECOND, Filter* omega, Filter* omega_dt, Filter* omega_dc, Solution* t_prev_time_1, Solution* c_prev_time_1, Solution* t_prev_time_2, Solution* c_prev_time_2);
+  CustomWeakForm(double Le, double alpha, double beta, double kappa, double x1, double tau, Hermes::Hermes2D::Filter<double>* omega, Hermes::Hermes2D::Filter<double>* omega_dt, Hermes::Hermes2D::Filter<double>* omega_dc, Solution<double>* t_prev_time_1, Solution<double>* c_prev_time_1, Solution<double>* t_prev_time_2, Solution<double>* c_prev_time_2);
 
   ~CustomWeakForm() {};
 
 private:
-  class PreconditionerForm_0 : public MatrixFormVol
+  class PreconditionerForm_0 : public MatrixFormVol<double>
   {
   public:
     PreconditionerForm_0(double tau, double Le) 
-            : MatrixFormVol(0, 0, HERMES_ANY, HERMES_SYM), tau(tau), Le(Le) {};
+            : MatrixFormVol<double>(0, 0, HERMES_ANY, HERMES_SYM), tau(tau), Le(Le) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
                          Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
@@ -31,11 +27,11 @@ private:
     double tau, Le;
   };
   
-  class PreconditionerForm_1 : public MatrixFormVol
+  class PreconditionerForm_1 : public MatrixFormVol<double>
   {
   public:
     PreconditionerForm_1(double tau, double Le) 
-            : MatrixFormVol(1, 1, HERMES_ANY, HERMES_SYM), tau(tau), Le(Le) {};
+            : MatrixFormVol<double>(1, 1, HERMES_ANY, HERMES_SYM), tau(tau), Le(Le) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
                          Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
@@ -46,11 +42,11 @@ private:
     double tau, Le;
   };
     
-  class JacobianFormVol_0_0 : public MatrixFormVol
+  class JacobianFormVol_0_0 : public MatrixFormVol<double>
   {
   public:
     JacobianFormVol_0_0(double tau) 
-            : MatrixFormVol(0, 0, HERMES_ANY, HERMES_SYM), tau(tau) {};
+            : MatrixFormVol<double>(0, 0, HERMES_ANY, HERMES_SYM), tau(tau) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
                          Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
@@ -61,11 +57,11 @@ private:
     double tau;
   };
   
-  class JacobianFormVol_0_1 : public MatrixFormVol
+  class JacobianFormVol_0_1 : public MatrixFormVol<double>
   {
   public:
     JacobianFormVol_0_1(double tau) 
-            : MatrixFormVol(0, 1, HERMES_ANY, HERMES_SYM), tau(tau) {};
+            : MatrixFormVol<double>(0, 1, HERMES_ANY, HERMES_SYM), tau(tau) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
                          Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
@@ -76,11 +72,11 @@ private:
     double tau;
   };
 
-  class JacobianFormVol_1_0 : public MatrixFormVol
+  class JacobianFormVol_1_0 : public MatrixFormVol<double>
   {
   public:
     JacobianFormVol_1_0(double tau) 
-            : MatrixFormVol(1, 0, HERMES_ANY, HERMES_SYM), tau(tau) {};
+            : MatrixFormVol<double>(1, 0, HERMES_ANY, HERMES_SYM), tau(tau) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
                          Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
@@ -91,11 +87,11 @@ private:
     double tau;
   };
 
-  class JacobianFormVol_1_1 : public MatrixFormVol
+  class JacobianFormVol_1_1 : public MatrixFormVol<double>
   {
   public:
     JacobianFormVol_1_1(double tau, double Le) 
-            : MatrixFormVol(1, 1, HERMES_ANY, HERMES_SYM), tau(tau), Le(Le) {};
+            : MatrixFormVol<double>(1, 1, HERMES_ANY, HERMES_SYM), tau(tau), Le(Le) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
                          Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
@@ -106,11 +102,11 @@ private:
     double tau, Le;
   };
 
-  class JacobianFormSurf_0_0 : public MatrixFormSurf
+  class JacobianFormSurf_0_0 : public MatrixFormSurf<double>
   {
   public:
     JacobianFormSurf_0_0(std::string bnd_marker, double kappa) 
-            : MatrixFormSurf(0, 0, bnd_marker), kappa(kappa) {};
+            : MatrixFormSurf<double>(0, 0, bnd_marker), kappa(kappa) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
                          Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
@@ -121,11 +117,11 @@ private:
     double kappa;
   };
 
-  class ResidualFormVol_0 : public VectorFormVol
+  class ResidualFormVol_0 : public VectorFormVol<double>
   {
   public:
     ResidualFormVol_0(double tau) 
-            : VectorFormVol(0), tau(tau)  {};
+            : VectorFormVol<double>(0), tau(tau)  {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
                          Geom<double> *e, ExtData<double> *ext) const;
@@ -137,11 +133,11 @@ private:
     double tau;
   };
 
-  class ResidualFormVol_1 : public VectorFormVol
+  class ResidualFormVol_1 : public VectorFormVol<double>
   {
   public:
     ResidualFormVol_1(double tau, double Le) 
-            : VectorFormVol(1), tau(tau), Le(Le)  {};
+            : VectorFormVol<double>(1), tau(tau), Le(Le)  {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
                          Geom<double> *e, ExtData<double> *ext) const;
@@ -153,11 +149,11 @@ private:
     double tau, Le;
   };
   
-  class ResidualFormSurf_0 : public VectorFormSurf
+  class ResidualFormSurf_0 : public VectorFormSurf<double>
   {
   public:
     ResidualFormSurf_0(std::string bnd_marker, double kappa) 
-            : VectorFormSurf(0, bnd_marker), kappa(kappa)  {};
+            : VectorFormSurf<double>(0, bnd_marker), kappa(kappa)  {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
                          Geom<double> *e, ExtData<double> *ext) const;
@@ -176,10 +172,10 @@ private:
   double x1;
 };
 
-class InitialSolutionTemperature : public ExactSolutionScalar
+class InitialSolutionTemperature : public ExactSolutionScalar<double>
 {
 public:
-  InitialSolutionTemperature(Mesh* mesh, double x1) : ExactSolutionScalar(mesh), x1(x1) {};
+  InitialSolutionTemperature(Mesh* mesh, double x1) : ExactSolutionScalar<double>(mesh), x1(x1) {};
 
   virtual double value (double x, double y) const {
     return (x <= x1) ? 1.0 : exp(x1 - x);
@@ -198,10 +194,10 @@ public:
   double x1;
 };
 
-class InitialSolutionConcentration : public ExactSolutionScalar
+class InitialSolutionConcentration : public ExactSolutionScalar<double>
 {
 public:
-  InitialSolutionConcentration(Mesh* mesh, double x1, double Le) : ExactSolutionScalar(mesh), x1(x1), Le(Le) {};
+  InitialSolutionConcentration(Mesh* mesh, double x1, double Le) : ExactSolutionScalar<double>(mesh), x1(x1), Le(Le) {};
 
   virtual double value (double x, double y) const {
     return (x <= x1) ? 0.0 : 1.0 - exp(Le*(x1 - x));
@@ -220,10 +216,10 @@ public:
   double x1, Le;
 };
 
-class CustomFilter : public DXDYFilter
+class CustomFilter : public Hermes::Hermes2D::DXDYFilter<double>
 {
 public:
-  CustomFilter(Hermes::vector<MeshFunction*> solutions, double Le, double alpha, double beta, double kappa, double x1, double tau) : DXDYFilter(solutions), Le(Le), alpha(alpha), beta(beta), kappa(kappa), x1(x1), tau(tau)
+  CustomFilter(Hermes::vector<Solution<double>*> solutions, double Le, double alpha, double beta, double kappa, double x1, double tau) : Hermes::Hermes2D::DXDYFilter<double>(solutions), Le(Le), alpha(alpha), beta(beta), kappa(kappa), x1(x1), tau(tau)
   {
   }
 
@@ -238,10 +234,10 @@ private:
   double tau;
 };
 
-class CustomFilterDc : public DXDYFilter
+class CustomFilterDc : public Hermes::Hermes2D::DXDYFilter<double>
 {
 public:
-  CustomFilterDc(Hermes::vector<MeshFunction*> solutions, double Le, double alpha, double beta, double kappa, double x1, double tau) : DXDYFilter(solutions), Le(Le), alpha(alpha), beta(beta), kappa(kappa), x1(x1), tau(tau)
+  CustomFilterDc(Hermes::vector<Solution<double>*> solutions, double Le, double alpha, double beta, double kappa, double x1, double tau) : Hermes::Hermes2D::DXDYFilter<double>(solutions), Le(Le), alpha(alpha), beta(beta), kappa(kappa), x1(x1), tau(tau)
   {
   }
 
@@ -256,10 +252,10 @@ private:
   double tau;
 };
 
-class CustomFilterDt : public DXDYFilter
+class CustomFilterDt : public Hermes::Hermes2D::DXDYFilter<double>
 {
 public:
-  CustomFilterDt(Hermes::vector<MeshFunction*> solutions, double Le, double alpha, double beta, double kappa, double x1, double tau) : DXDYFilter(solutions), Le(Le), alpha(alpha), beta(beta), kappa(kappa), x1(x1), tau(tau)
+  CustomFilterDt(Hermes::vector<Solution<double>*> solutions, double Le, double alpha, double beta, double kappa, double x1, double tau) : Hermes::Hermes2D::DXDYFilter<double>(solutions), Le(Le), alpha(alpha), beta(beta), kappa(kappa), x1(x1), tau(tau)
   {
   }
 

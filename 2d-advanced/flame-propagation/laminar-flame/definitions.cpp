@@ -1,18 +1,12 @@
 #include "definitions.h"
 
-CustomWeakForm::CustomWeakForm(double Le, double alpha, double beta, double kappa, 
-                               double x1, double tau, bool JFNK, bool PRECOND, 
-                               Filter* omega, Filter* omega_dt, Filter* omega_dc, 
-                               Solution* t_prev_time_1, Solution* c_prev_time_1, 
-                               Solution* t_prev_time_2, Solution* c_prev_time_2) 
-  : WeakForm<double>(2, JFNK ? true : false), Le(Le), alpha(alpha), beta(beta), kappa(kappa), x1(x1)
+
+CustomWeakForm::CustomWeakForm(double Le, double alpha, double beta, double kappa, double x1, double tau, Hermes::Hermes2D::Filter<double>* omega, Hermes::Hermes2D::Filter<double>* omega_dt, Hermes::Hermes2D::Filter<double>* omega_dc, Solution<double>* t_prev_time_1, Solution<double>* c_prev_time_1, Solution<double>* t_prev_time_2, Solution<double>* c_prev_time_2) : WeakForm<double>(2), Le(Le), alpha(alpha), beta(beta), kappa(kappa), x1(x1)
 {
-  if (!JFNK || (JFNK && PRECOND == 1))
-  {
-    MatrixFormVol* mfv = new JacobianFormVol_0_0(tau);
+  MatrixFormVol<double>* mfv = new JacobianFormVol_0_0(tau);
     mfv->ext.push_back(omega_dt);
     add_matrix_form(mfv);
-    MatrixFormSurf* mfs = new JacobianFormSurf_0_0("Neumann", kappa);
+    MatrixFormSurf<double>* mfs = new JacobianFormSurf_0_0("Neumann", kappa);
     add_matrix_form_surf(mfs);
     mfv = new JacobianFormVol_0_1(tau);
     mfv->ext.push_back(omega_dc);
@@ -23,21 +17,14 @@ CustomWeakForm::CustomWeakForm(double Le, double alpha, double beta, double kapp
     mfv = new JacobianFormVol_1_1(tau, Le);
     mfv->ext.push_back(omega_dc);
     add_matrix_form(mfv);
-  }
-  else if (PRECOND == 2)
-  {
-    MatrixFormVol* mfv = new PreconditionerForm_0(tau, Le);
-    add_matrix_form(mfv);
-    mfv = new PreconditionerForm_1(tau, Le);
-    add_matrix_form(mfv);
-  }
+  
 
-  VectorFormVol* vfv = new ResidualFormVol_0(tau);
+  VectorFormVol<double>* vfv = new ResidualFormVol_0(tau);
   vfv->ext.push_back(t_prev_time_1);
   vfv->ext.push_back(t_prev_time_2);
   vfv->ext.push_back(omega);
   add_vector_form(vfv);
-  VectorFormSurf* vfs = new ResidualFormSurf_0("Neumann", kappa);
+  VectorFormSurf<double>* vfs = new ResidualFormSurf_0("Neumann", kappa);
   add_vector_form_surf(vfs);
   vfv = new ResidualFormVol_1(tau, Le);
   vfv->ext.push_back(c_prev_time_1);
