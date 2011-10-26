@@ -5,7 +5,7 @@
 CustomWeakForm::CustomWeakForm( const Hermes::Hermes2D::WeakFormsNeutronics::Multigroup::MaterialProperties::Diffusion::MaterialPropertyMaps& matprop,
                                 Hermes::vector<MeshFunction<double>*>& iterates,
                                 double init_keff, std::string bdy_vacuum )
-  :  Hermes::Hermes2D::WeakFormsNeutronics::Multigroup::CompleteWeakForms::Diffusion::DefaultWeakFormSourceIteration<double>(matprop, iterates, init_keff, HERMES_AXISYM_Y)
+  :  Hermes::Hermes2D::WeakFormsNeutronics::Multigroup::CompleteWeakForms::Diffusion::DefaultWeakFormSourceIteration<double>(matprop, iterates[0]->get_mesh(), iterates, init_keff, HERMES_AXISYM_Y)
 {
   for (unsigned int g = 0; g < matprop.get_G(); g++)
   {

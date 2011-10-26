@@ -144,7 +144,7 @@ int main(int argc, char* argv[])
     info("Newton's method (matrix problem solved by %s).", MatrixSolverNames[matrix_solver].c_str());
     
     //TODO: Why it doesn't work without zeroing coeff_vec in each iteration?
-    memset(coeff_vec, 0.0, ndof*sizeof(double)); 
+    memset(coeff_vec, 0, ndof*sizeof(double)); 
     
     // Perform Newton's iteration.
     try
@@ -156,9 +156,8 @@ int main(int argc, char* argv[])
       e.printMsg();
       error("Newton's iteration failed.");
     }
-    
+       
     // Translate the resulting coefficient vector into a Solution.
-    Solution<double> sln;
     Solution<double>::vector_to_solutions(newton.get_sln_vector(), spaces, solutions);
     
     // Show intermediate solutions.
