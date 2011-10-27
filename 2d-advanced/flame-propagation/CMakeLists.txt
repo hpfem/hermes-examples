@@ -1,1 +1,1 @@
-#add_subdirectory(laminar-flame)
+add_subdirectory(laminar-flame)

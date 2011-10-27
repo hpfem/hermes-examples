@@ -44,7 +44,7 @@ const int PRECOND = 2;
 
 // Problem constants.
 // Time step.
-const double TAU   = 0.05;                        
+const double TAU   = 0.005;                        
 // Time interval length.
 const double T_FINAL = 60.0;                      
 const double Le    = 1.0;
@@ -92,14 +92,17 @@ int main(int argc, char* argv[])
   // Initialize visualization.
   ScalarView rview("Reaction rate", new WinGeom(0, 0, 800, 230));
 
-  double* coeff_vec = new double[Space<double>::get_num_dofs(Hermes::vector<Space<double>*>(t_space, c_space))];
-  memset(coeff_vec, 0, ndof * sizeof(double));
-  Solution<double>::vector_to_solutions(coeff_vec, Hermes::vector<Space<double>*>(t_space, c_space), 
-                                Hermes::vector<Solution<double> *>(&t_prev_time_1, &c_prev_time_1));
-
   // Initialize weak formulation.
   CustomWeakForm wf(Le, alpha, beta, kappa, x1, TAU, &omega, &omega_dt, 
                     &omega_dc, &t_prev_time_1, &c_prev_time_1, &t_prev_time_2, &c_prev_time_2);
+
+  // Project the functions "t_prev_time_1" and "c_prev_time_1" on the FE space 
+  // in order to obtain initial vector for NOX. 
+  info("Projecting initial solutions on the FE meshes.");
+  double* coeff_vec = new double[ndof];
+  OGProjection<double>::project_global(Hermes::vector<Space<double> *>(t_space, c_space), 
+                                       Hermes::vector<MeshFunction<double>*>(&t_prev_time_1, &c_prev_time_1),
+                                       coeff_vec);
 
   // Initialize the FE problem.
   DiscreteProblem<double> dp(&wf, Hermes::vector<Space<double>*>(t_space, c_space));
