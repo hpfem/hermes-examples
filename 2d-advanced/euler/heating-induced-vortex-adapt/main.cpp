@@ -21,18 +21,19 @@ using namespace Hermes::Hermes2D::RefinementSelectors;
 
 // Visualization.
 // Set to "true" to enable Hermes OpenGL visualization. 
-const bool HERMES_VISUALIZATION = true;           
+const bool HERMES_VISUALIZATION = false;           
 // Set to "true" to enable VTK output.
-const bool VTK_VISUALIZATION = false;              
+const bool VTK_VISUALIZATION = true;
 // Set visual output for every nth step.
-const unsigned int EVERY_NTH_STEP = 1;            
+const unsigned int EVERY_NTH_STEP = 25;            
 
 // Shock capturing.
 bool SHOCK_CAPTURING = true;
 // Quantitative parameter of the discontinuity detector.
 double DISCONTINUITY_DETECTOR_PARAM = 1.0;
 
-bool REUSE_SOLUTION = true;
+// For saving/loading of solution.
+bool REUSE_SOLUTION = false;
 
 // Initial polynomial degree.      
 const int P_INIT = 0;                                             
@@ -44,7 +45,7 @@ double CFL_NUMBER = 0.5;
 double time_step = 1E-6;                         
 
 // Adaptivity.
-const int NDOFS_MIN = 4000;
+const int NDOFS_MIN = 7000;
 
 // Every UNREF_FREQth time step the mesh is unrefined.
 const int UNREF_FREQ = 5;
@@ -150,6 +151,8 @@ int main(int argc, char* argv[])
   L2Space<double>space_rho_v_x(&mesh, P_INIT);
   L2Space<double>space_rho_v_y(&mesh, P_INIT);
   L2Space<double>space_e(&mesh, P_INIT);
+  int ndof = Space<double>::get_num_dofs(Hermes::vector<Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
+  info("ndof: %d", ndof);
 
   // Initialize solutions, set initial conditions.
   InitialSolutionLinearProgress sln_rho(&mesh, RHO_INITIAL_HIGH, RHO_INITIAL_LOW, MESH_SIZE);
@@ -179,12 +182,10 @@ int main(int argc, char* argv[])
 
   // Filters for visualization of Mach number, pressure and entropy.
   MachNumberFilter Mach_number(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA);
-  PressureFilter pressure(Hermes::vector<MeshFunction<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), KAPPA);
+  PressureFilter pressure(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA);
   EntropyFilter entropy(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA, RHO_INITIAL_HIGH, P_INITIAL_HIGH);
 
   ScalarView pressure_view("Pressure", new WinGeom(0, 0, 600, 300));
-  ScalarView Mach_number_view("Mach number", new WinGeom(700, 0, 600, 300));
-  ScalarView entropy_production_view("Entropy estimate", new WinGeom(0, 400, 600, 300));
   VectorView velocity_view("Velocity", new WinGeom(700, 400, 600, 300));
   
   // Initialize refinement selector.
@@ -196,10 +197,10 @@ int main(int argc, char* argv[])
 
   // Time stepping loop.
   int iteration = 0; double t = 0;
-  for(; t < 3.0; t += time_step)
+  for(; t < 7.0; t += time_step)
   {
     if(t > 0.25)
-      ERR_STOP = 2.5;
+      ERR_STOP = 2.3;
 
     info("---- Time step %d, time %3.5f.", iteration++, t);
 
@@ -244,17 +245,7 @@ int main(int argc, char* argv[])
       OGProjection<double>::project_global(*ref_spaces, Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), 
         Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), matrix_solver_type, Hermes::vector<Hermes::Hermes2D::ProjNormType>(), iteration > 1);
 
-      if(as > 1)
-      {
-        delete rsln_rho.get_mesh();
-        rsln_rho.own_mesh = false;
-        delete rsln_rho_v_x.get_mesh();
-        rsln_rho_v_x.own_mesh = false;
-        delete rsln_rho_v_y.get_mesh();
-        rsln_rho_v_y.own_mesh = false;
-        delete rsln_e.get_mesh();
-        rsln_e.own_mesh = false;
-      }
+      
       // Report NDOFs.
       info("ndof_coarse: %d, ndof_fine: %d.", 
         Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
@@ -329,6 +320,32 @@ int main(int argc, char* argv[])
           as++;
       }
 
+      // Clean up.
+      delete solver;
+      delete matrix;
+      delete rhs;
+      delete adaptivity;
+      if(!done)
+        for(unsigned int i = 0; i < ref_spaces->size(); i++)
+          delete (*ref_spaces)[i];
+    }
+    while (done == false);
+
+    // Copy the solutions into the previous time level ones.
+    prev_rho.copy(&rsln_rho);
+    prev_rho_v_x.copy(&rsln_rho_v_x);
+    prev_rho_v_y.copy(&rsln_rho_v_y);
+    prev_e.copy(&rsln_e);
+
+    delete rsln_rho.get_mesh();
+    rsln_rho.own_mesh = false;
+    delete rsln_rho_v_x.get_mesh();
+    rsln_rho_v_x.own_mesh = false;
+    delete rsln_rho_v_y.get_mesh();
+    rsln_rho_v_y.own_mesh = false;
+    delete rsln_e.get_mesh();
+    rsln_e.own_mesh = false;
+
       // Visualization and saving on disk.
     if((iteration - 1) % EVERY_NTH_STEP == 0)
     {
@@ -351,49 +368,22 @@ int main(int argc, char* argv[])
       if(VTK_VISUALIZATION)
       {
         pressure.reinit();
-        Mach_number.reinit();
-        entropy.reinit();
         Linearizer lin;
         char filename[40];
         sprintf(filename, "Pressure-%i.vtk", iteration - 1);
-        lin.save_solution_vtk(&pressure, filename, "Pressure");
-        sprintf(filename, "Mach number-%i.vtk", iteration - 1);
-        lin.save_solution_vtk(&Mach_number, filename, "MachNumber");
-        sprintf(filename, "Entropy-%i.vtk", iteration - 1);
-        lin.save_solution_vtk(&entropy, filename, "Entropy");
+        lin.save_solution_vtk(&pressure, filename, "Pressure", false);
+        sprintf(filename, "VelocityX-%i.vtk", iteration - 1);
+        lin.save_solution_vtk(&prev_rho_v_x, filename, "VelocityX", false);
+        sprintf(filename, "VelocityY-%i.vtk", iteration - 1);
+        lin.save_solution_vtk(&prev_rho_v_y, filename, "VelocityY", false);
+        sprintf(filename, "Rho-%i.vtk", iteration - 1);
+        lin.save_solution_vtk(&prev_rho, filename, "Rho", false);
       }
     }
-
-      // Clean up.
-      delete solver;
-      delete matrix;
-      delete rhs;
-      delete adaptivity;
-      if(!done)
-        for(unsigned int i = 0; i < ref_spaces->size(); i++)
-          delete (*ref_spaces)[i];
-    }
-    while (done == false);
-
-    // Copy the solutions into the previous time level ones.
-    prev_rho.copy(&rsln_rho);
-    prev_rho_v_x.copy(&rsln_rho_v_x);
-    prev_rho_v_y.copy(&rsln_rho_v_y);
-    prev_e.copy(&rsln_e);
-    
-    delete rsln_rho.get_mesh();
-    rsln_rho.own_mesh = false;
-    delete rsln_rho_v_x.get_mesh();
-    rsln_rho_v_x.own_mesh = false;
-    delete rsln_rho_v_y.get_mesh();
-    rsln_rho_v_y.own_mesh = false;
-    delete rsln_e.get_mesh();
-    rsln_e.own_mesh = false;
   }
 
   pressure_view.close();
-  entropy_production_view.close();
-  Mach_number_view.close();
+  velocity_view.close();
 
   return 0;
 }

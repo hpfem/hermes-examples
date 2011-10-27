@@ -21,11 +21,11 @@ using namespace Hermes::Hermes2D::Views;
 
 // Visualization.
 // Set to "true" to enable Hermes OpenGL visualization. 
-const bool HERMES_VISUALIZATION = false;           
+const bool HERMES_VISUALIZATION = false;
 // Set to "true" to enable VTK output.
-const bool VTK_VISUALIZATION = true;              
+const bool VTK_VISUALIZATION = true;
 // Set visual output for every nth step.
-const unsigned int EVERY_NTH_STEP = 10;            
+const unsigned int EVERY_NTH_STEP = 25;            
 
 // Shock capturing.
 enum shockCapturingType
@@ -43,14 +43,14 @@ const double NU_1 = 0.1;
 const double NU_2 = 0.1;
 
 // For saving/loading of solution.
-bool REUSE_SOLUTION = false;
+bool REUSE_SOLUTION = true;
 
 // Initial polynomial degree.       
 const int P_INIT = 1;                                                  
 // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM_VERTEX = 1;                      
+const int INIT_REF_NUM_VERTEX = 2;                      
 // Number of initial mesh refinements towards the profile.
-const int INIT_REF_NUM_BOUNDARY_ANISO = 4;              
+const int INIT_REF_NUM_BOUNDARY_ANISO = 6;              
 // CFL value.
 double CFL_NUMBER = 0.1;                                
 // Initial time step.
@@ -58,7 +58,8 @@ double time_step_n = 1E-6;
 // Initial time step.
 double time_step_n_minus_one = 1E-6;                                
 
-// Matrix solver for orthogonal projections: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+// Matrix solver for orthogonal projections: 
+// SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
 
@@ -93,8 +94,6 @@ int main(int argc, char* argv[])
   MeshReaderH2DXML mloader;
   mloader.load("domain-arcs.xml", &mesh);
   
-  mesh.refine_towards_boundary(BDY_SOLID_WALL_PROFILE, INIT_REF_NUM_BOUNDARY_ANISO);
-  mesh.refine_all_elements(2);
   mesh.refine_towards_boundary(BDY_SOLID_WALL_PROFILE, INIT_REF_NUM_BOUNDARY_ANISO);
   mesh.refine_towards_vertex(0, INIT_REF_NUM_VERTEX);
 
@@ -153,9 +152,10 @@ int main(int argc, char* argv[])
     continuity.get_last_record()->load_spaces(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
       &space_rho_v_y, &space_e), Hermes::vector<SpaceType>(HERMES_L2_SPACE, HERMES_L2_SPACE, HERMES_L2_SPACE, HERMES_L2_SPACE), Hermes::vector<Mesh *>(&mesh, &mesh, 
       &mesh, &mesh));
-    continuity.get_last_record()->load_solutions(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), Hermes::vector<Mesh *>(&mesh, &mesh, 
-      &mesh, &mesh));
+    continuity.get_last_record()->load_solutions(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_rho2, &prev_rho_v_x2, &prev_rho_v_y2, &prev_e2), Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
+      &space_rho_v_y, &space_e, &space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
     continuity.get_last_record()->load_time_step_length(time_step_n);
+    continuity.get_last_record()->load_time_step_length_n_minus_one(time_step_n_minus_one);
     t = continuity.get_last_record()->get_time();
     iteration = continuity.get_num();
   }
@@ -178,7 +178,7 @@ int main(int argc, char* argv[])
     dp.set_fvm();
 
   // Time stepping loop.
-  for(; t < 3.0; t += time_step_n)
+  for(; t < 5.0; t += time_step_n)
   {
     info("---- Time step %d, time %3.5f.", iteration++, t);
     CFL.set_number(0.1 + (t/2.5) * 1000.0);
@@ -278,12 +278,16 @@ int main(int argc, char* argv[])
       }
     }
     // Save a current state on the disk.
+    if(iteration > 1)
+    {
     continuity.add_record(t);
     continuity.get_last_record()->save_mesh(&mesh);
     continuity.get_last_record()->save_spaces(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-      &space_rho_v_y, &space_e));
-    continuity.get_last_record()->save_solutions(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
+        &space_rho_v_y, &space_e, &space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
+      continuity.get_last_record()->save_solutions(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_rho2, &prev_rho_v_x2, &prev_rho_v_y2, &prev_e2));
     continuity.get_last_record()->save_time_step_length(time_step_n);
+      continuity.get_last_record()->save_time_step_length_n_minus_one(time_step_n_minus_one);
+    }
   }
 
   pressure_view.close();

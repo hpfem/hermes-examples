@@ -26,7 +26,7 @@ const bool HERMES_VISUALIZATION = false;
 // Set to "true" to enable VTK output.
 const bool VTK_VISUALIZATION = true;              
 // Set visual output for every nth step.
-const unsigned int EVERY_NTH_STEP = 10;            
+const unsigned int EVERY_NTH_STEP = 1;            
 
 // Shock capturing.
 enum shockCapturingType
@@ -36,7 +36,7 @@ enum shockCapturingType
   KRIVODONOVA
 };
 bool SHOCK_CAPTURING = true;
-shockCapturingType SHOCK_CAPTURING_TYPE = KUZMIN;
+shockCapturingType SHOCK_CAPTURING_TYPE = FEISTAUER;
 // Quantitative parameter of the discontinuity detector in case of Krivodonova.
 double DISCONTINUITY_DETECTOR_PARAM = 1.0;
 // Quantitative parameter of the shock capturing in case of Feistauer.
@@ -49,7 +49,7 @@ bool REUSE_SOLUTION = false;
 // Initial polynomial degree.   
 const int P_INIT = 1;                                                      
 // Number of initial uniform mesh refinements.    
-const int INIT_REF_NUM = 4;                                                
+const int INIT_REF_NUM = 3;                                                
 // CFL value.
 double CFL_NUMBER = 1.0;                                
 // Initial time step.
@@ -152,9 +152,10 @@ int main(int argc, char* argv[])
     continuity.get_last_record()->load_spaces(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
       &space_rho_v_y, &space_e), Hermes::vector<SpaceType>(HERMES_L2_SPACE, HERMES_L2_SPACE, HERMES_L2_SPACE, HERMES_L2_SPACE), Hermes::vector<Mesh *>(&mesh, &mesh, 
       &mesh, &mesh));
-    continuity.get_last_record()->load_solutions(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), Hermes::vector<Mesh *>(&mesh, &mesh, 
-      &mesh, &mesh));
+    continuity.get_last_record()->load_solutions(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_rho2, &prev_rho_v_x2, &prev_rho_v_y2, &prev_e2), Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
+      &space_rho_v_y, &space_e, &space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
     continuity.get_last_record()->load_time_step_length(time_step_n);
+    continuity.get_last_record()->load_time_step_length_n_minus_one(time_step_n_minus_one);
     t = continuity.get_last_record()->get_time();
     iteration = continuity.get_num();
   }
@@ -171,6 +172,7 @@ int main(int argc, char* argv[])
   // Initialize the FE problem.
   DiscreteProblem<double> dp(&wf, Hermes::vector<Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
   DiscreteProblem<double> dp_stabilization(&wf_stabilization, &space_stabilization);
+  bool* discreteIndicator = NULL;
 
   // If the FE problem is in fact a FV problem.
   if(P_INIT == 0) 
@@ -183,10 +185,12 @@ int main(int argc, char* argv[])
 
     if(SHOCK_CAPTURING && SHOCK_CAPTURING_TYPE == FEISTAUER)
     {
-      assert(space_stabilization.get_num_dofs() == space_stabilization.get_mesh()->get_num_active_elements());
       dp_stabilization.assemble(rhs_stabilization);
-      bool* discreteIndicator = new bool[space_stabilization.get_num_dofs()];
-      memset(discreteIndicator, 0, space_stabilization.get_num_dofs() * sizeof(bool));
+      if(discreteIndicator != NULL)
+        delete [] discreteIndicator;
+      discreteIndicator = new bool[space_stabilization.get_num_dofs()];
+      for(unsigned int i = 0; i < space_stabilization.get_num_dofs(); i++)
+        discreteIndicator[i] = false;
       Element* e;
       for_all_active_elements(e, space_stabilization.get_mesh())
       {
@@ -276,12 +280,16 @@ int main(int argc, char* argv[])
       }
     }
     // Save a current state on the disk.
-    continuity.add_record(t);
-    continuity.get_last_record()->save_mesh(&mesh);
-    continuity.get_last_record()->save_spaces(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-      &space_rho_v_y, &space_e));
-    continuity.get_last_record()->save_solutions(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
-    continuity.get_last_record()->save_time_step_length(time_step_n);
+    if(iteration > 1)
+    {
+      continuity.add_record(t);
+      continuity.get_last_record()->save_mesh(&mesh);
+      continuity.get_last_record()->save_spaces(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
+        &space_rho_v_y, &space_e, &space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
+      continuity.get_last_record()->save_solutions(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_rho2, &prev_rho_v_x2, &prev_rho_v_y2, &prev_e2));
+      continuity.get_last_record()->save_time_step_length(time_step_n);
+      continuity.get_last_record()->save_time_step_length_n_minus_one(time_step_n_minus_one);
+    }
   }
 
   pressure_view.close();
