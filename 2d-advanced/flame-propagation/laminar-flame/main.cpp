@@ -73,21 +73,25 @@ int main(int argc, char* argv[])
   // Create H1 spaces with default shapesets.
   H1Space<double>* t_space = new H1Space<double>(&mesh, &bcs_t, P_INIT);
   H1Space<double>* c_space = new H1Space<double>(&mesh, &bcs_c, P_INIT);
-  int ndof = Space<double>::get_num_dofs(Hermes::vector<Space<double>*>(t_space, c_space));
+  Hermes::vector<Space<double> *> spaces = Hermes::vector<Space<double> *>(t_space, c_space);
+  int ndof = Space<double>::get_num_dofs(spaces);
   info("ndof = %d.", ndof);
 
   // Define initial conditions.
   InitialSolutionTemperature t_prev_time_1(&mesh, x1);
   InitialSolutionConcentration c_prev_time_1(&mesh, x1, Le);
+  Hermes::vector<MeshFunction<double>*> meshfns_prev_time_1 = Hermes::vector<MeshFunction<double>*>(&t_prev_time_1, &c_prev_time_1);
+  Hermes::vector<Solution<double>*> slns_prev_time_1 = Hermes::vector<Solution<double>*>(&t_prev_time_1, &c_prev_time_1);
   InitialSolutionTemperature t_prev_time_2(&mesh, x1);
   InitialSolutionConcentration c_prev_time_2(&mesh, x1, Le);
-  Solution<double> t_prev_newton;
-  Solution<double> c_prev_newton;
+  Solution<double> t_prev_newton(&mesh);
+  Solution<double> c_prev_newton(&mesh);
+  Hermes::vector<Solution<double>*> slns_prev_newton = Hermes::vector<Solution<double>*>(&t_prev_newton, &c_prev_newton);
 
   // Filters for the reaction rate omega and its derivatives.
-  CustomFilter omega(Hermes::vector<Solution<double>*>(&t_prev_time_1, &c_prev_time_1), Le, alpha, beta, kappa, x1, TAU);
-  CustomFilterDt omega_dt(Hermes::vector<Solution<double>*>(&t_prev_time_1, &c_prev_time_1), Le, alpha, beta, kappa, x1, TAU);
-  CustomFilterDc omega_dc(Hermes::vector<Solution<double>*>(&t_prev_time_1, &c_prev_time_1), Le, alpha, beta, kappa, x1, TAU);
+  CustomFilter omega(slns_prev_time_1, Le, alpha, beta, kappa, x1, TAU);
+  CustomFilterDt omega_dt(slns_prev_time_1, Le, alpha, beta, kappa, x1, TAU);
+  CustomFilterDc omega_dc(slns_prev_time_1, Le, alpha, beta, kappa, x1, TAU);
 
   // Initialize visualization.
   ScalarView rview("Reaction rate", new WinGeom(0, 0, 800, 230));
@@ -100,17 +104,10 @@ int main(int argc, char* argv[])
   // in order to obtain initial vector for NOX. 
   info("Projecting initial solutions on the FE meshes.");
   double* coeff_vec = new double[ndof];
-  OGProjection<double>::project_global(Hermes::vector<Space<double> *>(t_space, c_space), 
-                                       Hermes::vector<MeshFunction<double>*>(&t_prev_time_1, &c_prev_time_1),
-                                       coeff_vec);
+  OGProjection<double>::project_global(spaces, meshfns_prev_time_1, coeff_vec);
 
   // Initialize the FE problem.
-  DiscreteProblem<double> dp(&wf, Hermes::vector<Space<double>*>(t_space, c_space));
-
-  // Set up the solver, matrix, and rhs according to the solver selection.
-  SparseMatrix<double>* matrix = create_matrix<double>(matrix_solver);
-  Vector<double>* rhs = create_vector<double>(matrix_solver);
-  LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver, matrix, rhs);
+  DiscreteProblem<double> dp(&wf, spaces);
 
   // Time stepping:
   double current_time = 0.0;
@@ -118,7 +115,7 @@ int main(int argc, char* argv[])
   bool jacobian_changed = true;
   do 
   {
-    info("---- Time step %d, time %3.5f s", ts, current_time);
+    info("Time step %d, time %3.5f s", ts, current_time);
 
     if (NEWTON)
     {
@@ -126,7 +123,7 @@ int main(int argc, char* argv[])
       info("Solving nonlinear problem:");
 
       NewtonSolver<double> newton(&dp, matrix_solver);
-      newton.set_verbose_output(false);
+      newton.set_verbose_output(true);
       try
       {
         newton.solve(coeff_vec, NEWTON_TOL, NEWTON_MAX_ITER);
@@ -137,8 +134,7 @@ int main(int argc, char* argv[])
         error("Newton's iteration failed.");
       };
       // Translate the resulting coefficient vector into the instance of Solution.
-      Solution<double>::vector_to_solutions(newton.get_sln_vector(), Hermes::vector<Space<double>*>(t_space, c_space), 
-                                    Hermes::vector<Solution<double>*>(&t_prev_newton, &c_prev_newton));
+      Solution<double>::vector_to_solutions(newton.get_sln_vector(), spaces, slns_prev_newton);
 
       // Saving solutions for the next time step.
       if(ts > 1)
@@ -164,9 +160,6 @@ int main(int argc, char* argv[])
 
   // Clean up.
   delete [] coeff_vec;
-  delete matrix;
-  delete rhs;
-  delete solver;
 
   // Wait for all views to be closed.
   View::wait();
