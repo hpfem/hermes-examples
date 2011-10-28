@@ -19,7 +19,7 @@ CustomWeakForm::CustomWeakForm(double Le, double alpha, double beta, double kapp
   add_matrix_form(mfv);
 
   // Stationary Jacobian - surface.
-  add_matrix_form_surf(new JacobianFormSurf_0_0("Neumann", kappa));
+  add_matrix_form_surf(new JacobianFormSurf_0_0("Cooled", kappa));
   
   // Stationary residual - volumetric.
   VectorFormVol<double>* vfv = new ResidualFormVol_0();
@@ -30,7 +30,7 @@ CustomWeakForm::CustomWeakForm(double Le, double alpha, double beta, double kapp
   add_vector_form(vfv);
 
   // Stationary residual - volumetric.
-  add_vector_form_surf(new ResidualFormSurf_0("Neumann", kappa));
+  add_vector_form_surf(new ResidualFormSurf_0("Cooled", kappa));
 }
 
 double CustomWeakForm::JacobianFormVol_0_0::value(int n, double *wt, Func<double> *u_ext[], 
