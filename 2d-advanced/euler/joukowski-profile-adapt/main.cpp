@@ -21,11 +21,11 @@ using namespace Hermes::Hermes2D::RefinementSelectors;
 
 // Visualization.
 // Set to "true" to enable Hermes OpenGL visualization. 
-const bool HERMES_VISUALIZATION = true;           
+const bool HERMES_VISUALIZATION = false;
 // Set to "true" to enable VTK output.
-const bool VTK_VISUALIZATION = true;              
+const bool VTK_VISUALIZATION = true;
 // Set visual output for every nth step.
-unsigned int EVERY_NTH_STEP = 1;            
+unsigned int EVERY_NTH_STEP = 25;
 
 // Shock capturing.
 bool SHOCK_CAPTURING = false;
