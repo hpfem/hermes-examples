@@ -125,6 +125,11 @@ int main(int argc, char* argv[])
   bool jacobian_changed = true;
   do 
   {
+    // Reinit filters.
+    omega.reinit();
+    omega_dc.reinit();
+    omega_dt.reinit();
+
     // Perform one Runge-Kutta time step according to the selected Butcher's table.
     info("Runge-Kutta time step (t = %g s, time step = %g s, stages: %d).", 
          current_time, time_step, bt.get_size());
