@@ -50,7 +50,7 @@ Ord CustomInitialConditionH::ord(Ord x, Ord y) const
 // **************
 Scalar2<double> CustomInitialConditionP::value (double x, double y) const 
 {
-  double k_squared = std::abs(Hermes::sqr(k_x) + Hermes::sqr(k_y));
+  double k_squared = Hermes::sqr(k_x) + Hermes::sqr(k_y);
   double k = std::sqrt(k_squared);
   double val_0 = alpha(omega, k)*k_y*exp(-omega*time) * std::cos(k_x * M_PI * x) * std::sin(k_y * M_PI * y);
   double val_1 = -k_x*alpha(omega, k)*exp(-omega*time) * std::sin(k_x * M_PI * x) * std::cos(k_y * M_PI * y);
