@@ -117,6 +117,7 @@ int main(int argc, char* argv[])
 
   // Initialize Runge-Kutta time stepping.
   RungeKutta<double> runge_kutta(&dp, &bt, matrix_solver);
+  //runge_kutta.use_local_projections();
 
   // Time stepping:
   double current_time = 0.0;
