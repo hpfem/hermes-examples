@@ -15,7 +15,7 @@ const bool STOKES = false;
 // otherwise continuous (H1).   
 #define PRESSURE_IN_L2                           
 // Initial polynomial degree for velocity components.
-const int P_INIT_VEL = 1;          
+const int P_INIT_VEL = 2;          
 // Initial polynomial degree for pressure.
 // Note: P_INIT_VEL should always be greater than
 // P_INIT_PRESSURE because of the inf-sup condition.
@@ -36,13 +36,15 @@ const double VEL_INLET = 0.1;
 // Initial temperature.
 const double TEMPERATURE_INIT_WATER = 20.0;                       
 const double TEMPERATURE_INIT_GRAPHITE = 100.0;                       
-// Kinematic viscosity (we use a larger number to reduce Re).
-const double KINEMATIC_VISCOSITY_WATER = 1e-4;   // Water has 1.004e-6, air 1.5e-5.
+// Correct is 1.004e-6 (at 20 deg Celsius) but then RE = 2.81713e+06 which 
+// is too much for this simple model, so we use a larger viscosity. Note
+// that kinematic viscosity decreases with rising temperature.
+const double KINEMATIC_VISCOSITY_WATER = 1.004e-2;   
 // We found a range of 25 - 470, but this is another 
 // number that one needs to be careful about.
 const double THERMAL_CONDUCTIVITY_GRAPHITE = 450;    
 // At 25 deg Celsius.
-const double THERMAL_CONDUCTIVITY_WATER = 0.6;   // Water has 0.6, air 0.024.      
+const double THERMAL_CONDUCTIVITY_WATER = 1000;   // Water has 0.6;       
 // Density of graphite from Wikipedia, one should be 
 // careful about this number.    
 const double RHO_GRAPHITE = 2220;                      
