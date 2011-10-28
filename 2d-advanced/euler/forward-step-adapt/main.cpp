@@ -56,8 +56,8 @@ const int UNREF_FREQ = 5;
 int REFINEMENT_COUNT = 0;
 
 // This is a quantitative parameter of the adapt(...) function and
-// it has different meanings for various adaptive strategies.
-const double THRESHOLD = 0.5;                     
+// it has different meanings for various adaptive strategies (see below).
+const double THRESHOLD = 0.3;                     
 
 // Adaptive strategy:
 // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
