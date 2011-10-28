@@ -221,7 +221,7 @@ int main(int argc, char* argv[])
     continuity.get_last_record()->load_time_step_length(time_step_n);
     continuity.get_last_record()->load_time_step_length_n_minus_one(time_step_n_minus_one);
     t = continuity.get_last_record()->get_time();
-    iteration = continuity.get_num();
+    iteration = continuity.get_num() * EVERY_NTH_STEP + 1;
     loaded_now = true;
   }
 
