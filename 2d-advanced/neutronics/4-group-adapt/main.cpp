@@ -95,16 +95,13 @@ double TOL_PIT_CM = 5e-5;
 double TOL_PIT_RM = 5e-6;   
 
 // Macros for simpler reporting (four group case).
-#define report_num_dofs(spaces) Space::get_num_dofs(spaces[0]), Space::get_num_dofs(spaces[1]),\
-                                Space::get_num_dofs(spaces[2]), Space::get_num_dofs(spaces[3]),\
-                                Space::get_num_dofs(spaces)
+#define report_num_dofs(spaces) Space<double>::get_num_dofs(spaces[0]), Space<double>::get_num_dofs(spaces[1]),\
+                                Space<double>::get_num_dofs(spaces[2]), Space<double>::get_num_dofs(spaces[3]),\
+                                Space<double>::get_num_dofs(spaces)
 #define report_errors(errors) errors[0],errors[1],errors[2],errors[3]
 
 int main(int argc, char* argv[])
 {
-  // Instantiate a class with global functions.
-  Hermes2D hermes2d;
-  
   // Time measurement.
   TimePeriod cpu_time;
   cpu_time.tick();
@@ -128,7 +125,7 @@ int main(int argc, char* argv[])
     meshes.push_back(new Mesh());
   
   // Load the mesh for the 1st group.
-  H2DReader mloader;
+  MeshReaderH2D mloader;
   mloader.load(mesh_file.c_str(), meshes[0]);
  
   for (unsigned int g = 1; g < matprop.get_G(); g++) 
@@ -143,20 +140,20 @@ int main(int argc, char* argv[])
     meshes[0]->refine_all_elements();
   
   // Create pointers to solutions on coarse and fine meshes and from the latest power iteration, respectively.
-  Hermes::vector<Solution*> coarse_solutions, fine_solutions, power_iterates;
+  Hermes::vector<Solution<double>*> coarse_solutions, fine_solutions, power_iterates;
 
   // Initialize all the new solution variables.
   for (unsigned int g = 0; g < matprop.get_G(); g++) 
   {
-    coarse_solutions.push_back(new Solution());
-    fine_solutions.push_back(new Solution());
-    power_iterates.push_back(new Solution(meshes[g], 1.0));   
+    coarse_solutions.push_back(new Solution<double>());
+    fine_solutions.push_back(new Solution<double>());
+    power_iterates.push_back(new ConstantSolution<double>(meshes[g], 1.0));   
   }
   
   // Create the approximation spaces with the default shapeset.
-  Hermes::vector<Space *> spaces;
+  Hermes::vector<Space<double>*> spaces;
   for (unsigned int g = 0; g < matprop.get_G(); g++) 
-    spaces.push_back(new H1Space(meshes[g], P_INIT[g]));
+    spaces.push_back(new H1Space<double>(meshes[g], P_INIT[g]));
 
   // Initialize the weak formulation.
   CustomWeakForm wf(matprop, power_iterates, k_eff, bdy_vacuum);
@@ -164,10 +161,10 @@ int main(int argc, char* argv[])
   // Initialize the discrete algebraic representation of the problem and its solver.
   //
   // Create the matrix and right-hand side vector for the solver.
-  SparseMatrix* mat = create_matrix(matrix_solver);
-  Vector* rhs = create_vector(matrix_solver);
+  SparseMatrix<double>* mat = create_matrix<double>(matrix_solver);
+  Vector<double>* rhs = create_vector<double>(matrix_solver);
   // Instantiate the solver itself.
-  Solver* solver = create_linear_solver(matrix_solver, mat, rhs);
+  LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver, mat, rhs);
 
   // Initialize views.
   /* for 1280x800 display */
@@ -226,13 +223,13 @@ int main(int argc, char* argv[])
   graph_cpu.show_grid();
 
   // Initialize the refinement selectors.
-  H1ProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
-  Hermes::vector<RefinementSelectors::Selector*> selectors;
+  H1ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
+  Hermes::vector<RefinementSelectors::Selector<double>*> selectors;
   for (unsigned int g = 0; g < matprop.get_G(); g++) 
     selectors.push_back(&selector);
   
-  Hermes::vector<WeakForm::MatrixFormVol*> projection_jacobian;
-  Hermes::vector<WeakForm::VectorFormVol*> projection_residual;
+  Hermes::vector<MatrixFormVol<double>*> projection_jacobian;
+  Hermes::vector<VectorFormVol<double>*> projection_residual;
   for (unsigned int g = 0; g < matprop.get_G(); g++) 
   {
     projection_jacobian.push_back(new H1AxisymProjectionJacobian(g));
@@ -248,7 +245,7 @@ int main(int argc, char* argv[])
   
   // Initial power iteration to obtain a coarse estimate of the eigenvalue and the fission source.
   info("Coarse mesh power iteration, %d + %d + %d + %d = %d ndof:", report_num_dofs(spaces));
-  power_iteration(hermes2d, matprop, spaces, &wf, power_iterates, core, TOL_PIT_CM, mat, rhs, solver);
+  power_iteration(matprop, spaces, &wf, power_iterates, core, TOL_PIT_CM, mat, rhs, solver);
   
   // Adaptivity loop:
   int as = 1; bool done = false;
@@ -257,7 +254,7 @@ int main(int argc, char* argv[])
     info("---- Adaptivity step %d:", as);
     
     // Construct globally refined meshes and setup reference spaces on them.
-    Hermes::vector<Space *> ref_spaces;
+    Hermes::vector<Space<double>*> ref_spaces;
     Hermes::vector<Mesh *> ref_meshes;
     for (unsigned int g = 0; g < matprop.get_G(); g++) 
     { 
@@ -273,7 +270,7 @@ int main(int argc, char* argv[])
 #ifdef WITH_PETSC    
     // PETSc assembling is currently slow for larger matrices, so we switch to 
     // UMFPACK when matrices of order >8000 start to appear.
-    if (Space::get_num_dofs(ref_spaces) > 8000 && matrix_solver == SOLVER_PETSC)
+    if (Space<double>::get_num_dofs(ref_spaces) > 8000 && matrix_solver == SOLVER_PETSC)
     {
       // Delete the old solver.
       delete mat;
@@ -282,22 +279,22 @@ int main(int argc, char* argv[])
       
       // Create a new one.
       matrix_solver = SOLVER_UMFPACK;
-      mat = create_matrix(matrix_solver);
-      rhs = create_vector(matrix_solver);
-      solver = create_linear_solver(matrix_solver, mat, rhs);
+      mat = create_matrix<double>(matrix_solver);
+      rhs = create_vector<double>(matrix_solver);
+      solver = create_linear_solver<double>(matrix_solver, mat, rhs);
     }
 #endif    
 
     // Solve the fine mesh problem.
     info("Fine mesh power iteration, %d + %d + %d + %d = %d ndof:", report_num_dofs(ref_spaces));
-    power_iteration(hermes2d, matprop, ref_spaces, &wf, power_iterates, core, TOL_PIT_RM, mat, rhs, solver);
+    power_iteration(matprop, ref_spaces, &wf, power_iterates, core, TOL_PIT_RM, mat, rhs, solver);
     
     // Store the results.
     for (unsigned int g = 0; g < matprop.get_G(); g++) 
       fine_solutions[g]->copy(power_iterates[g]);
 
     info("Projecting fine mesh solutions on coarse meshes.");
-    OGProjection::project_global(spaces, projection_jacobian, projection_residual, coarse_solutions, matrix_solver);
+    OGProjection<double>::project_global(spaces, projection_jacobian, projection_residual, coarse_solutions, matrix_solver);
 
     // Time measurement.
     cpu_time.tick();
@@ -318,8 +315,8 @@ int main(int argc, char* argv[])
          get_num_of_neg(coarse_solutions[2]), get_num_of_neg(coarse_solutions[3]));
 
     // Calculate element errors and total error estimate.
-    Adapt adapt_h1(spaces);
-    Adapt adapt_l2(spaces);    
+    Adapt<double> adapt_h1(spaces);
+    Adapt<double> adapt_l2(spaces);    
     for (unsigned int g = 0; g < matprop.get_G(); g++)
     {
       adapt_h1.set_error_form(g, g, new ErrorForm(proj_norms_h1[g]));
@@ -349,7 +346,7 @@ int main(int argc, char* argv[])
     info("k_eff err: %g milli-percent", keff_err);
 
     // Add entry to DOF convergence graph.
-    int ndof_coarse = Space::get_num_dofs(spaces);
+    int ndof_coarse = Space<double>::get_num_dofs(spaces);
     graph_dof.add_values(0, ndof_coarse, h1_err_est);
     graph_dof.add_values(1, ndof_coarse, l2_err_est);
     graph_dof.add_values(2, ndof_coarse, keff_err);
@@ -360,7 +357,7 @@ int main(int argc, char* argv[])
     graph_cpu.add_values(2, cta, keff_err);
 
     for (unsigned int g = 0; g < matprop.get_G(); g++)
-      graph_dof_evol.add_values(g, as, Space::get_num_dofs(spaces[g]));
+      graph_dof_evol.add_values(g, as, Space<double>::get_num_dofs(spaces[g]));
 
     cpu_time.tick(HERMES_SKIP);
 
@@ -372,7 +369,7 @@ int main(int argc, char* argv[])
     {
       info("Adapting the coarse mesh.");
       done = adapt_h1.adapt(selectors, THRESHOLD, STRATEGY, MESH_REGULARITY);
-      if (Space::get_num_dofs(spaces) >= NDOF_STOP) 
+      if (Space<double>::get_num_dofs(spaces) >= NDOF_STOP) 
         done = true;
     }
 

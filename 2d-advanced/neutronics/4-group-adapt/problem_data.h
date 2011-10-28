@@ -1,6 +1,8 @@
 #include "hermes2d.h"
 
-using namespace WeakFormsNeutronics::Multigroup::MaterialProperties::Diffusion; 
+using namespace Hermes::Hermes2D::WeakFormsNeutronics::Multigroup::MaterialProperties;
+using namespace Hermes::Hermes2D::WeakFormsNeutronics::Multigroup::MaterialProperties::Diffusion;
+using namespace Hermes::Hermes2D::WeakFormsNeutronics::Multigroup::MaterialProperties::Definitions;
 
 // Reference k_effective reactor eigenvalue for the material properties below
 // and geometry from the file 'reactor.mesh'. For this example, it was obtained
@@ -72,7 +74,7 @@ const MaterialPropertyMap1 chi = material_property_map<rank1>
 const MaterialPropertyMap2 Ss = material_property_map<rank2>
 (
   reflector,
-  matrix
+  mat
   (
     row(0.0)(0.0)(0.0)(0.0)
   )(
@@ -84,7 +86,7 @@ const MaterialPropertyMap2 Ss = material_property_map<rank2>
   )
 )(
   core,
-  matrix
+  mat
   (
     row(0.0)(0.0)(0.0)(0.0)
   )(

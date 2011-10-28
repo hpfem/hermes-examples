@@ -10,28 +10,28 @@ using namespace Hermes::Hermes2D::Views;
 using namespace Hermes::Hermes2D::RefinementSelectors;
 using namespace WeakFormsNeutronics::Multigroup::CompleteWeakForms::Diffusion;
 
-class CustomWeakForm : public DefaultWeakFormSourceIteration
+class CustomWeakForm : public DefaultWeakFormSourceIteration<double>
 {
   public:
     CustomWeakForm(const MaterialPropertyMaps& matprop,
-                   Hermes::vector<Solution*>& iterates,
+                   Hermes::vector<Solution<double>*>& iterates,
                    double init_keff, std::string bdy_vacuum);
 };
 
 // Integral over the active core.
-double integrate(MeshFunction* sln, Mesh* mesh, std::string area);
-int get_num_of_neg(MeshFunction *sln);
+double integrate(MeshFunction<double>* sln, Mesh* mesh, std::string area);
+int get_num_of_neg(MeshFunction<double> *sln);
 
 // Jacobian matrix (same as stiffness matrix since projections are linear).
-class H1AxisymProjectionJacobian : public WeakForm::MatrixFormVol
+class H1AxisymProjectionJacobian : public MatrixFormVol<double>
 {
 public:
-  H1AxisymProjectionJacobian(int i) : WeakForm::MatrixFormVol(i, i, HERMES_ANY, HERMES_SYM) {};
+  H1AxisymProjectionJacobian(int i) : MatrixFormVol<double>(i, i, HERMES_ANY, HERMES_SYM) {};
 
-  scalar value(int n, double *wt, Func<scalar> *u_ext[], Func<double> *u, Func<double> *v,
-                Geom<double> *e, ExtData<scalar> *ext) const
+  double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
+                Geom<double> *e, ExtData<double> *ext) const
   {
-    return h1_axisym_projection_biform<double, scalar>(n, wt, u_ext, u, v, e, ext);
+    return h1_axisym_projection_biform<double, double>(n, wt, u_ext, u, v, e, ext);
   }
 
   Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v,
@@ -55,18 +55,18 @@ private:
 };
 
 // Residual.
-class H1AxisymProjectionResidual : public WeakForm::VectorFormVol
+class H1AxisymProjectionResidual : public VectorFormVol<double>
 {
 public:
-  H1AxisymProjectionResidual(int i, MeshFunction* ext) : WeakForm::VectorFormVol(i)
+  H1AxisymProjectionResidual(int i, MeshFunction<double>* ext) : VectorFormVol<double>(i)
   {
     this->ext.push_back(ext);
   }
 
-  scalar value(int n, double *wt, Func<scalar> *u_ext[], Func<double> *v,
-                Geom<double> *e, ExtData<scalar> *ext) const
+  double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v,
+                Geom<double> *e, ExtData<double> *ext) const
   {
-    return h1_axisym_projection_liform<double, scalar>(n, wt, u_ext, v, e, ext);
+    return h1_axisym_projection_liform<double, double>(n, wt, u_ext, v, e, ext);
   }
 
   Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v,
@@ -91,15 +91,15 @@ private:
 };
 
 // Matrix forms for error calculation.
-class ErrorForm : public Adapt::MatrixFormVolError
+class ErrorForm : public Adapt<double>::MatrixFormVolError
 {
 public:
-  ErrorForm(ProjNormType type) : Adapt::MatrixFormVolError(type) {};
+  ErrorForm(ProjNormType type) : Adapt<double>::MatrixFormVolError(type) {};
 
   /// Error bilinear form.
-  virtual scalar value(int n, double *wt, Func<scalar> *u_ext[],
-                        Func<scalar> *u, Func<scalar> *v, Geom<double> *e,
-                        ExtData<scalar> *ext) const;
+  virtual double value(int n, double *wt, Func<double> *u_ext[],
+                        Func<double> *u, Func<double> *v, Geom<double> *e,
+                        ExtData<double> *ext) const;
 
   /// Error bilinear form to estimate order of a function.
   virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[],
@@ -147,7 +147,7 @@ private:
 ///
 /// \return  number of iterations needed for convergence within the specified tolerance.
 ///
-int power_iteration(const Hermes2D& hermes2d, const MaterialPropertyMaps& matprop, 
-                    const Hermes::vector<Space *>& spaces, DefaultWeakFormSourceIteration* wf, 
-                    const Hermes::vector<Solution *>& solution, const std::string& fission_region, 
-                    double tol, SparseMatrix *mat, Vector* rhs, Solver *solver);
+int power_iteration(const MaterialPropertyMaps& matprop, 
+                    const Hermes::vector<Space<double>*>& spaces, DefaultWeakFormSourceIteration<double>* wf, 
+                    const Hermes::vector<Solution<double> *>& solution, const std::string& fission_region, 
+                    double tol, SparseMatrix<double>*mat, Vector<double>* rhs, LinearSolver<double> *solver);

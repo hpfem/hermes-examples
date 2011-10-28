@@ -5,27 +5,27 @@
 #include "definitions.h"
 
 CustomWeakForm::CustomWeakForm( const MaterialPropertyMaps& matprop,
-                                Hermes::vector<Solution*>& iterates,
+                                Hermes::vector<Solution<double>*>& iterates,
                                 double init_keff, std::string bdy_vacuum )
   : DefaultWeakFormSourceIteration(matprop, iterates, init_keff, HERMES_AXISYM_Y)
 {
   for (unsigned int g = 0; g < matprop.get_G(); g++)
   {
-    add_matrix_form_surf(new VacuumBoundaryCondition::Jacobian(g, bdy_vacuum, HERMES_AXISYM_Y));
-    add_vector_form_surf(new VacuumBoundaryCondition::Residual(g, bdy_vacuum, HERMES_AXISYM_Y));
+    add_matrix_form_surf(new VacuumBoundaryCondition::Jacobian<double>(g, bdy_vacuum, HERMES_AXISYM_Y));
+    add_vector_form_surf(new VacuumBoundaryCondition::Residual<double>(g, bdy_vacuum, HERMES_AXISYM_Y));
   }
 }
 
-scalar ErrorForm::value(int n, double *wt, Func<scalar> *u_ext[],
-                        Func<scalar> *u, Func<scalar> *v, Geom<double> *e,
-                        ExtData<scalar> *ext) const
+double ErrorForm::value(int n, double *wt, Func<double> *u_ext[],
+                        Func<double> *u, Func<double> *v, Geom<double> *e,
+                        ExtData<double> *ext) const
 {
   switch (projNormType)
   {
     case HERMES_L2_NORM:
-      return l2_error_form_axisym<double, scalar>(n, wt, u_ext, u, v, e, ext);
+      return l2_error_form_axisym<double, double>(n, wt, u_ext, u, v, e, ext);
     case HERMES_H1_NORM:
-      return h1_error_form_axisym<double, scalar>(n, wt, u_ext, u, v, e, ext);
+      return h1_error_form_axisym<double, double>(n, wt, u_ext, u, v, e, ext);
     default:
       error("Only the H1 and L2 norms are currently implemented.");
       return 0.0;
@@ -69,7 +69,7 @@ double integrate(MeshFunction* sln, std::string area)
       int o = sln->get_fn_order() + ru->get_inv_ref_order();
       limit_order(o);
       sln->set_quad_order(o, H2D_FN_VAL);
-      scalar *uval = sln->get_fn_values();
+      double *uval = sln->get_fn_values();
       double* x = ru->get_phys_x(o);
       double result = 0.0;
       h1_integrate_expression(x[i] * uval[i]);
@@ -81,7 +81,7 @@ double integrate(MeshFunction* sln, std::string area)
 }
 
 // Calculate number of negative solution values.
-int get_num_of_neg(MeshFunction *sln)
+int get_num_of_neg(MeshFunction<double> *sln)
 {
   Quad2D* quad = &g_quad_2d_std;
   sln->set_quad_2d(quad);
@@ -98,7 +98,7 @@ int get_num_of_neg(MeshFunction *sln)
     int o = sln->get_fn_order() + ru->get_inv_ref_order();
     limit_order(o);
     sln->set_quad_order(o, H2D_FN_VAL);
-    scalar *uval = sln->get_fn_values();
+    double *uval = sln->get_fn_values();
     int np = quad->get_num_points(o);
     
     for (int i = 0; i < np; i++)
@@ -109,10 +109,10 @@ int get_num_of_neg(MeshFunction *sln)
   return n;
 }
 
-int power_iteration(const Hermes2D& hermes2d, const MaterialPropertyMaps& matprop, 
-                    const Hermes::vector<Space *>& spaces, DefaultWeakFormSourceIteration* wf, 
+int power_iteration(const MaterialPropertyMaps& matprop, 
+                    const Hermes::vector<Space<double>*>& spaces, DefaultWeakFormSourceIteration* wf, 
                     const Hermes::vector<Solution *>& solutions, const std::string& fission_region, 
-                    double tol, SparseMatrix *mat, Vector* rhs, Solver *solver)
+                    double tol, SparseMatrix<double>*mat, Vector* rhs, Solver *solver)
 {
   // Sanity checks.
   if (spaces.size() != solutions.size()) 
@@ -138,7 +138,7 @@ int power_iteration(const Hermes2D& hermes2d, const MaterialPropertyMaps& matpro
   solver->set_factorization_scheme(HERMES_FACTORIZE_FROM_SCRATCH);
   
   // Initial coefficient vector for the Newton's method.
-  scalar* coeff_vec = new scalar[ndof];
+  double* coeff_vec = new double[ndof];
   
   // Force the Jacobian assembling in the first iteration.
   bool Jacobian_changed = true;
@@ -146,7 +146,7 @@ int power_iteration(const Hermes2D& hermes2d, const MaterialPropertyMaps& matpro
   bool eigen_done = false; int it = 0;
   do 
   {
-    memset(coeff_vec, 0.0, ndof*sizeof(scalar));
+    memset(coeff_vec, 0.0, ndof*sizeof(double));
 
     if (!hermes2d.solve_newton(coeff_vec, &dp, solver, mat, rhs, Jacobian_changed)) 
       error("Newton's iteration failed.");
