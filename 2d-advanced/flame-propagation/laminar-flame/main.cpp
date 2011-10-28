@@ -33,18 +33,31 @@ const int NEWTON_MAX_ITER = 50;
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
-// If NEWTON == true then the Newton's iteration is performed.
-// in every time step. Otherwise the convective term is linearized
-// using the velocities from the previous time step.
-const bool NEWTON = true;                         
 // Preconditioning by jacobian (1) (less GMRES iterations, more time to create precond)
 // or by approximation of jacobian (2) (less time for precond creation, more GMRES iters).
 // in case of jfnk, default Ifpack proconditioner in case of Newton.
 const int PRECOND = 2;                            
 
+// Choose one of the following time-integration methods, or define your own Butcher's table. The last number 
+// in the name of each method is its order. The one before last, if present, is the number of stages.
+// Explicit methods:
+//   Explicit_RK_1, Explicit_RK_2, Explicit_RK_3, Explicit_RK_4.
+// Implicit methods: 
+//   Implicit_RK_1, Implicit_Crank_Nicolson_2_2, Implicit_SIRK_2_2, Implicit_ESIRK_2_2, Implicit_SDIRK_2_2, 
+//   Implicit_Lobatto_IIIA_2_2, Implicit_Lobatto_IIIB_2_2, Implicit_Lobatto_IIIC_2_2, Implicit_Lobatto_IIIA_3_4, 
+//   Implicit_Lobatto_IIIB_3_4, Implicit_Lobatto_IIIC_3_4, Implicit_Radau_IIA_3_5, Implicit_SDIRK_5_4.
+// Embedded explicit methods:
+//   Explicit_HEUN_EULER_2_12_embedded, Explicit_BOGACKI_SHAMPINE_4_23_embedded, Explicit_FEHLBERG_6_45_embedded,
+//   Explicit_CASH_KARP_6_45_embedded, Explicit_DORMAND_PRINCE_7_45_embedded.
+// Embedded implicit methods:
+//   Implicit_SDIRK_CASH_3_23_embedded, Implicit_ESDIRK_TRBDF2_3_23_embedded, Implicit_ESDIRK_TRX2_3_23_embedded, 
+//   Implicit_SDIRK_BILLINGTON_3_23_embedded, Implicit_SDIRK_CASH_5_24_embedded, Implicit_SDIRK_CASH_5_34_embedded, 
+//   Implicit_DIRK_ISMAIL_7_45_embedded. 
+ButcherTableType butcher_table_type = Implicit_RK_1;
+
 // Problem constants.
 // Time step.
-const double TAU   = 0.005;                        
+const double time_step   = 0.005;                        
 // Time interval length.
 const double T_FINAL = 60.0;                      
 const double Le    = 1.0;
@@ -55,6 +68,12 @@ const double x1    = 9.0;
 
 int main(int argc, char* argv[])
 {
+  // Choose a Butcher's table or define your own.
+  ButcherTable bt(butcher_table_type);
+  if (bt.is_explicit()) info("Using a %d-stage explicit R-K method.", bt.get_size());
+  if (bt.is_diagonally_implicit()) info("Using a %d-stage diagonally implicit R-K method.", bt.get_size());
+  if (bt.is_fully_implicit()) info("Using a %d-stage fully implicit R-K method.", bt.get_size());
+
   // Load the mesh.
   Mesh mesh;
   MeshReaderH2D mloader;
@@ -78,36 +97,36 @@ int main(int argc, char* argv[])
   info("ndof = %d.", ndof);
 
   // Define initial conditions.
-  InitialSolutionTemperature t_prev_time_1(&mesh, x1);
-  InitialSolutionConcentration c_prev_time_1(&mesh, x1, Le);
-  Hermes::vector<MeshFunction<double>*> meshfns_prev_time_1 = Hermes::vector<MeshFunction<double>*>(&t_prev_time_1, &c_prev_time_1);
-  Hermes::vector<Solution<double>*> slns_prev_time_1 = Hermes::vector<Solution<double>*>(&t_prev_time_1, &c_prev_time_1);
-  InitialSolutionTemperature t_prev_time_2(&mesh, x1);
-  InitialSolutionConcentration c_prev_time_2(&mesh, x1, Le);
-  Solution<double> t_prev_newton(&mesh);
-  Solution<double> c_prev_newton(&mesh);
-  Hermes::vector<Solution<double>*> slns_prev_newton = Hermes::vector<Solution<double>*>(&t_prev_newton, &c_prev_newton);
+  InitialSolutionTemperature t_prev_time(&mesh, x1);
+  InitialSolutionConcentration c_prev_time(&mesh, x1, Le);
+  Hermes::vector<MeshFunction<double>*> meshfns_prev_time = Hermes::vector<MeshFunction<double>*>(&t_prev_time, &c_prev_time);
+  Hermes::vector<Solution<double>*> slns_prev_time = Hermes::vector<Solution<double>*>(&t_prev_time, &c_prev_time);
+  Solution<double> t_new_time(&mesh);
+  Solution<double> c_new_time(&mesh);
+  Hermes::vector<Solution<double>*> slns_new_time = Hermes::vector<Solution<double>*>(&t_new_time, &c_new_time);
 
   // Filters for the reaction rate omega and its derivatives.
-  CustomFilter omega(slns_prev_time_1, Le, alpha, beta, kappa, x1, TAU);
-  CustomFilterDt omega_dt(slns_prev_time_1, Le, alpha, beta, kappa, x1, TAU);
-  CustomFilterDc omega_dc(slns_prev_time_1, Le, alpha, beta, kappa, x1, TAU);
+  CustomFilter omega(slns_prev_time, Le, alpha, beta, kappa, x1);
+  CustomFilterDt omega_dt(slns_prev_time, Le, alpha, beta, kappa, x1);
+  CustomFilterDc omega_dc(slns_prev_time, Le, alpha, beta, kappa, x1);
 
   // Initialize visualization.
   ScalarView rview("Reaction rate", new WinGeom(0, 0, 800, 230));
 
   // Initialize weak formulation.
-  CustomWeakForm wf(Le, alpha, beta, kappa, x1, TAU, &omega, &omega_dt, 
-                    &omega_dc, &t_prev_time_1, &c_prev_time_1, &t_prev_time_2, &c_prev_time_2);
+  CustomWeakForm wf(Le, alpha, beta, kappa, x1, &omega, &omega_dt, &omega_dc);
 
-  // Project the functions "t_prev_time_1" and "c_prev_time_1" on the FE space 
+  // Project the functions "t_prev_time" and "c_prev_time" on the FE space 
   // in order to obtain initial vector for NOX. 
   info("Projecting initial solutions on the FE meshes.");
   double* coeff_vec = new double[ndof];
-  OGProjection<double>::project_global(spaces, meshfns_prev_time_1, coeff_vec);
+  OGProjection<double>::project_global(spaces, meshfns_prev_time, coeff_vec);
 
   // Initialize the FE problem.
   DiscreteProblem<double> dp(&wf, spaces);
+
+  // Initialize Runge-Kutta time stepping.
+  RungeKutta<double> runge_kutta(&dp, &bt, matrix_solver);
 
   // Time stepping:
   double current_time = 0.0;
@@ -115,45 +134,42 @@ int main(int argc, char* argv[])
   bool jacobian_changed = true;
   do 
   {
-    info("Time step %d, time %3.5f s", ts, current_time);
-
-    if (NEWTON)
+    // Perform one Runge-Kutta time step according to the selected Butcher's table.
+    info("Runge-Kutta time step (t = %g s, time step = %g s, stages: %d).", 
+         current_time, time_step, bt.get_size());
+    bool freeze_jacobian = false;
+    bool block_diagonal_jacobian = false;
+    bool verbose = true;
+    double damping_coeff = 1.0;
+    double max_allowed_residual_norm = 1e10;
+    try
     {
-      // Perform Newton's iteration.
-      info("Solving nonlinear problem:");
-
-      NewtonSolver<double> newton(&dp, matrix_solver);
-      newton.set_verbose_output(true);
-      try
-      {
-        newton.solve(coeff_vec, NEWTON_TOL, NEWTON_MAX_ITER);
-      }
-      catch(Hermes::Exceptions::Exception e)
-      {
-        e.printMsg();
-        error("Newton's iteration failed.");
-      };
-      // Translate the resulting coefficient vector into the instance of Solution.
-      Solution<double>::vector_to_solutions(newton.get_sln_vector(), spaces, slns_prev_newton);
-
-      // Saving solutions for the next time step.
-      if(ts > 1)
-      {
-        t_prev_time_2.copy(&t_prev_time_1);
-        c_prev_time_2.copy(&c_prev_time_1);
-      }
-
-      t_prev_time_1.copy(&t_prev_newton);
-      c_prev_time_1.copy(&c_prev_newton);
-
+      runge_kutta.rk_time_step_newton(current_time, time_step, slns_prev_time, 
+                                  slns_new_time, freeze_jacobian, block_diagonal_jacobian, verbose,
+                                  NEWTON_TOL, NEWTON_MAX_ITER, damping_coeff,
+                                  max_allowed_residual_norm);
     }
+    catch(Exceptions::Exception& e)
+    {
+      e.printMsg();
+      error("Runge-Kutta time step failed");
+    }
+
+    // Saving solutions for the next time step.
+    t_prev_time.copy(&t_new_time);
+    c_prev_time.copy(&c_new_time);
+
+    // Reinit filters.
+    omega.reinit();
+    omega_dc.reinit();
+    omega_dt.reinit();
 
     // Visualization.
     rview.set_min_max_range(0.0,2.0);
     rview.show(&omega);
 
     // Increase current time and time step counter.
-    current_time += TAU;
+    current_time += time_step;
     ts++;
   }
   while (current_time < T_FINAL);
