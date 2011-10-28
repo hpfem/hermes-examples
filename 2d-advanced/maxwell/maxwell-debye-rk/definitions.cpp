@@ -228,14 +228,14 @@ double CustomWeakFormMD::VectorFormVolMD_0::value(int n, double *wt, Func<double
   Func<double>* E_prev_newton = u_ext[0];
   Func<double>* H_prev_newton = u_ext[1];
   Func<double>* P_prev_newton = u_ext[2];
-  double int_curl_e_f = 0;
+  double int_curl_H_v = 0;
   for (int i=0; i < n; i++)
   {
-    int_curl_e_f += wt[i] * (-H_prev_newton->dy[i] * v->val0[i] + H_prev_newton->dx[i] * v->val1[i]);   
+    int_curl_H_v += wt[i] * (-H_prev_newton->dy[i] * v->val0[i] + H_prev_newton->dx[i] * v->val1[i]);   
   }
 
   return -(eps_q - 1)/tau * int_e_f<double, double>(n, wt, E_prev_newton, v)  
-         + (1.0 / eps_0 / eps_inf) * int_curl_e_f
+         + (1.0 / eps_0 / eps_inf) * int_curl_H_v
          + (1.0 / eps_0 / eps_inf / tau) * int_e_f<double, double>(n, wt, P_prev_newton, v);
 }
 
@@ -245,14 +245,14 @@ Ord CustomWeakFormMD::VectorFormVolMD_0::ord(int n, double *wt, Func<Ord> *u_ext
   Func<Ord>* E_prev_newton = u_ext[0];
   Func<Ord>* H_prev_newton = u_ext[1];
   Func<Ord>* P_prev_newton = u_ext[2];
-  Ord int_curl_e_f = Ord(0);
+  Ord int_curl_H_v = Ord(0);
   for (int i=0; i < n; i++)
   {
-    int_curl_e_f += wt[i] * (-H_prev_newton->dy[i] * v->val0[i] + H_prev_newton->dx[i] * v->val1[i]);   
+    int_curl_H_v += wt[i] * (-H_prev_newton->dy[i] * v->val0[i] + H_prev_newton->dx[i] * v->val1[i]);   
   }
 
   return -(eps_q - 1)/tau * int_e_f<Ord, Ord>(n, wt, E_prev_newton, v)  
-         + (1.0 / eps_0 / eps_inf) * int_curl_e_f
+         + (1.0 / eps_0 / eps_inf) * int_curl_H_v
          + (1.0 / eps_0 / eps_inf / tau) * int_e_f<Ord, Ord>(n, wt, P_prev_newton, v);
 }
 
@@ -266,24 +266,24 @@ double CustomWeakFormMD::VectorFormVolMD_1::value(int n, double *wt, Func<double
     Geom<double> *e, ExtData<double> *ext) const 
 {
   Func<double>* E_prev_newton = u_ext[0];
-  double int_curl_e_f = 0;
+  double int_curl_E_v = 0;
   for (int i=0; i < n; i++)
   {
-    int_curl_e_f += wt[i] * (E_prev_newton->curl[i] * v->val[i]);
+    int_curl_E_v += wt[i] * (E_prev_newton->curl[i] * v->val[i]);
   }
-  return (-1.0 / mu_0) * int_curl_e_f;
+  return (-1.0 / mu_0) * int_curl_E_v;
 }
 
 Ord CustomWeakFormMD::VectorFormVolMD_1::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
                                                  ExtData<Ord> *ext) const 
 {
   Func<Ord>* E_prev_newton = u_ext[0];
-  Ord int_curl_e_f = Ord(0);
+  Ord int_curl_E_v = Ord(0);
   for (int i=0; i < n; i++)
   {
-    int_curl_e_f += wt[i] * (E_prev_newton->curl[i] * v->val[i]);
+    int_curl_E_v += wt[i] * (E_prev_newton->curl[i] * v->val[i]);
   }
-  return (-1.0 / mu_0) * int_curl_e_f;
+  return (-1.0 / mu_0) * int_curl_E_v;
 }
 
 VectorFormVol<double>* CustomWeakFormMD::VectorFormVolMD_1::clone() 

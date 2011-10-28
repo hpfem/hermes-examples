@@ -28,7 +28,7 @@ const int P_INIT = 4;
 // Number of initial uniform mesh refinements.
 const int INIT_REF_NUM = 2;                        
 // Time step.
-const double time_step = 0.05;                     
+const double time_step = 0.00001;                     
 // Final time.
 const double T_FINAL = 35.0;                       
 // Stopping criterion for the Newton's method.
@@ -66,20 +66,32 @@ const double EPS_0 = 1.0;
 const double EPS_INF = 1.0;
 // Permittivity at zero frequency.
 const double EPS_S = 2.0;
+// EPS_Q.
+const double EPS_Q = EPS_S / EPS_INF;
 // Relaxation time of the medium.
 const double TAU = 1.0;
-// Wave vector.
-const double K_x = 1.0;
-const double K_y = 1.0;
-// Wave number.
-const double K = std::sqrt(Hermes::sqr(K_x) + Hermes::sqr(K_y));
 // Angular frequency. Depends on wave number K. Must satisfy: 
 // omega^3 - 2 omega^2 + K^2 M_PI^2 omega - K^2 M_PI^2 = 0.
-const double OMEGA = 5.0;
-const double EPS_Q = EPS_S / EPS_INF;
+// WARNING; Choosing wrong omega may lead to K**2 < 0.
+const double OMEGA = 1.5;
+// Wave vector direction (will be normalized to be compatible
+// with omega).
+double K_x = 1.0;
+double K_y = 1.0;
 
 int main(int argc, char* argv[])
 {
+  // Sanity check for omega. 
+  double K_squared = Hermes::sqr(OMEGA/M_PI) * (OMEGA - 2) / (1 - OMEGA);
+  if (K_squared <= 0) error("Wrong choice of omega, K_squared < 0!");
+  double K_norm_coeff = std::sqrt(K_squared) / std::sqrt(Hermes::sqr(K_x) + Hermes::sqr(K_y));
+  info("Wave number K = %g", std::sqrt(K_squared));
+  K_x *= K_norm_coeff;
+  K_y *= K_norm_coeff;
+
+  // Wave number.
+  double K = std::sqrt(Hermes::sqr(K_x) + Hermes::sqr(K_y));
+
   // Choose a Butcher's table or define your own.
   ButcherTable bt(butcher_table);
   if (bt.is_explicit()) info("Using a %d-stage explicit R-K method.", bt.get_size());
@@ -100,7 +112,7 @@ int main(int argc, char* argv[])
   CustomInitialConditionH H_time_prev(&mesh, current_time, OMEGA, K_x, K_y);
   CustomInitialConditionP P_time_prev(&mesh, current_time, OMEGA, K_x, K_y);
   Hermes::vector<Solution<double>*> slns_time_prev(&E_time_prev, &H_time_prev, &P_time_prev);
-  Solution<double> E_time_new, H_time_new, P_time_new;
+  Solution<double> E_time_new(&mesh), H_time_new(&mesh), P_time_new(&mesh);
   Hermes::vector<Solution<double>*> slns_time_new(&E_time_new, &H_time_new, &P_time_new);
 
   // Initialize the weak formulation.
@@ -166,7 +178,7 @@ int main(int argc, char* argv[])
     // Perform one Runge-Kutta time step according to the selected Butcher's table.
     info("Runge-Kutta time step (t = %g s, time_step = %g s, stages: %d).", 
          current_time, time_step, bt.get_size());
-    bool freeze_jacobian = true;
+    bool freeze_jacobian = false;
     bool block_diagonal_jacobian = false;
     bool verbose = true;
     double damping_coeff = 1.0;
