@@ -25,7 +25,7 @@ const bool HERMES_VISUALIZATION = false;
 // Set to "true" to enable VTK output.
 const bool VTK_VISUALIZATION = true;              
 // Set visual output for every nth step.
-const unsigned int EVERY_NTH_STEP = 50;            
+const unsigned int EVERY_NTH_STEP = 25;            
 
 // Shock capturing.
 bool SHOCK_CAPTURING = true;
@@ -88,7 +88,7 @@ const int MESH_REGULARITY = -1;
 const double CONV_EXP = 1;                        
 
 // Stopping criterion for adaptivity.
-double ERR_STOP = 1.0;                     
+double ERR_STOP = 0.95;                     
 
 // Adaptivity process stops when the number of degrees of freedom grows over
 // this limit. This is mainly to prevent h-adaptivity to go on forever.
