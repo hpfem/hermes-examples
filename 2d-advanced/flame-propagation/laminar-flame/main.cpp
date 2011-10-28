@@ -93,13 +93,13 @@ int main(int argc, char* argv[])
   info("ndof = %d.", ndof);
 
   // Define initial conditions.
-  InitialSolutionTemperature t_prev_time(&mesh, x1);
-  InitialSolutionConcentration c_prev_time(&mesh, x1, Le);
-  Hermes::vector<MeshFunction<double>*> meshfns_prev_time = Hermes::vector<MeshFunction<double>*>(&t_prev_time, &c_prev_time);
-  Hermes::vector<Solution<double>*> slns_prev_time = Hermes::vector<Solution<double>*>(&t_prev_time, &c_prev_time);
-  Solution<double> t_new_time(&mesh);
-  Solution<double> c_new_time(&mesh);
-  Hermes::vector<Solution<double>*> slns_new_time = Hermes::vector<Solution<double>*>(&t_new_time, &c_new_time);
+  InitialSolutionTemperature T_prev_time(&mesh, x1);
+  InitialSolutionConcentration C_prev_time(&mesh, x1, Le);
+  Hermes::vector<MeshFunction<double>*> meshfns_prev_time = Hermes::vector<MeshFunction<double>*>(&T_prev_time, &C_prev_time);
+  Hermes::vector<Solution<double>*> slns_prev_time = Hermes::vector<Solution<double>*>(&T_prev_time, &C_prev_time);
+  Solution<double> T_new_time(&mesh);
+  Solution<double> C_new_time(&mesh);
+  Hermes::vector<Solution<double>*> slns_new_time = Hermes::vector<Solution<double>*>(&T_new_time, &C_new_time);
 
   // Filters for the reaction rate omega and its derivatives.
   CustomFilter omega(slns_prev_time, Le, alpha, beta, kappa, x1);
@@ -147,8 +147,8 @@ int main(int argc, char* argv[])
     }
 
     // Saving solutions for the next time step.
-    t_prev_time.copy(&t_new_time);
-    c_prev_time.copy(&c_new_time);
+    T_prev_time.copy(&T_new_time);
+    C_prev_time.copy(&C_new_time);
 
     // Reinit filters.
     omega.reinit();

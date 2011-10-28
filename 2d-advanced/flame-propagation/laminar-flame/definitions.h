@@ -7,7 +7,8 @@ using namespace Hermes::Hermes2D::Views;
 class CustomWeakForm : public WeakForm<double>
 {
 public:
-  CustomWeakForm(double Le, double alpha, double beta, double kappa, double x1, Hermes::Hermes2D::Filter<double>* omega, Hermes::Hermes2D::Filter<double>* omega_dt, Hermes::Hermes2D::Filter<double>* omega_dc);
+  CustomWeakForm(double Le, double alpha, double beta, double kappa, double x1, 
+      Hermes::Hermes2D::Filter<double>* omega, Hermes::Hermes2D::Filter<double>* d_omega_dT, Hermes::Hermes2D::Filter<double>* d_omega_dC);
 
   ~CustomWeakForm() {};
 
