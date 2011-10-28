@@ -140,7 +140,8 @@ int main(int argc, char* argv[])
     meshes[0]->refine_all_elements();
   
   // Create pointers to solutions on coarse and fine meshes and from the latest power iteration, respectively.
-  Hermes::vector<Solution<double>*> coarse_solutions, fine_solutions, power_iterates;
+  Hermes::vector<Solution<double>*> coarse_solutions, fine_solutions;
+  Hermes::vector<MeshFunction<double>*> power_iterates;
 
   // Initialize all the new solution variables.
   for (unsigned int g = 0; g < matprop.get_G(); g++) 
@@ -245,7 +246,7 @@ int main(int argc, char* argv[])
   
   // Initial power iteration to obtain a coarse estimate of the eigenvalue and the fission source.
   info("Coarse mesh power iteration, %d + %d + %d + %d = %d ndof:", report_num_dofs(spaces));
-  power_iteration(matprop, spaces, &wf, power_iterates, core, TOL_PIT_CM, mat, rhs, solver);
+  power_iteration(matprop, spaces, &wf, power_iterates, core, TOL_PIT_CM, matrix_solver);
   
   // Adaptivity loop:
   int as = 1; bool done = false;
@@ -287,14 +288,16 @@ int main(int argc, char* argv[])
 
     // Solve the fine mesh problem.
     info("Fine mesh power iteration, %d + %d + %d + %d = %d ndof:", report_num_dofs(ref_spaces));
-    power_iteration(matprop, ref_spaces, &wf, power_iterates, core, TOL_PIT_RM, mat, rhs, solver);
+    power_iteration(matprop, ref_spaces, &wf, power_iterates, core, TOL_PIT_RM, matrix_solver);
     
     // Store the results.
     for (unsigned int g = 0; g < matprop.get_G(); g++) 
-      fine_solutions[g]->copy(power_iterates[g]);
+      fine_solutions[g]->copy((static_cast<Solution<double>*>(power_iterates[g])));
 
     info("Projecting fine mesh solutions on coarse meshes.");
-    OGProjection<double>::project_global(spaces, projection_jacobian, projection_residual, coarse_solutions, matrix_solver);
+    // This is commented out as the appropriate method was deleted in the commit
+    // "Cleaning global projections" (b282194946225014faa1de37f20112a5a5d7ab5a).
+    //OGProjection<double>::project_global(spaces, projection_jacobian, projection_residual, coarse_solutions, matrix_solver);
 
     // Time measurement.
     cpu_time.tick();

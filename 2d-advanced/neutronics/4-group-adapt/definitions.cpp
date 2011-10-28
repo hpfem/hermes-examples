@@ -4,10 +4,10 @@
 
 #include "definitions.h"
 
-CustomWeakForm::CustomWeakForm( const MaterialPropertyMaps& matprop,
-                                Hermes::vector<Solution<double>*>& iterates,
-                                double init_keff, std::string bdy_vacuum )
-  : DefaultWeakFormSourceIteration(matprop, iterates, init_keff, HERMES_AXISYM_Y)
+CustomWeakForm::CustomWeakForm(const MaterialPropertyMaps& matprop,
+                                Hermes::vector<MeshFunction<double>*>& iterates,
+                                double init_keff, std::string bdy_vacuum)
+                                : DefaultWeakFormSourceIteration<double>(matprop, iterates[0]->get_mesh(), iterates, init_keff, HERMES_AXISYM_Y)
 {
   for (unsigned int g = 0; g < matprop.get_G(); g++)
   {
@@ -49,7 +49,7 @@ Ord ErrorForm::ord(int n, double *wt, Func<Ord> *u_ext[],
 }
 
 // Integral over the active core.
-double integrate(MeshFunction* sln, std::string area)
+double integrate(MeshFunction<double>* sln, std::string area)
 {
   Quad2D* quad = &g_quad_2d_std;
   sln->set_quad_2d(quad);
@@ -57,7 +57,7 @@ double integrate(MeshFunction* sln, std::string area)
   double integral = 0.0;
   Element* e;
   Mesh *mesh = sln->get_mesh();
-  int marker = mesh->get_element_markers_conversion().get_internal_marker(area);
+  int marker = mesh->get_element_markers_conversion().get_internal_marker(area).marker;
   
   for_all_active_elements(e, mesh)
   {
@@ -110,9 +110,9 @@ int get_num_of_neg(MeshFunction<double> *sln)
 }
 
 int power_iteration(const MaterialPropertyMaps& matprop, 
-                    const Hermes::vector<Space<double>*>& spaces, DefaultWeakFormSourceIteration* wf, 
-                    const Hermes::vector<Solution *>& solutions, const std::string& fission_region, 
-                    double tol, SparseMatrix<double>*mat, Vector* rhs, Solver *solver)
+                    const Hermes::vector<Space<double>*>& spaces, DefaultWeakFormSourceIteration<double>* wf, 
+                    const Hermes::vector<MeshFunction<double> *>& solutions, const std::string& fission_region, 
+                    double tol, Hermes::MatrixSolverType matrix_solver_type)
 {
   // Sanity checks.
   if (spaces.size() != solutions.size()) 
@@ -122,20 +122,14 @@ int power_iteration(const MaterialPropertyMaps& matprop,
   int G = spaces.size();
   
   // Initialize the discrete problem.
-  DiscreteProblem dp(wf, spaces);
-  int ndof = Space::get_num_dofs(spaces);
+  DiscreteProblem<double> dp(wf, spaces);
+  int ndof = Space<double>::get_num_dofs(spaces);
     
   // The following variables will store pointers to solutions obtained at each iteration and will be needed for 
   // updating the eigenvalue. 
-  Hermes::vector<Solution*> new_solutions;
+  Hermes::vector<Solution<double>*> new_solutions;
   for (int g = 0; g < G; g++) 
-    new_solutions.push_back(new Solution(solutions[g]->get_mesh()));
-  
-  // This power iteration will most probably run on a different mesh than the previous one and so will be different
-  // the corresponding algebraic system. We will need to factorize it anew (but then, the L and U factors may be 
-  // reused until the next adaptation changes the mesh again).
-  // TODO: This could be solved more elegantly by defining a function Solver::reinit().
-  solver->set_factorization_scheme(HERMES_FACTORIZE_FROM_SCRATCH);
+    new_solutions.push_back(new Solution<double>(solutions[g]->get_mesh()));
   
   // Initial coefficient vector for the Newton's method.
   double* coeff_vec = new double[ndof];
@@ -148,19 +142,23 @@ int power_iteration(const MaterialPropertyMaps& matprop,
   {
     memset(coeff_vec, 0.0, ndof*sizeof(double));
 
-    if (!hermes2d.solve_newton(coeff_vec, &dp, solver, mat, rhs, Jacobian_changed)) 
+    NewtonSolver<double> newton(&dp, matrix_solver_type);
+
+    try
+    {
+      newton.solve(coeff_vec);
+    }
+    catch(Hermes::Exceptions::Exception e)
+    {
+      e.printMsg();
       error("Newton's iteration failed.");
-    
-    // The matrix doesn't change within the power iteration loop, so it does not need to be reassembled again and 
-    // the first computed LU factorization may be completely reused in following iterations.
-    Jacobian_changed = false;
-    solver->set_factorization_scheme(HERMES_REUSE_FACTORIZATION_COMPLETELY);
-    
+    };
+
     // Convert coefficients vector into a set of Solution pointers.
-    Solution::vector_to_solutions(solver->get_solution(), spaces, new_solutions);
+    Solution<double>::vector_to_solutions(newton.get_sln_vector(), spaces, new_solutions);
 
     // Update fission sources.
-    using WeakFormsNeutronics::Multigroup::SupportClasses::Common::SourceFilter;
+    using WeakFormsNeutronics::Multigroup::SupportClasses::SourceFilter;
     SourceFilter new_source(new_solutions, &matprop, fission_region);
     SourceFilter old_source(solutions, &matprop, fission_region);
 
@@ -179,7 +177,7 @@ int power_iteration(const MaterialPropertyMaps& matprop,
         
     // Store the new eigenvector approximation in the result.
     for (int g = 0; g < G; g++) 
-      solutions[g]->copy(new_solutions[g]); 
+      (static_cast<Solution<double>*>(solutions[g]))->copy((static_cast<Solution<double>*>(new_solutions[g]))); 
   }
   while (!eigen_done);
   

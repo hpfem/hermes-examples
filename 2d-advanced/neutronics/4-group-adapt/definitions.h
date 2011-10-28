@@ -14,7 +14,7 @@ class CustomWeakForm : public DefaultWeakFormSourceIteration<double>
 {
   public:
     CustomWeakForm(const MaterialPropertyMaps& matprop,
-                   Hermes::vector<Solution<double>*>& iterates,
+                   Hermes::vector<MeshFunction<double>*>& iterates,
                    double init_keff, std::string bdy_vacuum);
 };
 
@@ -47,7 +47,7 @@ private:
                                             Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
   {
     _F_
-    Scalar result = 0;
+    Scalar result = (Scalar)0;
     for (int i = 0; i < n; i++)
       result += wt[i] * e->x[i] * (u->val[i] * v->val[i] + u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i]);
     return result;
@@ -81,7 +81,7 @@ private:
                                      Geom<Real> *e, ExtData<Scalar> *ext) const
   {
     _F_
-    Scalar result = 0;
+    Scalar result = (Scalar)0;
     for (int i = 0; i < n; i++)
       result += wt[i] * e->x[i] * ( (u_ext[this->i]->val[i] - ext->fn[0]->val[i]) * v->val[i] 
                                   + (u_ext[this->i]->dx[i]  - ext->fn[0]->dx[i])  * v->dx[i] 
@@ -111,7 +111,7 @@ private:
   static Scalar l2_error_form_axisym(int n, double *wt, Func<Scalar> *u_ext[], Func<Scalar> *u,
                                      Func<Scalar> *v, Geom<Real> *e, ExtData<Scalar> *ext)
   {
-    Scalar result = 0;
+    Scalar result = (Scalar)0;
     for (int i = 0; i < n; i++)
       result += wt[i] * e->x[i] * (u->val[i] * conj(v->val[i]));
     return result;
@@ -121,7 +121,7 @@ private:
   static Scalar h1_error_form_axisym(int n, double *wt, Func<Scalar> *u_ext[], Func<Scalar> *u,
                                      Func<Scalar> *v, Geom<Real> *e, ExtData<Scalar> *ext)
   {
-    Scalar result = 0;
+    Scalar result = (Scalar)0;
     for (int i = 0; i < n; i++)
       result += wt[i] * e->x[i] * (u->val[i] * conj(v->val[i]) + u->dx[i] * conj(v->dx[i])
                                  + u->dy[i] * conj(v->dy[i]));
@@ -149,5 +149,5 @@ private:
 ///
 int power_iteration(const MaterialPropertyMaps& matprop, 
                     const Hermes::vector<Space<double>*>& spaces, DefaultWeakFormSourceIteration<double>* wf, 
-                    const Hermes::vector<Solution<double> *>& solution, const std::string& fission_region, 
-                    double tol, SparseMatrix<double>*mat, Vector<double>* rhs, LinearSolver<double> *solver);
+                    const Hermes::vector<MeshFunction<double> *>& solution, const std::string& fission_region, 
+                    double tol, Hermes::MatrixSolverType matrix_solver_type);
