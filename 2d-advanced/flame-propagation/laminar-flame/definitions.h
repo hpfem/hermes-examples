@@ -12,40 +12,6 @@ public:
   ~CustomWeakForm() {};
 
 private:
-  class PreconditionerForm_0 : public MatrixFormVol<double>
-  {
-  public:
-    PreconditionerForm_0(double Le) 
-            : MatrixFormVol<double>(0, 0, HERMES_ANY, HERMES_SYM), Le(Le) {};
-
-    virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
-                         Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
-
-    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
-                    Geom<Ord> *e, ExtData<Ord> *ext) const;
-
-    virtual MatrixFormVol<double>* clone();
-
-    double Le;
-  };
-  
-  class PreconditionerForm_1 : public MatrixFormVol<double>
-  {
-  public:
-    PreconditionerForm_1(double Le) 
-            : MatrixFormVol<double>(1, 1, HERMES_ANY, HERMES_SYM), Le(Le) {};
-
-    virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
-                         Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
-
-    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
-                    Geom<Ord> *e, ExtData<Ord> *ext) const;
-
-    virtual MatrixFormVol<double>* clone();
-
-    double Le;
-  };
-    
   class JacobianFormVol_0_0 : public MatrixFormVol<double>
   {
   public:

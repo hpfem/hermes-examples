@@ -23,6 +23,10 @@
 const int INIT_REF_NUM = 2;                       
 // Initial polynomial degree.
 const int P_INIT = 2;                             
+// Time step.
+const double time_step = 0.01;                        
+// Time interval length.
+const double T_FINAL = 60.0;                      
 
 // Newton's method.
 const double DAMPING_COEFF = 1.0;
@@ -33,10 +37,6 @@ const int NEWTON_MAX_ITER = 50;
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
-// Preconditioning by jacobian (1) (less GMRES iterations, more time to create precond)
-// or by approximation of jacobian (2) (less time for precond creation, more GMRES iters).
-// in case of jfnk, default Ifpack proconditioner in case of Newton.
-const int PRECOND = 2;                            
 
 // Choose one of the following time-integration methods, or define your own Butcher's table. The last number 
 // in the name of each method is its order. The one before last, if present, is the number of stages.
@@ -56,10 +56,6 @@ const int PRECOND = 2;
 ButcherTableType butcher_table_type = Implicit_RK_1;
 
 // Problem constants.
-// Time step.
-const double time_step   = 0.005;                        
-// Time interval length.
-const double T_FINAL = 60.0;                      
 const double Le    = 1.0;
 const double alpha = 0.8;
 const double beta  = 10.0;
@@ -116,12 +112,6 @@ int main(int argc, char* argv[])
   // Initialize weak formulation.
   CustomWeakForm wf(Le, alpha, beta, kappa, x1, &omega, &omega_dt, &omega_dc);
 
-  // Project the functions "t_prev_time" and "c_prev_time" on the FE space 
-  // in order to obtain initial vector for NOX. 
-  info("Projecting initial solutions on the FE meshes.");
-  double* coeff_vec = new double[ndof];
-  OGProjection<double>::project_global(spaces, meshfns_prev_time, coeff_vec);
-
   // Initialize the FE problem.
   DiscreteProblem<double> dp(&wf, spaces);
 
@@ -173,9 +163,6 @@ int main(int argc, char* argv[])
     ts++;
   }
   while (current_time < T_FINAL);
-
-  // Clean up.
-  delete [] coeff_vec;
 
   // Wait for all views to be closed.
   View::wait();
