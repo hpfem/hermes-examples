@@ -21,11 +21,11 @@ using namespace Hermes::Hermes2D::RefinementSelectors;
 
 // Visualization.
 // Set to "true" to enable Hermes OpenGL visualization. 
-const bool HERMES_VISUALIZATION = false;           
+const bool HERMES_VISUALIZATION = true;           
 // Set to "true" to enable VTK output.
 const bool VTK_VISUALIZATION = true;              
 // Set visual output for every nth step.
-unsigned int EVERY_NTH_STEP = 25;            
+unsigned int EVERY_NTH_STEP = 1;            
 
 // Shock capturing.
 bool SHOCK_CAPTURING = false;
@@ -38,15 +38,13 @@ bool REUSE_SOLUTION = true;
 // Initial polynomial degree.        
 const int P_INIT = 0;                                           
 // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM_VERTEX = 0;                
+const int INIT_REF_NUM_VERTEX = 2;                
 // Number of initial mesh refinements towards the profile.
-const int INIT_REF_NUM_BOUNDARY_ANISO = 4;        
+const int INIT_REF_NUM_BOUNDARY_ANISO = 3;        
 // CFL value.
 double CFL_NUMBER = 0.1;                                
 // Initial time step.
-double time_step_n = 1E-6;                                
-// Initial time step.
-double time_step_n_minus_one = 1E-6;                          
+double time_step = 1E-6;                                
 
 // Adaptivity.
 // Every UNREF_FREQth time step the mesh is unrefined.
@@ -59,7 +57,7 @@ int REFINEMENT_COUNT = 0;
 
 // This is a quantitative parameter of the adapt(...) function and
 // it has different meanings for various adaptive strategies (see below).
-const double THRESHOLD = 0.3;                     
+const double THRESHOLD = 0.5;
 
 // Adaptive strategy:
 // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
@@ -156,19 +154,14 @@ int main(int argc, char* argv[])
   ConstantSolution<double> prev_rho_v_y(&mesh, RHO_EXT * V2_EXT);
   ConstantSolution<double> prev_e(&mesh, QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA));
 
-  ConstantSolution<double> prev_rho2(&mesh, RHO_EXT);
-  ConstantSolution<double> prev_rho_v_x2(&mesh, RHO_EXT * V1_EXT);
-  ConstantSolution<double> prev_rho_v_y2(&mesh, RHO_EXT * V2_EXT);
-  ConstantSolution<double> prev_e2(&mesh, QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA));
-
   Solution<double> rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e;
 
   // Numerical flux.
   VijayasundaramNumericalFlux num_flux(KAPPA);
   
   // Initialize weak formulation.
-  EulerEquationsWeakFormSemiImplicitMultiComponent2ndOrder wf(&num_flux, KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, BDY_SOLID_WALL, BDY_SOLID_WALL_PROFILE, 
-    BDY_INLET, BDY_OUTLET, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_rho2, &prev_rho_v_x2, &prev_rho_v_y2, &prev_e2);
+  EulerEquationsWeakFormSemiImplicitMultiComponent wf(&num_flux, KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, BDY_SOLID_WALL, BDY_SOLID_WALL_PROFILE, 
+    BDY_INLET, BDY_OUTLET, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e);
 
   // Filters for visualization of Mach number, pressure and entropy.
   MachNumberFilter Mach_number(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA);
@@ -178,10 +171,7 @@ int main(int argc, char* argv[])
   ScalarView pressure_view("Pressure", new WinGeom(0, 0, 600, 300));
   ScalarView Mach_number_view("Mach number", new WinGeom(700, 0, 600, 300));
   ScalarView entropy_production_view("Entropy estimate", new WinGeom(0, 400, 600, 300));
-  ScalarView s1("prev_rho", new WinGeom(0, 0, 600, 300));
-  ScalarView s2("prev_rho_v_x", new WinGeom(700, 0, 600, 300));
-  ScalarView s3("prev_rho_v_y", new WinGeom(0, 400, 600, 300));
-  ScalarView s4("prev_e", new WinGeom(700, 400, 600, 300));
+  OrderView space_view("Space", new WinGeom(700, 400, 600, 300));
   
   // Initialize refinement selector.
   L2ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, MAX_P_ORDER);
@@ -200,16 +190,15 @@ int main(int argc, char* argv[])
     continuity.get_last_record()->load_spaces(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
       &space_rho_v_y, &space_e), Hermes::vector<SpaceType>(HERMES_L2_SPACE, HERMES_L2_SPACE, HERMES_L2_SPACE, HERMES_L2_SPACE), Hermes::vector<Mesh *>(&mesh, &mesh, 
       &mesh, &mesh));
-    continuity.get_last_record()->load_solutions(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_rho2, &prev_rho_v_x2, &prev_rho_v_y2, &prev_e2), Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-      &space_rho_v_y, &space_e, &space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
-    continuity.get_last_record()->load_time_step_length(time_step_n);
-    continuity.get_last_record()->load_time_step_length_n_minus_one(time_step_n_minus_one);
+    continuity.get_last_record()->load_solutions(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
+      &space_rho_v_y, &space_e));
+    continuity.get_last_record()->load_time_step_length(time_step);
     t = continuity.get_last_record()->get_time();
     iteration = continuity.get_num();
   }
 
   // Time stepping loop.
-  for(; t < 5.0; t += time_step_n)
+  for(; t < 5.0; t += time_step)
   {
     CFL.set_number(CFL_NUMBER + (t/5.0) * 1000.0);
     info("---- Time step %d, time %3.5f.", iteration++, t);
@@ -242,6 +231,12 @@ int main(int argc, char* argv[])
       Hermes::vector<Space<double> *>* ref_spaces = Space<double>::construct_refined_spaces(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
         &space_rho_v_y, &space_e), order_increase);
 
+      if(ndofs_prev != 0)
+        if(Space<double>::get_num_dofs(*ref_spaces) == ndofs_prev)
+          selector.set_error_weights(2.0 * selector.get_error_weight_h(), 1.0, 1.0);
+        else
+          selector.set_error_weights(1.0, 1.0, 1.0);
+
       ndofs_prev = Space<double>::get_num_dofs(*ref_spaces);
 
       // Project the previous time level solution onto the new fine mesh.
@@ -262,7 +257,7 @@ int main(int argc, char* argv[])
       Vector<double>* rhs = create_vector<double>(matrix_solver_type);
       LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver_type, matrix, rhs);
 
-      wf.set_time_step(time_step_n, time_step_n_minus_one);
+      wf.set_time_step(time_step);
 
       // Assemble the stiffness matrix and rhs.
       info("Assembling the stiffness matrix and right-hand side vector.");
@@ -271,17 +266,21 @@ int main(int argc, char* argv[])
       // Solve the matrix problem.
       info("Solving the matrix problem.");
       if(solver->solve())
-      {
-        if(iteration > 1)
-        {
-          prev_rho2.copy(&prev_rho);
-          prev_rho_v_x2.copy(&prev_rho_v_x);
-          prev_rho_v_y2.copy(&prev_rho_v_y);
-          prev_e2.copy(&prev_e);
-        }
+        if(!SHOCK_CAPTURING)
+          Solution<double>::vector_to_solutions(solver->get_sln_vector(), *ref_spaces, 
+          Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e));
+        else
+        {      
+          FluxLimiter flux_limiter(FluxLimiter::Kuzmin, solver->get_sln_vector(), *ref_spaces);
+          
+          flux_limiter.limit_second_orders_according_to_detector(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
+            &space_rho_v_y, &space_e));
+          
+          flux_limiter.limit_according_to_detector(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
+            &space_rho_v_y, &space_e));
 
-        Solution<double>::vector_to_solutions(solver->get_sln_vector(), *ref_spaces, Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
-      }
+          flux_limiter.get_limited_solutions(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e));
+        }
       else
         error ("Matrix solver failed.\n");
       
@@ -299,9 +298,7 @@ int main(int argc, char* argv[])
       double err_est_rel_total = adaptivity->calc_err_est(Hermes::vector<Solution<double>*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y, &sln_e),
         Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e)) * 100;
 
-    time_step_n_minus_one = time_step_n;
-    CFL.calculate_semi_implicit(Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), (*ref_spaces)[0]->get_mesh(), time_step_n);
-
+      CFL.calculate_semi_implicit(Hermes::vector<Solution<double> *>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), (*ref_spaces)[0]->get_mesh(), time_step);
 
       // Report results.
       info("err_est_rel: %g%%", err_est_rel_total);
@@ -311,49 +308,57 @@ int main(int argc, char* argv[])
         done = true;
       else
       {
+        info("Adapting coarse mesh.");
         if (Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
           &space_rho_v_y, &space_e)) >= NDOF_STOP) 
           done = true;
         else
         {
-          info("Adapting coarse mesh.");
-          done = adaptivity->adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&selector, &selector, &selector, &selector), 
-            THRESHOLD, STRATEGY, MESH_REGULARITY);
-
           REFINEMENT_COUNT++;
-          as++;
+        done = adaptivity->adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&selector, &selector, &selector, &selector), 
+          THRESHOLD, STRATEGY, MESH_REGULARITY);
         }
+
+        if(!done)
+          as++;
       }
-      
+
       // Visualization and saving on disk.
-      if((iteration - 1) % EVERY_NTH_STEP == 0)
+      if(done && (iteration - 1) % EVERY_NTH_STEP == 0 && iteration > 1)
       {
         // Hermes visualization.
-        if(HERMES_VISUALIZATION)
-        {        
-        Mach_number.reinit();
-        pressure.reinit();
-        entropy.reinit();
-        pressure_view.show(&pressure);
-        entropy_production_view.show(&entropy);
-        Mach_number_view.show(&Mach_number);
-        pressure_view.save_numbered_screenshot("Pressure-%u.bmp", iteration - 1, true);
-        Mach_number_view.save_numbered_screenshot("Mach-%u.bmp", iteration - 1, true);
+        if(HERMES_VISUALIZATION) 
+        {
+          Mach_number.reinit();
+          pressure.reinit();
+          entropy.reinit();
+          pressure_view.show(&pressure);
+          entropy_production_view.show(&entropy);
+          Mach_number_view.show(&Mach_number);
+          pressure_view.save_numbered_screenshot("Pressure-%u.bmp", iteration - 1, true);
+          Mach_number_view.save_numbered_screenshot("Mach-%u.bmp", iteration - 1, true);
         }
         // Output solution in VTK format.
-        if(VTK_VISUALIZATION)
+        if(VTK_VISUALIZATION) 
         {
           pressure.reinit();
           Mach_number.reinit();
-          entropy.reinit();
           Linearizer lin;
           char filename[40];
           sprintf(filename, "Pressure-%i.vtk", iteration - 1);
           lin.save_solution_vtk(&pressure, filename, "Pressure", false);
           sprintf(filename, "Mach number-%i.vtk", iteration - 1);
           lin.save_solution_vtk(&Mach_number, filename, "MachNumber", false);
-          sprintf(filename, "Entropy-%i.vtk", iteration - 1);
-          lin.save_solution_vtk(&entropy, filename, "Entropy", false);
+        }
+        // Save a current state on the disk.
+        if(iteration > 1)
+        {
+          continuity.add_record(t);
+          continuity.get_last_record()->save_mesh(&mesh);
+          continuity.get_last_record()->save_spaces(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
+            &space_rho_v_y, &space_e));
+          continuity.get_last_record()->save_solutions(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
+          continuity.get_last_record()->save_time_step_length(time_step);
         }
       }
 
@@ -362,9 +367,6 @@ int main(int argc, char* argv[])
       delete matrix;
       delete rhs;
       delete adaptivity;
-      if(!done)
-        for(unsigned int i = 0; i < ref_spaces->size(); i++)
-          delete (*ref_spaces)[i];
     }
     while (done == false);
 
@@ -373,26 +375,18 @@ int main(int argc, char* argv[])
     prev_rho_v_x.copy(&rsln_rho_v_x);
     prev_rho_v_y.copy(&rsln_rho_v_y);
     prev_e.copy(&rsln_e);
-
-    // Save a current state on the disk.
-    if(iteration > 1)
-    {
-    continuity.add_record(t);
-    continuity.get_last_record()->save_mesh(&mesh);
-    continuity.get_last_record()->save_spaces(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-        &space_rho_v_y, &space_e, &space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
-      continuity.get_last_record()->save_solutions(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_rho2, &prev_rho_v_x2, &prev_rho_v_y2, &prev_e2));
-    continuity.get_last_record()->save_time_step_length(time_step_n);
-      continuity.get_last_record()->save_time_step_length_n_minus_one(time_step_n_minus_one);
-    }
     
     delete rsln_rho.get_mesh();
+    delete rsln_rho.get_space();
     rsln_rho.own_mesh = false;
     delete rsln_rho_v_x.get_mesh();
+    delete rsln_rho_v_x.get_space();
     rsln_rho_v_x.own_mesh = false;
     delete rsln_rho_v_y.get_mesh();
+    delete rsln_rho_v_y.get_space();
     rsln_rho_v_y.own_mesh = false;
     delete rsln_e.get_mesh();
+    delete rsln_e.get_space();
     rsln_e.own_mesh = false;
   }
 
