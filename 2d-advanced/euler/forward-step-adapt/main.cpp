@@ -294,6 +294,8 @@ int main(int argc, char* argv[])
 
       wf.set_time_step(time_step);
 
+      // Assemble the stiffness matrix and rhs.
+      info("Assembling the stiffness matrix and right-hand side vector.");
       dp.assemble(matrix, rhs);
 
       // Solve the matrix problem.

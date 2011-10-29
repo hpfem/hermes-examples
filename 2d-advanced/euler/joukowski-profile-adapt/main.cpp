@@ -183,6 +183,7 @@ int main(int argc, char* argv[])
   // Look for a saved solution on the disk.
   Continuity<double> continuity(Continuity<double>::onlyTime);
   int iteration = 0; double t = 0;
+  bool loaded_now = false;
 
   if(REUSE_SOLUTION && continuity.have_record_available())
   {
@@ -190,17 +191,16 @@ int main(int argc, char* argv[])
     continuity.get_last_record()->load_spaces(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
       &space_rho_v_y, &space_e), Hermes::vector<SpaceType>(HERMES_L2_SPACE, HERMES_L2_SPACE, HERMES_L2_SPACE, HERMES_L2_SPACE), Hermes::vector<Mesh *>(&mesh, &mesh, 
       &mesh, &mesh));
-    continuity.get_last_record()->load_solutions(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-      &space_rho_v_y, &space_e));
     continuity.get_last_record()->load_time_step_length(time_step);
-    t = continuity.get_last_record()->get_time();
-    iteration = continuity.get_num();
+    t = continuity.get_last_record()->get_time() + time_step;
+    iteration = continuity.get_num() * EVERY_NTH_STEP + 1;
+    loaded_now = true;
   }
 
   // Time stepping loop.
   for(; t < 5.0; t += time_step)
   {
-    CFL.set_number(CFL_NUMBER + (t/5.0) * 1000.0);
+    CFL.set_number(CFL_NUMBER + (t/5.0) * 100.0);
     info("---- Time step %d, time %3.5f.", iteration++, t);
 
     // Periodic global derefinements.
@@ -241,8 +241,33 @@ int main(int argc, char* argv[])
 
       // Project the previous time level solution onto the new fine mesh.
       info("Projecting the previous time level solution onto the new fine mesh.");
+      if(loaded_now)
+      {
+        loaded_now = false;
+
+        continuity.get_last_record()->load_solutions(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), 
+          Hermes::vector<Space<double> *>((*ref_spaces)[0], (*ref_spaces)[1], (*ref_spaces)[2], (*ref_spaces)[3]));
+      }
+      else
+      {
       OGProjection<double>::project_global(*ref_spaces, Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), 
-        Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), matrix_solver_type, Hermes::vector<Hermes::Hermes2D::ProjNormType>(), iteration > 1);
+        Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), matrix_solver_type, Hermes::vector<Hermes::Hermes2D::ProjNormType>());
+        if(iteration > std::max((int)(continuity.get_num() * EVERY_NTH_STEP + 2), 1) && as > 1)
+        {
+          delete rsln_rho.get_mesh();
+          delete rsln_rho.get_space();
+          rsln_rho.own_mesh = false;
+          delete rsln_rho_v_x.get_mesh();
+          delete rsln_rho_v_x.get_space();
+          rsln_rho_v_x.own_mesh = false;
+          delete rsln_rho_v_y.get_mesh();
+          delete rsln_rho_v_y.get_space();
+          rsln_rho_v_y.own_mesh = false;
+          delete rsln_e.get_mesh();
+          delete rsln_e.get_space();
+          rsln_e.own_mesh = false;
+        }
+      }
 
       // Report NDOFs.
       info("ndof_coarse: %d, ndof_fine: %d.", 
@@ -271,7 +296,7 @@ int main(int argc, char* argv[])
           Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e));
         else
         {      
-          FluxLimiter flux_limiter(FluxLimiter::Kuzmin, solver->get_sln_vector(), *ref_spaces);
+          FluxLimiter flux_limiter(FluxLimiter::Kuzmin, solver->get_sln_vector(), *ref_spaces, true);
           
           flux_limiter.limit_second_orders_according_to_detector(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
             &space_rho_v_y, &space_e));
