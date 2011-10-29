@@ -58,7 +58,7 @@ const double HEAT_SOURCE_GRAPHITE = 1e6;
 // from 0 to VEL_INLET, then it stays constant.
 const double STARTUP_TIME = 1.0;                  
 // Time step.
-const double time_step = 0.1;                     
+const double time_step = 0.5;                     
 // Time interval length.
 const double T_FINAL = 30000.0;                   
 // Stopping criterion for the Newton's method.
@@ -171,7 +171,7 @@ int main(int argc, char* argv[])
   Solution<double>::vector_to_solutions(coeff_vec, all_spaces, all_solutions);
 
   // Debug.
-  ScalarView t0("Projected temperature");
+  ScalarView t0("Projected initial temperature");
   t0.show(&temperature_prev_time);
   View::wait();
 
