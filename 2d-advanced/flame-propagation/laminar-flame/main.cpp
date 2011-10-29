@@ -117,7 +117,8 @@ int main(int argc, char* argv[])
 
   // Initialize Runge-Kutta time stepping.
   RungeKutta<double> runge_kutta(&dp, &bt, matrix_solver);
-  runge_kutta.set_filters_to_reinit(Hermes::vector<Filter<double>*>(&omega, &omega_dt, &omega_dc));
+  runge_kutta.set_filters_to_reinit(Hermes::vector<Filter<double>* >(&omega, &omega_dt, &omega_dc));
+  // Use local projections instad of global ones.
   //runge_kutta.use_local_projections();
 
   // Time stepping:
@@ -126,11 +127,6 @@ int main(int argc, char* argv[])
   bool jacobian_changed = true;
   do 
   {
-    // Reinit filters.
-    omega.reinit();
-    omega_dc.reinit();
-    omega_dt.reinit();
-
     // Perform one Runge-Kutta time step according to the selected Butcher's table.
     info("Runge-Kutta time step (t = %g s, time step = %g s, stages: %d).", 
          current_time, time_step, bt.get_size());
@@ -155,11 +151,6 @@ int main(int argc, char* argv[])
     // Saving solutions for the next time step.
     T_prev_time.copy(&T_new_time);
     C_prev_time.copy(&C_new_time);
-
-    // Reinit filters.
-    omega.reinit();
-    omega_dc.reinit();
-    omega_dt.reinit();
 
     // Visualization.
     rview.set_min_max_range(0.0,2.0);
