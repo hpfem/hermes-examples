@@ -22,9 +22,9 @@
 // Number of initial uniform mesh refinements.
 const int INIT_REF_NUM = 2;                       
 // Initial polynomial degree.
-const int P_INIT = 2;                             
+const int P_INIT = 1;                             
 // Time step.
-const double time_step = 0.01;                        
+const double time_step = 0.5;                        
 // Time interval length.
 const double T_FINAL = 60.0;                      
 
@@ -97,14 +97,14 @@ int main(int argc, char* argv[])
   InitialSolutionConcentration C_prev_time(&mesh, x1, Le);
   Hermes::vector<MeshFunction<double>*> meshfns_prev_time = Hermes::vector<MeshFunction<double>*>(&T_prev_time, &C_prev_time);
   Hermes::vector<Solution<double>*> slns_prev_time = Hermes::vector<Solution<double>*>(&T_prev_time, &C_prev_time);
-  Solution<double> T_new_time(&mesh);
-  Solution<double> C_new_time(&mesh);
+  InitialSolutionTemperature T_new_time(&mesh, x1);
+  InitialSolutionConcentration C_new_time(&mesh, x1, Le);
   Hermes::vector<Solution<double>*> slns_new_time = Hermes::vector<Solution<double>*>(&T_new_time, &C_new_time);
 
   // Filters for the reaction rate omega and its derivatives.
-  CustomFilter omega(slns_prev_time, Le, alpha, beta, kappa, x1);
-  CustomFilterDt omega_dt(slns_prev_time, Le, alpha, beta, kappa, x1);
-  CustomFilterDc omega_dc(slns_prev_time, Le, alpha, beta, kappa, x1);
+  CustomFilter omega(slns_new_time, Le, alpha, beta, kappa, x1);
+  CustomFilterDt omega_dt(slns_new_time, Le, alpha, beta, kappa, x1);
+  CustomFilterDc omega_dc(slns_new_time, Le, alpha, beta, kappa, x1);
 
   // Initialize visualization.
   ScalarView rview("Reaction rate", new WinGeom(0, 0, 800, 230));
@@ -117,6 +117,7 @@ int main(int argc, char* argv[])
 
   // Initialize Runge-Kutta time stepping.
   RungeKutta<double> runge_kutta(&dp, &bt, matrix_solver);
+  runge_kutta.set_filters_to_reinit(Hermes::vector<Filter<double>*>(&omega, &omega_dt, &omega_dc));
   //runge_kutta.use_local_projections();
 
   // Time stepping:

@@ -40,7 +40,7 @@ double CustomWeakForm::JacobianFormVol_0_0::value(int n, double *wt, Func<double
   Func<double>* domegadT = ext->fn[0];
   for (int i = 0; i < n; i++)
     result += wt[i] * ( - (vj->dx[i] * vi->dx[i] + vj->dy[i] * vi->dy[i])
-                        /*+ domegadT->val[i] * vj->val[i] * vi->val[i] */ );
+                        + domegadT->val[i] * vj->val[i] * vi->val[i] );
   return result;
 }
 
@@ -51,7 +51,7 @@ Ord CustomWeakForm::JacobianFormVol_0_0::ord(int n, double *wt, Func<Ord> *u_ext
   Func<Ord>* domegadT = ext->fn[0];
   for (int i = 0; i < n; i++)
     result += wt[i] * ( - (vj->dx[i] * vi->dx[i] + vj->dy[i] * vi->dy[i])
-                        /* + domegadT->val[i] * vj->val[i] * vi->val[i] */);
+                         + domegadT->val[i] * vj->val[i] * vi->val[i]);
   return result;
 }
 
@@ -89,7 +89,7 @@ double CustomWeakForm::JacobianFormVol_0_1::value(int n, double *wt, Func<double
   double result = 0;
   Func<double>* domegadY = ext->fn[0];
   for (int i = 0; i < n; i++)
-    /* result += wt[i] * (domegadY->val[i] * vj->val[i] * vi->val[i] ); */
+     result += wt[i] * (domegadY->val[i] * vj->val[i] * vi->val[i] ); 
   return result;
 }
 
@@ -99,7 +99,7 @@ Ord CustomWeakForm::JacobianFormVol_0_1::ord(int n, double *wt, Func<Ord> *u_ext
   Ord result = Ord(0);
   Func<Ord>* domegadY = ext->fn[0];
   for (int i = 0; i < n; i++)
-    /* result += wt[i] * (domegadY->val[i] * vj->val[i] * vi->val[i] ); */
+     result += wt[i] * (domegadY->val[i] * vj->val[i] * vi->val[i] ); 
   return result;
 }
 
@@ -114,7 +114,7 @@ double CustomWeakForm::JacobianFormVol_1_0::value(int n, double *wt, Func<double
   double result = 0;
   Func<double>* domegadT = ext->fn[0];
   for (int i = 0; i < n; i++)
-    /* result += wt[i] * ( -domegadT->val[i] * vj->val[i] * vi->val[i] ); */
+     result += wt[i] * ( -domegadT->val[i] * vj->val[i] * vi->val[i] ); 
   return result;
 }
 
@@ -124,7 +124,7 @@ Ord CustomWeakForm::JacobianFormVol_1_0::ord(int n, double *wt, Func<Ord> *u_ext
   Ord result = Ord(0);
   Func<Ord>* domegadT = ext->fn[0];
   for (int i = 0; i < n; i++)
-    /* result += wt[i] * (-domegadT->val[i] * vj->val[i] * vi->val[i] ); */
+     result += wt[i] * (-domegadT->val[i] * vj->val[i] * vi->val[i] ); 
   return result;
 }
 
@@ -140,7 +140,7 @@ double CustomWeakForm::JacobianFormVol_1_1::value(int n, double *wt, Func<double
   Func<double>* domegadY = ext->fn[0];
   for (int i = 0; i < n; i++)
     result += wt[i] * ( -(vj->dx[i] * vi->dx[i] + vj->dy[i] * vi->dy[i]) / Le
-			/* - domegadY->val[i] * vj->val[i] * vi->val[i] */);
+			 - domegadY->val[i] * vj->val[i] * vi->val[i] );
   return result;
 }
 
@@ -151,7 +151,7 @@ Ord CustomWeakForm::JacobianFormVol_1_1::ord(int n, double *wt, Func<Ord> *u_ext
   Func<Ord>* domegadY = ext->fn[0];
   for (int i = 0; i < n; i++)
     result += wt[i] * ( -(vj->dx[i] * vi->dx[i] + vj->dy[i] * vi->dy[i]) / Le
-			/*- domegadY->val[i] * vj->val[i] * vi->val[i] */);
+			- domegadY->val[i] * vj->val[i] * vi->val[i] );
   return result;
 }
 
@@ -248,7 +248,7 @@ void CustomFilter::filter_fn(int n, Hermes::vector<double*> values, Hermes::vect
 {
   for (int i = 0; i < n; i++)
   {
-    double t1 = std::max(values.at(0)[i],0.0) - 1.0;
+    double t1 = values.at(0)[i] - 1.0;
     double t2 = t1 * beta;
     double t3 = 1.0 + t1 * alpha;
     double t4 = sqr(beta) / (2.0*Le) * exp(t2 / t3);
@@ -264,7 +264,7 @@ void CustomFilterDt::filter_fn(int n, Hermes::vector<double*> values, Hermes::ve
 {
   for (int i = 0; i < n; i++)
   {
-    double t1 = std::max(values.at(0)[i],0.0) - 1.0;
+    double t1 = values.at(0)[i] - 1.0;
     double t2 = t1 * beta;
     double t3 = 1.0 + t1 * alpha;
     double t4 = sqr(beta) / (2.0*Le) * exp(t2 / t3);
@@ -280,7 +280,7 @@ void CustomFilterDc::filter_fn(int n, Hermes::vector<double*> values, Hermes::ve
 {
   for (int i = 0; i < n; i++)
   {
-    double t1 = std::max(values.at(0)[i],0.0) - 1.0;
+    double t1 = values.at(0)[i] - 1.0;
     double t2 = t1 * beta;
     double t3 = 1.0 + t1 * alpha;
     double t4 = sqr(beta) / (2.0*Le) * exp(t2 / t3);
