@@ -4,9 +4,9 @@
 #include "definitions.h"
 
 // This example shows the use of subdomains. It models a round graphite object that is 
-// heated through internal heat sources and cooled with water flowing past it. This 
-// model is semi-realistic, double-check all parameter values and equations before 
-// using it for your applications. NOTE: The file definitions.h contains numbers 
+// heated through internal heat sources and cooled with a fluid (air or water) flowing 
+// past it. This model is semi-realistic, double-check all parameter values and equations 
+// before using it for your applications. NOTE: The file definitions.h contains numbers 
 // that need to be compatible with the mesh file.
 
 // If true, then just Stokes equation will be considered, not Navier-Stokes.
@@ -25,33 +25,33 @@ const int P_INIT_TEMPERATURE = 1;
 
 // Initial uniform mesh refinements.
 const int INIT_REF_NUM_TEMPERATURE_GRAPHITE = 2;        
-const int INIT_REF_NUM_TEMPERATURE_WATER = 2;        
-const int INIT_REF_NUM_FLOW = 2;        
-const int INIT_REF_NUM_BDY_GRAPHITE = 0;   
-const int INIT_REF_NUM_BDY_WALL = 0;   
+const int INIT_REF_NUM_TEMPERATURE_FLUID = 3;        
+const int INIT_REF_NUM_FLUID = 3;        
+const int INIT_REF_NUM_BDY_GRAPHITE = 1;   
+const int INIT_REF_NUM_BDY_WALL = 1;   
 
 // Problem parameters.
 // Inlet velocity (reached after STARTUP_TIME).
 const double VEL_INLET = 0.1;              
 // Initial temperature.
-const double TEMPERATURE_INIT_WATER = 20.0;                       
+const double TEMPERATURE_INIT_FLUID = 20.0;                       
 const double TEMPERATURE_INIT_GRAPHITE = 100.0;                       
 // Correct is 1.004e-6 (at 20 deg Celsius) but then RE = 2.81713e+06 which 
 // is too much for this simple model, so we use a larger viscosity. Note
 // that kinematic viscosity decreases with rising temperature.
-const double KINEMATIC_VISCOSITY_WATER = 1.004e-2;   
+const double KINEMATIC_VISCOSITY_FLUID = 15.68e-6;    // Water has 1.004e-2.
 // We found a range of 25 - 470, but this is another 
 // number that one needs to be careful about.
 const double THERMAL_CONDUCTIVITY_GRAPHITE = 450;    
 // At 25 deg Celsius.
-const double THERMAL_CONDUCTIVITY_WATER = 1000;   // Water has 0.6;       
+const double THERMAL_CONDUCTIVITY_FLUID = 0.025;  // Water has 0.6.  
 // Density of graphite from Wikipedia, one should be 
 // careful about this number.    
 const double RHO_GRAPHITE = 2220;                      
-const double RHO_WATER = 1000;      
+const double RHO_FLUID = 1.1839;    // Water has 1000.0.      
 // Also found on Wikipedia.
 const double SPECIFIC_HEAT_GRAPHITE = 711;        
-const double SPECIFIC_HEAT_WATER = 4187;            
+const double SPECIFIC_HEAT_FLUID = 1012.0;     // Water has 4187.0         
 // Heat source in graphite. This value is not realistic.
 const double HEAT_SOURCE_GRAPHITE = 1e6;          
 // During this time, inlet velocity increases gradually
@@ -73,7 +73,7 @@ Hermes::MatrixSolverType matrix_solver = Hermes::SOLVER_UMFPACK;
 // true... velocity from previous time level is used in temperature 
 //         equation (which makes it linear).
 // false... full Newton's method is used.
-bool SIMPLE_TEMPERATURE_ADVECTION = false; 
+bool SIMPLE_TEMPERATURE_ADVECTION = true; 
 
 int main(int argc, char* argv[])
 {
@@ -86,11 +86,11 @@ int main(int argc, char* argv[])
   // Temperature mesh: Initial uniform mesh refinements in graphite.
   meshes[0]->refine_by_criterion(element_in_graphite, INIT_REF_NUM_TEMPERATURE_GRAPHITE);
 
-  // Temperature mesh: Initial uniform mesh refinements in water.
-  meshes[0]->refine_by_criterion(element_in_water, INIT_REF_NUM_TEMPERATURE_WATER);
+  // Temperature mesh: Initial uniform mesh refinements in fluid.
+  meshes[0]->refine_by_criterion(element_in_fluid, INIT_REF_NUM_TEMPERATURE_FLUID);
 
-  // Flow mesh: Initial uniform mesh refinements.
-  for(int i = 0; i < INIT_REF_NUM_FLOW; i++)
+  // Fluid mesh: Initial uniform mesh refinements.
+  for(int i = 0; i < INIT_REF_NUM_FLUID; i++)
     meshes[1]->refine_all_elements();
 
   // Initial refinements towards boundary of graphite.
@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
     meshes[meshes_i]->refine_towards_boundary("Outer Wall", INIT_REF_NUM_BDY_WALL);
 
   /* View both meshes. */
-  MeshView m1("Mesh for temperature"), m2("Mesh for flow");
+  MeshView m1("Mesh for temperature"), m2("Mesh for fluid");
   m1.show(&mesh_whole_domain);
   m2.show(&mesh_with_hole);
   View::wait();
@@ -149,7 +149,7 @@ int main(int argc, char* argv[])
   info("Setting initial conditions.");
   ZeroSolution xvel_prev_time(&mesh_with_hole), yvel_prev_time(&mesh_with_hole), p_prev_time(&mesh_with_hole);
   CustomInitialConditionTemperature temperature_init_cond(&mesh_whole_domain, HOLE_MID_X, HOLE_MID_Y, 
-      0.5*OBSTACLE_DIAMETER, TEMPERATURE_INIT_WATER, TEMPERATURE_INIT_GRAPHITE); 
+      0.5*OBSTACLE_DIAMETER, TEMPERATURE_INIT_FLUID, TEMPERATURE_INIT_GRAPHITE); 
   Solution<double> temperature_prev_time;
   Hermes::vector<Solution<double> *> all_solutions = Hermes::vector<Solution<double> *>(&xvel_prev_time, 
       &yvel_prev_time, &p_prev_time, &temperature_prev_time);
@@ -158,7 +158,7 @@ int main(int argc, char* argv[])
 
   // Project all initial conditions on their FE spaces to obtain aninitial
   // coefficient vector for the Newton's method. We use local projection
-  // to avoid oscillations in temperature on the graphite-water interface
+  // to avoid oscillations in temperature on the graphite-fluid interface
   // FIXME - currently the LocalProjection only does the lowest-order part (linear
   // interpolation) at the moment. Higher-order part needs to be added.
   double* coeff_vec = new double[ndof];
@@ -176,14 +176,14 @@ int main(int argc, char* argv[])
   View::wait();
 
   // Calculate Reynolds number.
-  double reynolds_number = VEL_INLET * OBSTACLE_DIAMETER / KINEMATIC_VISCOSITY_WATER;
+  double reynolds_number = VEL_INLET * OBSTACLE_DIAMETER / KINEMATIC_VISCOSITY_FLUID;
   info("RE = %g", reynolds_number);
   if (reynolds_number < 1e-8) error("Re == 0 will not work - the equations use 1/Re.");
 
   // Initialize weak formulation.
   CustomWeakFormHeatAndFlow wf(STOKES, reynolds_number, time_step, &xvel_prev_time, &yvel_prev_time, &temperature_prev_time, 
-      HEAT_SOURCE_GRAPHITE, SPECIFIC_HEAT_GRAPHITE, SPECIFIC_HEAT_WATER, RHO_GRAPHITE, RHO_WATER, 
-      THERMAL_CONDUCTIVITY_GRAPHITE, THERMAL_CONDUCTIVITY_WATER, SIMPLE_TEMPERATURE_ADVECTION);
+      HEAT_SOURCE_GRAPHITE, SPECIFIC_HEAT_GRAPHITE, SPECIFIC_HEAT_FLUID, RHO_GRAPHITE, RHO_FLUID, 
+      THERMAL_CONDUCTIVITY_GRAPHITE, THERMAL_CONDUCTIVITY_FLUID, SIMPLE_TEMPERATURE_ADVECTION);
   
   // Initialize the FE problem.
   DiscreteProblem<double> dp(&wf, all_spaces);

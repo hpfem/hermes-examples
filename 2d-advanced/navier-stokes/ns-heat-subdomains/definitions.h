@@ -20,7 +20,7 @@ const double HOLE_MID_Y = 0.5;
 class CustomInitialConditionTemperature : public ExactSolutionScalar<double>
 {
 public:
-  CustomInitialConditionTemperature(Mesh *mesh, double mid_x, double mid_y, double radius, double temp_water, double temp_graphite);
+  CustomInitialConditionTemperature(Mesh *mesh, double mid_x, double mid_y, double radius, double temp_fluid, double temp_graphite);
 
   virtual double value(double x, double y) const;
 
@@ -29,7 +29,7 @@ public:
   virtual Ord ord(Ord x, Ord y) const;
 
   // Members.
-  double mid_x, mid_y, radius, temp_water, temp_graphite;
+  double mid_x, mid_y, radius, temp_fluid, temp_graphite;
 };
 
 /* Weak forms */
@@ -39,8 +39,8 @@ class CustomWeakFormHeatAndFlow : public WeakForm<double>
 public:
   CustomWeakFormHeatAndFlow(bool Stokes, double Reynolds, double time_step, Solution<double>* x_vel_previous_time, 
     Solution<double>* y_vel_previous_time, Solution<double>* T_prev_time, double heat_source, double specific_heat_graphite, 
-    double specific_heat_water, double rho_graphite, double rho_water, double thermal_conductivity_graphite, 
-    double thermal_conductivity_water, bool simple_temp_advection);
+    double specific_heat_fluid, double rho_graphite, double rho_fluid, double thermal_conductivity_graphite, 
+    double thermal_conductivity_fluid, bool simple_temp_advection);
 
   class BilinearFormTime: public MatrixFormVol<double>
   {
@@ -618,4 +618,4 @@ protected:
 
 bool point_in_graphite(double x, double y);
 int element_in_graphite(Element* e);
-int element_in_water(Element* e);
+int element_in_fluid(Element* e);

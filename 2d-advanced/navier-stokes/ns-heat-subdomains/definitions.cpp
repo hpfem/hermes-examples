@@ -2,13 +2,13 @@
 
 /* Custom initial condition for temperature*/
 
-CustomInitialConditionTemperature::CustomInitialConditionTemperature(Mesh *mesh, double mid_x, double mid_y, double radius, double temp_water, double temp_graphite) 
-  : ExactSolutionScalar<double>(mesh), mid_x(mid_x), mid_y(mid_y), radius(radius), temp_water(temp_water), temp_graphite(temp_graphite) {}
+CustomInitialConditionTemperature::CustomInitialConditionTemperature(Mesh *mesh, double mid_x, double mid_y, double radius, double temp_fluid, double temp_graphite) 
+  : ExactSolutionScalar<double>(mesh), mid_x(mid_x), mid_y(mid_y), radius(radius), temp_fluid(temp_fluid), temp_graphite(temp_graphite) {}
 
 double CustomInitialConditionTemperature::value(double x, double y) const 
 {
   bool in_graphite = (std::sqrt(sqr(mid_x - x) + sqr(mid_y - y)) < radius);
-  double temp = temp_water;
+  double temp = temp_fluid;
   if (in_graphite) temp = temp_graphite;
   return temp;
 }
@@ -28,7 +28,7 @@ Ord CustomInitialConditionTemperature::ord(Ord x, Ord y) const
 
 CustomWeakFormHeatAndFlow::CustomWeakFormHeatAndFlow(bool Stokes, double Reynolds, double time_step, Solution<double>* x_vel_previous_time, 
     Solution<double>* y_vel_previous_time, Solution<double>* T_prev_time, double heat_source, double specific_heat_graphite, 
-    double specific_heat_water, double rho_graphite, double rho_water, double thermal_conductivity_graphite, double thermal_conductivity_water,
+    double specific_heat_fluid, double rho_graphite, double rho_fluid, double thermal_conductivity_graphite, double thermal_conductivity_fluid,
     bool simple_temp_advection) 
   : WeakForm<double>(4), Stokes(Stokes), Reynolds(Reynolds), time_step(time_step), x_vel_previous_time(x_vel_previous_time), y_vel_previous_time(y_vel_previous_time)
   {
@@ -44,25 +44,25 @@ CustomWeakFormHeatAndFlow::CustomWeakFormHeatAndFlow(bool Stokes, double Reynold
 
     // Jacobian - temperature part. 
     // Contribution from implicit Euler.
-    add_matrix_form(new WeakFormsH1::DefaultMatrixFormVol<double>(3, 3, "Water", new Hermes2DFunction<double>(1.0/time_step), HERMES_NONSYM));
+    add_matrix_form(new WeakFormsH1::DefaultMatrixFormVol<double>(3, 3, "Fluid", new Hermes2DFunction<double>(1.0/time_step), HERMES_NONSYM));
     add_matrix_form(new WeakFormsH1::DefaultMatrixFormVol<double>(3, 3, "Graphite", new Hermes2DFunction<double>(1.0/time_step), HERMES_NONSYM));
     // Contribution from temperature diffusion. 
-    add_matrix_form(new WeakFormsH1::DefaultJacobianDiffusion<double>(3, 3, "Water", new Hermes1DFunction<double>(thermal_conductivity_water/(rho_water * specific_heat_water)), HERMES_NONSYM));
+    add_matrix_form(new WeakFormsH1::DefaultJacobianDiffusion<double>(3, 3, "Fluid", new Hermes1DFunction<double>(thermal_conductivity_fluid/(rho_fluid * specific_heat_fluid)), HERMES_NONSYM));
     add_matrix_form(new WeakFormsH1::DefaultJacobianDiffusion<double>(3, 3, "Graphite", 
         new Hermes1DFunction<double>(thermal_conductivity_graphite/(rho_graphite * specific_heat_graphite)), HERMES_NONSYM));
-    // Contribution from temperature advection - only in water.
+    // Contribution from temperature advection - only in fluid.
     if (simple_temp_advection)     
     {
-      CustomJacobianTempAdvection_3_3_simple* cjta_3_3_simple = new CustomJacobianTempAdvection_3_3_simple(3, 3, "Water");
+      CustomJacobianTempAdvection_3_3_simple* cjta_3_3_simple = new CustomJacobianTempAdvection_3_3_simple(3, 3, "Fluid");
       cjta_3_3_simple->ext.push_back(x_vel_previous_time);
       cjta_3_3_simple->ext.push_back(y_vel_previous_time);
       add_matrix_form(cjta_3_3_simple);
     }
     else 
     {
-      add_matrix_form(new CustomJacobianTempAdvection_3_0(3, 0, "Water"));
-      add_matrix_form(new CustomJacobianTempAdvection_3_1(3, 1, "Water"));
-      add_matrix_form(new CustomJacobianTempAdvection_3_3(3, 3, "Water"));
+      add_matrix_form(new CustomJacobianTempAdvection_3_0(3, 0, "Fluid"));
+      add_matrix_form(new CustomJacobianTempAdvection_3_1(3, 1, "Fluid"));
+      add_matrix_form(new CustomJacobianTempAdvection_3_3(3, 3, "Fluid"));
     }
 
     // Residual - flow part. 
@@ -79,26 +79,26 @@ CustomWeakFormHeatAndFlow::CustomWeakFormHeatAndFlow(bool Stokes, double Reynold
 
     // Residual - temperature part.
     // Contribution from implicit Euler method.
-    VectorFormTime *vft = new VectorFormTime(3, "Water", time_step);
+    VectorFormTime *vft = new VectorFormTime(3, "Fluid", time_step);
     vft->ext.push_back(T_prev_time);
     add_vector_form(vft);
     vft = new VectorFormTime(3, "Graphite", time_step);
     vft->ext.push_back(T_prev_time);
     add_vector_form(vft);
     // Contribution from temperature diffusion.
-    add_vector_form(new WeakFormsH1::DefaultResidualDiffusion<double>(3, "Water", new Hermes1DFunction<double>(thermal_conductivity_water/(rho_water * specific_heat_water))));
+    add_vector_form(new WeakFormsH1::DefaultResidualDiffusion<double>(3, "Fluid", new Hermes1DFunction<double>(thermal_conductivity_fluid/(rho_fluid * specific_heat_fluid))));
     add_vector_form(new WeakFormsH1::DefaultResidualDiffusion<double>(3, "Graphite", new Hermes1DFunction<double>(thermal_conductivity_graphite/(rho_graphite * specific_heat_graphite))));
     // Contribution from heat sources.
     add_vector_form(new WeakFormsH1::DefaultVectorFormVol<double>(3, "Graphite", new Hermes::Hermes2DFunction<double>(-heat_source/(rho_graphite * specific_heat_graphite))));
     // Contribution from temperature advection.
     if (simple_temp_advection)     
     {
-      CustomResidualTempAdvection_simple* crta_simple = new CustomResidualTempAdvection_simple(3, "Water");
+      CustomResidualTempAdvection_simple* crta_simple = new CustomResidualTempAdvection_simple(3, "Fluid");
       crta_simple->ext.push_back(x_vel_previous_time);
       crta_simple->ext.push_back(y_vel_previous_time);
       add_vector_form(crta_simple);
     }
-    else add_vector_form(new CustomResidualTempAdvection(3, "Water"));
+    else add_vector_form(new CustomResidualTempAdvection(3, "Fluid"));
   };
 
 
@@ -134,7 +134,7 @@ int element_in_graphite(Element* e)
   }
 }
 
-int element_in_water(Element* e)
+int element_in_fluid(Element* e)
 {
   // Calculate element center.
   int nvert;
