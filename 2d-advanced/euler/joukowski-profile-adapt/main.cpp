@@ -83,7 +83,7 @@ const int MAX_P_ORDER = -1;
 // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
 // Note that regular meshes are not supported, this is due to
 // their notoriously bad performance.
-const int MESH_REGULARITY = 1;                   
+const int MESH_REGULARITY = -1;                   
 
 // This parameter influences the selection of
 // candidates in hp-adaptivity. Default value is 1.0. 
