@@ -199,7 +199,7 @@ int main(int argc, char* argv[])
       &space_rho_v_y, &space_e), Hermes::vector<SpaceType>(HERMES_L2_SPACE, HERMES_L2_SPACE, HERMES_L2_SPACE, HERMES_L2_SPACE), Hermes::vector<Mesh *>(&mesh, &mesh, 
       &mesh, &mesh));
     continuity.get_last_record()->load_time_step_length(time_step);
-    t = continuity.get_last_record()->get_time();
+    t = continuity.get_last_record()->get_time() + time_step;
     iteration = continuity.get_num() * EVERY_NTH_STEP + 1;
     loaded_now = true;
   }

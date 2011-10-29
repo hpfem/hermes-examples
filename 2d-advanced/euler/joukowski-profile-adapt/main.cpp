@@ -315,7 +315,7 @@ int main(int argc, char* argv[])
         else
         {
           REFINEMENT_COUNT++;
-        done = adaptivity->adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&selector, &selector, &selector, &selector), 
+          done = adaptivity->adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&selector, &selector, &selector, &selector), 
           THRESHOLD, STRATEGY, MESH_REGULARITY);
         }
 
