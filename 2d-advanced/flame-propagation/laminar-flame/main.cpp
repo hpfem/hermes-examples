@@ -117,7 +117,7 @@ int main(int argc, char* argv[])
 
   // Initialize Runge-Kutta time stepping.
   RungeKutta<double> runge_kutta(&dp, &bt, matrix_solver);
-  runge_kutta.set_filters_to_reinit(Hermes::vector<Filter<double>* >(&omega, &omega_dt, &omega_dc));
+  //runge_kutta.set_filters_to_reinit(Hermes::vector<Filter<double>* >(&omega, &omega_dt, &omega_dc));
   // Use local projections instad of global ones.
   //runge_kutta.use_local_projections();
 
