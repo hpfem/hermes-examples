@@ -26,7 +26,7 @@ double CustomRightHandSide::value(double x, double y) const
 
 Ord CustomRightHandSide::value(Ord x, Ord y) const
 {
-  return Ord(10);
+  return Ord(16);
 }
 
 CustomExactSolution::CustomExactSolution(Mesh* mesh, double k, double alpha) : ExactSolutionScalar<double>(mesh), k(k), alpha(alpha)
@@ -53,5 +53,5 @@ void CustomExactSolution::derivatives(double x, double y, double& dx, double& dy
 
 Ord CustomExactSolution::ord(Ord x, Ord y) const
 {
-  return Ord(10);
+  return Ord(16);
 }

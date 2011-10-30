@@ -259,10 +259,8 @@ int main(int argc, char* argv[])
     // Assemble the discrete problem.    
     DiscreteProblem<double> dp(&wf, &space);
 
-    // Initial coefficient vector for the Newton's method.  
+    // Actual ndof.
     int ndof = space.get_num_dofs();
-    double* coeff_vec = new double[ndof];
-    memset(coeff_vec, 0, ndof * sizeof(double));
     
     NewtonSolver<double> newton(&dp, matrix_solver);
     newton.set_verbose_output(false);
@@ -271,7 +269,7 @@ int main(int argc, char* argv[])
     // Setup time continues in NewtonSolver::solve().
     try
     {
-      newton.solve(coeff_vec);
+      newton.solve();
     }
     catch(Hermes::Exceptions::Exception e)
     {
@@ -290,7 +288,6 @@ int main(int argc, char* argv[])
     double err_exact = Global<double>::calc_abs_error(&sln, &exact, HERMES_H1_NORM);
    
     // Report results.
-    
     info(" Cycle %d:", as);
     info("    Number of degrees of freedom: %d", ndof);
     info("    H1 error w.r.t. exact soln.:  %g", err_exact);
@@ -363,9 +360,6 @@ int main(int argc, char* argv[])
       oview.close();
       conv_table.save(("conv_table-"+itos(refinement_mode)+".dat").c_str());
     }
-
-    // Clean up.
-    delete [] coeff_vec;
   }
   while (done == false);
 

@@ -13,6 +13,11 @@ navier-stokes/rayleigh-benard
 Does not exhibit the vortices as expected. This might be
 just a wrong choice of parameters. 
 
+2d-benchmarks-nist/09-wave-front-kelly-dealii
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Runs till the end and then segfaults.
+
 1d/system
 ~~~~~~~~~
 

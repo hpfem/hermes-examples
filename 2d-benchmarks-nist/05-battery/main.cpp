@@ -118,14 +118,10 @@ int main(int argc, char* argv[])
     NewtonSolver<double> newton(&dp, matrix_solver);
     newton.set_verbose_output(false);
 
-    // Initial coefficient vector for the Newton's method.  
-    double* coeff_vec = new double[ndof_ref];
-    memset(coeff_vec, 0, ndof_ref * sizeof(double));
-
     // Perform Newton's iteration.
     try
     {
-      newton.solve(coeff_vec);
+      newton.solve();
     }
     catch(Hermes::Exceptions::Exception e)
     {
@@ -213,8 +209,6 @@ int main(int argc, char* argv[])
     if (space.get_num_dofs() >= NDOF_STOP) 
       done = true;
 
-    // Clean up.
-    delete [] coeff_vec;
     // Keep the mesh from final step to allow further work with the final fine mesh solution.
     if(done == false) 
       delete ref_space->get_mesh(); 
