@@ -119,17 +119,13 @@ int main(int argc, char* argv[])
     // Assemble the discrete problem.
     DiscreteProblem<double> dp(&wf, ref_space);
 
-    // Initial coefficient vector for the Newton's method.  
-    double* coeff_vec = new double[ndof_ref];
-    memset(coeff_vec, 0, ndof_ref * sizeof(double));
-
     NewtonSolver<double> newton(&dp, matrix_solver);
     newton.set_verbose_output(false);
     
     Solution<double> ref_sln;
     try
     {
-      newton.solve(coeff_vec);
+      newton.solve();
     }
     catch(Hermes::Exceptions::Exception e)
     {
@@ -193,16 +189,7 @@ int main(int argc, char* argv[])
     // Increase the counter of adaptivity steps.
     if (done == false)  
       as++;
-/*    else 
-    {
-      sview.show(&sln);
-      oview.show(&space);
-      info("err_est_rel: %g%%, err_exact_rel: %g%%", err_est_rel, err_exact_rel);
-    }
-*/       
-    // Clean up.
-    delete [] coeff_vec;
-    
+
     if(done == false) 
       delete ref_space->get_mesh();
     delete ref_space;

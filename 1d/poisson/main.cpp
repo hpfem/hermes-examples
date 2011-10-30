@@ -70,16 +70,12 @@ int main(int argc, char* argv[])
   // Initialize the FE problem.
   DiscreteProblem<double> dp(&wf, &space);
 
-  // Initial coefficient vector for the Newton's method.  
-  double* coeff_vec = new double[ndof];
-  memset(coeff_vec, 0, ndof*sizeof(double));
-
   // Perform Newton's iteration and translate the resulting coefficient vector into a Solution.
   Solution<double> sln;
   NewtonSolver<double> newton(&dp, matrix_solver);
   try
   {
-    newton.solve(coeff_vec);
+    newton.solve();
   }
   catch(Hermes::Exceptions::Exception e)
   {
@@ -118,9 +114,6 @@ int main(int argc, char* argv[])
     view.show(&sln, Views::HERMES_EPS_HIGH);
     Views::View::wait();
   }
-
-  // Clean up.
-  delete [] coeff_vec;
 
   return 0;
 }

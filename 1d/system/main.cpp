@@ -203,7 +203,7 @@ int main(int argc, char* argv[])
         Hermes::vector<Solution<double> *>(&u_ref_sln, &v_ref_sln));
 
     // Project the fine mesh solution onto the coarse mesh.
-    info("Projecting reference solution on coarse mesh.");
+    info("Projecting reference solutions on coarse meshes.");
     OGProjection<double>::project_global(Hermes::vector<Space<double> *>(&u_space, &v_space), 
         Hermes::vector<Solution<double> *>(&u_ref_sln, &v_ref_sln), 
         Hermes::vector<Solution<double> *>(&u_sln, &v_sln), matrix_solver); 
