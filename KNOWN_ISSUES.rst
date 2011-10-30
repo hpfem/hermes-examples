@@ -62,7 +62,7 @@ Most of them do a void first time step.
 heat-transfer/heat-and-moisture
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Adaptivity dod not work well since the two fields had 
+Adaptivity did not work well since the two fields had 
 several orders of magnitude difference. So I rescaled 
 the equations which improved adaptivity, but I must have 
 introduced a bug, since the results are now different from 
