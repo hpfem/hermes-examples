@@ -39,20 +39,10 @@ richards/seepage-adapt
 
 Needs conversion to new weak forms.
 
-richards/capillary barrier
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Segfaults.
-
-richards/capillary barrier-adapt
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Segfaults.
-
 richards/capillary-barrier-rk
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Freezes during first time step
+Somehow the solution might not be right.
 
 Richard's examples in general
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
