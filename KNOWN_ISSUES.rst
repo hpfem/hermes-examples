@@ -63,14 +63,6 @@ Richard's examples in general
 
 Most of them do a void first time step.
 
-
-P04-adaptivity/03-system
-~~~~~~~~~~~~~~~~~~~~~~~~ 
-
-Adaptivity works but there is an error in error 
-measurement on the first mesh -- it stays over 90% 
-all the time.  
-
 heat-transfer/heat-and-moisture
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
