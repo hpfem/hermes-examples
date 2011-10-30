@@ -1,3 +1,0 @@
-rm *~ 
-./1d-system
-python plot_graph.py &

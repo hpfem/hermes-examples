@@ -1,6 +1,5 @@
 add_subdirectory(bearing)
 add_subdirectory(driven-cavity)
-add_subdirectory(rayleigh-benard)
 add_subdirectory(circular-obstacle)
 add_subdirectory(circular-obstacle-adapt) 
 add_subdirectory(ns-heat-subdomains)

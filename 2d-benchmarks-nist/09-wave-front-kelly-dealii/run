@@ -1,9 +1,0 @@
-mkdir -p res
-for i in `seq 1 12`;
-do
-  ./nist-09-kelly-dealii $i
-  convert final_mesh-$i.bmp final_mesh-$i.png
-  mv final_mesh-$i.png res/
-  rm final_mesh-$i.bmp
-  mv conv_table-$i.dat res/
-done

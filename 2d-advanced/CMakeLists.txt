@@ -12,7 +12,6 @@ add_subdirectory(neutronics)
 
 add_subdirectory(richards)
 add_subdirectory(schroedinger)
-add_subdirectory(flame-propagation)
 add_subdirectory(wave-equation)
 
 add_subdirectory(miscellaneous)
