@@ -31,7 +31,7 @@ std::string mesh_file = "domain-half.mesh";
 
 // Methods.
 // 1 = Newton, 2 = Picard.
-const int ITERATIVE_METHOD = 2;		          
+const int ITERATIVE_METHOD = 1;		          
 // 1 = implicit Euler, 2 = Crank-Nicolson.
 const int TIME_INTEGRATION = 1;                   
 
@@ -344,6 +344,7 @@ int main(int argc, char* argv[])
         else {
           info("Projecting previous fine mesh solution to obtain initial vector on new fine mesh.");
           OGProjection<double>::project_global(ref_space, &ref_sln, coeff_vec, matrix_solver);
+          delete ref_sln.get_space();
           delete ref_sln.get_mesh();
         }
 
@@ -470,7 +471,6 @@ int main(int argc, char* argv[])
       }
 
       delete adaptivity;
-      delete ref_space;
     }
     while (!done);
 
