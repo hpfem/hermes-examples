@@ -257,7 +257,6 @@ int main (int argc, char* argv[]) {
   info("Projecting to obtain initial vector for the Newton's method.");
   int ndof = Space<double>::get_num_dofs(Hermes::vector<Space<double>*>(&C_space, &phi_space));
   double* coeff_vec_coarse = new double[ndof] ;
-  memset(coeff_vec_coarse, 0, ndof * sizeof(double));
 
   OGProjection<double>::project_global(Hermes::vector<Space<double> *>(&C_space, &phi_space),
       Hermes::vector<MeshFunction<double> *>(&C_prev_time, &phi_prev_time),
@@ -340,7 +339,6 @@ int main (int argc, char* argv[]) {
       int ndof_ref = Space<double>::get_num_dofs(*ref_spaces);
 
       double* coeff_vec = new double[ndof_ref];
-      memset(coeff_vec, 0, ndof * sizeof(double));
 
       NewtonSolver<double>* solver = new NewtonSolver<double>(dp, matrix_solver);
 
@@ -449,7 +447,7 @@ int main (int argc, char* argv[]) {
       delete adaptivity;
       delete ref_spaces;
       delete dp;
-      delete[] coeff_vec;
+      delete [] coeff_vec;
     }
     while (done == false);
 

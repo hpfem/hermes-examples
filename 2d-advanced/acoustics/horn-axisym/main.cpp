@@ -135,15 +135,11 @@ int main(int argc, char* argv[])
     // Time measurement.
     cpu_time.tick();
 
-    // Initial coefficient vector for the Newton's method.
-    std::complex<double> * coeff_vec = new std::complex<double> [ndof_ref];
-    memset(coeff_vec, 0, ndof_ref * sizeof(std::complex<double>));
-
     // Perform Newton's iteration.
     Hermes::Hermes2D::NewtonSolver<std::complex<double> > newton(&dp, matrix_solver);
     try
     {
-      newton.solve(coeff_vec);
+      newton.solve();
     }
     catch(Hermes::Exceptions::Exception e)
     {
