@@ -17,6 +17,7 @@ just a wrong choice of parameters.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Runs till the end and then segfaults.
+Runs fine on Windows.
 
 1d/system
 ~~~~~~~~~
@@ -32,11 +33,6 @@ neutronics/4-group-adapt
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 See line #300 of main.cpp for problem description.
-
-richards/basic-rk-newton-adapt
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Segfaults.
 
 richards/seepage-adapt 
 ~~~~~~~~~~~~~~~~~~~~~~
