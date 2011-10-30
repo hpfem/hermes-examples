@@ -269,7 +269,7 @@ bool init_polynomials(int n, double low_limit, double *points, int n_inside_poin
 	      for (int k=0; k<3; k++) {
 		constitutive->k_pols[i][j][k] = new double[6 + pts];
 		if (k<2)
-		  constitutive->c_pols[i][j][k] = new double[4];
+		  constitutive->c_pols[i][j][k] = new double[5];
 	      }
 	    }
 	  }
