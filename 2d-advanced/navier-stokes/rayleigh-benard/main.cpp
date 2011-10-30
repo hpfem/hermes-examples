@@ -52,7 +52,7 @@ const double NEWTON_TOL = 1e-5;
 const int NEWTON_MAX_ITER = 100;                  
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
 
 // Problem parameters.
 // Prandtl number (water has 7.0 around 20 degrees Celsius).
@@ -142,8 +142,8 @@ int main(int argc, char* argv[])
   // coefficient vector for the Newton's method.
   double* coeff_vec = new double[Space<double>::get_num_dofs(spaces)];
   info("Projecting initial condition to obtain initial vector for the Newton's method.");
-  OGProjection<double>::project_global(spaces, slns, coeff_vec, matrix_solver_type, 
-                               Hermes::vector<ProjNormType>(vel_proj_norm, vel_proj_norm, p_proj_norm, t_proj_norm));
+  OGProjection<double>::project_global(spaces, slns, coeff_vec, matrix_solver, 
+      Hermes::vector<ProjNormType>(vel_proj_norm, vel_proj_norm, p_proj_norm, t_proj_norm));
 
   // Time-stepping loop:
   char title[100];
@@ -154,9 +154,8 @@ int main(int argc, char* argv[])
     info("---- Time step %d, time = %g:", ts, current_time);
 
     // Perform Newton's iteration.
-    Hermes::Hermes2D::NewtonSolver<double> newton(&dp, matrix_solver_type);
-    bool verbose = true;
-    newton.set_verbose_output(verbose);
+    Hermes::Hermes2D::NewtonSolver<double> newton(&dp, matrix_solver);
+    newton.set_verbose_output(true);
     try
     {
       newton.solve(coeff_vec, NEWTON_TOL, NEWTON_MAX_ITER);
@@ -168,7 +167,8 @@ int main(int argc, char* argv[])
     };
 
     // Update previous time level solutions.
-    Solution<double>::vector_to_solutions(coeff_vec, spaces, slns);
+    Solution<double>::vector_to_solutions(newton.get_sln_vector(), spaces, slns);
+
     // Show the solution at the end of time step.
     sprintf(title, "Velocity, time %g", current_time);
     vview.set_title(title);

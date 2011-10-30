@@ -77,7 +77,7 @@ const double ERR_STOP = 0.1;
 const int NDOF_STOP = 1000;                       
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-Hermes::MatrixSolverType matrix_solver_type = Hermes::SOLVER_UMFPACK;  
+Hermes::MatrixSolverType matrix_solver = Hermes::SOLVER_UMFPACK;  
 
 // Problem parameters.
 const double D_u = 1;
@@ -181,39 +181,32 @@ int main(int argc, char* argv[])
     info("Solving on reference mesh.");
     DiscreteProblem<double> dp(&wf, *ref_spaces);
 
-    NewtonSolver<double> newton(&dp, matrix_solver_type);
-    newton.set_verbose_output(false);
+    NewtonSolver<double> newton(&dp, matrix_solver);
+    newton.set_verbose_output(true);
 
     // Time measurement.
     cpu_time.tick();
     
-    // Initial coefficient vector for the Newton's method.  
-    double* coeff_vec = new double[ndof_ref];
-    memset(coeff_vec, 0, ndof_ref * sizeof(double));
-
     // Perform Newton's iteration.
     try
     {
-      newton.solve(coeff_vec);
+      newton.solve();
     }
     catch(Hermes::Exceptions::Exception e)
     {
       e.printMsg();
       error("Newton's iteration failed.");
     };
-    // Translate the resulting coefficient vector into the instance of Solution.
-    Solution<double>::vector_to_solutions(newton.get_sln_vector(), *ref_spaces, 
-        Hermes::vector<Solution<double> *>(&u_ref_sln, &v_ref_sln));
 
     // Translate the resulting coefficient vector into the Solution<double> sln.
-    Solution<double>::vector_to_solutions(coeff_vec, *ref_spaces, 
+    Solution<double>::vector_to_solutions(newton.get_sln_vector(), *ref_spaces, 
         Hermes::vector<Solution<double> *>(&u_ref_sln, &v_ref_sln));
 
     // Project the fine mesh solution onto the coarse mesh.
     info("Projecting reference solution on coarse mesh.");
     OGProjection<double>::project_global(Hermes::vector<Space<double> *>(&u_space, &v_space), 
         Hermes::vector<Solution<double> *>(&u_ref_sln, &v_ref_sln), 
-        Hermes::vector<Solution<double> *>(&u_sln, &v_sln), matrix_solver_type); 
+        Hermes::vector<Solution<double> *>(&u_sln, &v_sln), matrix_solver); 
    
     cpu_time.tick();
 
@@ -293,7 +286,6 @@ int main(int argc, char* argv[])
         >= NDOF_STOP) done = true;
 
     // Clean up.
-    delete [] coeff_vec;
     delete adaptivity;
     for(unsigned int i = 0; i < ref_spaces->size(); i++)
       delete (*ref_spaces)[i]->get_mesh();

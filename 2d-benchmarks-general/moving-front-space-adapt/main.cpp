@@ -70,7 +70,7 @@ const double ERR_STOP = 1.0;
 const int NDOF_STOP = 60000;                      
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
 
 // Newton's method
 // Stopping criterion for Newton on fine mesh.
@@ -195,7 +195,7 @@ int main(int argc, char* argv[])
       DiscreteProblem<double> dp(&wf, ref_space);
 
       // Initialize Runge-Kutta time stepping.
-      RungeKutta<double> runge_kutta(&dp, &bt, matrix_solver_type);
+      RungeKutta<double> runge_kutta(&dp, &bt, matrix_solver);
 
       // Perform one Runge-Kutta time step according to the selected Butcher's table.
       info("Runge-Kutta time step (t = %g s, tau = %g s, stages: %d).",
@@ -218,7 +218,7 @@ int main(int argc, char* argv[])
       // Project the fine mesh solution onto the coarse mesh.
       Solution<double> sln_coarse;
       info("Projecting fine mesh solution on coarse mesh for error estimation.");
-      OGProjection<double>::project_global(&space, &sln_time_new, &sln_coarse, matrix_solver_type); 
+      OGProjection<double>::project_global(&space, &sln_time_new, &sln_coarse, matrix_solver); 
 
       // Calculate element errors and total error estimate.
       info("Calculating error estimate.");

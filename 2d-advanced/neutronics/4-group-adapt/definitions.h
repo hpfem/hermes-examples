@@ -150,4 +150,4 @@ private:
 int power_iteration(const MaterialPropertyMaps& matprop, 
                     const Hermes::vector<Space<double>*>& spaces, DefaultWeakFormSourceIteration<double>* wf, 
                     const Hermes::vector<MeshFunction<double> *>& solution, const std::string& fission_region, 
-                    double tol, Hermes::MatrixSolverType matrix_solver_type);
+                    double tol, Hermes::MatrixSolverType matrix_solver);

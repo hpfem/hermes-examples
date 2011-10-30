@@ -96,7 +96,7 @@ double ERR_STOP_CONCENTRATION = 10.0;
 const int NDOF_STOP = 100000;                     
 // Matrix solver for orthogonal projections: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
 
 // Number of initial uniform mesh refinements of the mesh for the flow.
 unsigned int INIT_REF_NUM_FLOW = 3;               
@@ -279,7 +279,7 @@ int main(int argc, char* argv[])
       // Project the previous time level solution onto the new fine mesh.
       info("Projecting the previous time level solution onto the new fine mesh.");
       OGProjection<double>::project_global(*ref_spaces, Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_c), 
-        Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_c), matrix_solver_type);
+        Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_c), matrix_solver);
 
       /*
       if(iteration == 1) {
@@ -313,9 +313,9 @@ int main(int argc, char* argv[])
       (*ref_spaces)[3]->get_mesh()->set_seq((*ref_spaces)[0]->get_mesh()->get_seq());
 
       // Set up the solver, matrix, and rhs according to the solver selection.
-      SparseMatrix<double>* matrix = create_matrix<double>(matrix_solver_type);
-      Vector<double>* rhs = create_vector<double>(matrix_solver_type);
-      LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver_type, matrix, rhs);
+      SparseMatrix<double>* matrix = create_matrix<double>(matrix_solver);
+      Vector<double>* rhs = create_vector<double>(matrix_solver);
+      LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver, matrix, rhs);
 
       // Initialize the FE problem.
       bool is_linear = true;
@@ -356,7 +356,7 @@ int main(int argc, char* argv[])
       info("Projecting reference solution on coarse mesh.");
       OGProjection<double>::project_global(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x,
         &space_rho_v_y, &space_e, &space_c), Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e, &rsln_c),
-        Hermes::vector<Solution<double>*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y, &sln_e, &sln_c), matrix_solver_type,
+        Hermes::vector<Solution<double>*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y, &sln_e, &sln_c), matrix_solver,
         Hermes::vector<ProjNormType>(HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM));
 
       util_time_step = time_step;

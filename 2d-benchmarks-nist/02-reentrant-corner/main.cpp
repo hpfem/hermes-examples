@@ -67,7 +67,7 @@ const double ERR_STOP = 0.1;
 const int NDOF_STOP = 60000;                      
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-Hermes::MatrixSolverType matrix_solver_type = Hermes::SOLVER_UMFPACK;  
+Hermes::MatrixSolverType matrix_solver = Hermes::SOLVER_UMFPACK;  
 
 int main(int argc, char* argv[])
 {
@@ -157,7 +157,7 @@ int main(int argc, char* argv[])
     double* coeff_vec = new double[ndof_ref];
     memset(coeff_vec, 0, ndof_ref * sizeof(double));
     
-    NewtonSolver<double> newton(&dp, matrix_solver_type);
+    NewtonSolver<double> newton(&dp, matrix_solver);
     newton.set_verbose_output(false);
     
     Solution<double> ref_sln;
@@ -179,7 +179,7 @@ int main(int argc, char* argv[])
     
     // Project the fine mesh solution onto the coarse mesh.
     info("Calculating error estimate and exact error.");
-    OGProjection<double>::project_global(&space, &ref_sln, &sln, matrix_solver_type);
+    OGProjection<double>::project_global(&space, &ref_sln, &sln, matrix_solver);
 
     // Calculate element errors and total error estimate.
     Adapt<double> adaptivity(&space);

@@ -32,7 +32,7 @@ const double time_step = 0.01;
 const double T_FINAL = 2.0;                        
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;   
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;   
 
 // Choose one of the following time-integration methods, or define your own Butcher's table. The last number 
 // in the name of each method is its order. The one before last, if present, is the number of stages.
@@ -106,7 +106,7 @@ int main(int argc, char* argv[])
   v_view.fix_scale_width(50);
 
   // Initialize Runge-Kutta time stepping.
-  RungeKutta<double> runge_kutta(&dp, &bt, matrix_solver_type);
+  RungeKutta<double> runge_kutta(&dp, &bt, matrix_solver);
 
   // Time stepping loop.
   double current_time = 0; int ts = 1;

@@ -7,6 +7,17 @@ happen to be interested in one of these, let us know
 and we will give it a higher priority. If you are able 
 to fix the example yourself, we'll buy you a beer :)
 
+navier-stokes/rayleigh-benard
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Does not exhibit the vortices as expected. This might be
+just a wrong choice of parameters. 
+
+1d/system
+~~~~~~~~~
+
+Segfaults.
+
 neutronics/4-group
 ~~~~~~~~~~~~~~~~~~
 
@@ -17,6 +28,11 @@ neutronics/4-group-adapt
 
 See line #300 of main.cpp for problem description.
 
+richards/basic-rk-newton-adapt
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Segfaults.
+
 richards/seepage-adapt 
 ~~~~~~~~~~~~~~~~~~~~~~
 
@@ -26,6 +42,22 @@ richards/capillary barrier
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Segfaults.
+
+richards/capillary barrier-adapt
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Segfaults.
+
+richards/capillary-barrier-rk
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Freezes during first time step
+
+Richard's examples in general
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Most of them do a void first time step.
+
 
 P04-adaptivity/03-system
 ~~~~~~~~~~~~~~~~~~~~~~~~ 

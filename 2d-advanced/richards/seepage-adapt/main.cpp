@@ -74,7 +74,7 @@ const double ERR_STOP = 0.5;
 const int NDOF_STOP = 60000;                      
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
 
 // Newton's method
 // Stopping criterion for Newton on fine mesh.
@@ -203,7 +203,7 @@ int main(int argc, char* argv[])
     ref_sln.set_exact(rspace->get_mesh(), init_cond);
 
     // Project the function f() on the coarse mesh.
-    OGProjection<double>::project_global(&init_space, &ref_sln, &sln_prev_time, matrix_solver_type);
+    OGProjection<double>::project_global(&init_space, &ref_sln, &sln_prev_time, matrix_solver);
 
     // Calculate element errors and total error estimate.
     Adapt adaptivity(&init_space);
@@ -312,16 +312,16 @@ int main(int argc, char* argv[])
       // and setup reference space.
       Space<double>* ref_space = Space<double>::construct_refined_space(&space);
 
-      double* coeff_vec = new double[Space<double>::get_num_dofs(ref_space)];
+      double* coeff_vec = new double[ref_space->get_num_dofs()];
      
       // Calculate initial coefficient vector for Newton on the fine mesh.
       if (as == 1 && ts == 1) {
         info("Projecting coarse mesh solution to obtain initial vector on new fine mesh.");
-        OGProjection<double>::project_global(ref_space, &sln_prev_time, coeff_vec, matrix_solver_type);
+        OGProjection<double>::project_global(ref_space, &sln_prev_time, coeff_vec, matrix_solver);
       }
       else {
         info("Projecting previous fine mesh solution to obtain initial vector on new fine mesh.");
-        OGProjection<double>::project_global(ref_space, &ref_sln, coeff_vec, matrix_solver_type);
+        OGProjection<double>::project_global(ref_space, &ref_sln, coeff_vec, matrix_solver);
         delete ref_sln.get_mesh();
       }
 
@@ -329,23 +329,18 @@ int main(int argc, char* argv[])
       bool is_linear = false;
       DiscreteProblem<double> dp(&wf, ref_space, is_linear);
 
-      // Set up the solver, matrix, and rhs according to the solver selection.
-      SparseMatrix<double>* matrix = create_matrix<double>(matrix_solver_type);
-      Vector<double>* rhs = create_vector<double>(matrix_solver_type);
-      LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver_type, matrix, rhs);
-
       // Perform Newton's iteration.
       info("Solving nonlinear problem:");
       bool verbose = true;
-      if (!solve_newton(coeff_vec, &dp, solver, matrix, rhs, 
+      if (!solve_newton(coeff_vec, &dp,
           NEWTON_TOL, NEWTON_MAX_ITER, verbose)) error("Newton's iteration failed.");
 
       // Translate the resulting coefficient vector into the actual solutions. 
-      Solution<double>::vector_to_solution(coeff_vec, ref_space, &ref_sln);
+      Solution<double>::vector_to_solution(newton.get_sln_vector(), ref_space, &ref_sln);
 
       // Project the fine mesh solution on the coarse mesh.
       info("Projecting fine mesh solution on coarse mesh for error calculation.");
-      OGProjection<double>::project_global(&space, &ref_sln, &sln, matrix_solver_type);
+      OGProjection<double>::project_global(&space, &ref_sln, &sln, matrix_solver);
 
       // Calculate element errors.
       info("Calculating error estimate."); 
@@ -380,9 +375,6 @@ int main(int argc, char* argv[])
 
       // Cleanup.
       delete [] coeff_vec;
-      delete solver;
-      delete matrix;
-      delete rhs;
       delete adaptivity;
       delete ref_space;
     }

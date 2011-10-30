@@ -59,7 +59,7 @@ const double ERR_STOP = 0.5;
 const int NDOF_STOP = 60000;                      
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-Hermes::MatrixSolverType matrix_solver_type = Hermes::SOLVER_UMFPACK;  
+Hermes::MatrixSolverType matrix_solver = Hermes::SOLVER_UMFPACK;  
 
 // Add also the norm of the residual to the error estimate of each element.
 const bool USE_RESIDUAL_ESTIMATOR = true;         
@@ -166,7 +166,7 @@ int main(int argc, char* argv[])
     double* coeff_vec = new double[ndof];
     memset(coeff_vec, 0, ndof * sizeof(double));
     
-    NewtonSolver<double> newton(&dp, matrix_solver_type);
+    NewtonSolver<double> newton(&dp, matrix_solver);
     newton.set_verbose_output(false);
 
     try

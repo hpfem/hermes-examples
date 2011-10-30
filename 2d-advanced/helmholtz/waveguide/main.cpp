@@ -31,7 +31,7 @@ const int P_INIT = 6;
 const int INIT_REF_NUM = 3;                            
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;       
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;       
 
 // Newton's method.
 const double NEWTON_TOL = 1e-8;
@@ -96,13 +96,11 @@ int main(int argc, char* argv[])
 
   // Initial coefficient vector for the Newton's method.  
   ndof = Space<double>::get_num_dofs(Hermes::vector<Space<double>*>(&e_r_space, &e_i_space));
-  double* coeff_vec = new double[ndof];
-  memset(coeff_vec, 0, ndof * sizeof(double));
 
-  Hermes::Hermes2D::NewtonSolver<double> newton(&dp, matrix_solver_type);
+  Hermes::Hermes2D::NewtonSolver<double> newton(&dp, matrix_solver);
   try
   {
-    newton.solve(coeff_vec, NEWTON_TOL, NEWTON_MAX_ITER);
+    newton.solve(NULL, NEWTON_TOL, NEWTON_MAX_ITER);
   }
   catch(Hermes::Exceptions::Exception e)
   {
@@ -111,7 +109,7 @@ int main(int argc, char* argv[])
   };
 
   // Translate the resulting coefficient vector into Solutions.
-  Solution<double>::vector_to_solutions(coeff_vec, Hermes::vector<Space<double>*>(&e_r_space, &e_i_space), 
+  Solution<double>::vector_to_solutions(newton.get_sln_vector(), Hermes::vector<Space<double>*>(&e_r_space, &e_i_space), 
       Hermes::vector<Solution<double>*>(&e_r_sln, &e_i_sln));
 
   // Visualize the solution.
@@ -125,9 +123,6 @@ int main(int argc, char* argv[])
 
   // Wait for the view to be closed.
   View::wait();
-
-  // Clean up.
-  delete [] coeff_vec;
 
   return 0;
 }

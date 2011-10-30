@@ -109,7 +109,7 @@ const int NDOF_STOP = 100000;
 
 // Matrix solver for orthogonal projections: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
 
 // Equation parameters.
 // Exterior pressure (dimensionless).
@@ -294,7 +294,7 @@ int main(int argc, char* argv[])
       else
       {
         OGProjection<double>::project_global(*ref_spaces, Hermes::vector<Solution<double>*>(prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e), 
-          Hermes::vector<Solution<double>*>(prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e), matrix_solver_type, Hermes::vector<Hermes::Hermes2D::ProjNormType>(), iteration > 1);
+          Hermes::vector<Solution<double>*>(prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e), matrix_solver, Hermes::vector<Hermes::Hermes2D::ProjNormType>(), iteration > 1);
         
         if(iteration == 2)
         {
@@ -310,7 +310,7 @@ int main(int argc, char* argv[])
         }
         else
           OGProjection<double>::project_global(*ref_spaces, Hermes::vector<Solution<double>*>(prev_rho2, prev_rho_v_x2, prev_rho_v_y2, prev_e2), 
-            Hermes::vector<Solution<double>*>(prev_rho2, prev_rho_v_x2, prev_rho_v_y2, prev_e2), matrix_solver_type, Hermes::vector<Hermes::Hermes2D::ProjNormType>());
+            Hermes::vector<Solution<double>*>(prev_rho2, prev_rho_v_x2, prev_rho_v_y2, prev_e2), matrix_solver, Hermes::vector<Hermes::Hermes2D::ProjNormType>());
       }
 
       // Initialize weak formulation.
@@ -333,10 +333,10 @@ int main(int argc, char* argv[])
       DiscreteProblem<double> dp_stabilization(&wf_stabilization, &refspace_stabilization);
       bool* discreteIndicator = NULL;
 
-      SparseMatrix<double>* matrix = create_matrix<double>(matrix_solver_type);
-      Vector<double>* rhs = create_vector<double>(matrix_solver_type);
-      Vector<double>* rhs_stabilization = create_vector<double>(matrix_solver_type);
-      LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver_type, matrix, rhs);
+      SparseMatrix<double>* matrix = create_matrix<double>(matrix_solver);
+      Vector<double>* rhs = create_vector<double>(matrix_solver);
+      Vector<double>* rhs_stabilization = create_vector<double>(matrix_solver);
+      LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver, matrix, rhs);
 
       if(SHOCK_CAPTURING && SHOCK_CAPTURING_TYPE == FEISTAUER)
       {
@@ -407,7 +407,7 @@ int main(int argc, char* argv[])
       info("Projecting reference solution on coarse mesh.");
       OGProjection<double>::project_global(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
         &space_rho_v_y, &space_e), Hermes::vector<Solution<double>*>(rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e), 
-        Hermes::vector<Solution<double>*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y, &sln_e), matrix_solver_type, 
+        Hermes::vector<Solution<double>*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y, &sln_e), matrix_solver, 
         Hermes::vector<ProjNormType>(HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM)); 
 
       // Calculate element errors and total error estimate.

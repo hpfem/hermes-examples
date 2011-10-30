@@ -61,7 +61,7 @@ const int NEWTON_MAX_ITER = 10;
 const double H = 5;                               
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
 
 // Boundary markers.
 const std::string BDY_BOTTOM = "b1";
@@ -103,9 +103,10 @@ int main(int argc, char* argv[])
 #else
   H1Space<double> p_space(&mesh, P_INIT_PRESSURE);
 #endif
+  Hermes::vector<Space<double>* > spaces = Hermes::vector<Space<double>* >(&xvel_space, &yvel_space, &p_space);
 
   // Calculate and report the number of degrees of freedom.
-  int ndof = Space<double>::get_num_dofs(Hermes::vector<Space<double>*>(&xvel_space, &yvel_space, &p_space));
+  int ndof = Space<double>::get_num_dofs(spaces);
   info("ndof = %d.", ndof);
 
   // Define projection norms.
@@ -117,17 +118,18 @@ int main(int argc, char* argv[])
 #endif
 
   // Solutions for the Newton's iteration and time stepping.
-  info("Setting initial conditions.");
+  info("Setting zero initial conditions.");
   ZeroSolution xvel_prev_time(&mesh);
   ZeroSolution yvel_prev_time(&mesh);
   ZeroSolution p_prev_time(&mesh);
+  Hermes::vector<Solution<double>* > slns_prev_time = Hermes::vector<Solution<double>* >(&xvel_prev_time, &yvel_prev_time, &p_prev_time);
 
   // Initialize weak formulation.
   WeakForm<double>* wf;
   wf = new WeakFormNSNewton(STOKES, RE, TAU, &xvel_prev_time, &yvel_prev_time);
 
   // Initialize the FE problem.
-  DiscreteProblem<double> dp(wf, Hermes::vector<Space<double>*>(&xvel_space, &yvel_space, &p_space));
+  DiscreteProblem<double> dp(wf, spaces);
 
   // Initialize views.
   VectorView vview("velocity [m/s]", new WinGeom(0, 0, 750, 240));
@@ -137,15 +139,6 @@ int main(int argc, char* argv[])
   //pview.set_min_max_range(-0.9, 1.0);
   pview.fix_scale_width(80);
   pview.show_mesh(true);
-
-  // Project the initial condition on the FE space to obtain initial
-  // coefficient vector for the Newton's method.
-  double* coeff_vec = new double[Space<double>::get_num_dofs(Hermes::vector<Space<double>*>(&xvel_space, &yvel_space, &p_space))];
-  info("Projecting initial condition to obtain initial vector for the Newton's method.");
-  OGProjection<double>::project_global(Hermes::vector<Space<double>*>(&xvel_space, &yvel_space, &p_space),
-      Hermes::vector<MeshFunction<double>*>(&xvel_prev_time, &yvel_prev_time, &p_prev_time),
-      coeff_vec, matrix_solver_type,
-      Hermes::vector<ProjNormType>(vel_proj_norm, vel_proj_norm, p_proj_norm));
 
   // Time-stepping loop:
   char title[100];
@@ -158,15 +151,15 @@ int main(int argc, char* argv[])
     // Update time-dependent essential BCs.
     if (current_time <= STARTUP_TIME) {
       info("Updating time-dependent essential BC.");
-      Space<double>::update_essential_bc_values(Hermes::vector<Space<double>*>(&xvel_space, &yvel_space, &p_space), current_time);
+      Space<double>::update_essential_bc_values(spaces, current_time);
     }
 
     // Perform Newton's iteration.
     info("Solving nonlinear problem:");
-    Hermes::Hermes2D::NewtonSolver<double> newton(&dp, matrix_solver_type);
+    Hermes::Hermes2D::NewtonSolver<double> newton(&dp, matrix_solver);
     try
     {
-      newton.solve(coeff_vec, NEWTON_TOL, NEWTON_MAX_ITER);
+      newton.solve(NULL, NEWTON_TOL, NEWTON_MAX_ITER);
     }
     catch(Hermes::Exceptions::Exception e)
     {
@@ -175,8 +168,7 @@ int main(int argc, char* argv[])
     };
 
     // Update previous time level solutions.
-    Solution<double>::vector_to_solutions(coeff_vec, Hermes::vector<Space<double>*>(&xvel_space, &yvel_space, &p_space),
-        Hermes::vector<Solution<double>*>(&xvel_prev_time, &yvel_prev_time, &p_prev_time));
+    Solution<double>::vector_to_solutions(newton.get_sln_vector(), spaces, slns_prev_time);
 
     // Show the solution at the end of time step.
     sprintf(title, "Velocity, time %g", current_time);
@@ -186,8 +178,6 @@ int main(int argc, char* argv[])
     pview.set_title(title);
     pview.show(&p_prev_time);
   }
-
-  delete [] coeff_vec;
 
   // Wait for all views to be closed.
   View::wait();

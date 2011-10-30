@@ -40,7 +40,7 @@ double time_step = 5e-4;
 const double T_FINAL = 0.4;                       
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;
 
 // Problem parameters.
 double K_S = 20.464;
@@ -85,14 +85,8 @@ int main(int argc, char* argv[])
   int ndof = space.get_num_dofs();
   info("ndof = %d.", ndof);
 
-  // Initial condition vector is the zero vector. This is why we
-  // use the H_OFFSET. 
-  double* coeff_vec = new double[ndof];
-  memset(coeff_vec, 0, ndof*sizeof(double));
-
-  // Convert initial condition into a Solution.
-  Solution<double> h_time_prev;
-  Solution<double>::vector_to_solution(coeff_vec, &space, &h_time_prev);
+  // Zero initial solutions. This is why we use H_OFFSET.
+  ZeroSolution h_time_prev(&mesh);
 
   // Initialize views.
   ScalarView view("Initial condition", new WinGeom(0, 0, 600, 500));
@@ -116,7 +110,7 @@ int main(int argc, char* argv[])
   DiscreteProblem<double> dp(&wf, &space);
 
   // Initialize Newton solver.
-  NewtonSolver<double> newton(&dp, matrix_solver_type);
+  NewtonSolver<double> newton(&dp, matrix_solver);
   newton.set_verbose_output(true);
 
   // Time stepping:
@@ -128,7 +122,8 @@ int main(int argc, char* argv[])
     // Perform Newton's iteration.
     try
     {
-      newton.solve(coeff_vec, NEWTON_TOL, NEWTON_MAX_ITER);
+      // NULL = zero initial coefficient vector.
+      newton.solve(NULL, NEWTON_TOL, NEWTON_MAX_ITER);
     }
     catch(Hermes::Exceptions::Exception e)
     {
@@ -137,7 +132,7 @@ int main(int argc, char* argv[])
     };
 
     // Translate the resulting coefficient vector into the Solution<double> sln.
-    Solution<double>::vector_to_solution(coeff_vec, &space, &h_time_prev);
+    Solution<double>::vector_to_solution(newton.get_sln_vector(), &space, &h_time_prev);
 
     // Visualize the solution.
     char title[100];
@@ -150,9 +145,6 @@ int main(int argc, char* argv[])
     ts++;
   }
   while (current_time < T_FINAL);
-
-  // Cleaning up.
-  delete [] coeff_vec;
 
   // Wait for the view to be closed.
   View::wait();

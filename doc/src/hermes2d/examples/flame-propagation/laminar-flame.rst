@@ -123,7 +123,7 @@ This is necessary as the functions defining the Filter have changed::
 
     // Set current solutions to the latest Newton iterate 
     // and reinitialize filters of these solutions.
-    Solution::vector_to_solutions(coeff_vec, Tuple<Space *>(&tspace, &cspace), 
+    Solution::vector_to_solutions(newton.get_sln_vector(), Tuple<Space *>(&tspace, &cspace), 
                                   Tuple<Solution *>(&t_prev_newton, &c_prev_newton));
     omega.reinit();
     omega_dt.reinit();

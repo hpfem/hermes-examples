@@ -20,10 +20,10 @@ public:
                                double current_density, int order_inc = 3);
 };
 
-class FilterVectorPotencial : public Hermes::Hermes2D::MagFilter<double>
+class FilterVectorPotential : public Hermes::Hermes2D::MagFilter<double>
 {
 public:
-  FilterVectorPotencial(Hermes::vector<MeshFunction<double>*> solutions, Hermes::vector<int> items);
+  FilterVectorPotential(Hermes::vector<MeshFunction<double>*> solutions, Hermes::vector<int> items);
 
 protected:
   void filter_fn(int n, Hermes::vector<double*> values, double* result, Geom<double> *e);

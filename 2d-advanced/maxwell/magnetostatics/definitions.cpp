@@ -20,7 +20,7 @@ CustomWeakFormMagnetostatics::CustomWeakFormMagnetostatics(std::string material_
 }
 
 
-void FilterVectorPotencial::filter_fn(int n, Hermes::vector<double*> values, double* result, Geom<double> *e)
+void FilterVectorPotential::filter_fn(int n, Hermes::vector<double*> values, double* result, Geom<double> *e)
 {
   for (int i = 0; i < n; i++)
   {
@@ -32,7 +32,7 @@ void FilterVectorPotencial::filter_fn(int n, Hermes::vector<double*> values, dou
   }
 }
 
-FilterVectorPotencial::FilterVectorPotencial(Hermes::vector<MeshFunction<double>*> solutions, Hermes::vector<int> items) 
+FilterVectorPotential::FilterVectorPotential(Hermes::vector<MeshFunction<double>*> solutions, Hermes::vector<int> items) 
   : MagFilter<double>(solutions, items) 
 {
 }

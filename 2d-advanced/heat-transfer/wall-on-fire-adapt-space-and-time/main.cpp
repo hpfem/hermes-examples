@@ -76,7 +76,7 @@ const double SPACE_ERR_TOL = 1.0;
 const int NDOF_STOP = 60000;                      
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
 
 // Temporal adaptivity.
 // This flag decides whether adaptive time stepping will be done.
@@ -244,10 +244,10 @@ int main(int argc, char* argv[])
       DiscreteProblem<double> ref_dp(&wf, ref_space);
       
       // Initialize Runge-Kutta time stepping on the reference mesh.
-      RungeKutta<double> runge_kutta(&ref_dp, &bt, matrix_solver_type);
+      RungeKutta<double> runge_kutta(&ref_dp, &bt, matrix_solver);
 
       OGProjection<double>::project_global(ref_space, &sln_prev_time, 
-                                   &sln_prev_time, matrix_solver_type);
+                                   &sln_prev_time, matrix_solver);
       
       delete ref_sln.get_mesh();
       
@@ -317,7 +317,7 @@ int main(int argc, char* argv[])
       // Project the fine mesh solution onto the coarse mesh.
       Solution<double> sln;
       info("Projecting fine mesh solution on coarse mesh for error estimation.");
-      OGProjection<double>::project_global(&space, &ref_sln, &sln, matrix_solver_type); 
+      OGProjection<double>::project_global(&space, &ref_sln, &sln, matrix_solver); 
 
       // Show spatial error.
       sprintf(title, "Spatial error est, spatial adaptivity step %d", as);  

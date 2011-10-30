@@ -51,7 +51,7 @@ const int INIT_REF_NUM_BDY_TOP = 1;
 
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
 
 
 // Constitutive relations.
@@ -215,16 +215,8 @@ int main(int argc, char* argv[])
   int ndof = space.get_num_dofs();
   info("ndof = %d.", ndof);
 
-  // Initial condition vector is the zero vector. This is why we
-  // use the H_OFFSET. 
-  double* coeff_vec = new double[ndof];
-  memset(coeff_vec, 0, ndof*sizeof(double));
-
   // Convert initial condition into a Solution.
-  Solution<double> h_time_prev, h_time_new, time_error_fn;
-  Solution<double>::vector_to_solution(coeff_vec, &space, &h_time_prev);
-  Solution<double>::vector_to_solution(coeff_vec, &space, &time_error_fn);
-  delete [] coeff_vec;
+  ZeroSolution h_time_prev(&mesh), h_time_new(&mesh), time_error_fn(&mesh);
 
   // Initialize views.
   ScalarView view("Initial condition", new WinGeom(0, 0, 600, 500));
@@ -254,7 +246,7 @@ int main(int argc, char* argv[])
   DiscreteProblem<double> dp(&wf, &space);
 
   // Initialize Runge-Kutta time stepping.
-  RungeKutta<double> runge_kutta(&dp, &bt, matrix_solver_type);
+  RungeKutta<double> runge_kutta(&dp, &bt, matrix_solver);
 
   // Time stepping:
   double current_time = 0;

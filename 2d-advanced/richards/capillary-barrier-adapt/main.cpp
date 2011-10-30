@@ -95,7 +95,7 @@ const double ERR_STOP = 1.0;
 const int NDOF_STOP = 60000;                      
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
 
 // Constitutive relations.
 enum CONSTITUTIVE_RELATIONS {
@@ -334,26 +334,21 @@ int main(int argc, char* argv[])
       // Next we need to calculate the reference solution.
       // Newton's method:
       if(ITERATIVE_METHOD == 1) {
-        double* coeff_vec = new double[Space<double>::get_num_dofs(ref_space)];
+        double* coeff_vec = new double[ref_space->get_num_dofs()];
      
         // Calculate initial coefficient vector for Newton on the fine mesh.
         if (as == 1 && ts == 1) {
           info("Projecting coarse mesh solution to obtain initial vector on new fine mesh.");
-          OGProjection<double>::project_global(ref_space, &sln_prev_time, coeff_vec, matrix_solver_type);
+          OGProjection<double>::project_global(ref_space, &sln_prev_time, coeff_vec, matrix_solver);
         }
         else {
           info("Projecting previous fine mesh solution to obtain initial vector on new fine mesh.");
-          OGProjection<double>::project_global(ref_space, &ref_sln, coeff_vec, matrix_solver_type);
+          OGProjection<double>::project_global(ref_space, &ref_sln, coeff_vec, matrix_solver);
           delete ref_sln.get_mesh();
         }
 
         // Initialize the FE problem.
         DiscreteProblem<double> dp(wf, ref_space);
-
-        // Set up the solver, matrix, and rhs according to the solver selection.
-        SparseMatrix<double>* matrix = create_matrix<double>(matrix_solver_type);
-        Vector<double>* rhs = create_vector<double>(matrix_solver_type);
-        LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver_type, matrix, rhs);
 
         // Perform Newton's iteration on the reference mesh. If necessary, 
         // reduce time step to make it converge, but then restore time step 
@@ -370,22 +365,22 @@ int main(int argc, char* argv[])
         
         // Perform Newton's iteration.
         info("Solving nonlinear problem:");
-        Hermes::Hermes2D::NewtonSolver<double> newton(&dp, matrix_solver_type);
-        bool Newton_converged = false;
-        while(!Newton_converged)
+        Hermes::Hermes2D::NewtonSolver<double> newton(&dp, matrix_solver);
+        bool newton_converged = false;
+        while(!newton_converged)
         {
           try
           {
             newton.solve(coeff_vec, NEWTON_TOL, NEWTON_MAX_ITER);
-            Newton_converged = true;
+            newton_converged = true;
           }
           catch(Hermes::Exceptions::Exception e)
           {
             e.printMsg();
-            Newton_converged = false;
+            newton_converged = false;
           };
         
-          if(!Newton_converged)
+          if(!newton_converged)
           {
             // Restore solution from the beginning of time step.
             for (int i=0; i < ndof; i++) coeff_vec[i] = save_coeff_vec[i];
@@ -402,23 +397,20 @@ int main(int argc, char* argv[])
 
         // Translate the resulting coefficient vector 
         // into the desired reference solution. 
-        Solution<double>::vector_to_solution(coeff_vec, ref_space, &ref_sln);
+        Solution<double>::vector_to_solution(newton.get_sln_vector(), ref_space, &ref_sln);
 
         // Cleanup.
         delete [] coeff_vec;
-        delete solver;
-        delete matrix;
-        delete rhs;
       }
       else {
         // Calculate initial condition for Picard on the fine mesh.
         if (as == 1 && ts == 1) {
           info("Projecting coarse mesh solution to obtain initial vector on new fine mesh.");
-          OGProjection<double>::project_global(ref_space, &sln_prev_time, &sln_prev_iter, matrix_solver_type);
+          OGProjection<double>::project_global(ref_space, &sln_prev_time, &sln_prev_iter, matrix_solver);
         }
         else {
           info("Projecting previous fine mesh solution to obtain initial vector on new fine mesh.");
-          OGProjection<double>::project_global(ref_space, &ref_sln, &sln_prev_iter, matrix_solver_type);
+          OGProjection<double>::project_global(ref_space, &ref_sln, &sln_prev_iter, matrix_solver);
         }
 
         // Perform Picard iteration on the reference mesh. If necessary, 
@@ -430,7 +422,7 @@ int main(int argc, char* argv[])
         bc_essential.set_current_time(current_time);
 
         DiscreteProblem<double> dp(wf, ref_space);
-        PicardSolver<double> picard(&dp, &sln_prev_iter, matrix_solver_type);
+        PicardSolver<double> picard(&dp, &sln_prev_iter, matrix_solver);
         picard.set_verbose_output(verbose);
         while(!picard.solve(PICARD_TOL, PICARD_MAX_ITER)) 
           {
@@ -452,7 +444,7 @@ int main(int argc, char* argv[])
       // Project the fine mesh solution on the coarse mesh.
       info("Projecting fine mesh solution on coarse mesh for error calculation.");
       if(space.get_mesh() == NULL) error("it is NULL");
-      OGProjection<double>::project_global(&space, &ref_sln, &sln, matrix_solver_type);
+      OGProjection<double>::project_global(&space, &ref_sln, &sln, matrix_solver);
 
       // Calculate element errors.
       info("Calculating error estimate."); 

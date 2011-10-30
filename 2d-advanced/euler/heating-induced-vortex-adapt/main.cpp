@@ -99,7 +99,7 @@ const int NDOF_STOP = 100000;
 
 // Matrix solver for orthogonal projections: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
 
 // Equation parameters.
 // Exterior pressure (dimensionless).
@@ -243,7 +243,7 @@ int main(int argc, char* argv[])
       // Project the previous time level solution onto the new fine mesh.
       info("Projecting the previous time level solution onto the new fine mesh.");
       OGProjection<double>::project_global(*ref_spaces, Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), 
-        Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), matrix_solver_type, Hermes::vector<Hermes::Hermes2D::ProjNormType>(), iteration > 1);
+        Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), matrix_solver, Hermes::vector<Hermes::Hermes2D::ProjNormType>(), iteration > 1);
 
       
       // Report NDOFs.
@@ -255,9 +255,9 @@ int main(int argc, char* argv[])
       info("Solving on reference mesh.");
       DiscreteProblem<double> dp(&wf, *ref_spaces);
 
-      SparseMatrix<double>* matrix = create_matrix<double>(matrix_solver_type);
-      Vector<double>* rhs = create_vector<double>(matrix_solver_type);
-      LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver_type, matrix, rhs);
+      SparseMatrix<double>* matrix = create_matrix<double>(matrix_solver);
+      Vector<double>* rhs = create_vector<double>(matrix_solver);
+      LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver, matrix, rhs);
 
       wf.set_time_step(time_step);
 
@@ -288,7 +288,7 @@ int main(int argc, char* argv[])
       info("Projecting reference solution on coarse mesh.");
       OGProjection<double>::project_global(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
         &space_rho_v_y, &space_e), Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), 
-        Hermes::vector<Solution<double>*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y, &sln_e), matrix_solver_type, 
+        Hermes::vector<Solution<double>*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y, &sln_e), matrix_solver, 
         Hermes::vector<ProjNormType>(HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM)); 
 
       // Calculate element errors and total error estimate.

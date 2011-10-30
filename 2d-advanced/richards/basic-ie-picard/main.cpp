@@ -35,7 +35,7 @@ double time_step = 5e-4;
 const double T_FINAL = 0.4;                       
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
 
 // Problem parameters.
 double K_S = 20.464;
@@ -84,15 +84,8 @@ int main(int argc, char* argv[])
   int ndof = space.get_num_dofs();
   info("ndof = %d.", ndof);
 
-  // Initial condition vector is the zero vector. This is why we
-  // use the H_OFFSET. 
-  double* coeff_vec = new double[ndof];
-  memset(coeff_vec, 0, ndof*sizeof(double));
-
-  // Convert initial condition into a Solution.
-  Solution<double> h_time_prev, h_iter_prev;
-  Solution<double>::vector_to_solution(coeff_vec, &space, &h_time_prev);
-  Solution<double>::vector_to_solution(coeff_vec, &space, &h_iter_prev);
+  // Zero initial solutions. This is why we use H_OFFSET.
+  ZeroSolution h_time_prev(&mesh), h_iter_prev(&mesh);
 
   // Initialize views.
   ScalarView view("Initial condition", new WinGeom(0, 0, 600, 500));
@@ -116,7 +109,7 @@ int main(int argc, char* argv[])
   DiscreteProblem<double> dp(&wf, &space);
 
   // Initialize the Picard solver.
-  PicardSolver<double> picard(&dp, &h_iter_prev, matrix_solver_type);
+  PicardSolver<double> picard(&dp, &h_iter_prev, matrix_solver);
   picard.set_verbose_output(true);
 
   // Time stepping:

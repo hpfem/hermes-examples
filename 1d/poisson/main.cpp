@@ -24,7 +24,7 @@ const int INIT_REF_NUM = 3;
 
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-Hermes::MatrixSolverType matrix_solver_type = Hermes::SOLVER_UMFPACK;  
+Hermes::MatrixSolverType matrix_solver = Hermes::SOLVER_UMFPACK;  
 
 // Problem parameters.
 // Thermal cond. of Al for temperatures around 20 deg Celsius.
@@ -76,7 +76,7 @@ int main(int argc, char* argv[])
 
   // Perform Newton's iteration and translate the resulting coefficient vector into a Solution.
   Solution<double> sln;
-  NewtonSolver<double> newton(&dp, matrix_solver_type);
+  NewtonSolver<double> newton(&dp, matrix_solver);
   try
   {
     newton.solve(coeff_vec);

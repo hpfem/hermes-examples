@@ -102,7 +102,7 @@ const int NEWTON_MAX_ITER = 20;
 const double H = 5;                               
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.        
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;                                            
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;                                            
 
 // Current time (defined as global since needed in weak forms).
 double TIME = 0;
@@ -258,12 +258,12 @@ int main(int argc, char* argv[])
       if (ts == 1) {
         info("Projecting coarse mesh solution to obtain coefficient vector on new fine mesh.");
         OGProjection<double>::project_global(*ref_spaces, Hermes::vector<MeshFunction<double>*>(&xvel_sln, &yvel_sln, &p_sln), 
-                      coeff_vec, matrix_solver_type);
+                      coeff_vec, matrix_solver);
       }
       else {
         info("Projecting previous fine mesh solution to obtain coefficient vector on new fine mesh.");
         OGProjection<double>::project_global(*ref_spaces, Hermes::vector<MeshFunction<double>*>(&xvel_ref_sln, &yvel_ref_sln, &p_ref_sln), 
-            coeff_vec, matrix_solver_type);
+            coeff_vec, matrix_solver);
         delete xvel_ref_sln.get_mesh();
         delete yvel_ref_sln.get_mesh();
         delete p_ref_sln.get_mesh();
@@ -271,7 +271,7 @@ int main(int argc, char* argv[])
 
       // Perform Newton's iteration.
       info("Solving nonlinear problem:");
-      Hermes::Hermes2D::NewtonSolver<double> newton(&dp, matrix_solver_type);
+      Hermes::Hermes2D::NewtonSolver<double> newton(&dp, matrix_solver);
       try
       {
         newton.solve(coeff_vec, NEWTON_TOL, NEWTON_MAX_ITER);
@@ -289,7 +289,7 @@ int main(int argc, char* argv[])
       info("Projecting reference solution on coarse mesh.");
       OGProjection<double>::project_global(Hermes::vector<Space<double>*>(&xvel_space, &yvel_space, &p_space), 
           Hermes::vector<Solution<double>*>(&xvel_ref_sln, &yvel_ref_sln, &p_ref_sln), 
-          Hermes::vector<Solution<double>*>(&xvel_sln, &yvel_sln, &p_sln), matrix_solver_type, 
+          Hermes::vector<Solution<double>*>(&xvel_sln, &yvel_sln, &p_sln), matrix_solver, 
           Hermes::vector<ProjNormType>(vel_proj_norm, vel_proj_norm, p_proj_norm) );
 
       // Calculate element errors and total error estimate.

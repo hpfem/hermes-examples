@@ -37,7 +37,7 @@ double time_step = 5e-4;
 const double T_FINAL = 0.4;                       
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
 
 // Problem parameters.
 double K_S = 20.464;
@@ -105,15 +105,8 @@ int main(int argc, char* argv[])
   int ndof = space.get_num_dofs();
   info("ndof = %d.", ndof);
 
-  // Initial condition vector is the zero vector. This is why we
-  // use the H_OFFSET. 
-  double* coeff_vec = new double[ndof];
-  memset(coeff_vec, 0, ndof*sizeof(double));
-
-  // Convert initial condition into a Solution.
-  Solution<double> h_time_prev, h_time_new;
-  Solution<double>::vector_to_solution(coeff_vec, &space, &h_time_prev);
-  delete [] coeff_vec;
+  // Zero initial solutions. This is why we use H_OFFSET.
+  ZeroSolution h_time_prev(&mesh), h_time_new(&mesh);
 
   // Initialize views.
   ScalarView view("Initial condition", new WinGeom(0, 0, 600, 500));
@@ -136,7 +129,7 @@ int main(int argc, char* argv[])
   DiscreteProblem<double> dp(&wf, &space);
 
   // Initialize Runge-Kutta time stepping.
-  RungeKutta<double> runge_kutta(&dp, &bt, matrix_solver_type);
+  RungeKutta<double> runge_kutta(&dp, &bt, matrix_solver);
 
   // Time stepping:
   double current_time = 0;

@@ -146,7 +146,7 @@ const int NDOF_STOP = 5000;
 const double ERR_STOP = 0.1;                      
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
 
 // Weak forms.
 #include "definitions.cpp"
@@ -250,7 +250,7 @@ int main (int argc, char* argv[]) {
 
   DiscreteProblem<double> dp_coarse(wf, Hermes::vector<Space<double> *>(&C_space, &phi_space));
 
-  NewtonSolver<double>* solver_coarse = new NewtonSolver<double>(&dp_coarse, matrix_solver_type);
+  NewtonSolver<double>* solver_coarse = new NewtonSolver<double>(&dp_coarse, matrix_solver);
 
   // Project the initial condition on the FE space to obtain initial
   // coefficient vector for the Newton's method.
@@ -261,7 +261,7 @@ int main (int argc, char* argv[]) {
 
   OGProjection<double>::project_global(Hermes::vector<Space<double> *>(&C_space, &phi_space),
       Hermes::vector<MeshFunction<double> *>(&C_prev_time, &phi_prev_time),
-      coeff_vec_coarse, matrix_solver_type);
+      coeff_vec_coarse, matrix_solver);
 
   // Create a selector which will select optimal candidate.
   H1ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
@@ -293,8 +293,8 @@ int main (int argc, char* argv[]) {
   //View::wait(HERMES_WAIT_KEYPRESS);
 
   // Translate the resulting coefficient vector into the Solution<double> sln.
-  Solution<double>::vector_to_solutions(coeff_vec_coarse, Hermes::vector<Space<double> *>(&C_space, &phi_space),
-                                Hermes::vector<Solution<double> *>(&C_sln, &phi_sln));
+  Solution<double>::vector_to_solutions(solver_coarse->get_sln_vector(), Hermes::vector<Space<double> *>(&C_space, &phi_space),
+      Hermes::vector<Solution<double> *>(&C_sln, &phi_sln));
 
   Cview.show(&C_sln);
   phiview.show(&phi_sln);
@@ -342,20 +342,20 @@ int main (int argc, char* argv[]) {
       double* coeff_vec = new double[ndof_ref];
       memset(coeff_vec, 0, ndof * sizeof(double));
 
-      NewtonSolver<double>* solver = new NewtonSolver<double>(dp, matrix_solver_type);
+      NewtonSolver<double>* solver = new NewtonSolver<double>(dp, matrix_solver);
 
       // Calculate initial coefficient vector for Newton on the fine mesh.
       if (as == 1 && pid.get_timestep_number() == 1) {
         info("Projecting coarse mesh solution to obtain coefficient vector on new fine mesh.");
         OGProjection<double>::project_global(*ref_spaces,
               Hermes::vector<MeshFunction<double> *>(&C_sln, &phi_sln),
-              coeff_vec, matrix_solver_type);
+              coeff_vec, matrix_solver);
       }
       else {
         info("Projecting previous fine mesh solution to obtain coefficient vector on new fine mesh.");
         OGProjection<double>::project_global(*ref_spaces,
               Hermes::vector<MeshFunction<double> *>(&C_ref_sln, &phi_ref_sln),
-              coeff_vec, matrix_solver_type);
+              coeff_vec, matrix_solver);
       }
       if (as > 1) {
         // Now deallocate the previous mesh
@@ -377,15 +377,15 @@ int main (int argc, char* argv[]) {
       };
 
       // Store the result in ref_sln.
-      Solution<double>::vector_to_solutions(coeff_vec, *ref_spaces,
-                                    Hermes::vector<Solution<double> *>(&C_ref_sln, &phi_ref_sln));
+      Solution<double>::vector_to_solutions(solver->get_sln_vector(), *ref_spaces,
+          Hermes::vector<Solution<double> *>(&C_ref_sln, &phi_ref_sln));
 
       // Projecting reference solution onto the coarse mesh
       info("Projecting fine mesh solution on coarse mesh.");
       OGProjection<double>::project_global(Hermes::vector<Space<double> *>(&C_space, &phi_space),
-                                   Hermes::vector<Solution<double> *>(&C_ref_sln, &phi_ref_sln),
-                                   Hermes::vector<Solution<double> *>(&C_sln, &phi_sln),
-                                   matrix_solver_type);
+          Hermes::vector<Solution<double> *>(&C_ref_sln, &phi_ref_sln),
+          Hermes::vector<Solution<double> *>(&C_sln, &phi_sln),
+          matrix_solver);
 
       // Calculate element errors and total error estimate.
       info("Calculating error estimate.");

@@ -60,7 +60,7 @@ const char* iterative_method = "bicgstab";
 const char* preconditioner = "least-squares";     
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
 
 // Problem parameters.
 const double RHO = 1.25;
@@ -137,7 +137,7 @@ int main(int argc, char* argv[])
     memset(coeff_vec, 0, ndof_ref * sizeof(std::complex<double>));
 
     // Perform Newton's iteration.
-    Hermes::Hermes2D::NewtonSolver<std::complex<double> > newton(&dp, matrix_solver_type);
+    Hermes::Hermes2D::NewtonSolver<std::complex<double> > newton(&dp, matrix_solver);
     try
     {
       newton.solve(coeff_vec);
@@ -152,7 +152,7 @@ int main(int argc, char* argv[])
 
     // Project the fine mesh solution onto the coarse mesh.
     info("Projecting reference solution on coarse mesh.");
-    OGProjection<std::complex<double> >::project_global(&space, &ref_sln, &sln, matrix_solver_type);
+    OGProjection<std::complex<double> >::project_global(&space, &ref_sln, &sln, matrix_solver);
 
     // Time measurement.
     cpu_time.tick();

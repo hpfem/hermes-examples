@@ -60,7 +60,7 @@ const double ERR_STOP = 5.0;
 const int NDOF_STOP = 60000;                      
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
 
 // Problem parameters.
 // Diffusivity.
@@ -125,9 +125,9 @@ int main(int argc, char* argv[])
     Space<double>* ref_space = Space<double>::construct_refined_space(&space);
 
     // Initialize matrix solver.
-    SparseMatrix<double>* matrix = create_matrix<double>(matrix_solver_type);
-    Vector<double>* rhs = create_vector<double>(matrix_solver_type);
-    LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver_type, matrix, rhs);
+    SparseMatrix<double>* matrix = create_matrix<double>(matrix_solver);
+    Vector<double>* rhs = create_vector<double>(matrix_solver);
+    LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver, matrix, rhs);
 
     // Assemble the reference problem.
     info("Solving on reference mesh.");
@@ -144,7 +144,7 @@ int main(int argc, char* argv[])
 
     // Project the fine mesh solution onto the coarse mesh.
     info("Projecting reference solution on coarse mesh.");
-    OGProjection<double>::project_global(&space, &ref_sln, &sln, matrix_solver_type); 
+    OGProjection<double>::project_global(&space, &ref_sln, &sln, matrix_solver); 
 
     // Time measurement.
     cpu_time.tick();

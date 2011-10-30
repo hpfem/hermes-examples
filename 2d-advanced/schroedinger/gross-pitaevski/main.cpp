@@ -32,7 +32,7 @@ const double NEWTON_TOL = 1e-5;
 const int NEWTON_MAX_ITER = 100;                  
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
 
 // Choose one of the following time-integration methods, or define your own Butcher's table. The last number 
 // in the name of each method is its order. The one before last, if present, is the number of stages.
@@ -105,7 +105,7 @@ int main(int argc, char* argv[])
   sview_imag.fix_scale_width(80);
 
   // Initialize Runge-Kutta time stepping.
-  RungeKutta<std::complex<double> > runge_kutta(&dp, &bt, matrix_solver_type);
+  RungeKutta<std::complex<double> > runge_kutta(&dp, &bt, matrix_solver);
   
   // Time stepping:
   int ts = 1;

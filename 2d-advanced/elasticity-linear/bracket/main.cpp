@@ -151,10 +151,6 @@ int main(int argc, char* argv[])
     // Initialize the FE problem.
     DiscreteProblem<double> dp(&wf, *ref_spaces);
 
-    // Initial coefficient vector for the Newton's method.  
-    double* coeff_vec_ref = new double[ndof_ref];
-    memset(coeff_vec_ref, 0, ndof_ref*sizeof(double));
-
     // Initialize Newton solver.
     NewtonSolver<double> newton(&dp, matrix_solver);
     newton.set_verbose_output(true);
@@ -166,7 +162,7 @@ int main(int argc, char* argv[])
     info("Solving on reference mesh.");
     try
     {
-      newton.solve(coeff_vec_ref, NEWTON_TOL, NEWTON_MAX_ITER);
+      newton.solve(NULL, NEWTON_TOL, NEWTON_MAX_ITER);
     }
     catch(Hermes::Exceptions::Exception e)
     {
@@ -178,7 +174,7 @@ int main(int argc, char* argv[])
     cpu_time.tick();
 
     // Translate the resulting coefficient vector into the Solution sln.
-    Solution<double>::vector_to_solutions(coeff_vec_ref, *ref_spaces, 
+    Solution<double>::vector_to_solutions(newton.get_sln_vector(), *ref_spaces, 
         Hermes::vector<Solution<double> *>(&u1_sln_ref, &u2_sln_ref));
 
     // Project the fine mesh solution onto the coarse mesh.
@@ -254,7 +250,6 @@ int main(int argc, char* argv[])
       for(unsigned int i = 0; i < ref_spaces->size(); i++)
         delete (*ref_spaces)[i]->get_mesh();
     delete ref_spaces;
-    delete [] coeff_vec_ref;
     
     // Increase counter.
     as++;

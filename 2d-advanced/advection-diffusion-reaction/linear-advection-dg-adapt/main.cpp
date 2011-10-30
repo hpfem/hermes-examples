@@ -51,7 +51,7 @@ const double CONV_EXP = 1.0;
 const int NDOF_STOP = 60000;                      
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
 // Name of the iterative method employed by AztecOO (ignored by the other solvers). 
 // Possibilities: gmres, cg, cgs, tfqmr, bicgstab.
 const char* iterative_method = "bicgstab";        
@@ -116,9 +116,9 @@ int main(int argc, char* args[])
     DiscreteProblem<double>* dp = new DiscreteProblem<double>(&wf, ref_space);
     
     // Set up the solver, matrix, and rhs according to the solver selection.
-    SparseMatrix<double>* matrix = create_matrix<double>(matrix_solver_type);
-    Vector<double>* rhs = create_vector<double>(matrix_solver_type);
-    LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver_type, matrix, rhs);
+    SparseMatrix<double>* matrix = create_matrix<double>(matrix_solver);
+    Vector<double>* rhs = create_vector<double>(matrix_solver);
+    LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver, matrix, rhs);
 
     // Assemble the linear problem.
     info("Assembling (ndof: %d).", Space<double>::get_num_dofs(ref_space));
@@ -131,7 +131,7 @@ int main(int argc, char* args[])
     
     // Project the fine mesh solution onto the coarse mesh.
     info("Projecting reference solution on coarse mesh.");
-    OGProjection<double>::project_global(&space, &ref_sln, &sln, matrix_solver_type, HERMES_L2_NORM);  
+    OGProjection<double>::project_global(&space, &ref_sln, &sln, matrix_solver, HERMES_L2_NORM);  
 
     // Time measurement.
     cpu_time.tick();

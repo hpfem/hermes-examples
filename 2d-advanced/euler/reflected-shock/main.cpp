@@ -56,7 +56,7 @@ double CFL_NUMBER = 0.1;
 double time_step = 1E-4;                                
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-const MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
+const MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
 
 double KAPPA = 1.4;
 
@@ -136,10 +136,10 @@ int main(int argc, char* argv[])
   ScalarView s4("prev_e", new WinGeom(700, 400, 600, 300));
 
   // Set up the solver, matrix, and rhs according to the solver selection.
-  SparseMatrix<double>* matrix = create_matrix<double>(matrix_solver_type);
-  Vector<double>* rhs = create_vector<double>(matrix_solver_type);
-  Vector<double>* rhs_stabilization = create_vector<double>(matrix_solver_type);
-  LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver_type, matrix, rhs);
+  SparseMatrix<double>* matrix = create_matrix<double>(matrix_solver);
+  Vector<double>* rhs = create_vector<double>(matrix_solver);
+  Vector<double>* rhs_stabilization = create_vector<double>(matrix_solver);
+  LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver, matrix, rhs);
 
   // Set up CFL calculation class.
   CFLCalculation CFL(CFL_NUMBER, KAPPA);

@@ -41,9 +41,9 @@
 //  The following parameters can be changed:
 
 // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM = 2;                       
+const int INIT_REF_NUM = 0;                       
 // Initial polynomial degrees for approximation of group fluxes.
-const int P_INIT_1 = 2, P_INIT_2 = 2, P_INIT_3 = 2, P_INIT_4 = 2;                           
+const int P_INIT_1 = 1, P_INIT_2 = 1, P_INIT_3 = 1, P_INIT_4 = 1;                           
 // Tolerance for the eigenvalue.
 const double ERROR_STOP = 1e-5;                   
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
@@ -86,7 +86,7 @@ int main(int argc, char* argv[])
   Hermes::vector<Space<double>*> spaces(&space1, &space2, &space3, &space4);
   int ndof = Space<double>::get_num_dofs(spaces);
   info("ndof = %d", ndof);
-  
+
   // Initialize views.
   ScalarView view1("Neutron flux 1", new WinGeom(0, 0, 320, 600));
   ScalarView view2("Neutron flux 2", new WinGeom(350, 0, 320, 600));
@@ -124,9 +124,6 @@ int main(int argc, char* argv[])
 
   // Time measurement.
   TimePeriod cpu_time;
-  
-  // Initial coefficient vector for the Newton's method.
-  double* coeff_vec = new double[ndof];
       
   // Main power iteration loop:
   int it = 1; bool done = false;
@@ -136,13 +133,12 @@ int main(int argc, char* argv[])
     
     info("Newton's method (matrix problem solved by %s).", MatrixSolverNames[matrix_solver].c_str());
     
-    //TODO: Why it doesn't work without zeroing coeff_vec in each iteration?
-    memset(coeff_vec, 0, ndof*sizeof(double)); 
-    
     // Perform Newton's iteration.
     try
     {
-      newton.solve_keep_jacobian(coeff_vec, NEWTON_TOL, NEWTON_MAX_ITER);
+      // The problem is linear and we can use NULL 
+      // to make Newton start from zero vector.
+      newton.solve_keep_jacobian(NULL, NEWTON_TOL, NEWTON_MAX_ITER);
     }
     catch(Hermes::Exceptions::Exception e)
     {
@@ -150,6 +146,10 @@ int main(int argc, char* argv[])
       error("Newton's iteration failed.");
     }
        
+    // Debug.
+    //printf("\n=================================================\n");
+    //for (int d = 0; d < ndof; d++) printf("%g ", newton.get_sln_vector()[d]);
+
     // Translate the resulting coefficient vector into a Solution.
     Solution<double>::vector_to_solutions(newton.get_sln_vector(), spaces, solutions);
     
@@ -185,8 +185,6 @@ int main(int argc, char* argv[])
     }
   }
   while (!done);
-  
-  delete [] coeff_vec;
   
   // Time measurement.
   cpu_time.tick();

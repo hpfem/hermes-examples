@@ -35,7 +35,7 @@ double time_step = 5e-4;
 const double T_FINAL = 0.4;                       
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver_type = SOLVER_UMFPACK;  
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
 
 // Problem parameters.
 double K_S = 20.464;
@@ -143,15 +143,8 @@ int main(int argc, char* argv[])
   int ndof_coarse = Space<double>::get_num_dofs(&space);
   info("ndof_coarse = %d.", ndof_coarse);
 
-  // Initial condition vector is the zero vector. This is why we
-  // use the H_OFFSET. 
-  double* coeff_vec = new double[ndof_coarse];
-  memset(coeff_vec, 0, ndof_coarse*sizeof(double));
-
-  // Convert initial condition into a Solution.
-  Solution<double> h_time_prev, h_time_new;
-  Solution<double>::vector_to_solution(coeff_vec, &space, &h_time_prev);
-  delete [] coeff_vec;
+  // Zero initial solution. This is why we use H_OFFSET.
+  ZeroSolution h_time_prev(&mesh), h_time_new(&mesh);
 
   // Initialize the constitutive relations.
   ConstitutiveRelations* constitutive_relations;
@@ -225,13 +218,13 @@ int main(int argc, char* argv[])
       cpu_time.tick();
 
       // Initialize Runge-Kutta time stepping.
-      RungeKutta<double> runge_kutta(&dp, &bt, matrix_solver_type);
+      RungeKutta<double> runge_kutta(&dp, &bt, matrix_solver);
 
       // Perform one Runge-Kutta time step according to the selected Butcher's table.
       info("Runge-Kutta time step (t = %g s, tau = %g s, stages: %d).",
            current_time, time_step, bt.get_size());
-    bool freeze_jacobian = false;
-    bool block_diagonal_jacobian = false;
+      bool freeze_jacobian = false;
+      bool block_diagonal_jacobian = false;
       bool verbose = true;
       double damping_coeff = 1.0;
       double max_allowed_residual_norm = 1e10;
@@ -239,8 +232,8 @@ int main(int argc, char* argv[])
       try
       {
         runge_kutta.rk_time_step_newton(current_time, time_step, &h_time_prev, 
-          &h_time_new, freeze_jacobian, block_diagonal_jacobian, verbose,
-          NEWTON_TOL, NEWTON_MAX_ITER, damping_coeff, max_allowed_residual_norm);
+            &h_time_new, freeze_jacobian, block_diagonal_jacobian, verbose,
+            NEWTON_TOL, NEWTON_MAX_ITER, damping_coeff, max_allowed_residual_norm);
       }
       catch(Exceptions::Exception& e)
       {
@@ -251,7 +244,7 @@ int main(int argc, char* argv[])
       // Project the fine mesh solution onto the coarse mesh.
       Solution<double> sln_coarse;
       info("Projecting fine mesh solution on coarse mesh for error estimation.");
-      OGProjection<double>::project_global(&space, &h_time_new, &sln_coarse, matrix_solver_type); 
+      OGProjection<double>::project_global(&space, &h_time_new, &sln_coarse, matrix_solver); 
 
       // Calculate element errors and total error estimate.
       info("Calculating error estimate.");

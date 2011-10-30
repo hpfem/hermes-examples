@@ -112,7 +112,7 @@ int get_num_of_neg(MeshFunction<double> *sln)
 int power_iteration(const MaterialPropertyMaps& matprop, 
                     const Hermes::vector<Space<double>*>& spaces, DefaultWeakFormSourceIteration<double>* wf, 
                     const Hermes::vector<MeshFunction<double> *>& solutions, const std::string& fission_region, 
-                    double tol, Hermes::MatrixSolverType matrix_solver_type)
+                    double tol, Hermes::MatrixSolverType matrix_solver)
 {
   // Sanity checks.
   if (spaces.size() != solutions.size()) 
@@ -142,7 +142,7 @@ int power_iteration(const MaterialPropertyMaps& matprop,
   {
     memset(coeff_vec, 0.0, ndof*sizeof(double));
 
-    NewtonSolver<double> newton(&dp, matrix_solver_type);
+    NewtonSolver<double> newton(&dp, matrix_solver);
 
     try
     {
