@@ -69,6 +69,8 @@ introduced a bug, since the results are now different from
 before. The rescaling was just to multiply moisture ‘w’ 
 with a scaling coefficient.
 
+Also the polynomial degree and time step were raised.
+
 maxwell/maxwell-debye
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -76,7 +78,7 @@ This example uses the R-K method with two Hcurl spaces
 and one H1 space. Now matter how small the time step size, 
 after the first time the solution jumps abruptly. Some 
 time ago we observed something similar with the resonator 
-example. I think that this might be a bug in rk_time_step(). 
+example. I think that this might be a bug in rk_time_step().
 
 flame-propagation/laminar flame
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -84,5 +86,3 @@ flame-propagation/laminar flame
 After conversion to new forms, Newton stopped converging.
 Forms were checked many times. The problem may be in 
 rk_time_step().
-
-
