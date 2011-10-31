@@ -38,11 +38,11 @@ bool REUSE_SOLUTION = true;
 // Initial polynomial degree.        
 const int P_INIT = 0;                                           
 // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM_VERTEX = 2;                
+const int INIT_REF_NUM_VERTEX = 3;                
 // Number of initial mesh refinements towards the profile.
-const int INIT_REF_NUM_BOUNDARY_ANISO = 3;        
+const int INIT_REF_NUM_BOUNDARY_ANISO = 4;        
 // CFL value.
-double CFL_NUMBER = 0.1;                                
+double CFL_NUMBER = 0.05;                                
 // Initial time step.
 double time_step = 1E-6;                                
 
@@ -200,7 +200,7 @@ int main(int argc, char* argv[])
   // Time stepping loop.
   for(; t < 5.0; t += time_step)
   {
-    CFL.set_number(CFL_NUMBER + (t/5.0) * 100.0);
+    CFL.set_number(CFL_NUMBER + (t/5.0) * 10.0);
     info("---- Time step %d, time %3.5f.", iteration++, t);
 
     // Periodic global derefinements.
