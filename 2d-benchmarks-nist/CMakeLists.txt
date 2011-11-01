@@ -1,5 +1,6 @@
 add_subdirectory(01-analytic-solution)   
 add_subdirectory(02-reentrant-corner)   
+add_subdirectory(03-linear-elasticity)   
 add_subdirectory(04-exponential-peak)   
 add_subdirectory(05-battery)   
 add_subdirectory(06-boundary-layer)   
