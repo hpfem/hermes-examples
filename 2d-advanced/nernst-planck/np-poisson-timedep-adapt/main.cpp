@@ -248,17 +248,17 @@ int main (int argc, char* argv[]) {
     wf = new WeakFormPNPEuler(TAU, C0, K, L, D, &C_prev_time);
   }
 
-  DiscreteProblem<double> dp_coarse(wf, Hermes::vector<Space<double> *>(&C_space, &phi_space));
+  DiscreteProblem<double> dp_coarse(wf, Hermes::vector<const Space<double> *>(&C_space, &phi_space));
 
   NewtonSolver<double>* solver_coarse = new NewtonSolver<double>(&dp_coarse, matrix_solver);
 
   // Project the initial condition on the FE space to obtain initial
   // coefficient vector for the Newton's method.
   info("Projecting to obtain initial vector for the Newton's method.");
-  int ndof = Space<double>::get_num_dofs(Hermes::vector<Space<double>*>(&C_space, &phi_space));
+  int ndof = Space<double>::get_num_dofs(Hermes::vector<const Space<double>*>(&C_space, &phi_space));
   double* coeff_vec_coarse = new double[ndof] ;
 
-  OGProjection<double>::project_global(Hermes::vector<Space<double> *>(&C_space, &phi_space),
+  OGProjection<double>::project_global(Hermes::vector<const Space<double> *>(&C_space, &phi_space),
       Hermes::vector<MeshFunction<double> *>(&C_prev_time, &phi_prev_time),
       coeff_vec_coarse, matrix_solver);
 
@@ -292,7 +292,7 @@ int main (int argc, char* argv[]) {
   //View::wait(HERMES_WAIT_KEYPRESS);
 
   // Translate the resulting coefficient vector into the Solution<double> sln.
-  Solution<double>::vector_to_solutions(solver_coarse->get_sln_vector(), Hermes::vector<Space<double> *>(&C_space, &phi_space),
+  Solution<double>::vector_to_solutions(solver_coarse->get_sln_vector(), Hermes::vector<const Space<double> *>(&C_space, &phi_space),
       Hermes::vector<Solution<double> *>(&C_sln, &phi_sln));
 
   Cview.show(&C_sln);
@@ -334,9 +334,10 @@ int main (int argc, char* argv[]) {
       // and setup reference space.
       Hermes::vector<Space<double> *>* ref_spaces =
           Space<double>::construct_refined_spaces(Hermes::vector<Space<double> *>(&C_space, &phi_space));
+      Hermes::vector<const Space<double>*> ref_spaces_const((*ref_spaces)[0], (*ref_spaces)[1]);
 
-      DiscreteProblem<double>* dp = new DiscreteProblem<double>(wf, *ref_spaces);
-      int ndof_ref = Space<double>::get_num_dofs(*ref_spaces);
+      DiscreteProblem<double>* dp = new DiscreteProblem<double>(wf, ref_spaces_const);
+      int ndof_ref = Space<double>::get_num_dofs(ref_spaces_const);
 
       double* coeff_vec = new double[ndof_ref];
 
@@ -345,13 +346,13 @@ int main (int argc, char* argv[]) {
       // Calculate initial coefficient vector for Newton on the fine mesh.
       if (as == 1 && pid.get_timestep_number() == 1) {
         info("Projecting coarse mesh solution to obtain coefficient vector on new fine mesh.");
-        OGProjection<double>::project_global(*ref_spaces,
+        OGProjection<double>::project_global(ref_spaces_const,
               Hermes::vector<MeshFunction<double> *>(&C_sln, &phi_sln),
               coeff_vec, matrix_solver);
       }
       else {
         info("Projecting previous fine mesh solution to obtain coefficient vector on new fine mesh.");
-        OGProjection<double>::project_global(*ref_spaces,
+        OGProjection<double>::project_global(ref_spaces_const,
               Hermes::vector<MeshFunction<double> *>(&C_ref_sln, &phi_ref_sln),
               coeff_vec, matrix_solver);
       }
@@ -375,12 +376,12 @@ int main (int argc, char* argv[]) {
       };
 
       // Store the result in ref_sln.
-      Solution<double>::vector_to_solutions(solver->get_sln_vector(), *ref_spaces,
+      Solution<double>::vector_to_solutions(solver->get_sln_vector(), ref_spaces_const,
           Hermes::vector<Solution<double> *>(&C_ref_sln, &phi_ref_sln));
 
       // Projecting reference solution onto the coarse mesh
       info("Projecting fine mesh solution on coarse mesh.");
-      OGProjection<double>::project_global(Hermes::vector<Space<double> *>(&C_space, &phi_space),
+      OGProjection<double>::project_global(Hermes::vector<const Space<double> *>(&C_space, &phi_space),
           Hermes::vector<Solution<double> *>(&C_ref_sln, &phi_ref_sln),
           Hermes::vector<Solution<double> *>(&C_sln, &phi_sln),
           matrix_solver);
@@ -401,8 +402,8 @@ int main (int argc, char* argv[]) {
       info("err_est_rel[1]: %g%%", err_est_rel[1]*100);
       // Report results.
       info("ndof_coarse_total: %d, ndof_fine_total: %d, err_est_rel: %g%%", 
-           Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&C_space, &phi_space)),
-               Space<double>::get_num_dofs(*ref_spaces), err_est_rel_total);
+           Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&C_space, &phi_space)),
+               Space<double>::get_num_dofs(ref_spaces_const), err_est_rel_total);
 
       // If err_est too large, adapt the mesh.
       if (err_est_rel_total < ERR_STOP) done = true;
@@ -414,7 +415,7 @@ int main (int argc, char* argv[]) {
         
         info("Adapted...");
 
-        if (Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&C_space, &phi_space)) >= NDOF_STOP)
+        if (Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&C_space, &phi_space)) >= NDOF_STOP)
           done = true;
         else as++;
       }

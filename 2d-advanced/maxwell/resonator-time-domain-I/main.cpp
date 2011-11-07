@@ -83,11 +83,9 @@ int main(int argc, char* argv[])
   // Create x- and y- displacement space using the default H1 shapeset.
   HcurlSpace<double> E_space(&mesh, &bcs_E, P_INIT);
   H1Space<double> B_space(&mesh, &bcs_B, P_INIT);
-  Hermes::vector<Space<double> *> spaces = Hermes::vector<Space<double> *>(&E_space, &B_space);
+  Hermes::vector<const Space<double> *> spaces(&E_space, &B_space);
+  Hermes::vector<Space<double> *> spaces_mutable(&E_space, &B_space);
   info("ndof = %d.", Space<double>::get_num_dofs(spaces));
-
-  // Initialize the FE problem.
-  DiscreteProblem<double> dp(&wf, spaces);
 
   // Initialize views.
   ScalarView E1_view("Solution E1", new WinGeom(0, 0, 400, 350));
@@ -98,7 +96,7 @@ int main(int argc, char* argv[])
   B_view.fix_scale_width(50);
 
   // Initialize Runge-Kutta time stepping.
-  RungeKutta<double> runge_kutta(&dp, &bt, matrix_solver);
+  RungeKutta<double> runge_kutta(&wf, spaces_mutable, &bt, matrix_solver);
 
   // Time stepping loop.
   double current_time = time_step; int ts = 1;

@@ -242,11 +242,8 @@ int main(int argc, char* argv[])
   SimpleGraph time_step_graph;
   info("Time step history will be saved to file time_step_history.dat.");
 
-  // Initialize the FE problem.
-  DiscreteProblem<double> dp(&wf, &space);
-
   // Initialize Runge-Kutta time stepping.
-  RungeKutta<double> runge_kutta(&dp, &bt, matrix_solver);
+  RungeKutta<double> runge_kutta(&wf, &space, &bt, matrix_solver);
 
   // Time stepping:
   double current_time = 0;

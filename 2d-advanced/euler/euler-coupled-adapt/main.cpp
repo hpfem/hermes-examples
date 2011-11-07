@@ -178,7 +178,7 @@ int main(int argc, char* argv[])
   // Space<double> for concentration.
   H1Space<double> space_c(&mesh_concentration, &bcs_concentration, P_INIT_CONCENTRATION);
 
-  int ndof = Space<double>::get_num_dofs(Hermes::vector<Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e, &space_c));
+  int ndof = Space<double>::get_num_dofs(Hermes::vector<const Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e, &space_c));
   info("ndof: %d", ndof);
 
   // Initialize solutions, set initial conditions.
@@ -276,9 +276,12 @@ int main(int argc, char* argv[])
       if(CAND_LIST_FLOW != H2D_HP_ANISO)
         (*ref_spaces)[4]->adjust_element_order(+1, P_INIT_CONCENTRATION);
 
+      Hermes::vector<const Space<double> *> ref_spaces_const((*ref_spaces)[0], (*ref_spaces)[1], 
+        (*ref_spaces)[2], (*ref_spaces)[3], (*ref_spaces)[4]);
+
       // Project the previous time level solution onto the new fine mesh.
       info("Projecting the previous time level solution onto the new fine mesh.");
-      OGProjection<double>::project_global(*ref_spaces, Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_c), 
+      OGProjection<double>::project_global(ref_spaces_const, Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_c), 
         Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_c), matrix_solver);
 
       /*
@@ -304,8 +307,8 @@ int main(int argc, char* argv[])
 
       // Report NDOFs.
       info("ndof_coarse: %d, ndof_fine: %d.", 
-        Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-        &space_rho_v_y, &space_e, &space_c)), Space<double>::get_num_dofs(*ref_spaces));
+        Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
+        &space_rho_v_y, &space_e, &space_c)), Space<double>::get_num_dofs(ref_spaces_const));
 
       // Very imporant, set the meshes for the flow as the same.
       (*ref_spaces)[1]->get_mesh()->set_seq((*ref_spaces)[0]->get_mesh()->get_seq());
@@ -319,7 +322,7 @@ int main(int argc, char* argv[])
 
       // Initialize the FE problem.
       bool is_linear = true;
-      DiscreteProblem<double> dp(wf, *ref_spaces);
+      DiscreteProblem<double> dp(wf, ref_spaces_const);
       if(SEMI_IMPLICIT)
         static_cast<EulerEquationsWeakFormSemiImplicitCoupled*>(wf)->set_time_step(time_step);
       else
@@ -332,12 +335,12 @@ int main(int argc, char* argv[])
       // Solve the matrix problem.
       info("Solving the matrix problem.");
       if (solver->solve())
-        Solution<double>::vector_to_solutions(solver->get_sln_vector(), *ref_spaces, 
+        Solution<double>::vector_to_solutions(solver->get_sln_vector(), ref_spaces_const, 
         Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e, &rsln_c));
       else
         error ("Matrix solver failed.\n");
 
-      Hermes::vector<Space<double>*> flow_spaces((*ref_spaces)[0], (*ref_spaces)[1], (*ref_spaces)[2], (*ref_spaces)[3]);
+      Hermes::vector<const Space<double>*> flow_spaces((*ref_spaces)[0], (*ref_spaces)[1], (*ref_spaces)[2], (*ref_spaces)[3]);
 
       double* flow_solution_vector = new double[Space<double>::get_num_dofs(flow_spaces)];
 
@@ -354,7 +357,7 @@ int main(int argc, char* argv[])
       
       // Project the fine mesh solution onto the coarse mesh.
       info("Projecting reference solution on coarse mesh.");
-      OGProjection<double>::project_global(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x,
+      OGProjection<double>::project_global(Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x,
         &space_rho_v_y, &space_e, &space_c), Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e, &rsln_c),
         Hermes::vector<Solution<double>*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y, &sln_e, &sln_c), matrix_solver,
         Hermes::vector<ProjNormType>(HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM));
@@ -413,7 +416,7 @@ int main(int argc, char* argv[])
           REFINEMENT_COUNT_CONCENTRATION++;
         }
 
-        if (Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
+        if (Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
           &space_rho_v_y, &space_e, &space_c)) >= NDOF_STOP) 
           done = true;
         else

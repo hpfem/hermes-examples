@@ -241,7 +241,7 @@ int main(int argc, char* argv[])
       // Initialize discrete problem on reference mesh.
       DiscreteProblem<std::complex<double> >* ref_dp = new DiscreteProblem<std::complex<double> >(&wf, ref_space);
       
-      RungeKutta<std::complex<double> > runge_kutta(ref_dp, &bt, matrix_solver);
+      RungeKutta<std::complex<double> > runge_kutta(&wf, ref_space, &bt, matrix_solver);
 
       // Runge-Kutta step on the fine mesh.
       info("Runge-Kutta time step on fine mesh (t = %g s, time step = %g s, stages: %d).", 

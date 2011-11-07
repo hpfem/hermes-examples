@@ -74,7 +74,7 @@ int main(int argc, char* argv[])
   // Create x- and y- displacement space using the default H1 shapeset.
   HcurlSpace<double> E_space(&mesh, &bcs, P_INIT);
   HcurlSpace<double> F_space(&mesh, &bcs, P_INIT);
-  Hermes::vector<Space<double> *> spaces = Hermes::vector<Space<double> *>(&E_space, &F_space);
+  Hermes::vector<const Space<double> *> spaces = Hermes::vector<const Space<double> *>(&E_space, &F_space);
   int ndof = HcurlSpace<double>::get_num_dofs(spaces);
   info("ndof = %d.", ndof);
 

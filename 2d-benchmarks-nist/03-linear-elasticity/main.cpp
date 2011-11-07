@@ -168,7 +168,8 @@ int main(int argc, char* argv[])
 
     // Construct globally refined reference mesh and setup reference space.
     Hermes::vector<Space<double>*>* ref_spaces = Space<double>::construct_refined_spaces(Hermes::vector<Space<double>*>(&u_space, &v_space));
-    int ndof_ref = Space<double>::get_num_dofs(*ref_spaces);
+    Hermes::vector<const Space<double>*> ref_spaces_const((*ref_spaces)[0], (*ref_spaces)[1]);
+    int ndof_ref = Space<double>::get_num_dofs(ref_spaces_const);
 
     info("---- Adaptivity step %d (%d DOF):", as, ndof_ref);
     cpu_time.tick();
@@ -176,7 +177,7 @@ int main(int argc, char* argv[])
     info("Solving on reference mesh.");
     
     // Assemble the discrete problem.    
-    DiscreteProblem<double> dp(&wf, *ref_spaces);
+    DiscreteProblem<double> dp(&wf, ref_spaces_const);
     
     NewtonSolver<double> newton(&dp, matrix_solver);
     newton.set_verbose_output(false);
@@ -193,14 +194,14 @@ int main(int argc, char* argv[])
     };
 
     // Translate the resulting coefficient vector into the instance of Solution.
-    Solution<double>::vector_to_solutions(newton.get_sln_vector(), *ref_spaces, Hermes::vector<Solution<double>*>(&u_ref_sln, &v_ref_sln));
+    Solution<double>::vector_to_solutions(newton.get_sln_vector(), ref_spaces_const, Hermes::vector<Solution<double>*>(&u_ref_sln, &v_ref_sln));
     
     cpu_time.tick();
     verbose("Solution: %g s", cpu_time.last());
     
     // Project the fine mesh solution onto the coarse mesh.
     info("Calculating error estimate and exact error.");
-    OGProjection<double>::project_global(Hermes::vector<Space<double>*>(&u_space, &v_space), 
+    OGProjection<double>::project_global(Hermes::vector<const Space<double>*>(&u_space, &v_space), 
         Hermes::vector<Solution<double>*>(&u_ref_sln, &v_ref_sln), 
         Hermes::vector<Solution<double>*>(&u_sln, &v_sln), matrix_solver);
 
@@ -228,7 +229,7 @@ int main(int argc, char* argv[])
          v_space.Space<double>::get_num_dofs(), Space<double>::get_num_dofs((*ref_spaces)[1]));
     info("err_est_rel[v]: %g%%, err_exact_rel[v]: %g%%", err_est_rel[1]*100, err_exact_rel[1]*100);
     info("ndof_coarse_total: %d, ndof_fine_total: %d",
-         Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&u_space, &v_space)), Space<double>::get_num_dofs(*ref_spaces));
+         Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&u_space, &v_space)), Space<double>::get_num_dofs(ref_spaces_const));
     info("err_est_rel_total: %g%%, err_est_exact_total: %g%%", err_est_rel_total, err_exact_rel_total);
 
     // Time measurement.
@@ -244,11 +245,11 @@ int main(int argc, char* argv[])
     mises_view.show(&stress, HERMES_EPS_HIGH, H2D_FN_VAL_0, &u_sln, &v_sln, 0.03);
 
     // Add entry to DOF and CPU convergence graphs.
-    graph_dof_est.add_values(Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&u_space, &v_space)), err_est_rel_total);
+    graph_dof_est.add_values(Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&u_space, &v_space)), err_est_rel_total);
     graph_dof_est.save("conv_dof_est.dat");
     graph_cpu_est.add_values(cpu_time.accumulated(), err_est_rel_total);
     graph_cpu_est.save("conv_cpu_est.dat");
-    graph_dof_exact.add_values(Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&u_space, &v_space)), err_exact_rel_total);
+    graph_dof_exact.add_values(Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&u_space, &v_space)), err_exact_rel_total);
     graph_dof_exact.save("conv_dof_exact.dat");
     graph_cpu_exact.add_values(cpu_time.accumulated(), err_exact_rel_total);
     graph_cpu_exact.save("conv_cpu_exact.dat");
@@ -264,7 +265,7 @@ int main(int argc, char* argv[])
       done = adaptivity->adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&selector, &selector), 
                                THRESHOLD, STRATEGY, MESH_REGULARITY);
     }
-    if (Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&u_space, &v_space)) >= NDOF_STOP) done = true;
+    if (Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&u_space, &v_space)) >= NDOF_STOP) done = true;
    
     cpu_time.tick();
     verbose("Adaptation: %g s", cpu_time.last());

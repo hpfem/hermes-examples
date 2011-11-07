@@ -105,7 +105,7 @@ int main(int argc, char* argv[])
   sview_imag.fix_scale_width(80);
 
   // Initialize Runge-Kutta time stepping.
-  RungeKutta<std::complex<double> > runge_kutta(&dp, &bt, matrix_solver);
+  RungeKutta<std::complex<double> > runge_kutta(&wf, &space, &bt, matrix_solver);
   
   // Time stepping:
   int ts = 1;

@@ -89,13 +89,13 @@ int main(int argc, char* argv[])
   WeakFormHelmholtz wf(eps, mu, omega, sigma, beta, E0, h);
 
   // Initialize the FE problem.
-  DiscreteProblem<double> dp(&wf, Hermes::vector<Space<double>*>(&e_r_space, &e_i_space));
+  DiscreteProblem<double> dp(&wf, Hermes::vector<const Space<double>*>(&e_r_space, &e_i_space));
 
   // Initialize the solutions.
   Solution<double> e_r_sln, e_i_sln;
 
   // Initial coefficient vector for the Newton's method.  
-  ndof = Space<double>::get_num_dofs(Hermes::vector<Space<double>*>(&e_r_space, &e_i_space));
+  ndof = Space<double>::get_num_dofs(Hermes::vector<const Space<double>*>(&e_r_space, &e_i_space));
 
   Hermes::Hermes2D::NewtonSolver<double> newton(&dp, matrix_solver);
   try
@@ -109,7 +109,7 @@ int main(int argc, char* argv[])
   };
 
   // Translate the resulting coefficient vector into Solutions.
-  Solution<double>::vector_to_solutions(newton.get_sln_vector(), Hermes::vector<Space<double>*>(&e_r_space, &e_i_space), 
+  Solution<double>::vector_to_solutions(newton.get_sln_vector(), Hermes::vector<const Space<double>*>(&e_r_space, &e_i_space), 
       Hermes::vector<Solution<double>*>(&e_r_sln, &e_i_sln));
 
   // Visualize the solution.

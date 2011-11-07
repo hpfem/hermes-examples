@@ -106,14 +106,14 @@ int main(int argc, char* argv[])
   // Create x- and y- displacement space using the default H1 shapeset.
   H1Space<double> u1_space(&u1_mesh, &bcs, P_INIT);
   H1Space<double> u2_space(&u2_mesh, &bcs, P_INIT);
-  info("ndof = %d.", Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&u1_space, &u2_space)));
+  info("ndof = %d.", Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&u1_space, &u2_space)));
 
   // Initialize the weak formulation.
   // NOTE; These weak forms are identical to those in example P01-linear/08-system.
   CustomWeakFormLinearElasticity wf(E, nu, rho*g1, "bdy_top", f0, f1);
 
   // Initialize the FE problem.
-  DiscreteProblem<double> dp(&wf, Hermes::vector<Space<double> *>(&u1_space, &u2_space));
+  DiscreteProblem<double> dp(&wf, Hermes::vector<const Space<double> *>(&u1_space, &u2_space));
 
   // Initialize coarse and reference mesh solutions.
   Solution<double> u1_sln, u2_sln;
@@ -144,12 +144,14 @@ int main(int argc, char* argv[])
     // Construct globally refined reference mesh and setup reference space.
     Hermes::vector<Space<double> *>* ref_spaces = 
         Space<double>::construct_refined_spaces(Hermes::vector<Space<double> *>(&u1_space, &u2_space));
+    Hermes::vector<const Space<double>*> ref_spaces_const((*ref_spaces)[0], (*ref_spaces)[1]);
     Space<double>* u_ref_space = (*ref_spaces)[0];
     Space<double>* v_ref_space = (*ref_spaces)[1];
-    int ndof_ref = Space<double>::get_num_dofs(*ref_spaces);
+
+    int ndof_ref = Space<double>::get_num_dofs(ref_spaces_const);
 
     // Initialize the FE problem.
-    DiscreteProblem<double> dp(&wf, *ref_spaces);
+    DiscreteProblem<double> dp(&wf, ref_spaces_const);
 
     // Initialize Newton solver.
     NewtonSolver<double> newton(&dp, matrix_solver);
@@ -174,12 +176,12 @@ int main(int argc, char* argv[])
     cpu_time.tick();
 
     // Translate the resulting coefficient vector into the Solution sln.
-    Solution<double>::vector_to_solutions(newton.get_sln_vector(), *ref_spaces, 
+    Solution<double>::vector_to_solutions(newton.get_sln_vector(), ref_spaces_const, 
         Hermes::vector<Solution<double> *>(&u1_sln_ref, &u2_sln_ref));
 
     // Project the fine mesh solution onto the coarse mesh.
     info("Projecting reference solution on coarse mesh.");
-    OGProjection<double>::project_global(Hermes::vector<Space<double> *>(&u1_space, &u2_space), 
+    OGProjection<double>::project_global(Hermes::vector<const Space<double> *>(&u1_space, &u2_space), 
         Hermes::vector<Solution<double> *>(&u1_sln_ref, &u2_sln_ref), 
         Hermes::vector<Solution<double> *>(&u1_sln, &u2_sln), matrix_solver); 
    
@@ -223,11 +225,11 @@ int main(int argc, char* argv[])
     info("ndof_coarse[1]: %d, ndof_fine[1]: %d, err_est_rel[1]: %g%%",
          u2_space.Space<double>::get_num_dofs(), Space<double>::get_num_dofs((*ref_spaces)[1]), err_est_rel[1]*100);
     info("ndof_coarse_total: %d, ndof_fine_total: %d, err_est_rel_total: %g%%",
-         Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&u1_space, &u2_space)), 
-         Space<double>::get_num_dofs(*ref_spaces), err_est_rel_total);
+         Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&u1_space, &u2_space)), 
+         Space<double>::get_num_dofs(ref_spaces_const), err_est_rel_total);
 
     // Add entry to DOF and CPU convergence graphs.
-    graph_dof_est.add_values(Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&u1_space, &u2_space)), 
+    graph_dof_est.add_values(Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&u1_space, &u2_space)), 
                              err_est_rel_total);
     graph_dof_est.save("conv_dof_est.dat");
     graph_cpu_est.add_values(cpu_time.accumulated(), err_est_rel_total);
@@ -242,7 +244,7 @@ int main(int argc, char* argv[])
       done = adaptivity->adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&selector, &selector), 
                                MULTI == true ? THRESHOLD_MULTI : THRESHOLD_SINGLE, STRATEGY, MESH_REGULARITY);
     }
-    if (Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&u1_space, &u2_space)) >= NDOF_STOP) done = true;
+    if (Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&u1_space, &u2_space)) >= NDOF_STOP) done = true;
 
     // Clean up.
     delete adaptivity;

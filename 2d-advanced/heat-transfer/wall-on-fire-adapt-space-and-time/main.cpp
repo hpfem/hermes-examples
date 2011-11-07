@@ -240,11 +240,8 @@ int main(int argc, char* argv[])
       // Construct globally refined reference mesh and setup reference space.
       Space<double>* ref_space = Space<double>::construct_refined_space(&space);
 
-      // Initialize discrete problem on reference mesh.
-      DiscreteProblem<double> ref_dp(&wf, ref_space);
-      
       // Initialize Runge-Kutta time stepping on the reference mesh.
-      RungeKutta<double> runge_kutta(&ref_dp, &bt, matrix_solver);
+      RungeKutta<double> runge_kutta(&wf, ref_space, &bt, matrix_solver);
 
       OGProjection<double>::project_global(ref_space, &sln_prev_time, 
                                    &sln_prev_time, matrix_solver);

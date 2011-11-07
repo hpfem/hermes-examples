@@ -151,7 +151,7 @@ int main(int argc, char* argv[])
   L2Space<double>space_rho_v_x(&mesh, P_INIT);
   L2Space<double>space_rho_v_y(&mesh, P_INIT);
   L2Space<double>space_e(&mesh, P_INIT);
-  int ndof = Space<double>::get_num_dofs(Hermes::vector<Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
+  int ndof = Space<double>::get_num_dofs(Hermes::vector<const Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
   info("ndof: %d", ndof);
 
   // Initialize solutions, set initial conditions.
@@ -231,29 +231,31 @@ int main(int argc, char* argv[])
 
       Hermes::vector<Space<double> *>* ref_spaces = Space<double>::construct_refined_spaces(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
         &space_rho_v_y, &space_e), order_increase);
+      Hermes::vector<const Space<double> *> ref_spaces_const((*ref_spaces)[0], (*ref_spaces)[1], 
+        (*ref_spaces)[2], (*ref_spaces)[3]);
 
       if(ndofs_prev != 0)
-        if(Space<double>::get_num_dofs(*ref_spaces) == ndofs_prev)
+        if(Space<double>::get_num_dofs(ref_spaces_const) == ndofs_prev)
           selector.set_error_weights(2.0 * selector.get_error_weight_h(), 1.0, 1.0);
         else
           selector.set_error_weights(1.0, 1.0, 1.0);
 
-      ndofs_prev = Space<double>::get_num_dofs(*ref_spaces);
+      ndofs_prev = Space<double>::get_num_dofs(ref_spaces_const);
 
       // Project the previous time level solution onto the new fine mesh.
       info("Projecting the previous time level solution onto the new fine mesh.");
-      OGProjection<double>::project_global(*ref_spaces, Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), 
+      OGProjection<double>::project_global(ref_spaces_const, Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), 
         Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), matrix_solver, Hermes::vector<Hermes::Hermes2D::ProjNormType>(), iteration > 1);
 
       
       // Report NDOFs.
       info("ndof_coarse: %d, ndof_fine: %d.", 
-        Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-        &space_rho_v_y, &space_e)), Space<double>::get_num_dofs(*ref_spaces));
+        Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
+        &space_rho_v_y, &space_e)), Space<double>::get_num_dofs(ref_spaces_const));
 
       // Assemble the reference problem.
       info("Solving on reference mesh.");
-      DiscreteProblem<double> dp(&wf, *ref_spaces);
+      DiscreteProblem<double> dp(&wf, ref_spaces_const);
 
       SparseMatrix<double>* matrix = create_matrix<double>(matrix_solver);
       Vector<double>* rhs = create_vector<double>(matrix_solver);
@@ -267,11 +269,11 @@ int main(int argc, char* argv[])
       info("Solving the matrix problem.");
       if(solver->solve())
         if(!SHOCK_CAPTURING)
-          Solution<double>::vector_to_solutions(solver->get_sln_vector(), *ref_spaces, 
+          Solution<double>::vector_to_solutions(solver->get_sln_vector(), ref_spaces_const, 
           Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e));
         else
         {      
-          FluxLimiter flux_limiter(FluxLimiter::Kuzmin, solver->get_sln_vector(), *ref_spaces);
+          FluxLimiter flux_limiter(FluxLimiter::Kuzmin, solver->get_sln_vector(), ref_spaces_const);
           
           flux_limiter.limit_second_orders_according_to_detector(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
             &space_rho_v_y, &space_e));
@@ -286,7 +288,7 @@ int main(int argc, char* argv[])
 
       // Project the fine mesh solution onto the coarse mesh.
       info("Projecting reference solution on coarse mesh.");
-      OGProjection<double>::project_global(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
+      OGProjection<double>::project_global(Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
         &space_rho_v_y, &space_e), Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), 
         Hermes::vector<Solution<double>*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y, &sln_e), matrix_solver, 
         Hermes::vector<ProjNormType>(HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM)); 
@@ -298,13 +300,13 @@ int main(int argc, char* argv[])
       double err_est_rel_total = adaptivity->calc_err_est(Hermes::vector<Solution<double>*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y, &sln_e),
         Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e)) * 100;
 
-      CFL.calculate_semi_implicit(Hermes::vector<Solution<double> *>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), (*ref_spaces)[0]->get_mesh(), time_step);
+      CFL.calculate_semi_implicit(Hermes::vector<Solution<double> *>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), (ref_spaces_const)[0]->get_mesh(), time_step);
 
       // Report results.
       info("err_est_rel: %g%%", err_est_rel_total);
 
       // If err_est too large, adapt the mesh.
-      if (err_est_rel_total < ERR_STOP && Space<double>::get_num_dofs(*ref_spaces) > NDOFS_MIN)
+      if (err_est_rel_total < ERR_STOP && Space<double>::get_num_dofs(ref_spaces_const) > NDOFS_MIN)
         done = true;
       else
       {
@@ -313,7 +315,7 @@ int main(int argc, char* argv[])
           THRESHOLD, STRATEGY, MESH_REGULARITY);
 
         REFINEMENT_COUNT++;
-        if (Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
+        if (Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
           &space_rho_v_y, &space_e)) >= NDOF_STOP) 
           done = true;
         else
@@ -327,7 +329,7 @@ int main(int argc, char* argv[])
       delete adaptivity;
       if(!done)
         for(unsigned int i = 0; i < ref_spaces->size(); i++)
-          delete (*ref_spaces)[i];
+          delete (ref_spaces_const)[i];
     }
     while (done == false);
 
@@ -351,7 +353,7 @@ int main(int argc, char* argv[])
     {
       continuity.add_record((unsigned int)(iteration - 1));
       continuity.get_last_record()->save_mesh(prev_rho.get_mesh());
-      continuity.get_last_record()->save_space(prev_rho.get_space());
+      continuity.get_last_record()->save_space(const_cast<Space<double>*>(prev_rho.get_space()));
       continuity.get_last_record()->save_time_step_length(time_step);
 
       // Hermes visualization.

@@ -103,10 +103,11 @@ int main(int argc, char* argv[])
 #else
   H1Space<double> p_space(&mesh, P_INIT_PRESSURE);
 #endif
-  Hermes::vector<Space<double>* > spaces = Hermes::vector<Space<double>* >(&xvel_space, &yvel_space, &p_space);
+  Hermes::vector<Space<double>* > spaces(&xvel_space, &yvel_space, &p_space);
+  Hermes::vector<const Space<double>* > spaces_const(&xvel_space, &yvel_space, &p_space);
 
   // Calculate and report the number of degrees of freedom.
-  int ndof = Space<double>::get_num_dofs(spaces);
+  int ndof = Space<double>::get_num_dofs(spaces_const);
   info("ndof = %d.", ndof);
 
   // Define projection norms.
@@ -129,7 +130,7 @@ int main(int argc, char* argv[])
   wf = new WeakFormNSNewton(STOKES, RE, TAU, &xvel_prev_time, &yvel_prev_time);
 
   // Initialize the FE problem.
-  DiscreteProblem<double> dp(wf, spaces);
+  DiscreteProblem<double> dp(wf, spaces_const);
 
   // Initialize views.
   VectorView vview("velocity [m/s]", new WinGeom(0, 0, 750, 240));
@@ -168,7 +169,7 @@ int main(int argc, char* argv[])
     };
 
     // Update previous time level solutions.
-    Solution<double>::vector_to_solutions(newton.get_sln_vector(), spaces, slns_prev_time);
+    Solution<double>::vector_to_solutions(newton.get_sln_vector(), spaces_const, slns_prev_time);
 
     // Show the solution at the end of time step.
     sprintf(title, "Velocity, time %g", current_time);

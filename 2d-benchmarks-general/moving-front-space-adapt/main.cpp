@@ -191,11 +191,8 @@ int main(int argc, char* argv[])
       Space<double>* ref_space = Space<double>::construct_refined_space(&space);
       int ndof_ref = ref_space->get_num_dofs();
 
-      // Initialize discrete problem on reference mesh.
-      DiscreteProblem<double> dp(&wf, ref_space);
-
       // Initialize Runge-Kutta time stepping.
-      RungeKutta<double> runge_kutta(&dp, &bt, matrix_solver);
+      RungeKutta<double> runge_kutta(&wf, ref_space, &bt, matrix_solver);
 
       // Perform one Runge-Kutta time step according to the selected Butcher's table.
       info("Runge-Kutta time step (t = %g s, tau = %g s, stages: %d).",

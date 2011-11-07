@@ -151,7 +151,7 @@ int main(int argc, char* argv[])
   L2Space<double>space_rho_v_x(&mesh, P_INIT);
   L2Space<double>space_rho_v_y(&mesh, P_INIT);
   L2Space<double>space_e(&mesh, P_INIT);
-  int ndof = Space<double>::get_num_dofs(Hermes::vector<Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
+  int ndof = Space<double>::get_num_dofs(Hermes::vector<const Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
   info("ndof: %d", ndof);
 
   // Initialize solutions, set initial conditions.
@@ -250,15 +250,18 @@ int main(int argc, char* argv[])
       Hermes::vector<Space<double> *>* ref_spaces = Space<double>::construct_refined_spaces(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
         &space_rho_v_y, &space_e), order_increase);
 
+      Hermes::vector<const Space<double> *> ref_spaces_const((*ref_spaces)[0], (*ref_spaces)[1], 
+        (*ref_spaces)[2], (*ref_spaces)[3]);
+
       L2Space<double> refspace_stabilization((*ref_spaces)[0]->get_mesh(), 0);
 
       if(ndofs_prev != 0)
-        if(Space<double>::get_num_dofs(*ref_spaces) == ndofs_prev)
+        if(Space<double>::get_num_dofs(ref_spaces_const) == ndofs_prev)
           selector.set_error_weights(2.0 * selector.get_error_weight_h(), 1.0, 1.0);
         else
           selector.set_error_weights(1.0, 1.0, 1.0);
 
-      ndofs_prev = Space<double>::get_num_dofs(*ref_spaces);
+      ndofs_prev = Space<double>::get_num_dofs(ref_spaces_const);
 
       // Project the previous time level solution onto the new fine mesh.
       info("Projecting the previous time level solution onto the new fine mesh.");
@@ -274,15 +277,15 @@ int main(int argc, char* argv[])
         delete prev_rho_v_y2;
         delete prev_e2;
 
-        prev_rho = new ConstantSolution<double>((*ref_spaces)[0]->get_mesh(), RHO_EXT);
-        prev_rho_v_x = new ConstantSolution<double>((*ref_spaces)[0]->get_mesh(), RHO_EXT * V1_EXT);
-        prev_rho_v_y = new ConstantSolution<double>((*ref_spaces)[0]->get_mesh(), RHO_EXT * V2_EXT);
-        prev_e = new ConstantSolution<double>((*ref_spaces)[0]->get_mesh(), QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA));
+        prev_rho = new ConstantSolution<double>((ref_spaces_const)[0]->get_mesh(), RHO_EXT);
+        prev_rho_v_x = new ConstantSolution<double>((ref_spaces_const)[0]->get_mesh(), RHO_EXT * V1_EXT);
+        prev_rho_v_y = new ConstantSolution<double>((ref_spaces_const)[0]->get_mesh(), RHO_EXT * V2_EXT);
+        prev_e = new ConstantSolution<double>((ref_spaces_const)[0]->get_mesh(), QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA));
         
-        prev_rho2 = new ConstantSolution<double>((*ref_spaces)[0]->get_mesh(), RHO_EXT);
-        prev_rho_v_x2 = new ConstantSolution<double>((*ref_spaces)[0]->get_mesh(), RHO_EXT * V1_EXT);
-        prev_rho_v_y2 = new ConstantSolution<double>((*ref_spaces)[0]->get_mesh(), RHO_EXT * V2_EXT);
-        prev_e2 = new ConstantSolution<double>((*ref_spaces)[0]->get_mesh(), QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA));
+        prev_rho2 = new ConstantSolution<double>((ref_spaces_const)[0]->get_mesh(), RHO_EXT);
+        prev_rho_v_x2 = new ConstantSolution<double>((ref_spaces_const)[0]->get_mesh(), RHO_EXT * V1_EXT);
+        prev_rho_v_y2 = new ConstantSolution<double>((ref_spaces_const)[0]->get_mesh(), RHO_EXT * V2_EXT);
+        prev_e2 = new ConstantSolution<double>((ref_spaces_const)[0]->get_mesh(), QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA));
       }
       else if(loaded_now)
       {
@@ -293,7 +296,7 @@ int main(int argc, char* argv[])
       }
       else
       {
-        OGProjection<double>::project_global(*ref_spaces, Hermes::vector<Solution<double>*>(prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e), 
+        OGProjection<double>::project_global(ref_spaces_const, Hermes::vector<Solution<double>*>(prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e), 
           Hermes::vector<Solution<double>*>(prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e), matrix_solver, Hermes::vector<Hermes::Hermes2D::ProjNormType>(), iteration > 1);
         
         if(iteration == 2)
@@ -303,13 +306,13 @@ int main(int argc, char* argv[])
           delete prev_rho_v_y2;
           delete prev_e2;
 
-          prev_rho2 = new ConstantSolution<double>((*ref_spaces)[0]->get_mesh(), RHO_EXT);
-          prev_rho_v_x2 = new ConstantSolution<double>((*ref_spaces)[0]->get_mesh(), RHO_EXT * V1_EXT);
-          prev_rho_v_y2 = new ConstantSolution<double>((*ref_spaces)[0]->get_mesh(), RHO_EXT * V2_EXT);
-          prev_e2 = new ConstantSolution<double>((*ref_spaces)[0]->get_mesh(), QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA));
+          prev_rho2 = new ConstantSolution<double>((ref_spaces_const)[0]->get_mesh(), RHO_EXT);
+          prev_rho_v_x2 = new ConstantSolution<double>((ref_spaces_const)[0]->get_mesh(), RHO_EXT * V1_EXT);
+          prev_rho_v_y2 = new ConstantSolution<double>((ref_spaces_const)[0]->get_mesh(), RHO_EXT * V2_EXT);
+          prev_e2 = new ConstantSolution<double>((ref_spaces_const)[0]->get_mesh(), QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA));
         }
         else
-          OGProjection<double>::project_global(*ref_spaces, Hermes::vector<Solution<double>*>(prev_rho2, prev_rho_v_x2, prev_rho_v_y2, prev_e2), 
+          OGProjection<double>::project_global(ref_spaces_const, Hermes::vector<Solution<double>*>(prev_rho2, prev_rho_v_x2, prev_rho_v_y2, prev_e2), 
             Hermes::vector<Solution<double>*>(prev_rho2, prev_rho_v_x2, prev_rho_v_y2, prev_e2), matrix_solver, Hermes::vector<Hermes::Hermes2D::ProjNormType>());
       }
 
@@ -324,12 +327,12 @@ int main(int argc, char* argv[])
       
       // Report NDOFs.
       info("ndof_coarse: %d, ndof_fine: %d.", 
-        Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-        &space_rho_v_y, &space_e)), Space<double>::get_num_dofs(*ref_spaces));
+        Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
+        &space_rho_v_y, &space_e)), Space<double>::get_num_dofs(ref_spaces_const));
 
       // Assemble the reference problem.
       info("Solving on reference mesh.");
-      DiscreteProblem<double> dp(&wf, *ref_spaces);
+      DiscreteProblem<double> dp(&wf, ref_spaces_const);
       DiscreteProblem<double> dp_stabilization(&wf_stabilization, &refspace_stabilization);
       bool* discreteIndicator = NULL;
 
@@ -380,16 +383,16 @@ int main(int argc, char* argv[])
 
         if(!SHOCK_CAPTURING || SHOCK_CAPTURING_TYPE == FEISTAUER)
         {
-          Solution<double>::vector_to_solutions(solver->get_sln_vector(), *ref_spaces, 
+          Solution<double>::vector_to_solutions(solver->get_sln_vector(), ref_spaces_const, 
             Hermes::vector<Solution<double>*>(rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e));
         }
         else
         {
           FluxLimiter* flux_limiter;
           if(SHOCK_CAPTURING_TYPE == KUZMIN)
-            FluxLimiter flux_limiter(FluxLimiter::Kuzmin, solver->get_sln_vector(), *ref_spaces);
+            FluxLimiter flux_limiter(FluxLimiter::Kuzmin, solver->get_sln_vector(), ref_spaces_const);
           else
-            FluxLimiter flux_limiter(FluxLimiter::Krivodonova, solver->get_sln_vector(), *ref_spaces);
+            FluxLimiter flux_limiter(FluxLimiter::Krivodonova, solver->get_sln_vector(), ref_spaces_const);
           if(SHOCK_CAPTURING_TYPE == KUZMIN)
             flux_limiter->limit_second_orders_according_to_detector(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
             &space_rho_v_y, &space_e));
@@ -405,7 +408,7 @@ int main(int argc, char* argv[])
 
       // Project the fine mesh solution onto the coarse mesh.
       info("Projecting reference solution on coarse mesh.");
-      OGProjection<double>::project_global(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
+      OGProjection<double>::project_global(Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
         &space_rho_v_y, &space_e), Hermes::vector<Solution<double>*>(rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e), 
         Hermes::vector<Solution<double>*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y, &sln_e), matrix_solver, 
         Hermes::vector<ProjNormType>(HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM)); 
@@ -418,7 +421,7 @@ int main(int argc, char* argv[])
         Hermes::vector<Solution<double>*>(rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e)) * 100;
 
       time_step_n_minus_one = time_step_n;
-      CFL.calculate_semi_implicit(Hermes::vector<Solution<double> *>(rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e), (*ref_spaces)[0]->get_mesh(), time_step_n);
+      CFL.calculate_semi_implicit(Hermes::vector<Solution<double> *>(rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e), (ref_spaces_const)[0]->get_mesh(), time_step_n);
 
       // Report results.
       info("err_est_rel: %g%%", err_est_rel_total);
@@ -433,7 +436,7 @@ int main(int argc, char* argv[])
           THRESHOLD, STRATEGY, MESH_REGULARITY);
 
         REFINEMENT_COUNT++;
-        if (Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
+        if (Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
           &space_rho_v_y, &space_e)) >= NDOF_STOP) 
           done = true;
         else

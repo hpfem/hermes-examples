@@ -129,9 +129,6 @@ int main(int argc, char* argv[])
   CustomWeakFormHeatRK wf(BDY_FIRE, BDY_AIR, ALPHA_FIRE, ALPHA_AIR,
                           RHO, HEATCAP, TEMP_EXT_AIR, TEMP_INIT, &current_time);
 
-  // Initialize the FE problem.
-  DiscreteProblem<double> dp(&wf, &space);
-
   // Initialize views.
   ScalarView Tview("Temperature", new WinGeom(0, 0, 1500, 400));
   Tview.fix_scale_width(40);
@@ -143,7 +140,7 @@ int main(int argc, char* argv[])
   info("Time step history will be saved to file time_step_history.dat.");
 
   // Initialize Runge-Kutta time stepping.
-  RungeKutta<double> runge_kutta(&dp, &bt, matrix_solver);
+  RungeKutta<double> runge_kutta(&wf, &space, &bt, matrix_solver);
 
   // Time stepping loop:
   int ts = 1;
