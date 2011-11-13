@@ -112,9 +112,6 @@ int main(int argc, char* argv[])
   view1.show(&sln_proj, HERMES_EPS_HIGH);
   View::wait();
 
-  // Get info about time spent during assembling in its respective parts.
-  dp.get_all_profiling_output(std::cout);
-
   // VTK output.
   if (VTK_VISUALIZATION) 
   {
