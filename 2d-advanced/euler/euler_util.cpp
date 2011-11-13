@@ -1032,7 +1032,8 @@ void FluxLimiter::limit_according_to_detector(Hermes::vector<Space<double> *> co
         }
       }
 
-      Space<double>::assign_dofs(coarse_spaces_to_limit);
+      for(int i = 0; i < coarse_spaces_to_limit.size(); i++)
+        coarse_spaces_to_limit.at(i)->assign_dofs();
     }
 };
 
@@ -1097,7 +1098,8 @@ void FluxLimiter::limit_second_orders_according_to_detector(Hermes::vector<Space
         }
       }
 
-      Space<double>::assign_dofs(coarse_spaces_to_limit);
+      for(int i = 0; i < coarse_spaces_to_limit.size(); i++)
+        coarse_spaces_to_limit.at(i)->assign_dofs();
     }
 };
 
