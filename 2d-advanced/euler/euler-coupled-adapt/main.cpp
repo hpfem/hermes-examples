@@ -24,11 +24,11 @@ using namespace RefinementSelectors;
 const bool SEMI_IMPLICIT = true;
 // Visualization.
 // Set to "true" to enable Hermes OpenGL visualization. 
-const bool HERMES_VISUALIZATION = true;           
+const bool HERMES_VISUALIZATION = true;
 // Set to "true" to enable VTK output.
-const bool VTK_VISUALIZATION = false;              
+const bool VTK_VISUALIZATION = false;
 // Set visual output for every nth step.
-const unsigned int EVERY_NTH_STEP = 5;            
+const unsigned int EVERY_NTH_STEP = 1;
 
 // Shock capturing.
 bool SHOCK_CAPTURING = true;
@@ -299,10 +299,15 @@ int main(int argc, char* argv[])
 
       if(as > 1) {
         delete rsln_rho.get_mesh();
+        rsln_rho.own_mesh = false;
         delete rsln_rho_v_x.get_mesh();
+        rsln_rho_v_x.own_mesh = false;
         delete rsln_rho_v_y.get_mesh();
+        rsln_rho_v_y.own_mesh = false;
         delete rsln_e.get_mesh();
+        rsln_e.own_mesh = false;
         delete rsln_c.get_mesh();
+        rsln_c.own_mesh = false;
       }
 
       // Report NDOFs.
@@ -454,23 +459,26 @@ int main(int argc, char* argv[])
       delete solver;
       delete matrix;
       delete rhs;
-      for(unsigned int i = 0; i < ref_spaces->size(); i++)
-        delete (*ref_spaces)[i];
     }
     while (done == false);
 
     // Copy the solutions into the previous time level ones.
-
     prev_rho.copy(&rsln_rho);
     prev_rho_v_x.copy(&rsln_rho_v_x);
     prev_rho_v_y.copy(&rsln_rho_v_y);
     prev_e.copy(&rsln_e);
     prev_c.copy(&rsln_c);
+
     delete rsln_rho.get_mesh();
+    rsln_rho.own_mesh = false;
     delete rsln_rho_v_x.get_mesh();
+    rsln_rho_v_x.own_mesh = false;
     delete rsln_rho_v_y.get_mesh();
+    rsln_rho_v_y.own_mesh = false;
     delete rsln_e.get_mesh();
+    rsln_e.own_mesh = false;
     delete rsln_c.get_mesh();
+    rsln_c.own_mesh = false;
 
     // Visualization.
     if((iteration - 1) % EVERY_NTH_STEP == 0) {

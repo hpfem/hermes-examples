@@ -22,11 +22,11 @@ using namespace Hermes::Hermes2D::Views;
 
 // Visualization.
 // Set to "true" to enable Hermes OpenGL visualization. 
-const bool HERMES_VISUALIZATION = false;           
+const bool HERMES_VISUALIZATION = true;
 // Set to "true" to enable VTK output.
-const bool VTK_VISUALIZATION = true;              
+const bool VTK_VISUALIZATION = false;
 // Set visual output for every nth step.
-const unsigned int EVERY_NTH_STEP = 1;            
+const unsigned int EVERY_NTH_STEP = 1;
 
 // Shock capturing.
 enum shockCapturingType
