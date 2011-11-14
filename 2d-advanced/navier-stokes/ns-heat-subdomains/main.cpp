@@ -105,7 +105,6 @@ int main(int argc, char* argv[])
   MeshView m1("Mesh for temperature"), m2("Mesh for fluid");
   m1.show(&mesh_whole_domain);
   m2.show(&mesh_with_hole);
-  View::wait();
 
   // Initialize boundary conditions.
   EssentialBCNonConst bc_inlet_vel_x("Inlet", VEL_INLET, H, STARTUP_TIME);
@@ -171,11 +170,6 @@ int main(int argc, char* argv[])
   // Translate the solution vector back to Solutions. This is needed to replace
   // the discontinuous initial condition for temperature_prev_time with its projection.
   Solution<double>::vector_to_solutions(coeff_vec, all_spaces_const, all_solutions);
-
-  // Debug.
-  ScalarView t0("Projected initial temperature");
-  t0.show(&temperature_prev_time);
-  View::wait();
 
   // Calculate Reynolds number.
   double reynolds_number = VEL_INLET * OBSTACLE_DIAMETER / KINEMATIC_VISCOSITY_FLUID;
