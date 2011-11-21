@@ -352,7 +352,8 @@ int main(int argc, char* argv[])
       
       // Clean up.
       delete adaptivity;
-      delete ref_space;
+      if(!done)
+        delete ref_space;
       delete ref_dp;
       delete space_error_fn;
     }

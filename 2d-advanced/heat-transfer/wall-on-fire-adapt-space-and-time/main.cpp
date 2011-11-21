@@ -217,10 +217,10 @@ int main(int argc, char* argv[])
         case 1: mesh.copy(&basemesh);
                 space.set_uniform_order(P_INIT);
                 break;
-        case 2: mesh.unrefine_all_elements();
+        case 2: space.unrefine_all_mesh_elements();
                 space.set_uniform_order(P_INIT);
                 break;
-        case 3: mesh.unrefine_all_elements();
+        case 3: space.unrefine_all_mesh_elements();
                 //space.adjust_element_order(-1, P_INIT);
                 space.adjust_element_order(-1, -1, P_INIT, P_INIT);
                 break;
@@ -246,8 +246,6 @@ int main(int argc, char* argv[])
       OGProjection<double>::project_global(ref_space, &sln_prev_time, 
                                    &sln_prev_time, matrix_solver);
       
-      delete ref_sln.get_mesh();
-      
       // Runge-Kutta step on the fine mesh.
       info("Runge-Kutta time step on fine mesh (t = %g s, tau = %g s, stages: %d).", 
            current_time, time_step, bt.get_size());
@@ -269,7 +267,8 @@ int main(int argc, char* argv[])
          If too large or too small, then adjust it and restart the time step. */
 
       double rel_err_time = 0;
-      if (bt.is_embedded() == true) {
+      if (bt.is_embedded() == true) 
+      {
         info("Calculating temporal error estimate.");
 
         // Show temporal error.
@@ -284,20 +283,24 @@ int main(int argc, char* argv[])
         if (ADAPTIVE_TIME_STEP_ON == false) info("rel_err_time: %g%%", rel_err_time);
       }
 
-      if (ADAPTIVE_TIME_STEP_ON) {
-        if (rel_err_time > TIME_ERR_TOL_UPPER) {
+      if (ADAPTIVE_TIME_STEP_ON) 
+      {
+        if (rel_err_time > TIME_ERR_TOL_UPPER) 
+        {
           info("rel_err_time %g%% is above upper limit %g%%", rel_err_time, TIME_ERR_TOL_UPPER);
           info("Decreasing tau from %g to %g s and restarting time step.", 
                time_step, time_step * TIME_STEP_DEC_RATIO);
           time_step *= TIME_STEP_DEC_RATIO;
           continue;
         }
-        else if (rel_err_time < TIME_ERR_TOL_LOWER) {
-          info("rel_err_time = %g%% is below lower limit %g%%", rel_err_time, TIME_ERR_TOL_UPPER);
+        else if (rel_err_time < TIME_ERR_TOL_LOWER) 
+        {
+          info("rel_err_time = %g%% is below lower limit %g%%", rel_err_time, TIME_ERR_TOL_LOWER);
           info("Increasing tau from %g to %g s.", time_step, time_step * TIME_STEP_INC_RATIO);
           time_step *= TIME_STEP_INC_RATIO;
         }
-        else {
+        else 
+        {
           info("rel_err_time = %g%% is in acceptable interval (%g%%, %g%%)", 
             rel_err_time, TIME_ERR_TOL_LOWER, TIME_ERR_TOL_UPPER);
         }
@@ -348,6 +351,8 @@ int main(int argc, char* argv[])
       }
       
       // Clean up.
+      if(!done)
+        delete ref_space;
       delete adaptivity;
     }
     while (done == false);
@@ -364,6 +369,7 @@ int main(int argc, char* argv[])
 
     // Copy last reference solution into sln_prev_time.
     sln_prev_time.copy(&ref_sln);
+    delete ref_sln.get_mesh();
 
     // Increase current time and counter of time steps.
     current_time += time_step;

@@ -186,7 +186,7 @@ int main(int argc, char* argv[])
     }
     if (rel_err_time < TIME_TOL_LOWER) {
       info("rel_err_time = below lower limit %g%% -> increasing time step from %g to %g", 
-           TIME_TOL_UPPER, time_step, time_step * TIME_STEP_INC_RATIO);
+           TIME_TOL_LOWER, time_step, time_step * TIME_STEP_INC_RATIO);
       time_step *= TIME_STEP_INC_RATIO;
     }
 
