@@ -41,10 +41,10 @@ const double NEWTON_TOL = 1e-5;
 const int NEWTON_MAX_ITER = 100;                  
 // If rel. temporal error is greater than this threshold, decrease time 
 // step size and repeat time step.
-const double TIME_TOL_UPPER = 1.0;                
+const double TIME_TOL_UPPER = 0.5;                
 // If rel. temporal error is less than this threshold, increase time step
 // but do not repeat time step (this might need further research).
-const double TIME_TOL_LOWER = 0.5;                
+const double TIME_TOL_LOWER = 0.2;                
 // Time step increase ratio (applied when rel. temporal error is too small).
 const double TIME_STEP_INC_RATIO = 1.1;           
 // Time step decrease ratio (applied when rel. temporal error is too large).
