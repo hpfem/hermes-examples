@@ -46,8 +46,8 @@ public:
   }
 
   virtual void derivatives (double x, double y, double& dx, double& dy) const {
-    dx = 2*x;
-    dy = 2*y;
+    dx = 2.*x;
+    dy = 2.*y;
   };
 
   virtual Ord ord(Ord x, Ord y) const {
