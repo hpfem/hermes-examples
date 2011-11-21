@@ -14,10 +14,10 @@ Real T_fire_x(Real x)
 template<typename Real>
 Real T_fire_t(Real t) 
 {
-  if (0 <= t  &&  t <= 100) return 0;
-  if (100 <= t  &&  t <= 600) return 980. / 500 * (t - 100.);
-  if (600 <= t  &&  t <= 1800) return 980;
-  if (1800 <= t  &&  t <= 3000) return 980 - 980. / 1200 * (t - 1800.);
+  if (0. <= t  &&  t <= 100.) return 0.;
+  if (100. <= t  &&  t <= 600.) return 980. / 500. * (t - 100.);
+  if (600. <= t  &&  t <= 1800.) return 980.;
+  if (1800. <= t  &&  t <= 3000.) return 980. - 980. / 1200. * (t - 1800.);
   return 0.;
 }
 
@@ -49,7 +49,7 @@ CustomWeakFormHeatRK::CustomWeakFormHeatRK(std::string bdy_fire, std::string bdy
 double CustomWeakFormHeatRK::CustomJacobianVol::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
                                                       Geom<double> *e, ExtData<double> *ext) const 
 {
-  double result = 0;
+  double result = 0.;
   for (int i = 0; i < n; i++) 
   {
     result += wt[i] * lambda(e->x[i], e->y[i]) * (u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i]);
@@ -75,7 +75,7 @@ double CustomWeakFormHeatRK::CustomFormResidualVol::value(int n, double *wt, Fun
                                                           Geom<double> *e, ExtData<double> *ext) const 
 {
   Func<double>* u_prev_newton = u_ext[0];
-  double result = 0;
+  double result = 0.;
   for (int i = 0; i < n; i++) 
   {
     result += wt[i] * lambda(e->x[i], e->y[i])
@@ -135,6 +135,6 @@ VectorFormSurf<double>* CustomWeakFormHeatRK::CustomFormResidualSurfFire::clone(
 template<typename Real>
 Real CustomWeakFormHeatRK::CustomFormResidualSurfFire::T_fire(Real x, Real t) const 
 {
-  return T_fire_x(x) * T_fire_t(t) + 20;
+  return T_fire_x(x) * T_fire_t(t) + 20.;
 }
 
