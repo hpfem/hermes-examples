@@ -8,16 +8,20 @@ double lambda(double x, double y)
 template<typename Real>
 Real T_fire_x(Real x) 
 {
-  return -1./32 * x*x*x + 3./16 * x*x;
+  return -(1./32.) * x*x*x + (3./16.) * x*x;
 }
 
 template<typename Real>
 Real T_fire_t(Real t) 
 {
-  if (0. <= t  &&  t <= 100.) return 0.;
-  if (100. <= t  &&  t <= 600.) return 980. / 500. * (t - 100.);
-  if (600. <= t  &&  t <= 1800.) return 980.;
-  if (1800. <= t  &&  t <= 3000.) return 980. - 980. / 1200. * (t - 1800.);
+  if (0. <= t  &&  t <= 100.) 
+    return 0.;
+  if (100. <= t  &&  t <= 600.) 
+    return 980. / 500. * (t - 100.);
+  if (600. <= t  &&  t <= 1800.) 
+    return 980.;
+  if (1800. <= t  &&  t <= 3000.) 
+    return 980. - 980. / 1200. * (t - 1800.);
   return 0.;
 }
 
