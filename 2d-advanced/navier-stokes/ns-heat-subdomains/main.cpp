@@ -148,7 +148,7 @@ int main(int argc, char* argv[])
 
   // Initial conditions and such.
   info("Setting initial conditions.");
-  ZeroSolution xvel_prev_time(&mesh_with_hole), yvel_prev_time(&mesh_with_hole), p_prev_time(&mesh_with_hole);
+  ZeroSolution<double> xvel_prev_time(&mesh_with_hole), yvel_prev_time(&mesh_with_hole), p_prev_time(&mesh_with_hole);
   CustomInitialConditionTemperature temperature_init_cond(&mesh_whole_domain, HOLE_MID_X, HOLE_MID_Y, 
       0.5*OBSTACLE_DIAMETER, TEMPERATURE_INIT_FLUID, TEMPERATURE_INIT_GRAPHITE); 
   Solution<double> temperature_prev_time;

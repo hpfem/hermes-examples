@@ -69,7 +69,7 @@ int main(int argc, char* argv[])
 
   // Initialize solutions.
   CustomInitialConditionWave E_sln(&mesh);
-  ZeroSolution B_sln(&mesh);
+  ZeroSolution<double> B_sln(&mesh);
   Hermes::vector<Solution<double>*> slns(&E_sln, &B_sln);
 
   // Initialize the weak formulation.

@@ -50,7 +50,7 @@ double FilterFluxDensity::get_pt_value(double x, double y, int item)
 void FilterFluxDensity::precalculate(int order, int mask)
 {
   Quad2D* quad = quads[cur_quad];
-  int np = quad->get_num_points(order);
+  int np = quad->get_num_points(order, this->get_active_element()->get_mode());
   Node* node = new_node(H2D_FN_DEFAULT, np);
 
   sln[0]->set_quad_order(order, H2D_FN_VAL | H2D_FN_DX | H2D_FN_DY);

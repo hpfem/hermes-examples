@@ -216,7 +216,7 @@ int main(int argc, char* argv[])
   info("ndof = %d.", ndof);
 
   // Convert initial condition into a Solution.
-  ZeroSolution h_time_prev(&mesh), h_time_new(&mesh), time_error_fn(&mesh);
+  ZeroSolution<double> h_time_prev(&mesh), h_time_new(&mesh), time_error_fn(&mesh);
 
   // Initialize views.
   ScalarView view("Initial condition", new WinGeom(0, 0, 600, 500));

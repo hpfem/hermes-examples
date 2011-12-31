@@ -128,9 +128,9 @@ int main(int argc, char* argv[])
 
   // Solutions for the Newton's iteration and time stepping.
   info("Setting zero initial conditions.");
-  ZeroSolution xvel_prev_time(&mesh);
-  ZeroSolution yvel_prev_time(&mesh);
-  ZeroSolution p_prev_time(&mesh);
+  ZeroSolution<double> xvel_prev_time(&mesh);
+  ZeroSolution<double> yvel_prev_time(&mesh);
+  ZeroSolution<double> p_prev_time(&mesh);
   Hermes::vector<Solution<double>* > slns_prev_time = Hermes::vector<Solution<double>* >(&xvel_prev_time, &yvel_prev_time, &p_prev_time);
 
   // Initialize weak formulation.

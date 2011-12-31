@@ -119,7 +119,7 @@ private:
 class CustomErrorForm : public Adapt<std::complex<double> >::MatrixFormVolError
 {
 public:
- CustomErrorForm(double kappa) : Adapt<std::complex<double> >::MatrixFormVolError()
+ CustomErrorForm(double kappa) : Adapt<std::complex<double> >::MatrixFormVolError(0, 0)
   {
     kappa_squared = sqr(kappa);
   };

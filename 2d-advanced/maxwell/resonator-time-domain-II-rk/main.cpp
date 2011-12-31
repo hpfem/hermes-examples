@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
 
   // Initialize solutions.
   CustomInitialConditionWave E_time_prev(&mesh);
-  ZeroSolutionVector F_time_prev(&mesh);
+  ZeroSolutionVector<double> F_time_prev(&mesh);
   Hermes::vector<Solution<double>*> slns_time_prev(&E_time_prev, &F_time_prev);
   Solution<double> E_time_new, F_time_new;
   Hermes::vector<Solution<double>*> slns_time_new(&E_time_new, &F_time_new);

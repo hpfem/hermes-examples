@@ -144,7 +144,7 @@ int main(int argc, char* argv[])
   info("ndof_coarse = %d.", ndof_coarse);
 
   // Zero initial solution. This is why we use H_OFFSET.
-  ZeroSolution h_time_prev(&mesh), h_time_new(&mesh);
+  ZeroSolution<double> h_time_prev(&mesh), h_time_new(&mesh);
 
   // Initialize the constitutive relations.
   ConstitutiveRelations* constitutive_relations;

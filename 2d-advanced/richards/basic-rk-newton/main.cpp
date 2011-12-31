@@ -106,7 +106,7 @@ int main(int argc, char* argv[])
   info("ndof = %d.", ndof);
 
   // Zero initial solutions. This is why we use H_OFFSET.
-  ZeroSolution h_time_prev(&mesh), h_time_new(&mesh);
+  ZeroSolution<double> h_time_prev(&mesh), h_time_new(&mesh);
 
   // Initialize views.
   ScalarView view("Initial condition", new WinGeom(0, 0, 600, 500));

@@ -85,12 +85,12 @@ double integrate_over_wall(MeshFunction<double>* meshfn, int marker)
         RefMap* ru = meshfn->get_refmap();
 
         meshfn->set_active_element(e);
-        int eo = quad->get_edge_points(edge);
+        int eo = quad->get_edge_points(edge, quad->get_max_order(e->get_mode()), e->get_mode());
         meshfn->set_quad_order(eo, H2D_FN_VAL);
         double *uval = meshfn->get_fn_values();
-        double3* pt = quad->get_points(eo);
+        double3* pt = quad->get_points(eo, e->get_mode());
         double3* tan = ru->get_tangent(edge);
-        for (int i = 0; i < quad->get_num_points(eo); i++)
+        for (int i = 0; i < quad->get_num_points(eo, e->get_mode()); i++)
           integral += pt[i][2] * uval[i] * tan[i][2];
       }
     }
@@ -147,9 +147,9 @@ int main(int argc, char* argv[])
 
   // Solutions for the Newton's iteration and time stepping.
   info("Setting initial conditions.");
-  ZeroSolution xvel_prev_time(&mesh);
-  ZeroSolution yvel_prev_time(&mesh);
-  ZeroSolution p_prev_time(&mesh);
+  ZeroSolution<double> xvel_prev_time(&mesh);
+  ZeroSolution<double> yvel_prev_time(&mesh);
+  ZeroSolution<double> p_prev_time(&mesh);
  
   Hermes::vector<Solution<double>*> slns = Hermes::vector<Solution<double>*>(&xvel_prev_time, &yvel_prev_time, 
       &p_prev_time);

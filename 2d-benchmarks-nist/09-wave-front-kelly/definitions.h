@@ -78,7 +78,7 @@ public:
 class EnergyErrorForm : public Adapt<double>::MatrixFormVolError
 {
 public:
-  EnergyErrorForm(WeakForm<double> *problem_wf) : Adapt<double>::MatrixFormVolError(HERMES_UNSET_NORM)
+  EnergyErrorForm(WeakForm<double> *problem_wf) : Adapt<double>::MatrixFormVolError(0, 0, HERMES_UNSET_NORM)
   {
     this->form = problem_wf->get_mfvol()[0];
   }
