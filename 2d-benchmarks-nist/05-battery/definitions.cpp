@@ -53,6 +53,11 @@ Ord CustomMatrixFormVol::ord(int n, double *wt, Func<Ord> *u_ext[],
   return matrix_form<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
 }
 
+MatrixFormVol<double>* CustomMatrixFormVol::clone()
+{
+  return new CustomMatrixFormVol(*this);
+}
+
 template<typename Real, typename Scalar>
 Scalar CustomVectorFormVol::vector_form(int n, double *wt, Func<Scalar> *u_ext[],
     Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const
@@ -122,6 +127,11 @@ Ord CustomVectorFormVol::ord(int n, double *wt, Func<Ord> *u_ext[],
     Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const 
 {
   return vector_form<Ord, Ord>(n, wt, u_ext, v, e, ext);
+}
+
+VectorFormVol<double>* CustomVectorFormVol::clone()
+{
+  return new CustomVectorFormVol(*this);
 }
 
 template<typename Real, typename Scalar>
@@ -199,6 +209,12 @@ Ord CustomMatrixFormSurf::ord(int n, double *wt, Func<Ord> *u_ext[],
 {
   return Ord(4.0);
 }
+
+MatrixFormSurf<double>* CustomMatrixFormSurf::clone()
+{
+  return new CustomMatrixFormSurf(*this);
+}
+
 
 template<typename Real, typename Scalar>
 Scalar CustomVectorFormSurf::vector_form(int n, double *wt, Func<Scalar> *u_ext[],
@@ -297,6 +313,11 @@ Ord CustomVectorFormSurf::ord(int n, double *wt, Func<Ord> *u_ext[],
     Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const 
 {
   return Ord(4.0);
+}
+
+VectorFormSurf<double>* CustomVectorFormSurf::clone()
+{
+  return new CustomVectorFormSurf(*this);
 }
 
 CustomWeakFormPoisson::CustomWeakFormPoisson(std::string omega_1, std::string omega_2, 
