@@ -19,6 +19,7 @@ class CustomWeakForm : public WeakForm<double>
 
     virtual Hermes::Ord ord(int n, double *wt, Func<Hermes::Ord> *u_ext[], Func<Hermes::Ord> *u, Func<Hermes::Ord> *v,
                             Geom<Hermes::Ord> *e, ExtData<Hermes::Ord> *ext) const;
+    MatrixFormVol<double>* clone();
   };
   
   class Residual : public VectorFormVol<double>
@@ -32,6 +33,7 @@ class CustomWeakForm : public WeakForm<double>
 
     virtual Hermes::Ord ord(int n, double *wt, Func<Hermes::Ord> *u_ext[], Func<Hermes::Ord> *v,
                             Geom<Hermes::Ord> *e, ExtData<Hermes::Ord> *ext) const;
+    VectorFormVol<double>* clone();
   };
   
   public:

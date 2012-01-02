@@ -60,6 +60,8 @@ public:
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v,
         Geom<Ord> *e, ExtData<Ord> *ext) const;
 
+    MatrixFormVol<double>* clone();
+
     double alpha;
   };
 
@@ -78,6 +80,8 @@ public:
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v,
         Geom<Ord> *e, ExtData<Ord> *ext) const;
+
+    VectorFormVol<double>* clone();
 
     CustomRightHandSide* f;
   };

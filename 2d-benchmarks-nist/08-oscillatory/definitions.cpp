@@ -83,6 +83,11 @@ Ord CustomWeakForm::CustomMatrixFormVol::ord(int n, double *wt, Func<Ord> *u_ext
   return matrix_form<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
 }
 
+MatrixFormVol<double>* CustomWeakForm::CustomMatrixFormVol::clone()
+{
+  return new CustomWeakForm::CustomMatrixFormVol(*this);
+}
+
 template<typename Real, typename Scalar>
 Scalar CustomWeakForm::CustomVectorFormVol::vector_form(int n, double *wt, Func<Scalar> *u_ext[],
     Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const
@@ -112,4 +117,9 @@ Ord CustomWeakForm::CustomVectorFormVol::ord(int n, double *wt, Func<Ord> *u_ext
     Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const 
 {
   return vector_form<Ord, Ord>(n, wt, u_ext, v, e, ext);
+}
+
+VectorFormVol<double>* CustomWeakForm::CustomVectorFormVol::clone()
+{
+  return new CustomWeakForm::CustomVectorFormVol(*this);
 }
