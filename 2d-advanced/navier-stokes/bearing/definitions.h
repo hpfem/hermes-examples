@@ -26,6 +26,7 @@ public:
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
                     Geom<Ord> *e, ExtData<Ord> *ext);
 
+    MatrixFormVol<double>* clone();
   protected:
     bool Stokes;
     double Reynolds;
@@ -43,7 +44,8 @@ public:
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, 
                     ExtData<Ord> *ext) const;
-
+    
+    MatrixFormVol<double>* clone();
   protected:
     bool Stokes;
   };
@@ -58,6 +60,8 @@ public:
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, 
                     ExtData<Ord> *ext) const;
+    
+    MatrixFormVol<double>* clone();
   };
 
   class BilinearFormNonsymYVelPressure : public MatrixFormVol<double>
@@ -70,6 +74,8 @@ public:
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, 
                     ExtData<Ord> *ext) const;
+    
+    MatrixFormVol<double>* clone();
   };
 
   class VectorFormVolVel : public VectorFormVol<double>
@@ -82,7 +88,8 @@ public:
                          ExtData<double> *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const;
-
+    
+    VectorFormVol<double>* clone();
   protected:
     bool Stokes;
     double time_step;
@@ -115,6 +122,7 @@ public:
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, 
                     ExtData<Ord> *ext) const;
 
+    MatrixFormVol<double>* clone();
   protected:
     bool Stokes;
     double Reynolds;
@@ -133,6 +141,7 @@ public:
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, 
                     ExtData<Ord> *ext) const;
 
+    MatrixFormVol<double>* clone();
   protected:
     bool Stokes;
   };
@@ -149,6 +158,7 @@ public:
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, 
                     ExtData<Ord> *ext) const;
 
+    MatrixFormVol<double>* clone();
   protected:
     bool Stokes;
   };
@@ -165,6 +175,7 @@ public:
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, 
                     ExtData<Ord> *ext) const;
 
+    MatrixFormVol<double>* clone();
   protected:
     bool Stokes;
   };
@@ -181,6 +192,7 @@ public:
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, 
                     ExtData<Ord> *ext) const;
 
+    MatrixFormVol<double>* clone();
   protected:
     bool Stokes;
   };
@@ -195,6 +207,7 @@ public:
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, 
                     ExtData<Ord> *ext) const;
+    MatrixFormVol<double>* clone();
   };
 
   class BilinearFormNonsymYVelPressure : public MatrixFormVol<double>
@@ -207,6 +220,7 @@ public:
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, 
                     ExtData<Ord> *ext) const;
+    MatrixFormVol<double>* clone();
   };
 
   class VectorFormNS_0 : public VectorFormVol<double>
@@ -220,6 +234,7 @@ public:
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const;
 
+    VectorFormVol<double>* clone();
   protected:
     bool Stokes;
     double Reynolds;
@@ -237,6 +252,7 @@ public:
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const;
 
+    VectorFormVol<double>* clone();
   protected:
     bool Stokes;
     double Reynolds;
@@ -252,6 +268,8 @@ public:
                          ExtData<double> *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const;
+    
+    VectorFormVol<double>* clone();
   };
 
 protected:

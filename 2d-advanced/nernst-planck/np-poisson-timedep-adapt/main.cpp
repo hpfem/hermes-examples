@@ -278,7 +278,7 @@ int main (int argc, char* argv[]) {
   phiordview.show(&phi_space);
 
   // Newton's loop on the coarse mesh.
-  info("Solving initial coarse mesh");
+  info("Solving on initial coarse mesh");
   try
   {
     solver_coarse->solve(coeff_vec_coarse, NEWTON_TOL_COARSE, NEWTON_MAX_ITER);

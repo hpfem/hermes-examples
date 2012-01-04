@@ -17,7 +17,9 @@ public:
   
   virtual double value(double x, double y) const;
 
-  virtual Ord ord(Ord x, Ord y) const; 
+  virtual Ord ord(Ord x, Ord y) const;
+
+  MeshFunction<double>* clone();
 };
 
 /* Weak forms */
@@ -34,6 +36,8 @@ public:
 
   virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v,
                   Geom<Ord> *e, ExtData<Ord> *ext) const; 
+
+  MatrixFormVol<double>* clone();
 };
 
 class CustomResidual : public VectorFormVol<double>
@@ -47,7 +51,8 @@ public:
                        Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
 
   virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v,
-                  Geom<Ord> *e, ExtData<Ord> *ext) const; 
+                  Geom<Ord> *e, ExtData<Ord> *ext) const;
+  VectorFormVol<double>* clone();
 };
 
 class CustomWeakForm : public WeakForm<double>

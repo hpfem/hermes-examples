@@ -16,6 +16,11 @@ Ord CustomExactSolution::ord(Ord x, Ord y) const
   return Ord(20);
 }
 
+MeshFunction<double>* CustomExactSolution::clone()
+{
+  return new CustomExactSolution(*this);
+}
+
 
 double CustomJacobian::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u,
                              Func<double> *v, Geom<double> *e, ExtData<double> *ext) const 
@@ -32,6 +37,11 @@ Ord CustomJacobian::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Fun
   return Ord(20);
 }
 
+MatrixFormVol<double>* CustomJacobian::clone()
+{
+  return new CustomJacobian(*this);
+}
+
 double CustomResidual::value(int n, double *wt, Func<double> *u_ext[],
                              Func<double> *v, Geom<double> *e, ExtData<double> *ext) const 
 {
@@ -45,6 +55,11 @@ Ord CustomResidual::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v,
                         Geom<Ord> *e, ExtData<Ord> *ext) const 
 {
   return Ord(20);
+}
+
+VectorFormVol<double>* CustomResidual::clone()
+{
+  return new CustomResidual(*this);
 }
 
 CustomWeakForm::CustomWeakForm(std::string marker_bdy_right) : WeakForm<double>(1) 

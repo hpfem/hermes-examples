@@ -74,6 +74,11 @@ private:
       return matrix_form<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
     }
 
+    MatrixFormVol<double>* clone()
+    {
+      return new Jacobian(*this);
+    }
+
     // Members.
     int i, j;
     double* tau;
@@ -132,15 +137,17 @@ private:
                 Geom<Ord> *e, ExtData<Ord> *ext) const {
           return vector_form<Ord, Ord>(n, wt, u_ext, v, e, ext);
         }
+        
+        VectorFormVol<double>* clone()
+        {
+          return new Residual(*this);
+        }
 
         // Members.
         int i;
         double* tau;
         double epsilon;
       };
-
-
-
 };
 
 
@@ -162,8 +169,6 @@ public:
             i, j, tau, C0, K, L, D));
     }
   };
-
-
 
 private:
   class Jacobian : public MatrixFormVol<double> {
@@ -220,6 +225,11 @@ private:
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v,
             Geom<Ord> *e, ExtData<Ord> *ext) const {
       return matrix_form<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
+    }
+    
+    MatrixFormVol<double>* clone()
+    {
+      return new Jacobian(*this);
     }
 
     // Members.
@@ -284,6 +294,11 @@ private:
       virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v,
               Geom<Ord> *e, ExtData<Ord> *ext) const {
         return vector_form<Ord, Ord>(n, wt, u_ext, v, e, ext);
+      }
+      
+      VectorFormVol<double>* clone()
+      {
+        return new Residual(*this);
       }
 
       // Members.
@@ -369,6 +384,11 @@ private:
             Geom<Ord> *e, ExtData<Ord> *ext) const {
       return matrix_form<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
     }
+    
+    MatrixFormVol<double>* clone()
+    {
+      return new Jacobian(*this);
+    }
 
     // Members.
     int i, j;
@@ -428,6 +448,11 @@ private:
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, 
             Geom<Ord> *e, ExtData<Ord> *ext) const {
       return vector_form<Ord, Ord>(n, wt, u_ext, v, e, ext);
+    }
+    
+    VectorFormVol<double>* clone()
+    {
+      return new Residual(*this);
     }
 
     // Members.
