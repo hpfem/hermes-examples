@@ -15,6 +15,11 @@ Ord CustomInitialConditionWave::ord(Ord x, Ord y) const
 {
   return Ord(10);
 }
+  
+MeshFunction<double>* CustomInitialConditionWave::clone()
+{
+  return new CustomInitialConditionWave(this->mesh);
+}
 
 CustomWeakFormWave::CustomWeakFormWave(double tau, double c_squared, Solution<double>* u_prev_sln,
                                        Solution<double>* v_prev_sln) : WeakForm<double>(2) 

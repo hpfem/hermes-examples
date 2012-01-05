@@ -29,6 +29,11 @@ Ord CustomWeakFormWaveIE::MatrixFormVolWave_0_0::ord(int n, double *wt, Func<Ord
   return int_e_f<Ord, Ord>(n, wt, u, v) / tau;
 }
 
+MatrixFormVol<double>* CustomWeakFormWaveIE::MatrixFormVolWave_0_0::clone()
+{
+  return new CustomWeakFormWaveIE::MatrixFormVolWave_0_0(*this);
+}
+
 double CustomWeakFormWaveIE::MatrixFormVolWave_0_1::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
                                                         Func<double> *v, Geom<double> *e, ExtData<double> *ext) const 
 {
@@ -39,6 +44,11 @@ Ord CustomWeakFormWaveIE::MatrixFormVolWave_0_1::ord(int n, double *wt, Func<Ord
                                                    Geom<Ord> *e, ExtData<Ord> *ext) const 
 {
   return -int_e_f<Ord, Ord>(n, wt, u, v);
+}
+
+MatrixFormVol<double>* CustomWeakFormWaveIE::MatrixFormVolWave_0_1::clone()
+{
+  return new CustomWeakFormWaveIE::MatrixFormVolWave_0_1(*this);
 }
 
 double CustomWeakFormWaveIE::MatrixFormVolWave_1_0::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
@@ -53,6 +63,11 @@ Ord CustomWeakFormWaveIE::MatrixFormVolWave_1_0::ord(int n, double *wt, Func<Ord
   return c_squared * int_curl_e_curl_f<Ord, Ord>(n, wt, u, v);
 }
 
+MatrixFormVol<double>* CustomWeakFormWaveIE::MatrixFormVolWave_1_0::clone()
+{
+  return new CustomWeakFormWaveIE::MatrixFormVolWave_1_0(*this);
+}
+
 double CustomWeakFormWaveIE::MatrixFormVolWave_1_1::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
                                                         Func<double> *v, Geom<double> *e, ExtData<double> *ext) const 
 {
@@ -63,6 +78,11 @@ Ord CustomWeakFormWaveIE::MatrixFormVolWave_1_1::ord(int n, double *wt, Func<Ord
                                                    Geom<Ord> *e, ExtData<Ord> *ext) const 
 {
   return int_e_f<Ord, Ord>(n, wt, u, v) / tau;
+}
+
+MatrixFormVol<double>* CustomWeakFormWaveIE::MatrixFormVolWave_1_1::clone()
+{
+  return new CustomWeakFormWaveIE::MatrixFormVolWave_1_1(*this);
 }
 
 double CustomWeakFormWaveIE::VectorFormVolWave_0::value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
@@ -87,6 +107,11 @@ Ord CustomWeakFormWaveIE::VectorFormVolWave_0::ord(int n, double *wt, Func<Ord> 
          - int_e_f<Ord, Ord>(n, wt, F_prev_newton, v);
 }
 
+VectorFormVol<double>* CustomWeakFormWaveIE::VectorFormVolWave_0::clone()
+{
+  return new CustomWeakFormWaveIE::VectorFormVolWave_0(*this);
+}
+
 double CustomWeakFormWaveIE::VectorFormVolWave_1::value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
                                                       Geom<double> *e, ExtData<double> *ext) const 
 {
@@ -108,6 +133,11 @@ Ord CustomWeakFormWaveIE::VectorFormVolWave_1::ord(int n, double *wt, Func<Ord> 
     + c_squared * int_curl_e_curl_f<Ord, Ord>(n, wt, E_prev_newton, v);
 }
 
+VectorFormVol<double>* CustomWeakFormWaveIE::VectorFormVolWave_1::clone()
+{
+  return new CustomWeakFormWaveIE::VectorFormVolWave_1(*this);
+}
+
 Scalar2<double> CustomInitialConditionWave::value (double x, double y) const 
 {
   return Scalar2<double>(std::sin(x) * std::cos(y), -std::cos(x) * std::sin(y));
@@ -124,6 +154,11 @@ void CustomInitialConditionWave::derivatives (double x, double y, Scalar2<double
 Ord CustomInitialConditionWave::ord(Ord x, Ord y) const 
 {
   return Ord(20);
+}
+
+MeshFunction<double>* CustomInitialConditionWave::clone()
+{
+  return new CustomInitialConditionWave(this->mesh);
 }
 
 

@@ -24,6 +24,11 @@ Ord CustomInitialConditionTemperature::ord(Ord x, Ord y) const
   return Ord(1);
 }
 
+MeshFunction<double>* CustomInitialConditionTemperature::clone()
+{
+  return new CustomInitialConditionTemperature(*this);
+}
+
 /* Weak forms */
 
 CustomWeakFormHeatAndFlow::CustomWeakFormHeatAndFlow(bool Stokes, double Reynolds, double time_step, Solution<double>* x_vel_previous_time, 

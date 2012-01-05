@@ -17,6 +17,11 @@ Ord CustomInitialCondition::ord(Ord x, Ord y) const
   return exp(-10*(x*x + y*y));
 }
 
+MeshFunction<std::complex<double> >* CustomInitialCondition::clone()
+{
+  return new CustomInitialCondition(this->mesh);
+}
+
 CustomWeakFormGPRK::CustomWeakFormGPRK(double h, double m, double g, double omega) : WeakForm<std::complex<double> >(1)
 {
   // Jacobian volumetric part.

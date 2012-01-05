@@ -55,6 +55,11 @@ Ord WeakFormHelmholtz::MatrixFormHelmholtzEquation_real_real::ord(int n, double 
   return matrix_form<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
 }
 
+MatrixFormVol<double>* WeakFormHelmholtz::MatrixFormHelmholtzEquation_real_real::clone()
+{
+  return new WeakFormHelmholtz::MatrixFormHelmholtzEquation_real_real(*this);
+}
+
 template<typename Real, typename Scalar>
 Scalar WeakFormHelmholtz::MatrixFormHelmholtzEquation_real_imag::matrix_form(int n, double *wt, 
     Func<Real> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const 
@@ -73,7 +78,12 @@ Ord WeakFormHelmholtz::MatrixFormHelmholtzEquation_real_imag::ord(int n, double 
 {
   return matrix_form<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
 }
- 
+
+MatrixFormVol<double>* WeakFormHelmholtz::MatrixFormHelmholtzEquation_real_imag::clone()
+{
+  return new WeakFormHelmholtz::MatrixFormHelmholtzEquation_real_imag(*this);
+}
+
 template<typename Real, typename Scalar>
 Scalar WeakFormHelmholtz::MatrixFormHelmholtzEquation_imag_real::matrix_form(int n, double *wt, 
     Func<Real> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const 
@@ -92,7 +102,12 @@ Ord WeakFormHelmholtz::MatrixFormHelmholtzEquation_imag_real::ord(int n, double 
 {
   return matrix_form<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
 }
- 
+
+MatrixFormVol<double>* WeakFormHelmholtz::MatrixFormHelmholtzEquation_imag_real::clone()
+{
+  return new WeakFormHelmholtz::MatrixFormHelmholtzEquation_imag_real(*this);
+}
+
 template<typename Real, typename Scalar>
 Scalar WeakFormHelmholtz::MatrixFormHelmholtzEquation_imag_imag::matrix_form(int n, double *wt, 
     Func<Real> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const 
@@ -110,6 +125,11 @@ Ord WeakFormHelmholtz::MatrixFormHelmholtzEquation_imag_imag::ord(int n, double 
     Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const 
 {
   return matrix_form<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
+}
+
+MatrixFormVol<double>* WeakFormHelmholtz::MatrixFormHelmholtzEquation_imag_imag::clone()
+{
+  return new WeakFormHelmholtz::MatrixFormHelmholtzEquation_imag_imag(*this);
 }
 
 template<typename Real, typename Scalar>
@@ -130,7 +150,12 @@ Ord WeakFormHelmholtz::MatrixFormSurfHelmholtz_real_imag::ord(int n, double *wt,
 {
   return matrix_form_surf<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
 }
- 
+
+MatrixFormSurf<double>* WeakFormHelmholtz::MatrixFormSurfHelmholtz_real_imag::clone()
+{
+  return new WeakFormHelmholtz::MatrixFormSurfHelmholtz_real_imag(*this);
+}
+
 template<typename Real, typename Scalar>
 Scalar WeakFormHelmholtz::MatrixFormSurfHelmholtz_imag_real::matrix_form_surf(int n, double *wt, 
     Func<Real> *u_ext[], Func<Real> *u, Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const 
@@ -148,6 +173,11 @@ Ord WeakFormHelmholtz::MatrixFormSurfHelmholtz_imag_real::ord(int n, double *wt,
     Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const 
 {
   return matrix_form_surf<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
+}
+
+MatrixFormSurf<double>* WeakFormHelmholtz::MatrixFormSurfHelmholtz_imag_real::clone()
+{
+  return new WeakFormHelmholtz::MatrixFormSurfHelmholtz_imag_real(*this);
 }
 
 /* Residual forms */
@@ -173,6 +203,11 @@ Ord WeakFormHelmholtz::VectorFormHelmholtzEquation_real::ord(int n, double *wt, 
   return vector_form<Ord, Ord>(n, wt, u_ext, v, e, ext);
 }
 
+VectorFormVol<double>* WeakFormHelmholtz::VectorFormHelmholtzEquation_real::clone()
+{
+  return new WeakFormHelmholtz::VectorFormHelmholtzEquation_real(*this);
+}
+
 template<typename Real, typename Scalar>
 Scalar WeakFormHelmholtz::VectorFormHelmholtzEquation_imag::vector_form(int n, double *wt, 
     Func<Real> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const 
@@ -194,6 +229,11 @@ Ord WeakFormHelmholtz::VectorFormHelmholtzEquation_imag::ord(int n, double *wt, 
   return vector_form<Ord, Ord>(n, wt, u_ext, v, e, ext);
 }
  
+VectorFormVol<double>* WeakFormHelmholtz::VectorFormHelmholtzEquation_imag::clone()
+{
+  return new WeakFormHelmholtz::VectorFormHelmholtzEquation_imag(*this);
+}
+
 // Surface vector forms.
 
 template<typename Real, typename Scalar>
@@ -214,7 +254,12 @@ Ord WeakFormHelmholtz::VectorFormSurfHelmholtz_real::ord(int n, double *wt, Func
 {
   return vector_form_surf<Ord, Ord>(n, wt, u_ext, v, e, ext);
 }
- 
+  
+VectorFormSurf<double>* WeakFormHelmholtz::VectorFormSurfHelmholtz_real::clone()
+{
+  return new WeakFormHelmholtz::VectorFormSurfHelmholtz_real(*this);
+}
+
 template<typename Real, typename Scalar>
 Scalar WeakFormHelmholtz::VectorFormSurfHelmholtz_imag::vector_form_surf(int n, double *wt, 
     Func<Real> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const 
@@ -232,4 +277,9 @@ Ord WeakFormHelmholtz::VectorFormSurfHelmholtz_imag::ord(int n, double *wt, Func
     Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const 
 {
   return vector_form_surf<Ord, Ord>(n, wt, u_ext, v, e, ext);
+}
+  
+VectorFormSurf<double>* WeakFormHelmholtz::VectorFormSurfHelmholtz_imag::clone()
+{
+  return new WeakFormHelmholtz::VectorFormSurfHelmholtz_imag(*this);
 }

@@ -28,6 +28,8 @@ public:
 
   virtual Ord ord(Ord x, Ord y) const;
 
+  MeshFunction<double>* clone();
+
   // Members.
   double mid_x, mid_y, radius, temp_fluid, temp_graphite;
 };
@@ -60,6 +62,10 @@ public:
       Ord result = int_u_v<Ord, Ord>(n, wt, u, v) / time_step;
       return result;
     }
+    MatrixFormVol<double>* clone()
+    {
+      return new BilinearFormTime(*this);
+    }
   protected:
     // Members.
     double time_step;
@@ -86,6 +92,10 @@ public:
       if(!Stokes)
         result += int_u_v<Ord, Ord>(n, wt, u, v) / time_step;
       return result;
+    }
+    MatrixFormVol<double>* clone()
+    {
+      return new BilinearFormSymVel(*this);
     }
   protected:
     // Members.
@@ -124,6 +134,10 @@ public:
       }
       return result;
     }
+    MatrixFormVol<double>* clone()
+    {
+      return new BilinearFormUnSymVel_0_0(*this);
+    }
   protected:
     // Members.
     bool Stokes;
@@ -155,6 +169,10 @@ public:
       }
       return result;
     }
+    MatrixFormVol<double>* clone()
+    {
+      return new BilinearFormUnSymVel_0_1(*this);
+    }
   protected:
     // Members.
     bool Stokes;
@@ -185,6 +203,10 @@ public:
           result += wt[i] * (u->val[i] * v->val[i] * yvel_prev_newton->dx[i]);
       }
       return result;
+    }
+    MatrixFormVol<double>* clone()
+    {
+      return new BilinearFormUnSymVel_1_0(*this);
     }
   protected:
     // Members.
@@ -221,6 +243,10 @@ public:
       }
       return result;
     }
+    MatrixFormVol<double>* clone()
+    {
+      return new BilinearFormUnSymVel_1_1(*this);
+    }
   protected:
     // Members.
     bool Stokes;
@@ -240,6 +266,10 @@ public:
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const {
       return - int_u_dvdx<Ord, Ord>(n, wt, u, v);
     }
+    MatrixFormVol<double>* clone()
+    {
+      return new BilinearFormUnSymXVelPressure(*this);
+    }
   };
 
   class BilinearFormUnSymYVelPressure : public MatrixFormVol<double>
@@ -255,6 +285,10 @@ public:
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const {
       return - int_u_dvdy<Ord, Ord>(n, wt, u, v);
+    }
+    MatrixFormVol<double>* clone()
+    {
+      return new BilinearFormUnSymYVelPressure(*this);
     }
   };
 
@@ -283,6 +317,10 @@ public:
         result += wt[i] * u->val[i] * T_prev_newton->dx[i] * v->val[i];
       }
       return result;
+    }
+    MatrixFormVol<double>* clone()
+    {
+      return new CustomJacobianTempAdvection_3_0(*this);
     }
   };
 
@@ -314,6 +352,10 @@ public:
       }
       return result;
     }
+    MatrixFormVol<double>* clone()
+    {
+      return new CustomJacobianTempAdvection_3_3_simple(*this);
+    }
   };
 
   class CustomJacobianTempAdvection_3_1 : public MatrixFormVol<double>
@@ -340,6 +382,10 @@ public:
         result += wt[i] * u->val[i] * T_prev_newton->dy[i] * v->val[i];
       }
       return result;
+    }
+    MatrixFormVol<double>* clone()
+    {
+      return new CustomJacobianTempAdvection_3_1(*this);
     }
   };
 
@@ -371,6 +417,10 @@ public:
       }
       return result;
     }
+    MatrixFormVol<double>* clone()
+    {
+      return new CustomJacobianTempAdvection_3_3(*this);
+    }
   };
 
   class VectorFormTime: public VectorFormVol<double>
@@ -390,6 +440,10 @@ public:
       Func<Ord>* func_prev_time = ext->fn[0];
       Ord result = (int_u_v<Ord, Ord>(n, wt, u_ext[3], v) - int_u_v<Ord, Ord>(n, wt, func_prev_time, v)) / time_step;
       return result;
+    }
+    VectorFormVol<double>* clone()
+    {
+      return new VectorFormTime(*this);
     }
   protected:
     // Members.
@@ -426,6 +480,10 @@ public:
       }
       return result;
     }
+    VectorFormVol<double>* clone()
+    {
+      return new CustomResidualTempAdvection(*this);
+    }
   };
 
   class CustomResidualTempAdvection_simple : public VectorFormVol<double>
@@ -457,6 +515,10 @@ public:
         result += wt[i] * ( xvel_prev_time->val[i] * T_prev_newton->dx[i] + yvel_prev_time->val[i] * T_prev_newton->dy[i] ) * v->val[i]; 
       }
       return result;
+    }
+    VectorFormVol<double>* clone()
+    {
+      return new CustomResidualTempAdvection_simple(*this);
     }
   };
 
@@ -496,6 +558,10 @@ public:
           result += wt[i] * (((xvel_prev_newton->val[i] - xvel_prev_time->val[i]) * v->val[i] / time_step)
           + ((xvel_prev_newton->val[i] * xvel_prev_newton->dx[i] + yvel_prev_newton->val[i] * xvel_prev_newton->dy[i]) * v->val[i]));
       return result;
+    }
+    VectorFormVol<double>* clone()
+    {
+      return new VectorFormNS_0(*this);
     }
   protected:
     // Members.
@@ -541,6 +607,10 @@ public:
           + ((xvel_prev_newton->val[i] * yvel_prev_newton->dx[i] + yvel_prev_newton->val[i] * yvel_prev_newton->dy[i]) * v->val[i]));
       return result;
     }
+    VectorFormVol<double>* clone()
+    {
+      return new VectorFormNS_1(*this);
+    }
   protected:
     // Members.
     bool Stokes;
@@ -572,6 +642,10 @@ public:
       for (int i = 0; i < n; i++)
         result += wt[i] * (xvel_prev_newton->dx[i] * v->val[i] + yvel_prev_newton->dy[i] * v->val[i]);
       return result;
+    }
+    VectorFormVol<double>* clone()
+    {
+      return new VectorFormNS_2(*this);
     }
   };
 

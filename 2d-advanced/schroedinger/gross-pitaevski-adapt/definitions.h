@@ -18,6 +18,8 @@ public:
   virtual std::complex<double>  value (double x, double y) const;
 
   virtual Ord ord(Ord x, Ord y) const;
+
+  virtual MeshFunction<std::complex<double> >* clone();
 };
 
 

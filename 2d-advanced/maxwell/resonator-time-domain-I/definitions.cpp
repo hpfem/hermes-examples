@@ -20,6 +20,12 @@ Ord CustomInitialConditionWave::ord(Ord x, Ord y) const
   return Ord(10);
 }
 
+MeshFunction<double>* CustomInitialConditionWave::clone()
+{
+  return new CustomInitialConditionWave(this->mesh);
+}
+
+
 CustomWeakFormWave::CustomWeakFormWave(double c_squared) : WeakForm<double>(2) 
 {
   // Jacobian.

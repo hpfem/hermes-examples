@@ -46,6 +46,7 @@ private:
         virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, 
             Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const;
 
+        MatrixFormVol<double>* clone();
     private:
         // Members.
         double eps;
@@ -74,6 +75,7 @@ private:
 
         virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
             Geom<Ord> *e, ExtData<Ord> *ext) const;
+        MatrixFormVol<double>* clone();
     };
 
     class MatrixFormHelmholtzEquation_imag_real : public MatrixFormVol<double>
@@ -97,6 +99,7 @@ private:
 
         virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
             Geom<Ord> *e, ExtData<Ord> *ext) const;
+        MatrixFormVol<double>* clone();
     };
 
     class MatrixFormHelmholtzEquation_imag_imag : public MatrixFormVol<double>
@@ -114,6 +117,8 @@ private:
 
         virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
             Geom<Ord> *e, ExtData<Ord> *ext) const;
+        
+        MatrixFormVol<double>* clone();
 
         // Members.
         double eps;
@@ -138,6 +143,7 @@ private:
 
         virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
             Geom<Ord> *e, ExtData<Ord> *ext) const;
+        MatrixFormSurf<double>* clone();
     };
 
     class MatrixFormSurfHelmholtz_imag_real : public MatrixFormSurf<double>
@@ -158,6 +164,8 @@ private:
 
         virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
             Geom<Ord> *e, ExtData<Ord> *ext) const;
+
+        MatrixFormSurf<double>* clone();
     };
 
     class VectorFormHelmholtzEquation_real : public VectorFormVol<double>
@@ -176,6 +184,7 @@ private:
         virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[],
             Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const;
 
+        VectorFormVol<double>* clone();
     private:
         // Members.
         double eps;
@@ -200,6 +209,7 @@ private:
         virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[],
             Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const;
 
+        VectorFormVol<double>* clone();
     private:
         // Members.
         double eps;
@@ -225,6 +235,8 @@ private:
 
         virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, 
             Geom<Ord> *e, ExtData<Ord> *ext) const;
+        
+        VectorFormSurf<double>* clone();
     };
 
     class VectorFormSurfHelmholtz_imag : public VectorFormSurf<double>
@@ -244,5 +256,7 @@ private:
 
         virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, 
             Geom<Ord> *e, ExtData<Ord> *ext) const;
+        
+        VectorFormSurf<double>* clone();
     };
 };

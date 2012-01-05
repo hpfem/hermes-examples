@@ -19,6 +19,8 @@ public:
   virtual void derivatives (double x, double y, Scalar2<double>& dx, Scalar2<double>& dy) const;
 
   virtual Ord ord(Ord x, Ord y) const;
+
+  MeshFunction<double>* clone();
 };
 
 /* Weak forms */
@@ -46,7 +48,7 @@ private:
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
                     Geom<Ord> *e, ExtData<Ord> *ext) const;
 
-    virtual MatrixFormVol<double>* clone();
+    MatrixFormVol<double>* clone();
 
     double c_squared;
   };
@@ -67,7 +69,7 @@ private:
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
                     Geom<Ord> *e, ExtData<Ord> *ext) const;
 
-    virtual MatrixFormVol<double>* clone();
+    MatrixFormVol<double>* clone();
   };
 
   class VectorFormVolWave_0 : public VectorFormVol<double>
