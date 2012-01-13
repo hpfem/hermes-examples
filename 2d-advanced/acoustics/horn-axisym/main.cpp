@@ -201,9 +201,15 @@ int main(int argc, char* argv[])
   verbose("Total running time: %g s", cpu_time.accumulated());
 
   // Show the reference solution - the final result.
-  RealFilter mag(&ref_sln);
-  sview_real.show(&mag);
+  RealFilter ref_mag(&ref_sln);
+  sview_real.show(&ref_mag);
   oview.show(&space);
+
+  // Output solution in VTK format.
+  Linearizer lin;
+  bool mode_3D = true;
+  lin.save_solution_vtk(&ref_mag, "sln.vtk", "Acoustic pressure", mode_3D);
+  info("Solution in VTK format saved to file %s.", "sln.vtk");
 
   // Wait for all views to be closed.
   View::wait();
