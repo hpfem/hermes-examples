@@ -186,7 +186,8 @@ int main(int argc, char* argv[])
     if (Space<std::complex<double> >::get_num_dofs(&space) >= NDOF_STOP) done = true;
 
     delete adaptivity;
-    delete ref_space->get_mesh();
+    if(!done)
+      delete ref_space->get_mesh();
     delete ref_space;
 
     // Increase counter.
@@ -201,6 +202,12 @@ int main(int argc, char* argv[])
 
   RealFilter ref_mag(&ref_sln);
   sview.show(&ref_mag);
+
+  // Output solution in VTK format.
+  Linearizer lin;
+  bool mode_3D = true;
+  lin.save_solution_vtk(&ref_mag, "sln.vtk", "Acoustic pressure", mode_3D);
+  info("Solution in VTK format saved to file %s.", "sln.vtk");
 
   // Wait for all views to be closed.
   View::wait();
