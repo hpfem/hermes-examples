@@ -26,6 +26,14 @@
 //
 // The following parameters can be changed:
 
+// Visualization.
+// Set to "true" to enable Hermes OpenGL visualization. 
+const bool HERMES_VISUALIZATION = true;
+// Set to "true" to enable VTK output.
+const bool VTK_VISUALIZATION = true;
+// Set visual output for every nth step.
+const unsigned int EVERY_NTH_STEP = 1;
+
 // For application of Stokes flow (creeping flow).
 const bool STOKES = false;                        
 // If this is defined, the pressure is approximated using
@@ -171,13 +179,34 @@ int main(int argc, char* argv[])
     // Update previous time level solutions.
     Solution<double>::vector_to_solutions(newton.get_sln_vector(), spaces_const, slns_prev_time);
 
-    // Show the solution at the end of time step.
-    sprintf(title, "Velocity, time %g", current_time);
-    vview.set_title(title);
-    vview.show(&xvel_prev_time, &yvel_prev_time, HERMES_EPS_LOW);
-    sprintf(title, "Pressure, time %g", current_time);
-    pview.set_title(title);
-    pview.show(&p_prev_time);
+    // Visualization.
+    if((ts - 1) % EVERY_NTH_STEP == 0) 
+    {
+      // Hermes visualization.
+      if(HERMES_VISUALIZATION) 
+      {
+        // Show the solution at the end of time step.
+        sprintf(title, "Velocity, time %g", current_time);
+        vview.set_title(title);
+        vview.show(&xvel_prev_time, &yvel_prev_time, HERMES_EPS_LOW);
+        sprintf(title, "Pressure, time %g", current_time);
+        pview.set_title(title);
+        pview.show(&p_prev_time);
+      }
+      // Output solution in VTK format.
+      if(VTK_VISUALIZATION) 
+      {
+        Linearizer lin;
+        Hermes::vector<MeshFunction<double>* > slns_prev_time0 = Hermes::vector<MeshFunction<double>* >(&xvel_prev_time, &yvel_prev_time);
+        MagFilter<double> mag(slns_prev_time0, Hermes::vector<int>(H2D_FN_VAL, H2D_FN_VAL));
+        std::stringstream ss_vel;
+        ss_vel << "VelocityMagnitude-" << ts << ".vtk";
+        lin.save_solution_vtk(&mag, ss_vel.str().c_str(), "VelocityMagnitude");
+        std::stringstream ss_pres;
+        ss_pres << "Pressure-" << ts << ".vtk";
+        lin.save_solution_vtk(&p_prev_time, ss_pres.str().c_str(), "Pressure");
+      }
+    }
   }
 
   // Wait for all views to be closed.
