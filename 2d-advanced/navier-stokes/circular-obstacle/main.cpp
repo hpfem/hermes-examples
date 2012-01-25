@@ -50,7 +50,7 @@ const int P_INIT_VEL = 2;
 // P_INIT_PRESSURE because of the inf-sup condition.
 const int P_INIT_PRESSURE = 1;                    
 // Reynolds number.
-const double RE = 200.0;                          
+const double RE = 2000.0;                          
 // Inlet velocity (reached after STARTUP_TIME).
 const double VEL_INLET = 1.0;                     
 // During this time, inlet velocity increases gradually
@@ -196,7 +196,7 @@ int main(int argc, char* argv[])
         // Show the solution at the end of time step.
         sprintf(title, "Velocity, time %g", current_time);
         vview.set_title(title);
-        vview.show(&xvel_prev_time, &yvel_prev_time, HERMES_EPS_LOW);
+        //vview.show(&xvel_prev_time, &yvel_prev_time, HERMES_EPS_LOW);
         sprintf(title, "Pressure, time %g", current_time);
         pview.set_title(title);
         pview.show(&p_prev_time);
@@ -208,10 +208,10 @@ int main(int argc, char* argv[])
         Hermes::vector<MeshFunction<double>* > slns_prev_time0 = Hermes::vector<MeshFunction<double>* >(&xvel_prev_time, &yvel_prev_time);
         MagFilter<double> mag(slns_prev_time0, Hermes::vector<int>(H2D_FN_VAL, H2D_FN_VAL));
         std::stringstream ss_vel;
-        ss_vel << "VelocityMagnitude-" << ts << ".vtk";
+        ss_vel << "Velocity.vtk";
         lin.save_solution_vtk(&mag, ss_vel.str().c_str(), "VelocityMagnitude");
         std::stringstream ss_pres;
-        ss_pres << "Pressure-" << ts << ".vtk";
+        ss_pres << "Pressure.vtk";
         lin.save_solution_vtk(&p_prev_time, ss_pres.str().c_str(), "Pressure");
       }
     }
