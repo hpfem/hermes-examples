@@ -112,11 +112,6 @@ int main(int argc, char* argv[])
   ConstantSolution<double> prev_rho_v_y(&mesh, RHO_EXT * V2_EXT);
   ConstantSolution<double> prev_e(&mesh, QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA));
 
-  ConstantSolution<double> prev_rho2(&mesh, RHO_EXT);
-  ConstantSolution<double> prev_rho_v_x2(&mesh, RHO_EXT * V1_EXT);
-  ConstantSolution<double> prev_rho_v_y2(&mesh, RHO_EXT * V2_EXT);
-  ConstantSolution<double> prev_e2(&mesh, QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA));
-
   // Numerical flux.
   VijayasundaramNumericalFlux num_flux(KAPPA);
 
@@ -143,7 +138,7 @@ int main(int argc, char* argv[])
   CFLCalculation CFL(CFL_NUMBER, KAPPA);
 
   // Look for a saved solution on the disk.
-  Continuity<double> continuity(Continuity<double>::onlyTime);
+  CalculationContinuity<double> continuity(CalculationContinuity<double>::onlyTime);
   int iteration = 0; double t = 0;
 
   if(REUSE_SOLUTION && continuity.have_record_available())
@@ -152,8 +147,8 @@ int main(int argc, char* argv[])
     continuity.get_last_record()->load_spaces(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
       &space_rho_v_y, &space_e), Hermes::vector<SpaceType>(HERMES_L2_SPACE, HERMES_L2_SPACE, HERMES_L2_SPACE, HERMES_L2_SPACE), Hermes::vector<Mesh *>(&mesh, &mesh, 
       &mesh, &mesh));
-    continuity.get_last_record()->load_solutions(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_rho2, &prev_rho_v_x2, &prev_rho_v_y2, &prev_e2), Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-      &space_rho_v_y, &space_e, &space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
+    continuity.get_last_record()->load_solutions(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
+      &space_rho_v_y, &space_e));
     continuity.get_last_record()->load_time_step_length(time_step_n);
     continuity.get_last_record()->load_time_step_length_n_minus_one(time_step_n_minus_one);
     t = continuity.get_last_record()->get_time();
@@ -161,13 +156,10 @@ int main(int argc, char* argv[])
   }
 
   // Initialize weak formulation.
-  EulerEquationsWeakFormSemiImplicitMultiComponent2ndOrder wf(&num_flux, KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, BDY_SOLID_WALL_BOTTOM, BDY_SOLID_WALL_TOP, 
-    BDY_INLET, BDY_OUTLET, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_rho2, &prev_rho_v_x2, &prev_rho_v_y2, &prev_e2, (P_INIT == 0));
+  EulerEquationsWeakFormExplicit wf(&num_flux, KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, BDY_SOLID_WALL_BOTTOM, BDY_SOLID_WALL_TOP, 
+    BDY_INLET, BDY_OUTLET, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, (P_INIT == 0));
 
   EulerEquationsWeakFormStabilization wf_stabilization(&prev_rho);
-
-  if(SHOCK_CAPTURING && SHOCK_CAPTURING_TYPE == FEISTAUER)
-    wf.set_stabilization(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_rho2, &prev_rho_v_x2, &prev_rho_v_y2, &prev_e2, NU_1, NU_2);
 
   // Initialize the FE problem.
   DiscreteProblem<double> dp(&wf, Hermes::vector<const Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
@@ -183,27 +175,8 @@ int main(int argc, char* argv[])
   {
     info("---- Time step %d, time %3.5f.", iteration++, t);
 
-    if(SHOCK_CAPTURING && SHOCK_CAPTURING_TYPE == FEISTAUER)
-    {
-      dp_stabilization.assemble(rhs_stabilization);
-      if(discreteIndicator != NULL)
-        delete [] discreteIndicator;
-      discreteIndicator = new bool[space_stabilization.get_num_dofs()];
-      for(unsigned int i = 0; i < space_stabilization.get_num_dofs(); i++)
-        discreteIndicator[i] = false;
-      Element* e;
-      for_all_active_elements(e, space_stabilization.get_mesh())
-      {
-        AsmList<double> al;
-        space_stabilization.get_element_assembly_list(e, &al);
-        if(rhs_stabilization->get(al.get_dof()[0]) >= 1)
-          discreteIndicator[e->id] = true;
-      }
-      wf.set_discreteIndicator(discreteIndicator);
-    }
-
     // Set the current time step.
-    wf.set_time_step(time_step_n, time_step_n_minus_one);
+    wf.set_time_step(time_step_n);
 
     // Assemble the stiffness matrix and rhs.
     info("Assembling the stiffness matrix and right-hand side vector.");
@@ -213,14 +186,6 @@ int main(int argc, char* argv[])
     info("Solving the matrix problem.");
     if(solver->solve())
     {
-      if(iteration > 1)
-      {
-        prev_rho2.copy(&prev_rho);
-        prev_rho_v_x2.copy(&prev_rho_v_x);
-        prev_rho_v_y2.copy(&prev_rho_v_y);
-        prev_e2.copy(&prev_e);
-      }
-
       if(!SHOCK_CAPTURING || SHOCK_CAPTURING_TYPE == FEISTAUER)
       {
         Solution<double>::vector_to_solutions(solver->get_sln_vector(), Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
@@ -285,8 +250,8 @@ int main(int argc, char* argv[])
       continuity.add_record(t);
       continuity.get_last_record()->save_mesh(&mesh);
       continuity.get_last_record()->save_spaces(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-        &space_rho_v_y, &space_e, &space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
-      continuity.get_last_record()->save_solutions(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_rho2, &prev_rho_v_x2, &prev_rho_v_y2, &prev_e2));
+        &space_rho_v_y, &space_e));
+      continuity.get_last_record()->save_solutions(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
       continuity.get_last_record()->save_time_step_length(time_step_n);
       continuity.get_last_record()->save_time_step_length_n_minus_one(time_step_n_minus_one);
     }

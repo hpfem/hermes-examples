@@ -108,9 +108,10 @@ AsmList<double> al;
     SurfPos surf_pos;
     surf_pos.marker = e->marker;
     surf_pos.surf_num = edge_i;
-    int eo = solutions[1]->get_quad_2d()->get_edge_points(surf_pos.surf_num, 20);
-    Geom<double>* geom = init_geom_surf(solutions[1]->get_refmap(), &surf_pos, eo);
-    int np = solutions[1]->get_quad_2d()->get_num_points(eo);
+    int eo = solutions[1]->get_quad_2d()->get_edge_points(surf_pos.surf_num, 20, e->get_mode());
+    double3* tan;
+    Geom<double>* geom = init_geom_surf(solutions[1]->get_refmap(), surf_pos.surf_num, surf_pos.marker, eo, tan);
+    int np = solutions[1]->get_quad_2d()->get_num_points(eo, e->get_mode());
 
     // Calculation of the edge length.
     double edge_length = std::sqrt(std::pow(e->vn[(edge_i + 1) % e->get_num_surf()]->x - e->vn[edge_i]->x, 2) + std::pow(e->vn[(edge_i + 1) % e->get_num_surf()]->y - e->vn[edge_i]->y, 2));
@@ -303,12 +304,13 @@ double KrivodonovaDiscontinuityDetector::calculate_relative_flow_direction(Eleme
   surf_pos.marker = e->marker;
   surf_pos.surf_num = edge_i;
 
-  int eo = solutions[1]->get_quad_2d()->get_edge_points(surf_pos.surf_num, 20);
-  double3* pt = solutions[1]->get_quad_2d()->get_points(eo);
-  int np = solutions[1]->get_quad_2d()->get_num_points(eo);
+  int eo = solutions[1]->get_quad_2d()->get_edge_points(surf_pos.surf_num, 20, e->get_mode());
+  double3* pt = solutions[1]->get_quad_2d()->get_points(eo, e->get_mode());
+  int np = solutions[1]->get_quad_2d()->get_num_points(eo, e->get_mode());
 
-  Geom<double>* geom = init_geom_surf(solutions[1]->get_refmap(), &surf_pos, eo);
-  double3* tan = solutions[1]->get_refmap()->get_tangent(surf_pos.surf_num, eo);
+  double3* tan;
+  Geom<double>* geom = init_geom_surf(solutions[1]->get_refmap(), surf_pos.surf_num, surf_pos.marker, eo, tan);
+    
   double* jwt = new double[np];
   for(int i = 0; i < np; i++)
     jwt[i] = pt[i][2] * tan[i][2];
@@ -339,9 +341,9 @@ void KrivodonovaDiscontinuityDetector::calculate_jumps(Element* e, int edge_i, d
   surf_pos.marker = e->marker;
   surf_pos.surf_num = edge_i;
 
-  int eo = solutions[0]->get_quad_2d()->get_edge_points(surf_pos.surf_num, 8);
-  double3* pt = solutions[0]->get_quad_2d()->get_points(eo);
-  int np = solutions[0]->get_quad_2d()->get_num_points(eo);
+  int eo = solutions[0]->get_quad_2d()->get_edge_points(surf_pos.surf_num, 8, e->get_mode());
+  double3* pt = solutions[0]->get_quad_2d()->get_points(eo, e->get_mode());
+  int np = solutions[0]->get_quad_2d()->get_num_points(eo, e->get_mode());
 
   // Initialize the NeighborSearch.
   NeighborSearch<double> ns(e, mesh);
@@ -371,8 +373,8 @@ void KrivodonovaDiscontinuityDetector::calculate_jumps(Element* e, int edge_i, d
       solutions[3]->push_transform(ns.get_central_transformations(neighbor_i, trf_i));
     }
 
-    Geom<double>* geom = init_geom_surf(solutions[0]->get_refmap(), &surf_pos, eo);
-    double3* tan = solutions[0]->get_refmap()->get_tangent(surf_pos.surf_num, eo);
+    double3* tan;
+    Geom<double>* geom = init_geom_surf(solutions[0]->get_refmap(), surf_pos.surf_num, surf_pos.marker, eo, tan);
     double* jwt = new double[np];
     for(int i = 0; i < np; i++)
       jwt[i] = pt[i][2] * tan[i][2];
@@ -462,12 +464,12 @@ void KrivodonovaDiscontinuityDetector::calculate_norms(Element* e, int edge_i, d
   surf_pos.marker = e->marker;
   surf_pos.surf_num = edge_i;
 
-  int eo = solutions[0]->get_quad_2d()->get_edge_points(surf_pos.surf_num, 8);
-  double3* pt = solutions[0]->get_quad_2d()->get_points(eo);
-  int np = solutions[0]->get_quad_2d()->get_num_points(eo);
+  int eo = solutions[0]->get_quad_2d()->get_edge_points(surf_pos.surf_num, 8, e->get_mode());
+  double3* pt = solutions[0]->get_quad_2d()->get_points(eo, e->get_mode());
+  int np = solutions[0]->get_quad_2d()->get_num_points(eo, e->get_mode());
 
-  Geom<double>* geom = init_geom_surf(solutions[0]->get_refmap(), &surf_pos, eo);
-  double3* tan = solutions[0]->get_refmap()->get_tangent(surf_pos.surf_num, eo);
+  double3* tan;
+  Geom<double>* geom = init_geom_surf(solutions[0]->get_refmap(), surf_pos.surf_num, surf_pos.marker, eo, tan);
   double* jwt = new double[np];
   for(int i = 0; i < np; i++)
     jwt[i] = pt[i][2] * tan[i][2];
@@ -994,11 +996,13 @@ void FluxLimiter::limit_according_to_detector(Hermes::vector<Space<double> *> co
 
   // First adjust the solution_vector.
   for(unsigned int space_i = 0; space_i < spaces.size(); space_i++)
-    for(std::set<int>::iterator it = discontinuous_elements.begin(); it != discontinuous_elements.end(); it++) {
+    for(std::set<int>::iterator it = discontinuous_elements.begin(); it != discontinuous_elements.end(); it++) 
+    {
+      Element* e = spaces[space_i]->get_mesh()->get_element(*it);
       AsmList<double> al;
       spaces[space_i]->get_element_assembly_list(spaces[space_i]->get_mesh()->get_element(*it), &al);
       for(unsigned int shape_i = 0; shape_i < al.get_cnt(); shape_i++)
-        if(H2D_GET_H_ORDER(spaces[space_i]->get_shapeset()->get_order(al.get_idx()[shape_i])) > 0 || H2D_GET_V_ORDER(spaces[space_i]->get_shapeset()->get_order(al.get_idx()[shape_i])) > 0)
+        if(H2D_GET_H_ORDER(spaces[space_i]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) > 0 || H2D_GET_V_ORDER(spaces[space_i]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) > 0)
           solution_vector[al.get_dof()[shape_i]] = 0.0;
     }
 
@@ -1012,11 +1016,13 @@ void FluxLimiter::limit_according_to_detector(Hermes::vector<Space<double> *> co
       for_all_elements(e, spaces[0]->get_mesh())
         e->visited = false;
 
-      for(std::set<int>::iterator it = discontinuous_elements.begin(); it != discontinuous_elements.end(); it++) {
+      for(std::set<int>::iterator it = discontinuous_elements.begin(); it != discontinuous_elements.end(); it++) 
+      {
+        e = spaces[0]->get_mesh()->get_element(*it);
         AsmList<double> al;
-        spaces[0]->get_element_assembly_list(spaces[0]->get_mesh()->get_element(*it), &al);
+        spaces[0]->get_element_assembly_list(e, &al);
         for(unsigned int shape_i = 0; shape_i < al.get_cnt(); shape_i++) {
-          if(H2D_GET_H_ORDER(spaces[0]->get_shapeset()->get_order(al.get_idx()[shape_i])) > 0 || H2D_GET_V_ORDER(spaces[0]->get_shapeset()->get_order(al.get_idx()[shape_i])) > 0) {
+          if(H2D_GET_H_ORDER(spaces[0]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) > 0 || H2D_GET_V_ORDER(spaces[0]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) > 0) {
             spaces[0]->get_mesh()->get_element(*it)->visited = true;
             bool all_sons_visited = true;
             for(unsigned int son_i = 0; son_i < 4; son_i++)
@@ -1047,11 +1053,13 @@ void FluxLimiter::limit_second_orders_according_to_detector(Hermes::vector<Space
 
   // First adjust the solution_vector.
   for(unsigned int space_i = 0; space_i < spaces.size(); space_i++)
-    for(std::set<int>::iterator it = discontinuous_elements.begin(); it != discontinuous_elements.end(); it++) {
+    for(std::set<int>::iterator it = discontinuous_elements.begin(); it != discontinuous_elements.end(); it++) 
+    {
+      Element* e = spaces[space_i]->get_mesh()->get_element(*it);
       AsmList<double> al;
       spaces[space_i]->get_element_assembly_list(spaces[space_i]->get_mesh()->get_element(*it), &al);
       for(unsigned int shape_i = 0; shape_i < al.get_cnt(); shape_i++)
-        if(H2D_GET_H_ORDER(spaces[space_i]->get_shapeset()->get_order(al.get_idx()[shape_i])) > 1 || H2D_GET_V_ORDER(spaces[space_i]->get_shapeset()->get_order(al.get_idx()[shape_i])) > 1)
+        if(H2D_GET_H_ORDER(spaces[space_i]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) > 1 || H2D_GET_V_ORDER(spaces[space_i]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) > 1)
           solution_vector[al.get_dof()[shape_i]] = 0.0;
     }
 
@@ -1080,9 +1088,9 @@ void FluxLimiter::limit_second_orders_according_to_detector(Hermes::vector<Space
         AsmList<double> al;
         spaces[0]->get_element_assembly_list(spaces[0]->get_mesh()->get_element(*it), &al);
         for(unsigned int shape_i = 0; shape_i < al.get_cnt(); shape_i++) {
-          if(H2D_GET_H_ORDER(spaces[0]->get_shapeset()->get_order(al.get_idx()[shape_i])) > 1 || H2D_GET_V_ORDER(spaces[0]->get_shapeset()->get_order(al.get_idx()[shape_i])) > 1) {
-            int h_order_to_set = std::min(1, H2D_GET_H_ORDER(spaces[0]->get_shapeset()->get_order(al.get_idx()[shape_i])));
-            int v_order_to_set = std::min(1, H2D_GET_V_ORDER(spaces[0]->get_shapeset()->get_order(al.get_idx()[shape_i])));
+          if(H2D_GET_H_ORDER(spaces[0]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) > 1 || H2D_GET_V_ORDER(spaces[0]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) > 1) {
+            int h_order_to_set = std::min(1, H2D_GET_H_ORDER(spaces[0]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())));
+            int v_order_to_set = std::min(1, H2D_GET_V_ORDER(spaces[0]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())));
             spaces[0]->get_mesh()->get_element(*it)->visited = true;
             bool all_sons_visited = true;
             for(unsigned int son_i = 0; son_i < 4; son_i++)

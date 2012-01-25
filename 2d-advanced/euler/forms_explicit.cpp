@@ -533,6 +533,7 @@ protected:
   friend class EulerEquationsWeakFormSemiImplicitCoupled;
 };
 
+/*
 class EulerEquationsWeakFormExplicitMultiComponent : public WeakForm<double>
 {
 public:
@@ -2910,7 +2911,6 @@ public:
   double tau_k, tau_k_minus_one;
 };
 
-
 class EulerEquationsWeakFormSemiImplicitMultiComponentTwoInflows : public WeakForm<double>
 {
 public:
@@ -4144,8 +4144,9 @@ protected:
   EulerFluxes* euler_fluxes;
   bool* discreteIndicator;
 };
+*/
 
-class EulerEquationsWeakFormExplicitCoupled : public EulerEquationsWeakFormExplicitMultiComponent
+class EulerEquationsWeakFormExplicitCoupled : public EulerEquationsWeakFormExplicit
 {
 public:
   // Constructor.
@@ -4157,7 +4158,7 @@ public:
     Solution<double>* prev_density, Solution<double>* prev_density_vel_x,
     Solution<double>* prev_density_vel_y, Solution<double>* prev_energy,
     Solution<double>* prev_concentration, double epsilon, bool fvm_only = false)
-    : EulerEquationsWeakFormExplicitMultiComponent(num_flux, kappa, rho_ext, v1_ext, v2_ext, pressure_ext,
+    : EulerEquationsWeakFormExplicit(num_flux, kappa, rho_ext, v1_ext, v2_ext, pressure_ext,
     solid_wall_marker_bottom, solid_wall_marker_top, inlet_marker,
     outlet_marker, prev_density, prev_density_vel_x,
     prev_density_vel_y, prev_energy, fvm_only, 5) {
@@ -4280,6 +4281,7 @@ protected:
   };
 };
 
+/*
 class EulerEquationsWeakFormSemiImplicitCoupled : public EulerEquationsWeakFormSemiImplicitMultiComponent
 {
 public:
@@ -4305,14 +4307,6 @@ public:
       mfvol.back()->ext.push_back(prev_density_vel_y);
       mfvol.back()->ext.push_back(prev_energy);
 
-      /*
-      add_matrix_form(new MatrixFormConcentrationAdvection(4, 4));
-      mfvol.back()->ext.push_back(prev_density);
-      mfvol.back()->ext.push_back(prev_density_vel_x);
-      mfvol.back()->ext.push_back(prev_density_vel_y);
-      mfvol.back()->ext.push_back(prev_energy);
-      */
-
       for(unsigned int i = 0;i < natural_bc_concentration_markers.size();i++) {
         add_matrix_form_surf(new MatrixFormConcentrationNatural(4, 4, natural_bc_concentration_markers[i]));
         mfsurf.back()->ext.push_back(prev_density);
@@ -4320,14 +4314,6 @@ public:
         mfsurf.back()->ext.push_back(prev_density_vel_y);
         mfsurf.back()->ext.push_back(prev_energy);
       }
-
-      /*
-      add_matrix_form_surf(new MatrixFormConcentrationInterface(4, 4));
-      mfsurf.back()->ext.push_back(prev_density);
-      mfsurf.back()->ext.push_back(prev_density_vel_x);
-      mfsurf.back()->ext.push_back(prev_density_vel_y);
-      mfsurf.back()->ext.push_back(prev_energy);
-      */
 
       EulerEquationsWeakFormExplicit::EulerEquationsLinearFormTime* vector_form_time = new EulerEquationsWeakFormExplicit::EulerEquationsLinearFormTime(4);
       vector_form_time->ext.push_back(prev_density);
@@ -4426,3 +4412,4 @@ protected:
     }
   };
 };
+*/
