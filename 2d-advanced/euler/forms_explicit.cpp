@@ -140,6 +140,8 @@ protected:
       ExtData<Ord> *ext) const {
         return matrix_form<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
     }
+
+    MatrixFormVol<double>* clone() { return new EulerEquationsBilinearFormTime(this->i); }
   };
 
   class EulerEquationsLinearFormDensity : public VectorFormVol<double>
@@ -189,6 +191,7 @@ protected:
       ExtData<Ord> *ext) const {
         return vector_form<Ord, Ord>(n, wt, u_ext, v, e, ext);
     }
+    VectorFormVol<double>* clone() { return new EulerEquationsLinearFormDensity(*this); }
   };
 
   class EulerEquationsLinearFormDensityVelX : public VectorFormVol<double>
@@ -241,6 +244,7 @@ protected:
     }
 
     double kappa;
+    VectorFormVol<double>* clone() { return new EulerEquationsLinearFormDensityVelX(*this); }
   };
 
   class EulerEquationsLinearFormDensityVelY : public VectorFormVol<double>
@@ -292,6 +296,7 @@ protected:
         return vector_form<Ord, Ord>(n, wt, u_ext, v, e, ext);
     }
 
+    VectorFormVol<double>* clone() { return new EulerEquationsLinearFormDensityVelY(*this); }
     double kappa;
   };
 
@@ -344,6 +349,7 @@ protected:
         return vector_form<Ord, Ord>(n, wt, u_ext, v, e, ext);
     }
 
+    VectorFormVol<double>* clone() { return new EulerEquationsLinearFormEnergy(*this); }
     double kappa;
   };
 
@@ -369,6 +375,7 @@ protected:
         return vector_form<Ord, Ord>(n, wt, u_ext, v, e, ext);
     }
 
+    VectorFormVol<double>* clone() { return new EulerEquationsLinearFormTime(*this); }
     // Member.
     int component_i;
   };
@@ -407,6 +414,7 @@ protected:
         return v->val[0];
     }
 
+    VectorFormSurf<double>* clone() { return new EulerEquationsLinearFormInterface(*this); }
     // Members.
     int element;
     NumericalFlux* num_flux;
@@ -439,6 +447,7 @@ protected:
         return v->val[0];
     }
 
+    VectorFormSurf<double>* clone() { return new EulerEquationsLinearFormSolidWall(*this); }
     // Members.
     int element;
     NumericalFlux* num_flux;
@@ -480,6 +489,7 @@ protected:
         return v->val[0];
     }
 
+    VectorFormSurf<double>* clone() { return new EulerEquationsLinearFormInlet(*this); }
     // Members.
     int element;
     NumericalFlux* num_flux;
@@ -513,6 +523,7 @@ protected:
             return v->val[0];
         }
 
+    VectorFormSurf<double>* clone() { return new EulerEquationsLinearFormOutlet(*this); }
         // Members.
         int element;
         NumericalFlux* num_flux;

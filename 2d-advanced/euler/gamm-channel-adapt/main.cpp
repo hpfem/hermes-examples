@@ -30,12 +30,11 @@ const unsigned int EVERY_NTH_STEP = 1;
 // Shock capturing.
 enum shockCapturingType
 {
-  FEISTAUER,
   KUZMIN,
   KRIVODONOVA
 };
 bool SHOCK_CAPTURING = true;
-shockCapturingType SHOCK_CAPTURING_TYPE = FEISTAUER;
+shockCapturingType SHOCK_CAPTURING_TYPE = KUZMIN;
 // Quantitative parameter of the discontinuity detector in case of Krivodonova.
 double DISCONTINUITY_DETECTOR_PARAM = 1.0;
 // Quantitative parameter of the shock capturing in case of Feistauer.
@@ -53,8 +52,6 @@ const int INIT_REF_NUM = 2;
 double CFL_NUMBER = 0.5;                          
 // Initial time step.
 double time_step_n = 1E-6;                        
-// Initial time step.
-double time_step_n_minus_one = 1E-6;              
 
 // Adaptivity.
 // Every UNREF_FREQth time step the mesh is unrefined.
@@ -164,11 +161,6 @@ int main(int argc, char* argv[])
   ConstantSolution<double>* prev_rho_v_y = new ConstantSolution<double>(&mesh, RHO_EXT * V2_EXT);
   ConstantSolution<double>* prev_e = new ConstantSolution<double>(&mesh, QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA));
 
-  ConstantSolution<double>* prev_rho2 = new ConstantSolution<double>(&mesh, RHO_EXT);
-  ConstantSolution<double>* prev_rho_v_x2 = new ConstantSolution<double>(&mesh, RHO_EXT * V1_EXT);
-  ConstantSolution<double>* prev_rho_v_y2 = new ConstantSolution<double>(&mesh, RHO_EXT * V2_EXT);
-  ConstantSolution<double>* prev_e2 = new ConstantSolution<double>(&mesh, QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA));
-
   ConstantSolution<double>* rsln_rho = new ConstantSolution<double>(&mesh, RHO_EXT);
   ConstantSolution<double>* rsln_rho_v_x = new ConstantSolution<double>(&mesh, RHO_EXT * V1_EXT);
   ConstantSolution<double>* rsln_rho_v_y = new ConstantSolution<double>(&mesh, RHO_EXT * V2_EXT);
@@ -198,7 +190,7 @@ int main(int argc, char* argv[])
   CFLCalculation CFL(CFL_NUMBER, KAPPA);
 
   // Look for a saved solution on the disk.
-  Continuity<double> continuity(Continuity<double>::onlyTime);
+  CalculationContinuity<double> continuity(CalculationContinuity<double>::onlyTime);
   int iteration = 0; double t = 0;
   bool loaded_now = false;
 
@@ -209,7 +201,6 @@ int main(int argc, char* argv[])
       &space_rho_v_y, &space_e), Hermes::vector<SpaceType>(HERMES_L2_SPACE, HERMES_L2_SPACE, HERMES_L2_SPACE, HERMES_L2_SPACE), Hermes::vector<Mesh *>(&mesh, &mesh, 
       &mesh, &mesh));
     continuity.get_last_record()->load_time_step_length(time_step_n);
-    continuity.get_last_record()->load_time_step_length_n_minus_one(time_step_n_minus_one);
     t = continuity.get_last_record()->get_time();
     iteration = continuity.get_num();
     loaded_now = true;
@@ -271,59 +262,30 @@ int main(int argc, char* argv[])
         delete prev_rho_v_y;
         delete prev_e;
 
-        delete prev_rho2;
-        delete prev_rho_v_x2;
-        delete prev_rho_v_y2;
-        delete prev_e2;
-
         prev_rho = new ConstantSolution<double>((ref_spaces_const)[0]->get_mesh(), RHO_EXT);
         prev_rho_v_x = new ConstantSolution<double>((ref_spaces_const)[0]->get_mesh(), RHO_EXT * V1_EXT);
         prev_rho_v_y = new ConstantSolution<double>((ref_spaces_const)[0]->get_mesh(), RHO_EXT * V2_EXT);
         prev_e = new ConstantSolution<double>((ref_spaces_const)[0]->get_mesh(), QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA));
-        
-        prev_rho2 = new ConstantSolution<double>((ref_spaces_const)[0]->get_mesh(), RHO_EXT);
-        prev_rho_v_x2 = new ConstantSolution<double>((ref_spaces_const)[0]->get_mesh(), RHO_EXT * V1_EXT);
-        prev_rho_v_y2 = new ConstantSolution<double>((ref_spaces_const)[0]->get_mesh(), RHO_EXT * V2_EXT);
-        prev_e2 = new ConstantSolution<double>((ref_spaces_const)[0]->get_mesh(), QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA));
       }
       else if(loaded_now)
       {
         loaded_now = false;
 
-        continuity.get_last_record()->load_solutions(Hermes::vector<Solution<double>*>(prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e, prev_rho2, prev_rho_v_x2, prev_rho_v_y2, prev_e2), 
-            Hermes::vector<Space<double> *>((*ref_spaces)[0], (*ref_spaces)[1], (*ref_spaces)[2], (*ref_spaces)[3], (*ref_spaces)[0], (*ref_spaces)[1], (*ref_spaces)[2], (*ref_spaces)[3]));
+        continuity.get_last_record()->load_solutions(Hermes::vector<Solution<double>*>(prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e), 
+            Hermes::vector<Space<double> *>((*ref_spaces)[0], (*ref_spaces)[1], (*ref_spaces)[2], (*ref_spaces)[3]));
       }
       else
       {
         OGProjection<double>::project_global(ref_spaces_const, Hermes::vector<Solution<double>*>(prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e), 
           Hermes::vector<Solution<double>*>(prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e), matrix_solver, Hermes::vector<Hermes::Hermes2D::ProjNormType>(), iteration > 1);
-        
-        if(iteration == 2)
-        {
-          delete prev_rho2;
-          delete prev_rho_v_x2;
-          delete prev_rho_v_y2;
-          delete prev_e2;
-
-          prev_rho2 = new ConstantSolution<double>((ref_spaces_const)[0]->get_mesh(), RHO_EXT);
-          prev_rho_v_x2 = new ConstantSolution<double>((ref_spaces_const)[0]->get_mesh(), RHO_EXT * V1_EXT);
-          prev_rho_v_y2 = new ConstantSolution<double>((ref_spaces_const)[0]->get_mesh(), RHO_EXT * V2_EXT);
-          prev_e2 = new ConstantSolution<double>((ref_spaces_const)[0]->get_mesh(), QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA));
-        }
-        else
-          OGProjection<double>::project_global(ref_spaces_const, Hermes::vector<Solution<double>*>(prev_rho2, prev_rho_v_x2, prev_rho_v_y2, prev_e2), 
-            Hermes::vector<Solution<double>*>(prev_rho2, prev_rho_v_x2, prev_rho_v_y2, prev_e2), matrix_solver, Hermes::vector<Hermes::Hermes2D::ProjNormType>());
       }
 
       // Initialize weak formulation.
-      EulerEquationsWeakFormSemiImplicitMultiComponent2ndOrder wf(&num_flux, KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, BDY_SOLID_WALL_BOTTOM, BDY_SOLID_WALL_TOP, 
-        BDY_INLET, BDY_OUTLET, prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e, prev_rho2, prev_rho_v_x2, prev_rho_v_y2, prev_e2, (P_INIT == 0 && CAND_LIST == H2D_H_ANISO));
+      EulerEquationsWeakFormExplicit wf(&num_flux, KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, BDY_SOLID_WALL_BOTTOM, BDY_SOLID_WALL_TOP, 
+        BDY_INLET, BDY_OUTLET, prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e, (P_INIT == 0 && CAND_LIST == H2D_H_ANISO));
 
       EulerEquationsWeakFormStabilization wf_stabilization(prev_rho);
 
-      if(SHOCK_CAPTURING && SHOCK_CAPTURING_TYPE == FEISTAUER)
-        wf.set_stabilization(prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e, prev_rho2, prev_rho_v_x2, prev_rho_v_y2, prev_e2, NU_1, NU_2);
-      
       // Report NDOFs.
       info("ndof_coarse: %d, ndof_fine: %d.", 
         Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
@@ -340,27 +302,8 @@ int main(int argc, char* argv[])
       Vector<double>* rhs_stabilization = create_vector<double>(matrix_solver);
       LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver, matrix, rhs);
 
-      if(SHOCK_CAPTURING && SHOCK_CAPTURING_TYPE == FEISTAUER)
-      {
-        dp_stabilization.assemble(rhs_stabilization);
-        if(discreteIndicator != NULL)
-          delete [] discreteIndicator;
-        discreteIndicator = new bool[refspace_stabilization.get_mesh()->get_max_element_id() + 1];
-        for(unsigned int i = 0; i < refspace_stabilization.get_mesh()->get_max_element_id() + 1; i++)
-          discreteIndicator[i] = false;
-        Element* e;
-        for_all_active_elements(e, refspace_stabilization.get_mesh())
-        {
-          AsmList<double> al;
-          refspace_stabilization.get_element_assembly_list(e, &al);
-          if(rhs_stabilization->get(al.get_dof()[0]) >= 1)
-            discreteIndicator[e->id] = true;
-        }
-        wf.set_discreteIndicator(discreteIndicator);
-      }
-
       // Set the current time step.
-      wf.set_time_step(time_step_n, time_step_n_minus_one);
+      wf.set_time_step(time_step_n);
 
       // If the FE problem is in fact a FV problem.
       if(P_INIT == 0 && CAND_LIST == H2D_H_ANISO) 
@@ -372,15 +315,7 @@ int main(int argc, char* argv[])
       info("Solving the matrix problem.");
       if(solver->solve())
       {
-        if(iteration > 1)
-        {
-          prev_rho2->copy(prev_rho);
-          prev_rho_v_x2->copy(prev_rho_v_x);
-          prev_rho_v_y2->copy(prev_rho_v_y);
-          prev_e2->copy(prev_e);
-        }
-
-        if(!SHOCK_CAPTURING || SHOCK_CAPTURING_TYPE == FEISTAUER)
+        if(!SHOCK_CAPTURING)
         {
           Solution<double>::vector_to_solutions(solver->get_sln_vector(), ref_spaces_const, 
             Hermes::vector<Solution<double>*>(rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e));
@@ -419,8 +354,7 @@ int main(int argc, char* argv[])
       double err_est_rel_total = adaptivity->calc_err_est(Hermes::vector<Solution<double>*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y, &sln_e),
         Hermes::vector<Solution<double>*>(rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e)) * 100;
 
-      time_step_n_minus_one = time_step_n;
-      CFL.calculate_semi_implicit(Hermes::vector<Solution<double> *>(rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e), (ref_spaces_const)[0]->get_mesh(), time_step_n);
+      CFL.calculate(Hermes::vector<Solution<double> *>(rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e), (ref_spaces_const)[0]->get_mesh(), time_step_n);
 
       // Report results.
       info("err_est_rel: %g%%", err_est_rel_total);
@@ -452,9 +386,8 @@ int main(int argc, char* argv[])
           continuity.get_last_record()->save_mesh(&mesh);
           continuity.get_last_record()->save_spaces(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
               &space_rho_v_y, &space_e));
-          continuity.get_last_record()->save_solutions(Hermes::vector<Solution<double>*>(prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e, prev_rho2, prev_rho_v_x2, prev_rho_v_y2, prev_e2));
+          continuity.get_last_record()->save_solutions(Hermes::vector<Solution<double>*>(prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e));
           continuity.get_last_record()->save_time_step_length(time_step_n);
-          continuity.get_last_record()->save_time_step_length_n_minus_one(time_step_n_minus_one);
         }
   
         // Hermes visualization.

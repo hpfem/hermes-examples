@@ -31,12 +31,11 @@ const unsigned int EVERY_NTH_STEP = 1;
 // Shock capturing.
 enum shockCapturingType
 {
-  FEISTAUER,
   KUZMIN,
   KRIVODONOVA
 };
 bool SHOCK_CAPTURING = true;
-shockCapturingType SHOCK_CAPTURING_TYPE = FEISTAUER;
+shockCapturingType SHOCK_CAPTURING_TYPE = KUZMIN;
 // Quantitative parameter of the discontinuity detector in case of Krivodonova.
 double DISCONTINUITY_DETECTOR_PARAM = 1.0;
 // Quantitative parameter of the shock capturing in case of Feistauer.
@@ -186,7 +185,7 @@ int main(int argc, char* argv[])
     info("Solving the matrix problem.");
     if(solver->solve())
     {
-      if(!SHOCK_CAPTURING || SHOCK_CAPTURING_TYPE == FEISTAUER)
+      if(!SHOCK_CAPTURING)
       {
         Solution<double>::vector_to_solutions(solver->get_sln_vector(), Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
           &space_rho_v_y, &space_e), Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
@@ -213,7 +212,7 @@ int main(int argc, char* argv[])
       error ("Matrix solver failed.\n");
 
     time_step_n_minus_one = time_step_n;
-    CFL.calculate_semi_implicit(Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), &mesh, time_step_n);
+    CFL.calculate(Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), &mesh, time_step_n);
 
     // Visualization.
     if((iteration - 1) % EVERY_NTH_STEP == 0) 
