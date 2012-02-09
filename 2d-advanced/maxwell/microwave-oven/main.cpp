@@ -231,6 +231,12 @@ int main(int argc, char* argv[])
   RealFilter ref_magn(&ref_sln);
   eview.show(&ref_magn);
 
+  // Output solution in VTK format.
+  Linearizer lin;
+  bool mode_3D = true;
+  lin.save_solution_vtk(&ref_magn, "sln.vtk", "Magnitude of E", mode_3D);
+  info("Solution in VTK format saved to file %s.", "sln.vtk");
+
   // Wait for all views to be closed.
   View::wait();
   return 0;

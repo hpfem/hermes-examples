@@ -32,16 +32,16 @@ const bool HERMES_VISUALIZATION = true;
 // Set to "true" to enable VTK output.
 const bool VTK_VISUALIZATION = true;
 // Set visual output for every nth step.
-const unsigned int EVERY_NTH_STEP = 1;
+const unsigned int EVERY_NTH_STEP = 10;
 
 // For application of Stokes flow (creeping flow).
 const bool STOKES = false;                        
 // If this is defined, the pressure is approximated using
-                                                  // discontinuous L2 elements (making the velocity discreetely
-                                                  // divergence-free, more accurate than using a continuous
-                                                  // pressure approximation). Otherwise the standard continuous
-                                                  // elements are used. The results are striking - check the
-                                                  // tutorial for comparisons.
+// discontinuous L2 elements (making the velocity discreetely
+// divergence-free, more accurate than using a continuous
+// pressure approximation). Otherwise the standard continuous
+// elements are used. The results are striking - check the
+// tutorial for comparisons.
 #define PRESSURE_IN_L2                            
 // Initial polynomial degree for velocity components.
 const int P_INIT_VEL = 2;                         
@@ -57,15 +57,15 @@ const double VEL_INLET = 1.0;
 // from 0 to VEL_INLET, then it stays constant.
 const double STARTUP_TIME = 1.0;                  
 // Time step.
-const double TAU = 0.02;                           
+const double TAU = 0.01;                           
 // Time interval length.
 const double T_FINAL = 30000.0;                   
 // Stopping criterion for the Newton's method.
 const double NEWTON_TOL = 1e-4;                   
 // Maximum allowed number of Newton iterations.
 const int NEWTON_MAX_ITER = 50;                   
-// Domain height (necessary to define the parabolic
-// velocity profile at inlet).
+// Domain height - necessary to define the parabolic
+// velocity profile at inlet (if relevant).
 const double H = 5;                               
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
@@ -92,11 +92,11 @@ int main(int argc, char* argv[])
   mesh.refine_all_elements();
   mesh.refine_all_elements();
   mesh.refine_all_elements();
-  mesh.refine_towards_boundary(BDY_OBSTACLE, 3, false);
-  // '4' is the number of levels,
-  mesh.refine_towards_boundary(BDY_TOP, 3, true);     
+  mesh.refine_all_elements();
+  mesh.refine_towards_boundary(BDY_OBSTACLE, 2, false);
   // 'true' stands for anisotropic refinements.
-  mesh.refine_towards_boundary(BDY_BOTTOM, 3, true);  
+  mesh.refine_towards_boundary(BDY_TOP, 2, true);     
+  mesh.refine_towards_boundary(BDY_BOTTOM, 2, true);  
 
   // Show mesh.
   MeshView mv;
@@ -208,10 +208,10 @@ int main(int argc, char* argv[])
         Hermes::vector<MeshFunction<double>* > slns_prev_time0 = Hermes::vector<MeshFunction<double>* >(&xvel_prev_time, &yvel_prev_time);
         MagFilter<double> mag(slns_prev_time0, Hermes::vector<int>(H2D_FN_VAL, H2D_FN_VAL));
         std::stringstream ss_vel;
-        ss_vel << "Velocity.vtk";
+        ss_vel << "Velocity-" << ts << ".vtk";
         lin.save_solution_vtk(&mag, ss_vel.str().c_str(), "VelocityMagnitude");
         std::stringstream ss_pres;
-        ss_pres << "Pressure.vtk";
+        ss_pres << "Pressure-" << ts << ".vtk";
         lin.save_solution_vtk(&p_prev_time, ss_pres.str().c_str(), "Pressure");
       }
     }

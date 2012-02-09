@@ -136,6 +136,12 @@ int main(int argc, char* argv[])
   s_view2.show_mesh(false);
   s_view2.show(&flux_density);
 
+  // Output solution in VTK format.
+  Linearizer lin;
+  bool mode_3D = true;
+  lin.save_solution_vtk(&flux_density, "sln.vtk", "Flux density", mode_3D);
+  info("Solution in VTK format saved to file %s.", "sln.vtk");
+
   OrderView o_view("Mesh", new WinGeom(720, 0, 350, 450));
   o_view.show(&space);
 

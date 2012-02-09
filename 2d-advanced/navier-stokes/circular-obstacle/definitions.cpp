@@ -511,7 +511,8 @@ EssentialBoundaryCondition<double>::EssentialBCValueType EssentialBCNonConst::ge
 }
 
 double EssentialBCNonConst::value(double x, double y, double n_x, double n_y, double t_x, double t_y) const {
-    double val_y = vel_inlet * y*(H-y) / (H/2.)/(H/2.);
+    //double val_y = vel_inlet * y*(H-y) / (H/2.)/(H/2.);     // parabolic profile
+    double val_y = vel_inlet;                                 // constant profile
     if (current_time <= startup_time) 
       return val_y * current_time/startup_time;
     else 
