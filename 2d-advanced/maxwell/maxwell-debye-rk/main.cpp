@@ -127,10 +127,11 @@ int main(int argc, char* argv[])
   H1Space<double> H_space(&mesh, NULL, P_INIT);
   //L2Space<double> H_space(&mesh, P_INIT);
   HcurlSpace<double> P_space(&mesh, &bcs, P_INIT);
+
   Hermes::vector<Space<double> *> spaces = Hermes::vector<Space<double> *>(&E_space, &H_space, &P_space);
   int ndof = Space<double>::get_num_dofs(spaces);
   info("ndof = %d.", ndof);
-
+  
   // Initialize views.
   ScalarView E1_view("Solution E1", new WinGeom(0, 0, 400, 350));
   E1_view.fix_scale_width(50);
