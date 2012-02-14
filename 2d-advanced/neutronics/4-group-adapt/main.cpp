@@ -157,7 +157,8 @@ int main(int argc, char* argv[])
   H1Space<double> space2(meshes[1], P_INIT[1]);
   H1Space<double> space3(meshes[2], P_INIT[2]);
   H1Space<double> space4(meshes[3], P_INIT[3]);
-  Hermes::vector<const Space<double>*> spaces(&space1, &space2, &space3, &space4);
+  Hermes::vector<const Space<double>*> const_spaces(&space1, &space2, &space3, &space4);
+  Hermes::vector<Space<double>*> spaces(&space1, &space2, &space3, &space4);
 
   // Initialize the weak formulation.
   CustomWeakForm wf(matprop, power_iterates, k_eff, bdy_vacuum);
@@ -249,7 +250,7 @@ int main(int argc, char* argv[])
   
   // Initial power iteration to obtain a coarse estimate of the eigenvalue and the fission source.
   info("Coarse mesh power iteration, %d + %d + %d + %d = %d ndof:", report_num_dofs(spaces));
-  power_iteration(matprop, spaces, &wf, power_iterates, core, TOL_PIT_CM, matrix_solver);
+  power_iteration(matprop, const_spaces, &wf, power_iterates, core, TOL_PIT_CM, matrix_solver);
   
   // Adaptivity loop:
   int as = 1; bool done = false;

@@ -240,7 +240,7 @@ int main(int argc, char* argv[])
       DiscreteProblem<double> dp(&wf, ref_spaces_const);
 
       // Initialize Runge-Kutta time stepping.
-      RungeKutta<double> runge_kutta(&wf, ref_spaces_const, &bt, matrix_solver);
+      RungeKutta<double> runge_kutta(&wf, *ref_spaces, &bt, matrix_solver);
 
       // Perform one Runge-Kutta time step according to the selected Butcher's table.
       info("Runge-Kutta time step (t = %g s, tau = %g s, stages: %d).",
@@ -264,7 +264,7 @@ int main(int argc, char* argv[])
 
       // Project the fine mesh solution onto the coarse meshes.
       info("Projecting fine mesh solutions on coarse meshes for error estimation.");
-      OGProjection<double>::project_global(Hermes::vector<Space<double> *>(&T_space, &w_space), 
+      OGProjection<double>::project_global(Hermes::vector<const Space<double> *>(&T_space, &w_space), 
           Hermes::vector<Solution<double> *>(&T_time_new, &w_time_new), 
 	  Hermes::vector<Solution<double> *>(&T_coarse, &w_coarse),
           matrix_solver); 

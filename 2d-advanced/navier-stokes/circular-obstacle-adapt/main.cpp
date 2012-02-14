@@ -191,13 +191,13 @@ int main(int argc, char* argv[])
   Solution<double> xvel_ref_sln, yvel_ref_sln, p_ref_sln;
 
   // Define initial conditions on the coarse mesh.
-  ZeroSolution xvel_prev_time(&mesh);
-  ZeroSolution yvel_prev_time(&mesh);
-  ZeroSolution p_prev_time(&mesh);
+  ZeroSolution<double> xvel_prev_time(&mesh);
+  ZeroSolution<double> yvel_prev_time(&mesh);
+  ZeroSolution<double> p_prev_time(&mesh);
  
-  ZeroSolution xvel_sln(&mesh);
-  ZeroSolution yvel_sln(&mesh);
-  ZeroSolution p_sln(&mesh);
+  ZeroSolution<double> xvel_sln(&mesh);
+  ZeroSolution<double> yvel_sln(&mesh);
+  ZeroSolution<double> p_sln(&mesh);
 
   // Initialize weak formulation.
   WeakForm<double>* wf;

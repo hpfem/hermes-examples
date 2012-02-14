@@ -94,7 +94,7 @@ private:
 class ErrorForm : public Adapt<double>::MatrixFormVolError
 {
 public:
-  ErrorForm(ProjNormType type) : Adapt<double>::MatrixFormVolError(type) {};
+  ErrorForm(ProjNormType type) : Adapt<double>::MatrixFormVolError(0, 0, type) {};
 
   /// Error bilinear form.
   virtual double value(int n, double *wt, Func<double> *u_ext[],
