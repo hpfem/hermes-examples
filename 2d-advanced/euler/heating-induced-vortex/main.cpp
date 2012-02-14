@@ -144,7 +144,7 @@ int main(int argc, char* argv[])
   CFLCalculation CFL(CFL_NUMBER, KAPPA);
 
   // Look for a saved solution on the disk.
-  Continuity<double> continuity(Continuity<double>::onlyTime);
+  CalculationContinuity<double> continuity(CalculationContinuity<double>::onlyTime);
   int iteration = 0; double t = 0;
 
   if(REUSE_SOLUTION && continuity.have_record_available())
@@ -161,7 +161,7 @@ int main(int argc, char* argv[])
   }
 
   // Initialize weak formulation.
-  EulerEquationsWeakFormSemiImplicitMultiComponent wf(&num_flux, KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, BDY_SOLID_WALL, BDY_SOLID_WALL, 
+  EulerEquationsWeakFormSemiImplicit wf(&num_flux, KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, BDY_SOLID_WALL, BDY_SOLID_WALL, 
     BDY_INLET, "Outlet marker not used", &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e);
   EulerEquationsWeakFormStabilization wf_stabilization(&prev_rho);
 

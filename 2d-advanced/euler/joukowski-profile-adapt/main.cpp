@@ -164,7 +164,7 @@ int main(int argc, char* argv[])
   VijayasundaramNumericalFlux num_flux(KAPPA);
   
   // Initialize weak formulation.
-  EulerEquationsWeakFormSemiImplicitMultiComponent wf(&num_flux, KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, BDY_SOLID_WALL, BDY_SOLID_WALL_PROFILE, 
+  EulerEquationsWeakFormSemiImplicit wf(&num_flux, KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, BDY_SOLID_WALL, BDY_SOLID_WALL_PROFILE, 
     BDY_INLET, BDY_OUTLET, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e);
 
   // Filters for visualization of Mach number, pressure and entropy.
@@ -185,7 +185,7 @@ int main(int argc, char* argv[])
   CFLCalculation CFL(CFL_NUMBER, KAPPA);
 
   // Look for a saved solution on the disk.
-  Continuity<double> continuity(Continuity<double>::onlyTime);
+  CalculationContinuity<double> continuity(CalculationContinuity<double>::onlyTime);
   int iteration = 0; double t = 0;
   bool loaded_now = false;
 

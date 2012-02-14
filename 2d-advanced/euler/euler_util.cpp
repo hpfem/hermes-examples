@@ -104,7 +104,7 @@ AsmList<double> al;
   double edge_length_max_lambda = 0.0;
 
   for(unsigned int edge_i = 0; edge_i < e->get_num_surf(); edge_i++) {
-    // Initialization.      
+    // Initialization.
     SurfPos surf_pos;
     surf_pos.marker = e->marker;
     surf_pos.surf_num = edge_i;

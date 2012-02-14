@@ -174,10 +174,10 @@ int main(int argc, char* argv[])
   VijayasundaramNumericalFlux num_flux(KAPPA);
   
   // For saving to the disk.
-  Continuity<double> continuity(Continuity<double>::onlyNumber);
+  CalculationContinuity<double> continuity(CalculationContinuity<double>::onlyNumber);
 
   // Initialize weak formulation.
-  EulerEquationsWeakFormSemiImplicitMultiComponent wf(&num_flux, KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, BDY_SOLID_WALL, BDY_SOLID_WALL, 
+  EulerEquationsWeakFormSemiImplicit wf(&num_flux, KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, BDY_SOLID_WALL, BDY_SOLID_WALL, 
     BDY_INLET, "Outlet marker not used", &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e);
 
   // Filters for visualization of Mach number, pressure and entropy.
