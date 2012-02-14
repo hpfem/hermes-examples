@@ -67,7 +67,7 @@ double integrate(MeshFunction<double>* sln, std::string area)
       sln->set_active_element(e);
       RefMap* ru = sln->get_refmap();
       int o = sln->get_fn_order() + ru->get_inv_ref_order();
-      limit_order(o);
+      limit_order(o, e->get_mode());
       sln->set_quad_order(o, H2D_FN_VAL);
       double *uval = sln->get_fn_values();
       double* x = ru->get_phys_x(o);
@@ -96,10 +96,10 @@ int get_num_of_neg(MeshFunction<double> *sln)
     sln->set_active_element(e);
     RefMap* ru = sln->get_refmap();
     int o = sln->get_fn_order() + ru->get_inv_ref_order();
-    limit_order(o);
+    limit_order(o, e->get_mode());
     sln->set_quad_order(o, H2D_FN_VAL);
     double *uval = sln->get_fn_values();
-    int np = quad->get_num_points(o);
+    int np = quad->get_num_points(o, e->get_mode());
     
     for (int i = 0; i < np; i++)
       if (uval[i] < -1e-12)

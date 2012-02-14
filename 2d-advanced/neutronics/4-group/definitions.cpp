@@ -33,7 +33,7 @@ double integrate(MeshFunction<double>* sln, std::string area)
       sln->set_active_element(e);
       RefMap* ru = sln->get_refmap();
       int o = 20;
-      limit_order(o);
+      limit_order(o, e->get_mode());
       sln->set_quad_order(o, H2D_FN_VAL);
       double *uval = sln->get_fn_values();
       double* x = ru->get_phys_x(o);
