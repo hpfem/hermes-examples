@@ -173,7 +173,7 @@ int main(int argc, char* argv[])
     OGProjection<std::complex<double> >::project_global(&space, &ref_sln, &sln, matrix_solver); 
    
     // View the coarse mesh solution and polynomial orders.
-    ComplexAbsFilter magn(&sln);
+    RealFilter magn(&sln);
     char title[100];
     sprintf(title, "Electric field, adaptivity step %d", as);
     eview.set_title(title);
