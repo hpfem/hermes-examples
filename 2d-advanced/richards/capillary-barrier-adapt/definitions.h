@@ -32,6 +32,11 @@ public:
     return Ord(0);
   }
 
+  virtual MeshFunction<double>* clone()
+  {
+    return new InitialSolutionRichards(mesh, constant);
+  }
+
   // Value.
   double constant;
 };
@@ -49,6 +54,11 @@ public:
     dx = 2*x;
     dy = 2*y;
   };
+  
+  virtual MeshFunction<double>* clone()
+  {
+    return new ExactSolutionPoisson(mesh);
+  }
 
   virtual Ord ord(Ord x, Ord y) const {
     return x*x +y*y;
@@ -116,6 +126,13 @@ private:
       return Ord(30);
     }
 
+    MatrixFormVol<double>* clone()
+    {
+      JacobianFormNewtonEuler* form = new JacobianFormNewtonEuler(i, j, relations, tau);
+      form->wf = this->wf;
+      return form;
+    }
+
     // Members.
     double tau;
     ConstitutiveRelationsGenuchtenWithLayer* relations;
@@ -153,6 +170,13 @@ private:
       return Ord(30);
     }
     
+    VectorFormVol<double>* clone()
+    {
+      ResidualFormNewtonEuler* form = new ResidualFormNewtonEuler(i, relations, tau);
+      form->wf = this->wf;
+      return form;
+    }
+
     // Members.
     double tau;
     ConstitutiveRelationsGenuchtenWithLayer* relations;
@@ -209,6 +233,13 @@ private:
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<double> *ext) const {
       return matrix_form<double, double>(n, wt, u_ext, u, v, e, ext);
     }
+    
+    MatrixFormVol<double>* clone()
+    {
+      JacobianFormNewtonCrankNicolson* form = new JacobianFormNewtonCrankNicolson(i, j, relations, tau);
+      form->wf = this->wf;
+      return form;
+    }
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const {
       return Ord(30);
@@ -253,6 +284,13 @@ private:
       return Ord(30);
     }
     
+    VectorFormVol<double>* clone()
+    {
+      ResidualFormNewtonCrankNicolson* form = new ResidualFormNewtonCrankNicolson(i, relations, tau);
+      form->wf = this->wf;
+      return form;
+    }
+
     // Members.
     double tau;
     ConstitutiveRelationsGenuchtenWithLayer* relations;
@@ -301,6 +339,13 @@ private:
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<double> *ext) const {
       return matrix_form<double, double>(n, wt, u_ext, u, v, e, ext);
     }
+    
+    MatrixFormVol<double>* clone()
+    {
+      JacobianFormPicardEuler* form = new JacobianFormPicardEuler(i, j, relations, tau);
+      form->wf = this->wf;
+      return form;
+    }
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const {
       return Ord(30);
@@ -329,6 +374,13 @@ private:
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, ExtData<double> *ext) const {
       return vector_form<double, double>(n, wt, u_ext, v, e, ext);
+    }
+    
+    VectorFormVol<double>* clone()
+    {
+      ResidualFormPicardEuler* form = new ResidualFormPicardEuler(i, relations, tau);
+      form->wf = this->wf;
+      return form;
     }
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const {

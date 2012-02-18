@@ -41,6 +41,11 @@ Scalar WeakFormLinearAdvectionDiffusion::MatrixFormVolAdvectionDiffusion::matrix
   return result;
 }
 
+MatrixFormVol<double>* WeakFormLinearAdvectionDiffusion::MatrixFormVolAdvectionDiffusion::clone()
+{
+  return new WeakFormLinearAdvectionDiffusion::MatrixFormVolAdvectionDiffusion(*this);
+}
+
 double WeakFormLinearAdvectionDiffusion::MatrixFormVolAdvectionDiffusion::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
                                                                                 Func<double> *v, Geom<double> *e, ExtData<double> *ext) const 
 {

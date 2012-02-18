@@ -29,6 +29,8 @@ private:
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const;
 
+    MatrixFormVol<double>* clone();
+
     // Members.
     double b1, b2, epsilon;
   };

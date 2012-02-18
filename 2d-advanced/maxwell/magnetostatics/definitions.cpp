@@ -32,6 +32,18 @@ void FilterVectorPotential::filter_fn(int n, Hermes::vector<double*> values, dou
   }
 }
 
+MeshFunction<double>* FilterVectorPotential::clone()
+{
+  Hermes::vector<MeshFunction<double>*> fns;
+  Hermes::vector<int> items;
+  for(int i = 0; i < this->num; i++)
+  {
+    fns.push_back(this->sln[i]);
+    items.push_back(item[i]);
+  }
+  return new FilterVectorPotential(fns, items);
+}
+
 FilterVectorPotential::FilterVectorPotential(Hermes::vector<MeshFunction<double>*> solutions, Hermes::vector<int> items) 
   : MagFilter<double>(solutions, items) 
 {
@@ -45,6 +57,14 @@ FilterFluxDensity::FilterFluxDensity(Hermes::vector<MeshFunction<double>*> solut
 double FilterFluxDensity::get_pt_value(double x, double y, int item) 
 {
   error("Not implemented yet"); return 0;
+}
+
+MeshFunction<double>* FilterFluxDensity::clone()
+{
+  Hermes::vector<MeshFunction<double>*> fns;
+  for(int i = 0; i < this->num; i++)
+    fns.push_back(this->sln[i]);
+  return new FilterFluxDensity(fns);
 }
 
 void FilterFluxDensity::precalculate(int order, int mask)

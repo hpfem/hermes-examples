@@ -60,6 +60,11 @@ Ord WeakFormNSNewton::BilinearFormSymVel::ord(int n, double *wt, Func<Ord> *u_ex
   return result;
 }
  
+MatrixFormVol<double>* WeakFormNSNewton::BilinearFormSymVel::clone()
+{
+  return new BilinearFormSymVel(*this);
+}
+
 double WeakFormNSNewton::BilinearFormNonsymVel_0_0::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
                                                           Geom<double> *e, ExtData<double> *ext) const 
 {
@@ -87,6 +92,11 @@ Ord WeakFormNSNewton::BilinearFormNonsymVel_0_0::ord(int n, double *wt, Func<Ord
   }
   return result;
 }
+ 
+MatrixFormVol<double>* WeakFormNSNewton::BilinearFormNonsymVel_0_0::clone()
+{
+  return new BilinearFormNonsymVel_0_0(*this);
+}
 
 double WeakFormNSNewton::BilinearFormNonsymVel_0_1::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
                                                           Geom<double> *e, ExtData<double> *ext) const 
@@ -111,6 +121,11 @@ Ord WeakFormNSNewton::BilinearFormNonsymVel_0_1::ord(int n, double *wt, Func<Ord
   }
   return result;
 }
+ 
+MatrixFormVol<double>* WeakFormNSNewton::BilinearFormNonsymVel_0_1::clone()
+{
+  return new BilinearFormNonsymVel_0_1(*this);
+}
 
 double WeakFormNSNewton::BilinearFormNonsymVel_1_0::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
                                                           Geom<double> *e, ExtData<double> *ext) const 
@@ -134,6 +149,11 @@ Ord WeakFormNSNewton::BilinearFormNonsymVel_1_0::ord(int n, double *wt, Func<Ord
       result += wt[i] * u->val[i] * yvel_prev_newton->dx[i] * v->val[i];
   }
   return result;
+}
+
+MatrixFormVol<double>* WeakFormNSNewton::BilinearFormNonsymVel_1_0::clone()
+{
+  return new BilinearFormNonsymVel_1_0(*this);
 }
 
 double WeakFormNSNewton::BilinearFormNonsymVel_1_1::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
@@ -166,6 +186,11 @@ Ord WeakFormNSNewton::BilinearFormNonsymVel_1_1::ord(int n, double *wt, Func<Ord
   return result;
 }
 
+MatrixFormVol<double>* WeakFormNSNewton::BilinearFormNonsymVel_1_1::clone()
+{
+  return new BilinearFormNonsymVel_1_1(*this);
+}
+
 double WeakFormNSNewton::BilinearFormNonsymXVelPressure::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
                                                                Geom<double> *e, ExtData<double> *ext) const 
 {
@@ -178,6 +203,11 @@ Ord WeakFormNSNewton::BilinearFormNonsymXVelPressure::ord(int n, double *wt, Fun
   return - int_u_dvdx<Ord, Ord>(n, wt, u, v);
 }
 
+MatrixFormVol<double>* WeakFormNSNewton::BilinearFormNonsymXVelPressure::clone()
+{
+  return new BilinearFormNonsymXVelPressure(*this);
+}
+
 double WeakFormNSNewton::BilinearFormNonsymYVelPressure::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
                                                                Geom<double> *e, ExtData<double> *ext) const 
 {
@@ -188,6 +218,11 @@ Ord WeakFormNSNewton::BilinearFormNonsymYVelPressure::ord(int n, double *wt, Fun
                                                           ExtData<Ord> *ext) const 
 {
   return - int_u_dvdy<Ord, Ord>(n, wt, u, v);
+}
+
+MatrixFormVol<double>* WeakFormNSNewton::BilinearFormNonsymYVelPressure::clone()
+{
+  return new BilinearFormNonsymYVelPressure(*this);
 }
 
 double WeakFormNSNewton::VectorFormNS_0::value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, 
@@ -226,6 +261,17 @@ Ord WeakFormNSNewton::VectorFormNS_0::ord(int n, double *wt, Func<Ord> *u_ext[],
                         + yvel_prev_newton->val[i] * xvel_prev_newton->dy[i]) * v->val[i]));
   return result;
 } 
+
+VectorFormVol<double>* WeakFormNSNewton::VectorFormNS_0::clone()
+{
+  return new VectorFormNS_0(*this);
+}
+
+
+VectorFormVol<double>* WeakFormNSNewton::VectorFormNS_1::clone()
+{
+  return new VectorFormNS_1(*this);
+}
 
 double WeakFormNSNewton::VectorFormNS_1::value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, 
                                                ExtData<double> *ext) const 
@@ -274,6 +320,11 @@ double WeakFormNSNewton::VectorFormNS_2::value(int n, double *wt, Func<double> *
   for (int i = 0; i < n; i++)
     result += wt[i] * (xvel_prev_newton->dx[i] * v->val[i] + yvel_prev_newton->dy[i] * v->val[i]);
   return result;
+}
+
+VectorFormVol<double>* WeakFormNSNewton::VectorFormNS_2::clone()
+{
+  return new VectorFormNS_2(*this);
 }
 
 Ord WeakFormNSNewton::VectorFormNS_2::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const 

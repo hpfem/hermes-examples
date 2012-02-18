@@ -25,6 +25,7 @@ class FilterVectorPotential : public Hermes::Hermes2D::MagFilter<double>
 public:
   FilterVectorPotential(Hermes::vector<MeshFunction<double>*> solutions, Hermes::vector<int> items);
 
+  virtual MeshFunction<double>* clone();
 protected:
   void filter_fn(int n, Hermes::vector<double*> values, double* result, Geom<double> *e);
 };
@@ -35,6 +36,7 @@ public:
   FilterFluxDensity(Hermes::vector<MeshFunction<double>*> solutions);
 
   virtual double get_pt_value(double x, double y, int item = H2D_FN_VAL);
+  virtual MeshFunction<double>* clone();
 
 protected:
   void precalculate(int order, int mask);
