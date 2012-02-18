@@ -38,6 +38,8 @@ public:
 
   Ord er(int marker, Ord x, Ord y) const;
 
+  virtual MatrixFormVol<std::complex<double> >* clone();
+
   // Geometry of the load.
   bool in_load(double x, double y) const;
 
@@ -64,6 +66,8 @@ public:
 
   virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
                   ExtData<Ord> *ext) const;
+
+  virtual VectorFormVol<std::complex<double> >* clone();
 
   // Gamma as a function of x, y.
   double gamma(int marker, double x, double y) const;
@@ -100,6 +104,7 @@ public:
   virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, 
                   Geom<Ord> *e, ExtData<Ord> *ext) const;
 
+  virtual VectorFormSurf<std::complex<double> >* clone() { return new CustomVectorFormSurf(omega, J, this->areas[0]); }
   double omega, J;
 };
 
@@ -142,6 +147,9 @@ public:
   {
     return hcurl_form_kappa<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
   }
+
+  virtual MatrixFormVol<std::complex<double> >* clone() { return new CustomErrorForm(Hermes::sqrt(kappa_squared)); }
+
 
   double kappa_squared;
 };

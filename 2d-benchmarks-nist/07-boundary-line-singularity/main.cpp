@@ -201,8 +201,7 @@ int main(int argc, char* argv[])
     if (done == false)  
       as++;
     
-    if(done == false) 
-      delete ref_space->get_mesh();
+    delete ref_space->get_mesh();
     delete ref_space;
   }
   while (done == false);

@@ -275,9 +275,8 @@ int main(int argc, char* argv[])
       as++;
 
     delete adaptivity;
-    if(done == false)
-      for(unsigned int i = 0; i < ref_spaces->size(); i++)
-        delete (*ref_spaces)[i]->get_mesh();
+    for(unsigned int i = 0; i < ref_spaces->size(); i++)
+      delete (*ref_spaces)[i]->get_mesh();
     delete ref_spaces;
   }
   while (done == false);

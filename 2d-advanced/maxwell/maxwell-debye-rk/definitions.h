@@ -24,6 +24,7 @@ public:
   virtual void derivatives (double x, double y, Scalar2<double>& dx, Scalar2<double>& dy) const;
 
   virtual Ord ord(Ord x, Ord y) const;
+  virtual MeshFunction<double>* clone() { return new CustomInitialConditionE(mesh, time, omega, k_x, k_y); }
   
   double time, omega, k_x, k_y;
 };
@@ -41,6 +42,7 @@ public:
   virtual void derivatives (double x, double y, double& dx, double& dy) const;
 
   virtual Ord ord(Ord x, Ord y) const;
+  virtual MeshFunction<double>* clone() { return new CustomInitialConditionH(mesh, time, omega, k_x, k_y); }
 
   double time, omega, k_x, k_y;
 };
@@ -58,7 +60,7 @@ public:
   virtual void derivatives (double x, double y, Scalar2<double>& dx, Scalar2<double>& dy) const;
 
   virtual Ord ord(Ord x, Ord y) const;
-
+  virtual MeshFunction<double>* clone() { return new CustomInitialConditionP(mesh, time, omega, k_x, k_y); }
   double time, omega, k_x, k_y;
 };
 

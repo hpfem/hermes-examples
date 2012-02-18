@@ -353,7 +353,10 @@ int main(int argc, char* argv[])
       // Clean up.
       delete adaptivity;
       if(!done)
+      {
+        delete ref_space->get_mesh();
         delete ref_space;
+      }
       delete ref_dp;
       delete space_error_fn;
     }

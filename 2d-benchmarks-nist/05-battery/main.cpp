@@ -210,9 +210,11 @@ int main(int argc, char* argv[])
       done = true;
 
     // Keep the mesh from final step to allow further work with the final fine mesh solution.
-    if(done == false) 
+    if(done == false)
+    {
       delete ref_space->get_mesh(); 
-    delete ref_space;
+      delete ref_space;
+    }
   }
   while (done == false);
 
