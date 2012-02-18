@@ -216,8 +216,11 @@ int main(int argc, char* argv[])
     if (space.get_num_dofs() >= NDOF_STOP) done = true;
 
     delete adaptivity;
-    if(done == false) delete ref_space->get_mesh();
-    delete ref_space;
+    if(!done)
+    {
+      delete ref_space->get_mesh();
+      delete ref_space;
+    }
     
     // Increase counter.
     as++;
