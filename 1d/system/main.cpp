@@ -97,6 +97,8 @@ int main(int argc, char* argv[])
   Mesh u_mesh, v_mesh;
   MeshReaderH1DXML mloader;
   mloader.load("domain.xml", &u_mesh);
+  u_mesh.refine_all_elements();
+
   if (MULTI == false) 
   {
     u_mesh.refine_towards_boundary("Left", INIT_REF_BDY);
@@ -207,14 +209,14 @@ int main(int argc, char* argv[])
     info("Projecting reference solutions on coarse meshes.");
     OGProjection<double>::project_global(Hermes::vector<const Space<double> *>(&u_space, &v_space), 
         Hermes::vector<Solution<double> *>(&u_ref_sln, &v_ref_sln), 
-        Hermes::vector<Solution<double> *>(&u_sln, &v_sln), matrix_solver); 
+        Hermes::vector<Solution<double> *>(&u_sln, &v_sln), matrix_solver);
    
     cpu_time.tick();
 
     // View the coarse mesh solution and polynomial orders.
-    s_view_0.show(&u_sln); 
+    s_view_0.show(&u_ref_sln); 
     o_view_0.show(&u_space);
-    s_view_1.show(&v_sln); 
+    s_view_1.show(&v_ref_sln); 
     o_view_1.show(&v_space);
 
     // Calculate element errors.

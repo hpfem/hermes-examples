@@ -92,7 +92,6 @@ int main(int argc, char* argv[])
   mesh.refine_all_elements();
   mesh.refine_all_elements();
   mesh.refine_all_elements();
-  mesh.refine_all_elements();
   mesh.refine_towards_boundary(BDY_OBSTACLE, 2, false);
   // 'true' stands for anisotropic refinements.
   mesh.refine_towards_boundary(BDY_TOP, 2, true);     
@@ -102,7 +101,6 @@ int main(int argc, char* argv[])
   MeshView mv;
   mv.show(&mesh);
   info("Close mesh window to continue.");
-  View::wait();
 
   // Initialize boundary conditions.
   EssentialBCNonConst bc_left_vel_x(BDY_LEFT, VEL_INLET, H, STARTUP_TIME);

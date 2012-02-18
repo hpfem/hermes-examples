@@ -203,7 +203,7 @@ protected:
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e,
       ExtData<Ord> *ext) const 
     {
-      return vector_form<Ord, Ord>(n, wt, u_ext, v, e, ext);
+      return Ord(20);
     }
     VectorFormVol<double>* clone() { return new EulerEquationsLinearFormDensity(*this); }
   };
@@ -258,7 +258,7 @@ protected:
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
       ExtData<Ord> *ext) const 
     {
-      return vector_form<Ord, Ord>(n, wt, u_ext, v, e, ext);
+      return Ord(20);
     }
 
     double kappa;
@@ -315,7 +315,7 @@ protected:
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
       ExtData<Ord> *ext) const 
     {
-      return vector_form<Ord, Ord>(n, wt, u_ext, v, e, ext);
+      return Ord(20);
     }
 
     VectorFormVol<double>* clone() { return new EulerEquationsLinearFormDensityVelY(*this); }
@@ -372,7 +372,7 @@ protected:
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
       ExtData<Ord> *ext) const 
     {
-      return vector_form<Ord, Ord>(n, wt, u_ext, v, e, ext);
+      return Ord(20);
     }
 
     VectorFormVol<double>* clone() { return new EulerEquationsLinearFormEnergy(*this); }
@@ -443,7 +443,7 @@ protected:
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
       ExtData<Ord> *ext) const 
     {
-      return v->val[0];
+      return Ord(20);
     }
 
     VectorFormSurf<double>* clone() { return new EulerEquationsLinearFormInterface(*this); }
@@ -479,7 +479,7 @@ protected:
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
       ExtData<Ord> *ext) const 
     {
-      return v->val[0];
+      return Ord(20);
     }
 
     VectorFormSurf<double>* clone() { return new EulerEquationsLinearFormSolidWall(*this); }
@@ -524,7 +524,7 @@ protected:
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
       ExtData<Ord> *ext) const 
     {
-      return v->val[0];
+      return Ord(20);
     }
 
     VectorFormSurf<double>* clone() { return new EulerEquationsLinearFormInlet(*this); }
@@ -561,7 +561,7 @@ protected:
         Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
           ExtData<Ord> *ext) const 
         {
-          return v->val[0];
+          return Ord(20);
         }
 
         VectorFormSurf<double>* clone() { return new EulerEquationsLinearFormOutlet(*this); }
@@ -850,7 +850,7 @@ protected:
   public:
     EulerEquationsBilinearForm(int i, int j) : MatrixFormVol<double>(i, j) {}
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, 
-      ExtData<double> *ext)
+      ExtData<double> *ext) const
     {
       double result = 0.;
       for (int point_i = 0; point_i < n;point_i++) 
