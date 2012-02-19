@@ -127,7 +127,7 @@ int main(int argc, char* argv[])
   HcurlProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Initialize views.
-  VectorView eview("Electric field", new WinGeom(0, 0, 580, 400));
+  ScalarView eview("Electric field", new WinGeom(0, 0, 580, 400));
   OrderView  oview("Polynomial orders", new WinGeom(590, 0, 550, 400));
   
   // DOF and CPU convergence graphs initialization.
@@ -173,12 +173,14 @@ int main(int argc, char* argv[])
     OGProjection<std::complex<double> >::project_global(&space, &ref_sln, &sln, matrix_solver); 
    
     // View the coarse mesh solution and polynomial orders.
-    RealFilter magn(&sln);
+    RealFilter real(&sln);
+    MagFilter<double> magn(&real);
+    ValFilter limited_magn(&magn, 0.0, 4e3);
     char title[100];
     sprintf(title, "Electric field, adaptivity step %d", as);
     eview.set_title(title);
-    eview.set_min_max_range(0.0, 4e3);
-    eview.show(&magn);
+    //eview.set_min_max_range(0.0, 4e3);
+    eview.show(&limited_magn);
     sprintf(title, "Polynomial orders, adaptivity step %d", as);
     oview.set_title(title);
     oview.show(&space);
