@@ -91,7 +91,6 @@ int main(int argc, char* argv[])
   // Initial mesh refinements.
   mesh.refine_all_elements();
   mesh.refine_all_elements();
-  mesh.refine_all_elements();
   mesh.refine_towards_boundary(BDY_OBSTACLE, 2, false);
   // 'true' stands for anisotropic refinements.
   mesh.refine_towards_boundary(BDY_TOP, 2, true);     
