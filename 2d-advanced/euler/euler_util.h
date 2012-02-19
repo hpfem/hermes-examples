@@ -184,6 +184,16 @@ class MachNumberFilter : public Hermes::Hermes2D::SimpleFilter<double>
 public: 
   MachNumberFilter(Hermes::vector<MeshFunction<double>*> solutions, double kappa) : SimpleFilter<double>(solutions), kappa(kappa) {};
   ~MachNumberFilter() {};
+
+  MeshFunction<double>* clone()
+  {
+    Hermes::vector<MeshFunction<double>*> slns;
+    for(int i = 0; i < this->num; i++)
+      slns.push_back(this->sln[i]->clone());
+    MachNumberFilter* filter = new MachNumberFilter(slns, this->kappa);
+    return filter;
+  }
+
 protected:
   virtual void filter_fn(int n, Hermes::vector<double*> values, double* result);
 
@@ -195,6 +205,14 @@ class PressureFilter : public Hermes::Hermes2D::SimpleFilter<double>
 public: 
   PressureFilter(Hermes::vector<MeshFunction<double>*> solutions, double kappa) : SimpleFilter<double>(solutions), kappa(kappa) {};
   ~PressureFilter() {};
+  MeshFunction<double>* clone()
+  {
+    Hermes::vector<MeshFunction<double>*> slns;
+    for(int i = 0; i < this->num; i++)
+      slns.push_back(this->sln[i]->clone());
+    PressureFilter* filter = new PressureFilter(slns, this->kappa);
+    return filter;
+  }
 protected:
   virtual void filter_fn(int n, Hermes::vector<double*> values, double* result);
 
@@ -206,6 +224,14 @@ class EntropyFilter : public Hermes::Hermes2D::SimpleFilter<double>
 public: 
   EntropyFilter(Hermes::vector<MeshFunction<double>*> solutions, double kappa, double rho_ext, double p_ext) : SimpleFilter<double>(solutions), kappa(kappa), rho_ext(rho_ext), p_ext(p_ext) {};
   ~EntropyFilter() {};
+  MeshFunction<double>* clone()
+  {
+    Hermes::vector<MeshFunction<double>*> slns;
+    for(int i = 0; i < this->num; i++)
+      slns.push_back(this->sln[i]->clone());
+    EntropyFilter* filter = new EntropyFilter(slns, this->kappa, rho_ext, p_ext);
+    return filter;
+  }
 protected:
   virtual void filter_fn(int n, Hermes::vector<double*> values, double* result);
 

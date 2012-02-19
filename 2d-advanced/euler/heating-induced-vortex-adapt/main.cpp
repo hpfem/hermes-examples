@@ -170,14 +170,11 @@ int main(int argc, char* argv[])
   ConstantSolution<double> rsln_rho_v_y(&mesh, 0.0);
   InitialSolutionLinearProgress rsln_e(&mesh, QuantityCalculator::calc_energy(RHO_INITIAL_HIGH, RHO_INITIAL_HIGH * V1_EXT, RHO_INITIAL_HIGH * V2_EXT, P_INITIAL_HIGH, KAPPA), QuantityCalculator::calc_energy(RHO_INITIAL_LOW, RHO_INITIAL_LOW * V1_EXT, RHO_INITIAL_LOW * V2_EXT, P_INITIAL_LOW, KAPPA), MESH_SIZE);
 
-  // Numerical flux.
-  VijayasundaramNumericalFlux num_flux(KAPPA);
-  
   // For saving to the disk.
   CalculationContinuity<double> continuity(CalculationContinuity<double>::onlyNumber);
 
   // Initialize weak formulation.
-  EulerEquationsWeakFormSemiImplicit wf(&num_flux, KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, BDY_SOLID_WALL, BDY_SOLID_WALL, 
+  EulerEquationsWeakFormSemiImplicit wf(KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, BDY_SOLID_WALL, BDY_SOLID_WALL, 
     BDY_INLET, "Outlet marker not used", &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e);
 
   // Filters for visualization of Mach number, pressure and entropy.

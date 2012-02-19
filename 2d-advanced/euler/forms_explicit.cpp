@@ -37,6 +37,8 @@ public:
     {
       return v->val[0] * v->val[0] * Ord(6);
     }
+
+    VectorFormSurf<double>* clone() { return new DGVectorFormIndicator; }
   };
 };
 
@@ -44,7 +46,7 @@ class EulerEquationsWeakFormExplicit : public WeakForm<double>
 {
 public:
   // Constructor.
-  EulerEquationsWeakFormExplicit(NumericalFlux* num_flux, double kappa, double rho_ext, double v1_ext, double v2_ext, double pressure_ext, 
+  EulerEquationsWeakFormExplicit(double kappa, double rho_ext, double v1_ext, double v2_ext, double pressure_ext, 
     std::string solid_wall_bottom_marker, std::string solid_wall_top_marker, std::string inlet_marker, std::string outlet_marker, 
     Solution<double>* prev_density, Solution<double>* prev_density_vel_x, Solution<double>* prev_density_vel_y, Solution<double>* prev_energy, bool fvm_only = false, int num_of_equations = 4) :
   WeakForm<double>(num_of_equations), rho_ext(rho_ext), v1_ext(v1_ext), v2_ext(v2_ext), pressure_ext(pressure_ext), 
@@ -67,35 +69,35 @@ public:
       add_vector_form(new EulerEquationsLinearFormEnergy(kappa));
     }
 
-    add_vector_form_surf(new EulerEquationsLinearFormInterface(0, num_flux));
-    add_vector_form_surf(new EulerEquationsLinearFormInterface(1, num_flux));
-    add_vector_form_surf(new EulerEquationsLinearFormInterface(2, num_flux));
-    add_vector_form_surf(new EulerEquationsLinearFormInterface(3, num_flux));
+    add_vector_form_surf(new EulerEquationsLinearFormInterface(0, kappa));
+    add_vector_form_surf(new EulerEquationsLinearFormInterface(1, kappa));
+    add_vector_form_surf(new EulerEquationsLinearFormInterface(2, kappa));
+    add_vector_form_surf(new EulerEquationsLinearFormInterface(3, kappa));
 
-    add_vector_form_surf(new EulerEquationsLinearFormSolidWall(0, solid_wall_bottom_marker, num_flux));
-    add_vector_form_surf(new EulerEquationsLinearFormSolidWall(1, solid_wall_bottom_marker, num_flux));
-    add_vector_form_surf(new EulerEquationsLinearFormSolidWall(2, solid_wall_bottom_marker, num_flux));
-    add_vector_form_surf(new EulerEquationsLinearFormSolidWall(3, solid_wall_bottom_marker, num_flux));
+    add_vector_form_surf(new EulerEquationsLinearFormSolidWall(0, solid_wall_bottom_marker, kappa));
+    add_vector_form_surf(new EulerEquationsLinearFormSolidWall(1, solid_wall_bottom_marker, kappa));
+    add_vector_form_surf(new EulerEquationsLinearFormSolidWall(2, solid_wall_bottom_marker, kappa));
+    add_vector_form_surf(new EulerEquationsLinearFormSolidWall(3, solid_wall_bottom_marker, kappa));
 
     if(solid_wall_bottom_marker != solid_wall_top_marker) 
     {
-      add_vector_form_surf(new EulerEquationsLinearFormSolidWall(0, solid_wall_top_marker, num_flux));
-      add_vector_form_surf(new EulerEquationsLinearFormSolidWall(1, solid_wall_top_marker, num_flux));
-      add_vector_form_surf(new EulerEquationsLinearFormSolidWall(2, solid_wall_top_marker, num_flux));
-      add_vector_form_surf(new EulerEquationsLinearFormSolidWall(3, solid_wall_top_marker, num_flux));
+      add_vector_form_surf(new EulerEquationsLinearFormSolidWall(0, solid_wall_top_marker, kappa));
+      add_vector_form_surf(new EulerEquationsLinearFormSolidWall(1, solid_wall_top_marker, kappa));
+      add_vector_form_surf(new EulerEquationsLinearFormSolidWall(2, solid_wall_top_marker, kappa));
+      add_vector_form_surf(new EulerEquationsLinearFormSolidWall(3, solid_wall_top_marker, kappa));
     }
     else
       warning("Are you sure that solid wall top and bottom markers should coincide?");
 
-    add_vector_form_surf(new EulerEquationsLinearFormInlet(0, inlet_marker, num_flux));
-    add_vector_form_surf(new EulerEquationsLinearFormInlet(1, inlet_marker, num_flux));
-    add_vector_form_surf(new EulerEquationsLinearFormInlet(2, inlet_marker, num_flux));
-    add_vector_form_surf(new EulerEquationsLinearFormInlet(3, inlet_marker, num_flux));
+    add_vector_form_surf(new EulerEquationsLinearFormInlet(0, inlet_marker, kappa));
+    add_vector_form_surf(new EulerEquationsLinearFormInlet(1, inlet_marker, kappa));
+    add_vector_form_surf(new EulerEquationsLinearFormInlet(2, inlet_marker, kappa));
+    add_vector_form_surf(new EulerEquationsLinearFormInlet(3, inlet_marker, kappa));
 
-    add_vector_form_surf(new EulerEquationsLinearFormOutlet(0, outlet_marker, num_flux));
-    add_vector_form_surf(new EulerEquationsLinearFormOutlet(1, outlet_marker, num_flux));
-    add_vector_form_surf(new EulerEquationsLinearFormOutlet(2, outlet_marker, num_flux));
-    add_vector_form_surf(new EulerEquationsLinearFormOutlet(3, outlet_marker, num_flux));
+    add_vector_form_surf(new EulerEquationsLinearFormOutlet(0, outlet_marker, kappa));
+    add_vector_form_surf(new EulerEquationsLinearFormOutlet(1, outlet_marker, kappa));
+    add_vector_form_surf(new EulerEquationsLinearFormOutlet(2, outlet_marker, kappa));
+    add_vector_form_surf(new EulerEquationsLinearFormOutlet(3, outlet_marker, kappa));
 
     for(unsigned int vector_form_i = 0;vector_form_i < this->vfvol.size();vector_form_i++) 
     {
@@ -205,7 +207,12 @@ protected:
     {
       return Ord(20);
     }
-    VectorFormVol<double>* clone() { return new EulerEquationsLinearFormDensity(*this); }
+    VectorFormVol<double>* clone()
+    {
+      EulerEquationsLinearFormDensity* form = new EulerEquationsLinearFormDensity(*this);
+      form->wf = this->wf;
+      return form;
+    }
   };
 
   class EulerEquationsLinearFormDensityVelX : public VectorFormVol<double>
@@ -319,6 +326,7 @@ protected:
     }
 
     VectorFormVol<double>* clone() { return new EulerEquationsLinearFormDensityVelY(*this); }
+
     double kappa;
   };
 
@@ -412,8 +420,13 @@ protected:
   class EulerEquationsLinearFormInterface : public VectorFormSurf<double>
   {
   public:
-    EulerEquationsLinearFormInterface(int i, NumericalFlux* num_flux) 
-      : VectorFormSurf<double>(i, H2D_DG_INNER_EDGE), element(i), num_flux(num_flux) {}
+    EulerEquationsLinearFormInterface(int i, double kappa) 
+      : VectorFormSurf<double>(i, H2D_DG_INNER_EDGE), element(i), num_flux(new StegerWarmingNumericalFlux(kappa)) {}
+
+    ~EulerEquationsLinearFormInterface()
+    {
+      delete num_flux;
+    }
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
       Geom<double> *e, ExtData<double> *ext) const 
@@ -446,7 +459,13 @@ protected:
       return Ord(20);
     }
 
-    VectorFormSurf<double>* clone() { return new EulerEquationsLinearFormInterface(*this); }
+    VectorFormSurf<double>* clone()
+    {
+      EulerEquationsLinearFormInterface* form = new EulerEquationsLinearFormInterface(this->i, this->num_flux->kappa);
+      form->wf = this->wf;
+      return form;
+    }
+
     // Members.
     int element;
     NumericalFlux* num_flux;
@@ -455,8 +474,13 @@ protected:
   class EulerEquationsLinearFormSolidWall : public VectorFormSurf<double>
   {
   public:
-    EulerEquationsLinearFormSolidWall(int i, std::string marker, NumericalFlux* num_flux) 
-      : VectorFormSurf<double>(i, marker), element(i), num_flux(num_flux) {}
+    EulerEquationsLinearFormSolidWall(int i, std::string marker, double kappa) 
+      : VectorFormSurf<double>(i, marker), element(i), num_flux(new StegerWarmingNumericalFlux(kappa)) {}
+
+    ~EulerEquationsLinearFormSolidWall()
+    {
+      delete num_flux;
+    }
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
       Geom<double> *e, ExtData<double> *ext) const 
@@ -482,7 +506,13 @@ protected:
       return Ord(20);
     }
 
-    VectorFormSurf<double>* clone() { return new EulerEquationsLinearFormSolidWall(*this); }
+    VectorFormSurf<double>* clone()
+    {
+      EulerEquationsLinearFormSolidWall* form = new EulerEquationsLinearFormSolidWall(i, areas[0], num_flux->kappa);
+      form->wf = this->wf;
+      return form;
+    }
+
     // Members.
     int element;
     NumericalFlux* num_flux;
@@ -491,8 +521,8 @@ protected:
   class EulerEquationsLinearFormInlet : public VectorFormSurf<double>
   {
   public:
-    EulerEquationsLinearFormInlet(int i, std::string marker, NumericalFlux* num_flux) 
-      : VectorFormSurf<double>(i, marker), element(i), num_flux(num_flux) {}
+    EulerEquationsLinearFormInlet(int i, std::string marker, double kappa) 
+      : VectorFormSurf<double>(i, marker), element(i), num_flux(new StegerWarmingNumericalFlux(kappa)) {}
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, 
       ExtData<double> *ext) const 
@@ -527,7 +557,13 @@ protected:
       return Ord(20);
     }
 
-    VectorFormSurf<double>* clone() { return new EulerEquationsLinearFormInlet(*this); }
+    VectorFormSurf<double>* clone()
+    {
+      EulerEquationsLinearFormInlet* form = new EulerEquationsLinearFormInlet(i, areas[0], num_flux->kappa);
+      form->wf = this->wf;
+      return form;
+    }
+
     // Members.
     int element;
     NumericalFlux* num_flux;
@@ -536,38 +572,49 @@ protected:
   class EulerEquationsLinearFormOutlet : public VectorFormSurf<double>
   {
   public:
-    EulerEquationsLinearFormOutlet(int i, std::string marker, NumericalFlux* num_flux) : 
-        VectorFormSurf<double>(i, marker), element(i), num_flux(num_flux) {}
+    EulerEquationsLinearFormOutlet(int i, std::string marker, double kappa) : 
+        VectorFormSurf<double>(i, marker), element(i), num_flux(new StegerWarmingNumericalFlux(kappa)) {}
 
-        double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
-          Geom<double> *e, ExtData<double> *ext) const 
-        {
-          double result = 0;
-          double w_L[4];
-          for (int i = 0;i < n;i++) 
-          {
-            w_L[0] = ext->fn[0]->val[i];
-            w_L[1] = ext->fn[1]->val[i];
-            w_L[2] = ext->fn[2]->val[i];
-            w_L[3] = ext->fn[3]->val[i];
-            result -= wt[i] * v->val[i] 
-            * num_flux->numerical_flux_outlet_i(element, w_L, 
-              static_cast<EulerEquationsWeakFormExplicit*>(wf)->pressure_ext, 
-              e->nx[i], e->ny[i]);
-          }
-          return result * static_cast<EulerEquationsWeakFormExplicit*>(wf)->get_tau();
-        }
+    ~EulerEquationsLinearFormOutlet()
+    {
+      delete num_flux;
+    }
 
-        Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
-          ExtData<Ord> *ext) const 
-        {
-          return Ord(20);
-        }
+    double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
+      Geom<double> *e, ExtData<double> *ext) const 
+    {
+      double result = 0;
+      double w_L[4];
+      for (int i = 0;i < n;i++) 
+      {
+        w_L[0] = ext->fn[0]->val[i];
+        w_L[1] = ext->fn[1]->val[i];
+        w_L[2] = ext->fn[2]->val[i];
+        w_L[3] = ext->fn[3]->val[i];
+        result -= wt[i] * v->val[i] 
+        * num_flux->numerical_flux_outlet_i(element, w_L, 
+          static_cast<EulerEquationsWeakFormExplicit*>(wf)->pressure_ext, 
+          e->nx[i], e->ny[i]);
+      }
+      return result * static_cast<EulerEquationsWeakFormExplicit*>(wf)->get_tau();
+    }
 
-        VectorFormSurf<double>* clone() { return new EulerEquationsLinearFormOutlet(*this); }
-        // Members.
-        int element;
-        NumericalFlux* num_flux;
+    Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
+      ExtData<Ord> *ext) const 
+    {
+      return Ord(20);
+    }
+
+    VectorFormSurf<double>* clone()
+    {
+      EulerEquationsLinearFormOutlet* form = new EulerEquationsLinearFormOutlet(i, areas[0], num_flux->kappa);
+      form->wf = this->wf;
+      return form;
+    }
+
+    // Members.
+    int element;
+    NumericalFlux* num_flux;
   };
   // Members.
   double rho_ext;
@@ -589,7 +636,7 @@ class EulerEquationsWeakFormSemiImplicit : public WeakForm<double>
 {
 public:
   // Constructor.
-  EulerEquationsWeakFormSemiImplicit(NumericalFlux* num_flux, double kappa, double rho_ext, double v1_ext, double v2_ext, double pressure_ext, 
+  EulerEquationsWeakFormSemiImplicit(double kappa, double rho_ext, double v1_ext, double v2_ext, double pressure_ext, 
     std::string solid_wall_bottom_marker, std::string solid_wall_top_marker, std::string inlet_marker, std::string outlet_marker, 
     Solution<double>* prev_density, Solution<double>* prev_density_vel_x, Solution<double>* prev_density_vel_y, Solution<double>* prev_energy, bool fvm_only = false, int num_of_equations = 4) :
   WeakForm<double>(num_of_equations), rho_ext(rho_ext), v1_ext(v1_ext), v2_ext(v2_ext), pressure_ext(pressure_ext), 
@@ -1014,6 +1061,13 @@ protected:
     {
       return Ord(24);
     }
+
+    MatrixFormVol<double>* clone()
+    {
+      EulerEquationsBilinearForm* form = new EulerEquationsBilinearForm(this->i, this->j);
+      form->wf = this->wf;
+      return form;
+    }
   };
 
   class EulerEquationsMatrixFormSurfSemiImplicit : public MatrixFormSurf<double>
@@ -1022,6 +1076,11 @@ protected:
     EulerEquationsMatrixFormSurfSemiImplicit(int i, int j, double kappa) 
       : MatrixFormSurf<double>(i, j, H2D_DG_INNER_EDGE), 
       num_flux(new StegerWarmingNumericalFlux(kappa)) { }
+
+    ~EulerEquationsMatrixFormSurfSemiImplicit() 
+    {
+      delete num_flux;
+    }
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
       Func<double> *v, Geom<double> *e, ExtData<double> *ext) const 
@@ -1115,6 +1174,13 @@ protected:
     {
       return Ord(24);
     }
+    
+    MatrixFormSurf<double>* clone() 
+    { 
+      EulerEquationsMatrixFormSurfSemiImplicit* form = new EulerEquationsMatrixFormSurfSemiImplicit(this->i, this->j, this->num_flux->kappa);
+      form->wf = this->wf;
+      return form;
+    }
 
     StegerWarmingNumericalFlux* num_flux;
   };
@@ -1126,6 +1192,11 @@ protected:
       std::string marker, double kappa) 
       : MatrixFormSurf<double>(i, j, marker), 
       num_flux(new StegerWarmingNumericalFlux(kappa)) { }
+
+    ~EulerEquationsMatrixFormSemiImplicitInletOutlet() 
+    {
+      delete num_flux;
+    }
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
       Func<double> *v, Geom<double> *e, ExtData<double> *ext) const 
@@ -1269,6 +1340,13 @@ protected:
       return Ord(24);
     }
 
+    MatrixFormSurf<double>* clone() 
+    { 
+      EulerEquationsMatrixFormSemiImplicitInletOutlet* form = new EulerEquationsMatrixFormSemiImplicitInletOutlet(this->i, this->j, this->areas[0], this->num_flux->kappa);
+      form->wf = this->wf;
+      return form;
+    }
+
     StegerWarmingNumericalFlux* num_flux;
   };
 
@@ -1278,6 +1356,11 @@ protected:
     EulerEquationsVectorFormSemiImplicitInletOutlet(int i, std::string marker, double kappa) 
       : VectorFormSurf<double>(i, marker), 
       num_flux(new StegerWarmingNumericalFlux(kappa)) { }
+
+    ~EulerEquationsVectorFormSemiImplicitInletOutlet() 
+    {
+      delete num_flux;
+    }
 
     double value(int n, double *wt, Func<double> *u_ext[],
       Func<double> *v, Geom<double> *e, ExtData<double> *ext) const 
@@ -1362,14 +1445,7 @@ protected:
 
         num_flux->P_minus(P_minus, w_temp, w_ji, e->nx[point_i], e->ny[point_i]);
 
-        if(i == 0)
-          result += wt[point_i] * (P_minus[0]) * v->val[point_i];
-        if(i == 1)
-          result += wt[point_i] * (P_minus[1]) * v->val[point_i];
-        if(i == 2)
-          result += wt[point_i] * (P_minus[2]) * v->val[point_i];
-        if(i == 3)
-          result += wt[point_i] * (P_minus[3]) * v->val[point_i];
+        result += wt[point_i] * (P_minus[i]) * v->val[point_i];
       }
 
       return - result * static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->get_tau();
@@ -1379,6 +1455,13 @@ protected:
       Geom<Ord> *e, ExtData<Ord> *ext) const 
     {
       return Ord(24);
+    }
+
+    VectorFormSurf<double>* clone() 
+    { 
+      EulerEquationsVectorFormSemiImplicitInletOutlet* form = new EulerEquationsVectorFormSemiImplicitInletOutlet(this->i, this->areas[0], this->num_flux->kappa);
+      form->wf = this->wf;
+      return form;
     }
 
     StegerWarmingNumericalFlux* num_flux;
@@ -1393,7 +1476,7 @@ protected:
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e,
       ExtData<double> *ext) const 
     {
-      return int_u_v<double, double>(n, wt, ext->fn[0], v);
+      return int_u_v<double, double>(n, wt, ext->fn[this->i], v);
     }
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
@@ -1401,6 +1484,8 @@ protected:
     {
       return Ord(24);
     }
+
+    VectorFormVol<double>* clone() { return new EulerEquationsLinearFormTime(this->i); }
   };
 
   class EulerEquationsMatrixFormSolidWall : public MatrixFormSurf<double>
@@ -1479,6 +1564,13 @@ protected:
       return Ord(24);
     }
 
+    MatrixFormSurf<double>* clone() 
+    {
+      EulerEquationsMatrixFormSolidWall* form = new EulerEquationsMatrixFormSolidWall(this->i, this->j, this->areas[0], this->kappa);
+      form->wf = this->wf;
+      return form;
+    }
+
     // Members.
     double kappa;
   };
@@ -1501,6 +1593,7 @@ protected:
     {
       return Ord(24);
     }
+    MatrixFormVol<double>* clone() { return new EulerEquationsFormStabilizationVol(this->i, nu_1); }
   private:
     double nu_1;
   };
@@ -1528,6 +1621,7 @@ protected:
     {
       return Ord(24);
     }
+    MatrixFormSurf<double>* clone() { return new EulerEquationsFormStabilizationSurf(this->i, this->j, nu_2); }
 
     double nu_2;
   };
@@ -1977,6 +2071,12 @@ protected:
     {
       return Ord(24);
     }
+    MatrixFormVol<double>* clone()
+    {
+      EulerEquationsBilinearForm* form = new EulerEquationsBilinearForm(this->i, this->j);
+      form->wf = this->wf;
+      return form;
+    }
   };
 
   class EulerEquationsMatrixFormSurfSemiImplicit : public MatrixFormSurf<double>
@@ -1985,6 +2085,11 @@ protected:
     EulerEquationsMatrixFormSurfSemiImplicit(int i, int j, double kappa) 
       : MatrixFormSurf<double>(i, j, H2D_DG_INNER_EDGE), 
       num_flux(new StegerWarmingNumericalFlux(kappa)) { }
+    
+    ~EulerEquationsMatrixFormSurfSemiImplicit() 
+    {
+      delete num_flux;
+    }
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
       Func<double> *v, Geom<double> *e, ExtData<double> *ext) const 
@@ -2079,6 +2184,7 @@ protected:
       return Ord(24);
     }
 
+    MatrixFormSurf<double>* clone() { return new EulerEquationsMatrixFormSurfSemiImplicit(this->i, this->j, this->num_flux->kappa); }
     StegerWarmingNumericalFlux* num_flux;
   };
 
@@ -2089,6 +2195,11 @@ protected:
       std::string marker, double kappa) 
       : MatrixFormSurf<double>(i, j, marker), 
       num_flux(new StegerWarmingNumericalFlux(kappa)) { }
+    
+    ~EulerEquationsMatrixFormSemiImplicitInletOutlet1() 
+    {
+      delete num_flux;
+    }
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
       Func<double> *v, Geom<double> *e, ExtData<double> *ext) const 
@@ -2232,6 +2343,8 @@ protected:
       return Ord(24);
     }
 
+    MatrixFormSurf<double>* clone() { return new EulerEquationsMatrixFormSemiImplicitInletOutlet1(this->i, this->j, this->areas[0], this->num_flux->kappa); }
+
     StegerWarmingNumericalFlux* num_flux;
   };
 
@@ -2241,6 +2354,11 @@ protected:
     EulerEquationsVectorFormSemiImplicitInletOutlet1(int i, std::string marker, double kappa) 
       : VectorFormSurf<double>(i, marker), 
       num_flux(new StegerWarmingNumericalFlux(kappa)) { }
+    
+    ~EulerEquationsVectorFormSemiImplicitInletOutlet1() 
+    {
+      delete num_flux;
+    }
 
     double value(int n, double *wt, Func<double> *u_ext[],
       Func<double> *v, Geom<double> *e, ExtData<double> *ext) const 
@@ -2344,6 +2462,8 @@ protected:
       return Ord(24);
     }
 
+    VectorFormSurf<double>* clone() { return new EulerEquationsVectorFormSemiImplicitInletOutlet1(this->i, this->areas[0], this->num_flux->kappa); }
+
     StegerWarmingNumericalFlux* num_flux;
   };
 
@@ -2354,6 +2474,11 @@ protected:
       std::string marker, double kappa) 
       : MatrixFormSurf<double>(i, j, marker), 
       num_flux(new StegerWarmingNumericalFlux(kappa)) { }
+
+    ~EulerEquationsMatrixFormSemiImplicitInletOutlet2() 
+    {
+      delete num_flux;
+    }
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
       Func<double> *v, Geom<double> *e, ExtData<double> *ext) const 
@@ -2497,6 +2622,8 @@ protected:
       return Ord(24);
     }
 
+    MatrixFormSurf<double>* clone() { return new EulerEquationsMatrixFormSemiImplicitInletOutlet2(this->i, this->j, this->areas[0], this->num_flux->kappa); }
+
     StegerWarmingNumericalFlux* num_flux;
   };
 
@@ -2506,6 +2633,11 @@ protected:
     EulerEquationsVectorFormSemiImplicitInletOutlet2(int i, std::string marker, double kappa) 
       : VectorFormSurf<double>(i, marker), 
       num_flux(new StegerWarmingNumericalFlux(kappa)) { }
+    
+    ~EulerEquationsVectorFormSemiImplicitInletOutlet2() 
+    {
+      delete num_flux;
+    }
 
     double value(int n, double *wt, Func<double> *u_ext[],
       Func<double> *v, Geom<double> *e, ExtData<double> *ext) const 
@@ -2609,6 +2741,8 @@ protected:
       return Ord(24);
     }
 
+    VectorFormSurf<double>* clone() { return new EulerEquationsVectorFormSemiImplicitInletOutlet2(this->i, this->areas[0], this->num_flux->kappa); }
+
     StegerWarmingNumericalFlux* num_flux;
   };
 
@@ -2629,6 +2763,7 @@ protected:
     {
       return Ord(24);
     }
+    VectorFormVol<double>* clone() { return new EulerEquationsLinearFormTime(this->i); }
   };
 
   class EulerEquationsMatrixFormSolidWall : public MatrixFormSurf<double>
@@ -2707,6 +2842,8 @@ protected:
       return Ord(24);
     }
 
+    MatrixFormSurf<double>* clone() { return new EulerEquationsMatrixFormSolidWall(this->i, this->j, this->areas[0], kappa); }
+
     // Members.
     double kappa;
   };
@@ -2729,6 +2866,8 @@ protected:
     {
       return Ord(24);
     }
+
+    MatrixFormVol<double>* clone() { return new EulerEquationsFormStabilizationVol(this->i, this->nu_1); }
   private:
     double nu_1;
   };
@@ -2757,6 +2896,8 @@ protected:
       return Ord(24);
     }
 
+    MatrixFormSurf<double>* clone() { return new EulerEquationsFormStabilizationSurf(this->i, this->j, this->nu_2); }
+
     double nu_2;
   };
 
@@ -2782,7 +2923,7 @@ class EulerEquationsWeakFormExplicitCoupled : public EulerEquationsWeakFormExpli
 {
 public:
   // Constructor.
-  EulerEquationsWeakFormExplicitCoupled(NumericalFlux* num_flux, double kappa,
+  EulerEquationsWeakFormExplicitCoupled(double kappa,
     double rho_ext, double v1_ext, double v2_ext,
     double pressure_ext, std::string solid_wall_marker_bottom, std::string solid_wall_marker_top,
     std::string inlet_marker, std::string outlet_marker,
@@ -2790,7 +2931,7 @@ public:
     Solution<double>* prev_density, Solution<double>* prev_density_vel_x,
     Solution<double>* prev_density_vel_y, Solution<double>* prev_energy,
     Solution<double>* prev_concentration, double epsilon, bool fvm_only = false)
-    : EulerEquationsWeakFormExplicit(num_flux, kappa, rho_ext, v1_ext, v2_ext, pressure_ext,
+    : EulerEquationsWeakFormExplicit(kappa, rho_ext, v1_ext, v2_ext, pressure_ext,
     solid_wall_marker_bottom, solid_wall_marker_top, inlet_marker,
     outlet_marker, prev_density, prev_density_vel_x,
     prev_density_vel_y, prev_energy, fvm_only, 5) 
@@ -2877,6 +3018,8 @@ protected:
       return vector_form<Ord, Ord>(n, wt, u_ext, v, e, ext);
     }
 
+    VectorFormVol<double>* clone() { return new VectorFormConcentrationAdvectionDiffusion(this->i, this->epsilon); }
+
     // Member.
     double epsilon;
   };
@@ -2918,6 +3061,8 @@ protected:
     {
       return vector_form<Ord, Ord>(n, wt, u_ext, v, e, ext);
     }
+
+    VectorFormSurf<double>* clone() { return new VectorFormConcentrationNatural(this->i, this->areas[0]); }
   };
 };
 
@@ -2925,7 +3070,7 @@ class EulerEquationsWeakFormSemiImplicitCoupled : public EulerEquationsWeakFormS
 {
 public:
   // Constructor.
-  EulerEquationsWeakFormSemiImplicitCoupled(NumericalFlux* num_flux, double kappa,
+  EulerEquationsWeakFormSemiImplicitCoupled(double kappa,
     double rho_ext, double v1_ext, double v2_ext,
     double pressure_ext, std::string solid_wall_marker_bottom, std::string solid_wall_marker_top,
     std::string inlet_marker, std::string outlet_marker,
@@ -2933,7 +3078,7 @@ public:
     Solution<double>* prev_density, Solution<double>* prev_density_vel_x,
     Solution<double>* prev_density_vel_y, Solution<double>* prev_energy,
     Solution<double>* prev_concentration, double epsilon, bool fvm_only = false)
-    : EulerEquationsWeakFormSemiImplicit(num_flux, kappa, rho_ext, v1_ext, v2_ext, pressure_ext,
+    : EulerEquationsWeakFormSemiImplicit(kappa, rho_ext, v1_ext, v2_ext, pressure_ext,
     solid_wall_marker_bottom, solid_wall_marker_top, inlet_marker,
     outlet_marker, prev_density, prev_density_vel_x,
     prev_density_vel_y, prev_energy, fvm_only, 5) 
@@ -3017,6 +3162,13 @@ protected:
       return matrix_form<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
     }
 
+    MatrixFormVol<double>* clone() 
+    { 
+      MatrixFormConcentrationAdvectionDiffusion* form = new MatrixFormConcentrationAdvectionDiffusion(this->i, this->j, this->epsilon);
+      form->wf = this->wf;
+      return form;
+    }
+
     // Member.
     double epsilon;
   };
@@ -3056,6 +3208,13 @@ protected:
       ExtData<Ord> *ext) const 
     {
       return matrix_form<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
+    }
+
+    MatrixFormSurf<double>* clone()
+    { 
+      MatrixFormConcentrationNatural* form = new MatrixFormConcentrationNatural(this->i, this->j, this->areas[0]);
+      form->wf = this->wf;
+      return form;
     }
   };
 };
