@@ -109,7 +109,7 @@ AsmList<double> al;
     surf_pos.marker = e->marker;
     surf_pos.surf_num = edge_i;
     int eo = solutions[1]->get_quad_2d()->get_edge_points(surf_pos.surf_num, 20, e->get_mode());
-    double3* tan;
+    double3* tan = NULL;
     Geom<double>* geom = init_geom_surf(solutions[1]->get_refmap(), surf_pos.surf_num, surf_pos.marker, eo, tan);
     int np = solutions[1]->get_quad_2d()->get_num_points(eo, e->get_mode());
 

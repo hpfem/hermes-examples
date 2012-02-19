@@ -1906,8 +1906,9 @@ protected:
   {
   public:
     EulerEquationsBilinearForm(int i, int j) : MatrixFormVol<double>(i, j) {}
+
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, 
-      ExtData<double> *ext)
+      ExtData<double> *ext) const
     {
       double result = 0.;
       for (int point_i = 0; point_i < n;point_i++) 
