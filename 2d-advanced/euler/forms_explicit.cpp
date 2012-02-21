@@ -2087,7 +2087,7 @@ protected:
       : MatrixFormSurf<double>(i, j, H2D_DG_INNER_EDGE), 
       num_flux(new StegerWarmingNumericalFlux(kappa)) { }
     
-    ~EulerEquationsMatrixFormSurfSemiImplicit() 
+    virtual ~EulerEquationsMatrixFormSurfSemiImplicit() 
     {
       delete num_flux;
     }
@@ -2202,7 +2202,7 @@ protected:
       : MatrixFormSurf<double>(i, j, marker), 
       num_flux(new StegerWarmingNumericalFlux(kappa)) { }
     
-    ~EulerEquationsMatrixFormSemiImplicitInletOutlet1() 
+    virtual ~EulerEquationsMatrixFormSemiImplicitInletOutlet1() 
     {
       delete num_flux;
     }
@@ -2482,7 +2482,7 @@ protected:
       : MatrixFormSurf<double>(i, j, marker), 
       num_flux(new StegerWarmingNumericalFlux(kappa)) { }
 
-    ~EulerEquationsMatrixFormSemiImplicitInletOutlet2() 
+    virtual ~EulerEquationsMatrixFormSemiImplicitInletOutlet2() 
     {
       delete num_flux;
     }
