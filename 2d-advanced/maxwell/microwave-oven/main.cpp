@@ -231,15 +231,16 @@ int main(int argc, char* argv[])
   
   verbose("Total running time: %g s", cpu_time.accumulated());
 
-  // Show the reference solution - the final result.
+  RealFilter ref_real(&sln);
+  MagFilter<double> ref_magn(&ref_real);
+  ValFilter ref_limited_magn(&ref_magn, 0.0, 4e3);
   eview.set_title("Fine mesh solution - magnitude");
-  RealFilter ref_magn(&ref_sln);
-  eview.show(&ref_magn);
+  eview.show(&ref_limited_magn);
 
   // Output solution in VTK format.
   Linearizer lin;
   bool mode_3D = true;
-  lin.save_solution_vtk(&ref_magn, "sln.vtk", "Magnitude of E", mode_3D);
+  lin.save_solution_vtk(&ref_limited_magn, "sln.vtk", "Magnitude of E", mode_3D);
   info("Solution in VTK format saved to file %s.", "sln.vtk");
 
   // Wait for all views to be closed.
