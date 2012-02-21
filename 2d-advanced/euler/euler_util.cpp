@@ -103,6 +103,7 @@ AsmList<double> al;
 
   double edge_length_max_lambda = 0.0;
 
+  solutions[0]->set_active_element(e);
   for(unsigned int edge_i = 0; edge_i < e->get_num_surf(); edge_i++) {
     // Initialization.
     SurfPos surf_pos;
@@ -110,7 +111,7 @@ AsmList<double> al;
     surf_pos.surf_num = edge_i;
     int eo = solutions[1]->get_quad_2d()->get_edge_points(surf_pos.surf_num, 20, e->get_mode());
     double3* tan = NULL;
-    Geom<double>* geom = init_geom_surf(solutions[1]->get_refmap(), surf_pos.surf_num, surf_pos.marker, eo, tan);
+    Geom<double>* geom = init_geom_surf(solutions[0]->get_refmap(), surf_pos.surf_num, surf_pos.marker, eo, tan);
     int np = solutions[1]->get_quad_2d()->get_num_points(eo, e->get_mode());
 
     // Calculation of the edge length.

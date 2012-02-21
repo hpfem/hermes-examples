@@ -35,7 +35,7 @@ enum shockCapturingType
   KUZMIN,
   KRIVODONOVA
 };
-bool SHOCK_CAPTURING = true;
+bool SHOCK_CAPTURING = false;
 shockCapturingType SHOCK_CAPTURING_TYPE = KUZMIN;
 // Quantitative parameter of the discontinuity detector in case of Krivodonova.
 double DISCONTINUITY_DETECTOR_PARAM = 1.0;
@@ -47,9 +47,9 @@ const double NU_2 = 0.1;
 bool REUSE_SOLUTION = false;
 
 // Initial polynomial degree.      
-const int P_INIT = 2;                                                   
+const int P_INIT = 0;                                                   
 // Number of initial uniform mesh refinements.      
-const int INIT_REF_NUM = 5;                                              
+const int INIT_REF_NUM = 3;                                              
 // CFL value.
 double CFL_NUMBER = 0.1;                                
 // Initial time step.
@@ -117,11 +117,8 @@ int main(int argc, char* argv[])
   ConstantSolution<double> prev_rho_v_y(&mesh, RHO_INIT * V2_INIT);
   ConstantSolution<double> prev_e(&mesh, QuantityCalculator::calc_energy(RHO_INIT, RHO_INIT * V1_INIT, RHO_INIT * V2_INIT, PRESSURE_INIT, KAPPA));
 
-  // Numerical flux.
-  OsherSolomonNumericalFlux num_flux(KAPPA);
-
   // Initialize weak formulation.
-  EulerEquationsWeakFormSemiImplicitTwoInflows wf(&num_flux, KAPPA, RHO_LEFT, V1_LEFT, V2_LEFT, PRESSURE_LEFT, RHO_TOP, V1_TOP, V2_TOP, PRESSURE_TOP, BDY_SOLID_WALL, BDY_INLET_LEFT, BDY_INLET_TOP, BDY_OUTLET,
+  EulerEquationsWeakFormSemiImplicitTwoInflows wf(KAPPA, RHO_LEFT, V1_LEFT, V2_LEFT, PRESSURE_LEFT, RHO_TOP, V1_TOP, V2_TOP, PRESSURE_TOP, BDY_SOLID_WALL, BDY_INLET_LEFT, BDY_INLET_TOP, BDY_OUTLET,
     &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, (P_INIT == 0));
 
   // Filters for visualization of Mach number, pressure and entropy.
