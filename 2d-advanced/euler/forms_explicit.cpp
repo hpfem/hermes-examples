@@ -3030,7 +3030,12 @@ protected:
       return vector_form<Ord, Ord>(n, wt, u_ext, v, e, ext);
     }
 
-    VectorFormVol<double>* clone() { return new VectorFormConcentrationAdvectionDiffusion(this->i, this->epsilon); }
+    VectorFormVol<double>* clone() 
+    {
+      VectorFormConcentrationAdvectionDiffusion* form = new VectorFormConcentrationAdvectionDiffusion(this->i, this->epsilon); 
+      form->wf = this->wf;
+      return form;
+    }
 
     // Member.
     double epsilon;
@@ -3074,7 +3079,12 @@ protected:
       return vector_form<Ord, Ord>(n, wt, u_ext, v, e, ext);
     }
 
-    VectorFormSurf<double>* clone() { return new VectorFormConcentrationNatural(this->i, this->areas[0]); }
+    VectorFormSurf<double>* clone() 
+    {
+      VectorFormConcentrationNatural* form = new VectorFormConcentrationNatural(this->i, this->areas[0]);
+      form->wf = this->wf;
+      return form;
+    }
   };
 };
 
