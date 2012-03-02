@@ -3105,7 +3105,7 @@ public:
     outlet_marker, prev_density, prev_density_vel_x,
     prev_density_vel_y, prev_energy, fvm_only, 5) 
   {
-    add_matrix_form(new EulerEquationsWeakFormExplicit::EulerEquationsBilinearFormTime(4));
+    add_matrix_form(new EulerEquationsWeakFormSemiImplicit::EulerEquationsBilinearFormTime(4));
 
     add_matrix_form(new MatrixFormConcentrationAdvectionDiffusion(4, 4, epsilon));
     mfvol.back()->ext.push_back(prev_density);
@@ -3122,7 +3122,7 @@ public:
       mfsurf.back()->ext.push_back(prev_energy);
     }
 
-    EulerEquationsWeakFormExplicit::EulerEquationsLinearFormTime* vector_form_time = new EulerEquationsWeakFormExplicit::EulerEquationsLinearFormTime(4);
+    EulerEquationsWeakFormSemiImplicit::EulerEquationsLinearFormTime* vector_form_time = new EulerEquationsWeakFormSemiImplicit::EulerEquationsLinearFormTime(4);
     vector_form_time->ext.push_back(prev_density);
     vector_form_time->ext.push_back(prev_density_vel_x);
     vector_form_time->ext.push_back(prev_density_vel_y);
@@ -3169,7 +3169,7 @@ protected:
         Real tau = 1. / Hermes::sqrt( 9 * Hermes::pow(4 * epsilon / Hermes::pow(h_e, 2), 2) + Hermes::pow(2 * b_norm / h_e, 2));
         result += wt[i] * tau * (-v_1 * v->dx[i] - v_2 * v->dy[i] + epsilon * v->laplace[i]) * (-v_1 * u->dx[i] - v_2 * u->dy[i] + epsilon * u->laplace[i]);
       }
-      return result * static_cast<EulerEquationsWeakFormExplicit*>(wf)->get_tau();
+      return result * static_cast<EulerEquationsWeakFormSemiImplicitCoupled*>(wf)->get_tau();
     }
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
@@ -3216,7 +3216,7 @@ protected:
         / density_prev->val[i];
       // (OR: for inlet/outlet) result += wt[i] * v->val[i] * concentration_prev->val[i] 
       //      * (V1_EXT * e->nx[i] + V2_EXT * e->ny[i]);
-      return result * static_cast<EulerEquationsWeakFormExplicit*>(wf)->get_tau();
+      return result * static_cast<EulerEquationsWeakFormSemiImplicitCoupled*>(wf)->get_tau();
 
     }
 

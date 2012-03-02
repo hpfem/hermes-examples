@@ -45,8 +45,8 @@ const double NU_2 = 0.1;
 // For saving/loading of solution.
 bool REUSE_SOLUTION = false;
 
-// Initial polynomial degree.   
-const int P_INIT = 0;                                                      
+// Initial polynomial degree.
+const int P_INIT = 1;                                                      
 // Number of initial uniform mesh refinements.    
 const int INIT_REF_NUM = 3;                                                
 // CFL value.
