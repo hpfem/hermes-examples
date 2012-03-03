@@ -48,7 +48,7 @@ bool REUSE_SOLUTION = false;
 // Initial polynomial degree.
 const int P_INIT = 1;                                                      
 // Number of initial uniform mesh refinements.    
-const int INIT_REF_NUM = 3;                                                
+const int INIT_REF_NUM = 2;                                                
 // CFL value.
 double CFL_NUMBER = 1.0;                                
 // Initial time step.
@@ -114,11 +114,9 @@ int main(int argc, char* argv[])
   // Filters for visualization of Mach number, pressure and entropy.
   MachNumberFilter Mach_number(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA);
   PressureFilter pressure(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA);
-  EntropyFilter entropy(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA, RHO_EXT, P_EXT);
 
   ScalarView pressure_view("Pressure", new WinGeom(0, 0, 600, 300));
   ScalarView Mach_number_view("Mach number", new WinGeom(700, 0, 600, 300));
-  ScalarView entropy_production_view("Entropy estimate", new WinGeom(0, 400, 600, 300));
   ScalarView s1("prev_rho", new WinGeom(0, 0, 600, 300));
   ScalarView s2("prev_rho_v_x", new WinGeom(700, 0, 600, 300));
   ScalarView s3("prev_rho_v_y", new WinGeom(0, 400, 600, 300));
@@ -152,7 +150,7 @@ int main(int argc, char* argv[])
   }
 
   // Initialize weak formulation.
-  EulerEquationsWeakFormSemiImplicit wf(KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, BDY_SOLID_WALL_BOTTOM, BDY_SOLID_WALL_TOP, 
+  EulerEquationsWeakFormExplicit wf(KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, BDY_SOLID_WALL_BOTTOM, BDY_SOLID_WALL_TOP, 
     BDY_INLET, BDY_OUTLET, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, (P_INIT == 0));
 
   EulerEquationsWeakFormStabilization wf_stabilization(&prev_rho);
@@ -163,7 +161,7 @@ int main(int argc, char* argv[])
   bool* discreteIndicator = NULL;
 
   // If the FE problem is in fact a FV problem.
-  if(P_INIT == 0) 
+  if(P_INIT == 0)
     dp.set_fvm();
 
   // Time stepping loop.
@@ -219,9 +217,7 @@ int main(int argc, char* argv[])
       {
         Mach_number.reinit();
         pressure.reinit();
-        entropy.reinit();
         pressure_view.show(&pressure);
-        entropy_production_view.show(&entropy);
         Mach_number_view.show(&Mach_number);
         pressure_view.save_numbered_screenshot("Pressure-%u.bmp", iteration - 1, true);
         Mach_number_view.save_numbered_screenshot("Mach-%u.bmp", iteration - 1, true);
@@ -254,7 +250,6 @@ int main(int argc, char* argv[])
   }
 
   pressure_view.close();
-  entropy_production_view.close();
   Mach_number_view.close();
 
   return 0;
