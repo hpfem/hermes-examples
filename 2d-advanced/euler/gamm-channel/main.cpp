@@ -34,7 +34,7 @@ enum shockCapturingType
   KUZMIN,
   KRIVODONOVA
 };
-bool SHOCK_CAPTURING = false;
+bool SHOCK_CAPTURING = true;
 shockCapturingType SHOCK_CAPTURING_TYPE = KUZMIN;
 // Quantitative parameter of the discontinuity detector in case of Krivodonova.
 double DISCONTINUITY_DETECTOR_PARAM = 1.0;
@@ -150,7 +150,7 @@ int main(int argc, char* argv[])
   }
 
   // Initialize weak formulation.
-  EulerEquationsWeakFormExplicit wf(KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, BDY_SOLID_WALL_BOTTOM, BDY_SOLID_WALL_TOP, 
+  EulerEquationsWeakFormSemiImplicit wf(KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, BDY_SOLID_WALL_BOTTOM, BDY_SOLID_WALL_TOP, 
     BDY_INLET, BDY_OUTLET, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, (P_INIT == 0));
 
   EulerEquationsWeakFormStabilization wf_stabilization(&prev_rho);
@@ -174,6 +174,9 @@ int main(int argc, char* argv[])
 
     // Assemble the stiffness matrix and rhs.
     info("Assembling the stiffness matrix and right-hand side vector.");
+
+    wf.realloc_cache(&mesh);
+
     dp.assemble(matrix, rhs);
 
     // Solve the matrix problem.

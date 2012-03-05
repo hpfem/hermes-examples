@@ -186,9 +186,13 @@ int main(int argc, char* argv[])
     bool is_linear = true;
     DiscreteProblem<double> dp(wf, Hermes::vector<const Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e, &space_c));
     if(SEMI_IMPLICIT)
+    {
       static_cast<EulerEquationsWeakFormSemiImplicitCoupled*>(wf)->set_time_step(time_step);
+      static_cast<EulerEquationsWeakFormSemiImplicitCoupled*>(wf)->realloc_cache(&mesh_flow);
+    }
     else
       static_cast<EulerEquationsWeakFormExplicitCoupled*>(wf)->set_time_step(time_step);
+
 
     // Assemble stiffness matrix and rhs.
     info("Assembling the stiffness matrix and right-hand side vector.");
