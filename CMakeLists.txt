@@ -16,13 +16,34 @@ project(hermes_examples)
 	# Experimental
 	set(WITH_ZOLTAN             NO)
 	# If MPI is enabled, the MPI library installed on the system should be found by 
-		# CMake automatically. If the found library doesn't match the one used to compile the
-		# particular MPI-dependent package, the other two options should be used to specify it.
-		#
-		set(WITH_MPI                NO)
-		# set(MPI_LIBRARIES         -lmpi)
-		# set(MPI_INCLUDE_PATH      /usr/include/openmpi
-	
+  # CMake automatically. If the found library doesn't match the one used to compile the
+  # particular MPI-dependent package, the other two options should be used to specify it.
+  #
+  set(WITH_MPI                NO)
+  # set(MPI_LIBRARIES         -lmpi)
+  # set(MPI_INCLUDE_PATH      /usr/include/openmpi
+  
+  # By default all examples are turned on.
+  # This can be changed in your CMake.vars file.
+  SET(WITH_1d YES)
+  SET(WITH_2d-advanced YES)
+    SET(WITH_acoustics YES)
+    SET(WITH_advection-diffusion-reaction YES)
+    SET(WITH_euler YES)
+    SET(WITH_heat-transfer YES)
+    SET(WITH_helmholtz YES)
+    SET(WITH_elasticity-linear YES)
+    SET(WITH_maxwell YES)
+    SET(WITH_navier-stokes YES)
+    SET(WITH_nernst-planck YES)
+    SET(WITH_neutronics YES)
+    SET(WITH_richards YES)
+    SET(WITH_schroedinger YES)
+    SET(WITH_wave-equation YES)
+    SET(WITH_miscellaneous YES)
+	SET(WITH_2d-benchmarks-general YES)
+	SET(WITH_2d-benchmarks-nist YES)
+
 	# Allow to override the default values in CMake.vars:
 	include(CMake.vars OPTIONAL)
 
@@ -63,8 +84,21 @@ project(hermes_examples)
 	include_directories(${HERMES2D_INCLUDE_PATH})
 	include_directories(${DEP_INCLUDE_PATHS})
 
-	add_subdirectory(1d)
-	add_subdirectory(2d-advanced)
-	add_subdirectory(2d-benchmarks-general)
-	add_subdirectory(2d-benchmarks-nist)
-	
+  IF(WITH_1d)
+    add_subdirectory(1d)
+	ENDIF(WITH_1d)
+  IF(WITH_2d-advanced)
+    add_subdirectory(2d-advanced)
+  ENDIF(WITH_2d-advanced)
+  IF(WITH_2d-benchmarks-general)
+    add_subdirectory(2d-benchmarks-general)
+  ENDIF(WITH_2d-benchmarks-general)
+	IF(WITH_2d-benchmarks-nist)
+    add_subdirectory(2d-benchmarks-nist)
+  ENDIF(WITH_2d-benchmarks-nist)
+  
+  
+  
+  
+  
+  
