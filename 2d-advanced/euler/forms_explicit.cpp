@@ -3374,14 +3374,18 @@ protected:
       Func<Real>* density_vel_x_prev = ext->fn[1];
       Func<Real>* density_vel_y_prev = ext->fn[2];
 
-      for (int i=0; i < n; i++) 
+      for (int point_i=0; point_i < n; point_i++) 
       {
-        Scalar v_1 = density_vel_x_prev->val[i] / density_prev->val[i];
-        Scalar v_2 = density_vel_y_prev->val[i] / density_prev->val[i];
+        Scalar v_1 = density_vel_x_prev->val[point_i] / density_prev->val[point_i];
+        Scalar v_2 = density_vel_y_prev->val[point_i] / density_prev->val[point_i];
 
+        result += wt[point_i] * (epsilon * (u->dx[point_i]*v->dx[point_i] + u->dy[point_i]*v->dy[point_i])
+          - (v_1 * u->val[point_i] * v->dx[point_i] + v_2 * u->val[point_i] * v->dy[point_i]));
 
-        result += wt[i] * (epsilon * (u->dx[i]*v->dx[i] + u->dy[i]*v->dy[i])
-          - (v_1 * u->val[i] * v->dx[i] + v_2 * u->val[i] * v->dy[i]));
+        result += 100 * wt[point_i] * ((v_1 * u->dx[point_i] + v_2 * u->dy[point_i]) - (epsilon * (u->dx[point_i]*u->dx[point_i] + u->dy[point_i]*u->dy[point_i])))
+          * (v_1 * v->dx[point_i] + v_2 * v->dy[point_i]) * h_e / (2 * std::sqrt(v_1*v_1 + v_2*v_2));
+
+        /*
 
         Real R_squared = Hermes::pow(v_1 * u->dx[i] + v_2 * u->dy[i], 2.);
         Real R = Hermes::sqrt(R_squared); //This just does fabs(b1 * u->dx[i] + b2 * u->dy[i]); but it can be parsed
@@ -3390,6 +3394,7 @@ protected:
         Scalar b_norm = Hermes::sqrt(v_1 * v_1 + v_2 * v_2);
         Real tau = 1. / Hermes::sqrt( 9 * Hermes::pow(4 * epsilon / Hermes::pow(h_e, 2), 2) + Hermes::pow(2 * b_norm / h_e, 2));
         result += wt[i] * tau * (-v_1 * v->dx[i] - v_2 * v->dy[i] + epsilon * v->laplace[i]) * (-v_1 * u->dx[i] - v_2 * u->dy[i] + epsilon * u->laplace[i]);
+        */
       }
       return result * static_cast<EulerEquationsWeakFormSemiImplicitCoupled*>(wf)->get_tau();
     }
@@ -3403,7 +3408,7 @@ protected:
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, 
       ExtData<Ord> *ext) const 
     {
-      return matrix_form<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
+      return Ord(24);
     }
 
     MatrixFormVol<double>* clone() 
