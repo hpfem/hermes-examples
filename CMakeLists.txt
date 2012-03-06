@@ -41,8 +41,8 @@ project(hermes_examples)
     SET(WITH_schroedinger YES)
     SET(WITH_wave-equation YES)
     SET(WITH_miscellaneous YES)
-	SET(WITH_2d-benchmarks-general YES)
-	SET(WITH_2d-benchmarks-nist YES)
+  SET(WITH_2d-benchmarks-general YES)
+  SET(WITH_2d-benchmarks-nist YES)
 
 	# Allow to override the default values in CMake.vars:
 	include(CMake.vars OPTIONAL)
