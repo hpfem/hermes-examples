@@ -819,7 +819,7 @@ public:
   {
     int mfvol_size = this->mfvol.size();
     int mfsurf_size = this->mfsurf.size();   
-
+    
     add_matrix_form(new EulerEquationsFormStabilizationVol(0, nu_1));
     add_matrix_form(new EulerEquationsFormStabilizationVol(1, nu_1));
     add_matrix_form(new EulerEquationsFormStabilizationVol(2, nu_1));
@@ -1794,17 +1794,23 @@ protected:
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
       Geom<double> *e, ExtData<double> *ext) const 
     {
-      double result_i = 0.;
+      double result = 0.;
       if(static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->discreteIndicator[e->id]) 
-        return int_grad_u_grad_v<double, double>(n, wt, u, v) * nu_1 * e->diam;
+        result = int_grad_u_grad_v<double, double>(n, wt, u, v) * nu_1 * e->diam;
+      return result;
     }
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, 
       ExtData<Ord> *ext) const 
     {
-      return Ord(24);
+      return int_grad_u_grad_v<Ord, Ord>(n, wt, u, v);
     }
-    MatrixFormVol<double>* clone() { return new EulerEquationsFormStabilizationVol(this->i, nu_1); }
+    MatrixFormVol<double>* clone() 
+    {
+      EulerEquationsFormStabilizationVol* form = new EulerEquationsFormStabilizationVol(this->i, nu_1);
+      form->wf = this->wf;
+      return form;
+    }
   private:
     double nu_1;
   };
@@ -1827,12 +1833,12 @@ protected:
       return result;
     }
 
-    Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
-      Geom<Ord> *e, ExtData<Ord> *ext) const 
+    MatrixFormSurf<double>* clone() 
     {
-      return Ord(24);
+      EulerEquationsFormStabilizationSurf* form = new EulerEquationsFormStabilizationSurf(this->i, this->j, nu_2);
+      form->wf = this->wf;
+      return form;
     }
-    MatrixFormSurf<double>* clone() { return new EulerEquationsFormStabilizationSurf(this->i, this->j, nu_2); }
 
     double nu_2;
   };

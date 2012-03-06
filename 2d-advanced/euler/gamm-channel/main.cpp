@@ -31,11 +31,12 @@ const unsigned int EVERY_NTH_STEP = 1;
 // Shock capturing.
 enum shockCapturingType
 {
+  FEISTAUER,
   KUZMIN,
   KRIVODONOVA
 };
 bool SHOCK_CAPTURING = true;
-shockCapturingType SHOCK_CAPTURING_TYPE = KUZMIN;
+shockCapturingType SHOCK_CAPTURING_TYPE = FEISTAUER;
 // Quantitative parameter of the discontinuity detector in case of Krivodonova.
 double DISCONTINUITY_DETECTOR_PARAM = 1.0;
 // Quantitative parameter of the shock capturing in case of Feistauer.
@@ -155,6 +156,9 @@ int main(int argc, char* argv[])
 
   EulerEquationsWeakFormStabilization wf_stabilization(&prev_rho);
 
+  if(SHOCK_CAPTURING && SHOCK_CAPTURING_TYPE == FEISTAUER)
+    wf.set_stabilization(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, NU_1, NU_2);
+
   // Initialize the FE problem.
   DiscreteProblem<double> dp(&wf, Hermes::vector<const Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
   DiscreteProblem<double> dp_stabilization(&wf_stabilization, &space_stabilization);
@@ -168,6 +172,25 @@ int main(int argc, char* argv[])
   for(; t < 3.0; t += time_step_n)
   {
     info("---- Time step %d, time %3.5f.", iteration++, t);
+
+    if(SHOCK_CAPTURING && SHOCK_CAPTURING_TYPE == FEISTAUER)
+      {
+        dp_stabilization.assemble(rhs_stabilization);
+        if(discreteIndicator != NULL)
+          delete [] discreteIndicator;
+        discreteIndicator = new bool[space_stabilization.get_mesh()->get_max_element_id() + 1];
+        for(unsigned int i = 0; i < space_stabilization.get_mesh()->get_max_element_id() + 1; i++)
+          discreteIndicator[i] = false;
+        Element* e;
+        for_all_active_elements(e, space_stabilization.get_mesh())
+        {
+          AsmList<double> al;
+          space_stabilization.get_element_assembly_list(e, &al);
+          if(rhs_stabilization->get(al.get_dof()[0]) >= 1)
+            discreteIndicator[e->id] = true;
+        }
+        wf.set_discreteIndicator(discreteIndicator);
+      }
 
     // Set the current time step.
     wf.set_time_step(time_step_n);
@@ -183,7 +206,7 @@ int main(int argc, char* argv[])
     info("Solving the matrix problem.");
     if(solver->solve())
     {
-      if(!SHOCK_CAPTURING)
+      if(!SHOCK_CAPTURING || SHOCK_CAPTURING_TYPE == FEISTAUER)
       {
         Solution<double>::vector_to_solutions(solver->get_sln_vector(), Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
           &space_rho_v_y, &space_e), Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
@@ -209,8 +232,7 @@ int main(int argc, char* argv[])
     else
       error ("Matrix solver failed.\n");
 
-    time_step_n_minus_one = time_step_n;
-    CFL.calculate(Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), &mesh, time_step_n);
+    CFL.calculate_semi_implicit(Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), &mesh, time_step_n);
 
     // Visualization.
     if((iteration - 1) % EVERY_NTH_STEP == 0) 
