@@ -62,30 +62,30 @@ double time_step_n = 1E-5, util_time_step;
 MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
 
 // Number of initial uniform mesh refinements of the mesh for the flow.
-unsigned int INIT_REF_NUM_FLOW = 3;               
+unsigned int INIT_REF_NUM_FLOW = 2;               
 // Number of initial uniform mesh refinements of the mesh for the concentration.
-unsigned int INIT_REF_NUM_CONCENTRATION = 3;      
+unsigned int INIT_REF_NUM_CONCENTRATION = 2;
 // Number of initial mesh refinements of the mesh for the concentration towards the 
 // part of the boundary where the concentration is prescribed.
-unsigned int INIT_REF_NUM_CONCENTRATION_BDY = 0;  
+unsigned int INIT_REF_NUM_CONCENTRATION_BDY = 1;  
 
 // Equation parameters.
 // Exterior pressure (dimensionless).
-const double P_EXT = 2.5;                               
+const double P_EXT = 2.5;
 // Inlet density (dimensionless).   
-const double RHO_EXT = 1.0;                             
+const double RHO_EXT = 1.0;
 // Inlet x-velocity (dimensionless).
-const double V1_EXT = 1.25;                             
+const double V1_EXT = 1.0;
 // Inlet y-velocity (dimensionless).
-const double V2_EXT = 0.0;                            
+const double V2_EXT = 0.0;
 // Kappa.
-const double KAPPA = 1.4;                               
+const double KAPPA = 1.4;
 // Concentration on the boundary.
-const double CONCENTRATION_EXT = 0.1;                  
+const double CONCENTRATION_EXT = 0.1;
 // Start time of the concentration on the boundary.
-const double CONCENTRATION_EXT_STARTUP_TIME = 0.0;     
+const double CONCENTRATION_EXT_STARTUP_TIME = 0.0;
 // Diffusivity.
-const double EPSILON = 0.001;                           
+const double EPSILON = 0.01;                           
 
 // Boundary markers.
 const std::string BDY_INLET = "1";
@@ -108,7 +108,7 @@ int main(int argc, char* argv[])
   // Load the mesh.
   Mesh basemesh;
   MeshReaderH2D mloader;
-  mloader.load("GAMM-channel.mesh", &basemesh);
+  mloader.load("GAMM-channel-serial.mesh", &basemesh);
 
   // Initialize the meshes.
   Mesh mesh_flow, mesh_concentration;
@@ -118,7 +118,7 @@ int main(int argc, char* argv[])
   for(unsigned int i = 0; i < INIT_REF_NUM_CONCENTRATION; i++)
     mesh_concentration.refine_all_elements(0, true);
 
-  mesh_concentration.refine_towards_boundary(BDY_DIRICHLET_CONCENTRATION, INIT_REF_NUM_CONCENTRATION_BDY, true);
+  mesh_concentration.refine_towards_boundary(BDY_DIRICHLET_CONCENTRATION, INIT_REF_NUM_CONCENTRATION_BDY, false);
   //mesh_flow.refine_towards_boundary(BDY_DIRICHLET_CONCENTRATION, INIT_REF_NUM_CONCENTRATION_BDY);
 
   for(unsigned int i = 0; i < INIT_REF_NUM_FLOW; i++)
