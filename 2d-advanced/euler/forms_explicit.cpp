@@ -1136,7 +1136,7 @@ protected:
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const 
     {
-      return u->val[0] * v->dx[0] * v->dy[0] * Ord(3);
+      return Ord(24);
     }
 
     MatrixFormVol<double>* clone()
