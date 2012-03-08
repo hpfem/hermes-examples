@@ -64,10 +64,10 @@ MatrixSolverType matrix_solver = SOLVER_UMFPACK;
 // Number of initial uniform mesh refinements of the mesh for the flow.
 unsigned int INIT_REF_NUM_FLOW = 4;               
 // Number of initial uniform mesh refinements of the mesh for the concentration.
-unsigned int INIT_REF_NUM_CONCENTRATION = 3;
+unsigned int INIT_REF_NUM_CONCENTRATION = 4;
 // Number of initial mesh refinements of the mesh for the concentration towards the 
 // part of the boundary where the concentration is prescribed.
-unsigned int INIT_REF_NUM_CONCENTRATION_BDY = 2;  
+unsigned int INIT_REF_NUM_CONCENTRATION_BDY = 1;
 
 // Equation parameters.
 // Exterior pressure (dimensionless).
