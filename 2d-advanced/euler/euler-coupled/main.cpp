@@ -23,9 +23,9 @@ using namespace Hermes::Hermes2D::Views;
 const bool SEMI_IMPLICIT = true;
 // Visualization.
 // Set to "true" to enable Hermes OpenGL visualization. 
-const bool HERMES_VISUALIZATION = true;
+const bool HERMES_VISUALIZATION = false;
 // Set to "true" to enable VTK output.
-const bool VTK_VISUALIZATION = false;
+const bool VTK_VISUALIZATION = true;
 // Set visual output for every nth step.
 const unsigned int EVERY_NTH_STEP = 1;
 
@@ -59,15 +59,15 @@ double time_step_n = 1E-5, util_time_step;
 
 // Matrix solver for orthogonal projections: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
+MatrixSolverType matrix_solver = SOLVER_UMFPACK; 
 
 // Number of initial uniform mesh refinements of the mesh for the flow.
-unsigned int INIT_REF_NUM_FLOW = 2;               
+unsigned int INIT_REF_NUM_FLOW = 4;               
 // Number of initial uniform mesh refinements of the mesh for the concentration.
-unsigned int INIT_REF_NUM_CONCENTRATION = 2;
+unsigned int INIT_REF_NUM_CONCENTRATION = 3;
 // Number of initial mesh refinements of the mesh for the concentration towards the 
 // part of the boundary where the concentration is prescribed.
-unsigned int INIT_REF_NUM_CONCENTRATION_BDY = 1;  
+unsigned int INIT_REF_NUM_CONCENTRATION_BDY = 2;  
 
 // Equation parameters.
 // Exterior pressure (dimensionless).
@@ -288,17 +288,11 @@ int main(int argc, char* argv[])
       if(HERMES_VISUALIZATION)
       {
         Mach_number.reinit();
-
         Mach_number_view.show(&Mach_number);
-        Mach_number_view.set_scale_format("%1.3f");
-
-        s5.show_mesh(false);
-        s5.set_scale_format("%0.3f");
-        s5.show(&prev_c);
-
         Mach_number_view.save_numbered_screenshot("Mach_number%i.bmp", (int)(iteration / 5), true);
-        s5.save_numbered_screenshot("concentration%i.bmp", (int)(iteration / 5), true);
 
+        s5.show(&prev_c);
+        s5.save_numbered_screenshot("concentration%i.bmp", (int)(iteration / 5), true);
       }
       // Output solution in VTK format.
       if(VTK_VISUALIZATION)
