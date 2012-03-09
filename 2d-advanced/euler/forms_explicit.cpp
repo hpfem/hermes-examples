@@ -3472,8 +3472,8 @@ protected:
         result += wt[point_i] * (epsilon * (u->dx[point_i]*v->dx[point_i] + u->dy[point_i]*v->dy[point_i])
           - (v_1 * u->dx[point_i] * v->val[point_i] + v_2 * u->dy[point_i] * v->val[point_i]));
 
-        result += 1. * wt[point_i] * ((v_1 * u->dx[point_i] + v_2 * u->dy[point_i]) - (epsilon * (u->dx[point_i]*u->dx[point_i] + u->dy[point_i]*u->dy[point_i])))
-          * (v_1 * v->dx[point_i] + v_2 * v->dy[point_i]) * h_e / (2 * std::sqrt(v_1*v_1 + v_2*v_2));
+        //result += 1. * wt[point_i] * ((v_1 * u->dx[point_i] + v_2 * u->dy[point_i]) - (epsilon * (u->dx[point_i]*u->dx[point_i] + u->dy[point_i]*u->dy[point_i])))
+        //  * (v_1 * v->dx[point_i] + v_2 * v->dy[point_i]) * h_e / (2 * std::sqrt(v_1*v_1 + v_2*v_2));
 
         /*
 

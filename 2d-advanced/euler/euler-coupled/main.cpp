@@ -45,7 +45,7 @@ const double NU_1 = 0.1;
 const double NU_2 = 0.1;
 
 // Stability for the concentration part.
-double ADVECTION_STABILITY_CONSTANT = 0.1;
+double ADVECTION_STABILITY_CONSTANT = 0.05;
 const double DIFFUSION_STABILITY_CONSTANT = 0.1;
 
 // Polynomial degree for the Euler equations (for the flow).
@@ -62,9 +62,9 @@ double time_step_n = 1E-5, util_time_step;
 MatrixSolverType matrix_solver = SOLVER_UMFPACK; 
 
 // Number of initial uniform mesh refinements of the mesh for the flow.
-unsigned int INIT_REF_NUM_FLOW = 2;               
+unsigned int INIT_REF_NUM_FLOW = 3;
 // Number of initial uniform mesh refinements of the mesh for the concentration.
-unsigned int INIT_REF_NUM_CONCENTRATION = 2;
+unsigned int INIT_REF_NUM_CONCENTRATION = 3;
 // Number of initial mesh refinements of the mesh for the concentration towards the 
 // part of the boundary where the concentration is prescribed.
 unsigned int INIT_REF_NUM_CONCENTRATION_BDY = 1;
