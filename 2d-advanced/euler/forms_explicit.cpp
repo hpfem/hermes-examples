@@ -3470,9 +3470,9 @@ protected:
         Scalar v_2 = density_vel_y_prev->val[point_i] / density_prev->val[point_i];
 
         result += wt[point_i] * (epsilon * (u->dx[point_i]*v->dx[point_i] + u->dy[point_i]*v->dy[point_i])
-          - (v_1 * u->val[point_i] * v->dx[point_i] + v_2 * u->val[point_i] * v->dy[point_i]));
+          - (v_1 * u->dx[point_i] * v->val[point_i] + v_2 * u->dy[point_i] * v->val[point_i]));
 
-        result += 100 * wt[point_i] * ((v_1 * u->dx[point_i] + v_2 * u->dy[point_i]) - (epsilon * (u->dx[point_i]*u->dx[point_i] + u->dy[point_i]*u->dy[point_i])))
+        result += 10 * wt[point_i] * ((v_1 * u->dx[point_i] + v_2 * u->dy[point_i]) - (epsilon * (u->dx[point_i]*u->dx[point_i] + u->dy[point_i]*u->dy[point_i])))
           * (v_1 * v->dx[point_i] + v_2 * v->dy[point_i]) * h_e / (2 * std::sqrt(v_1*v_1 + v_2*v_2));
 
         /*
@@ -3526,6 +3526,7 @@ protected:
       Func<Real>* density_vel_x_prev = ext->fn[1];
       Func<Real>* density_vel_y_prev = ext->fn[2];
 
+      return Scalar(0.0);
       Scalar result = Scalar(0);
       for (int point_i = 0; point_i < n; point_i++)
         result += wt[i] * v->val[i] * u->val[i] * (density_vel_x_prev->val[i] * e->nx[i] + density_vel_y_prev->val[i] * e->ny[i])
@@ -3542,7 +3543,7 @@ protected:
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, 
       ExtData<Ord> *ext) const 
     {
-      return matrix_form<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
+      return Ord(24);
     }
 
     MatrixFormSurf<double>* clone()

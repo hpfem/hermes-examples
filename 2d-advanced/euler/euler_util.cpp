@@ -189,9 +189,9 @@ AsmList<double> al;
   constant_rho_space.get_element_assembly_list(e, &al);
   double rho = sln_vector[al.get_dof()[0]];
   constant_rho_v_x_space.get_element_assembly_list(e, &al);
-  double v1 = sln_vector[al.get_dof()[0]] / rho;
+  double v1 = sln_vector[al.get_dof()[0] + constant_rho_space.get_num_dofs()] / rho;
   constant_rho_v_y_space.get_element_assembly_list(e, &al);
-  double v2 = sln_vector[al.get_dof()[0]] / rho;
+  double v2 = sln_vector[al.get_dof()[0] + constant_rho_space.get_num_dofs() + constant_rho_space.get_num_dofs()] / rho;
 
   double condition_advection = AdvectionRelativeConstant * approximate_inscribed_circle_radius(e) / std::sqrt(v1*v1 + v2*v2);
   double condition_diffusion = DiffusionRelativeConstant * e->get_area() / epsilon;

@@ -45,8 +45,8 @@ const double NU_1 = 0.1;
 const double NU_2 = 0.1;
 
 // Stability for the concentration part.
-double ADVECTION_STABILITY_CONSTANT = 1.0;
-const double DIFFUSION_STABILITY_CONSTANT = 1.0;
+double ADVECTION_STABILITY_CONSTANT = 0.1;
+const double DIFFUSION_STABILITY_CONSTANT = 0.1;
 
 // Polynomial degree for the Euler equations (for the flow).
 const int P_FLOW = 1;                        
@@ -172,7 +172,6 @@ int main(int argc, char* argv[])
     BDY_SOLID_WALL_TOP, BDY_INLET, BDY_OUTLET, BDY_NATURAL_CONCENTRATION, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_c, EPSILON, P_FLOW == 0);
 
   EulerEquationsWeakFormStabilization wf_stabilization(&prev_rho);
-
   
   // Initialize the FE problem.
   DiscreteProblem<double> dp(wf, Hermes::vector<const Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e, &space_c));
