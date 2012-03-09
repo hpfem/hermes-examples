@@ -273,6 +273,14 @@ int main(int argc, char* argv[])
 
     ADES.calculate(Hermes::vector<Solution<double>*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y), &mesh_concentration, util_time_step);
 
+    if(util_time_step < time_step_n)
+      time_step_n = util_time_step;
+
+    ADES.calculate(Hermes::vector<Solution<double>*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y), &mesh_flow, util_time_step);
+
+    if(util_time_step < time_step_n)
+      time_step_n = util_time_step;
+
     // Copy the solutions into the previous time level ones.
     prev_rho.copy(&sln_rho);
     prev_rho_v_x.copy(&sln_rho_v_x);
