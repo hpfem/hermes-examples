@@ -62,9 +62,9 @@ double time_step_n = 1E-5, util_time_step;
 MatrixSolverType matrix_solver = SOLVER_UMFPACK; 
 
 // Number of initial uniform mesh refinements of the mesh for the flow.
-unsigned int INIT_REF_NUM_FLOW = 4;               
+unsigned int INIT_REF_NUM_FLOW = 2;               
 // Number of initial uniform mesh refinements of the mesh for the concentration.
-unsigned int INIT_REF_NUM_CONCENTRATION = 4;
+unsigned int INIT_REF_NUM_CONCENTRATION = 2;
 // Number of initial mesh refinements of the mesh for the concentration towards the 
 // part of the boundary where the concentration is prescribed.
 unsigned int INIT_REF_NUM_CONCENTRATION_BDY = 1;
