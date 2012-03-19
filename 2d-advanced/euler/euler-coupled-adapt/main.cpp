@@ -56,7 +56,7 @@ const int P_INIT_CONCENTRATION = 1;
 // CFL value.
 double CFL_NUMBER = 0.1;                          
 // Initial and utility time step.
-double time_step_n = 1E-5, util_time_step;          
+double time_step_n = 1E-5, util_time_step, time_step_after_adaptivity;          
 
 // Adaptivity.
 // Every UNREF_FREQth time step the mesh is unrefined.
@@ -98,9 +98,9 @@ const int MESH_REGULARITY = -1;
 // candidates in hp-adaptivity. Default value is 1.0. 
 const double CONV_EXP = 1;                        
 // Stopping criterion for adaptivity.
-double ERR_STOP_INIT_FLOW = 1.0;                 
+double ERR_STOP_INIT_FLOW = 5.0;                 
 // Stopping criterion for adaptivity.
-double ERR_STOP_INIT_CONCENTRATION = 10.0;        
+double ERR_STOP_INIT_CONCENTRATION = 15.0;        
 // Adaptivity process stops when the number of degrees of freedom grows over
 // this limit. This is mainly to prevent h-adaptivity to go on forever.
 const int NDOF_STOP = 10000;                     
@@ -109,12 +109,12 @@ const int NDOF_STOP = 10000;
 MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
 
 // Number of initial uniform mesh refinements of the mesh for the flow.
-unsigned int INIT_REF_NUM_FLOW = 2;               
+unsigned int INIT_REF_NUM_FLOW = 1;               
 // Number of initial uniform mesh refinements of the mesh for the concentration.
-unsigned int INIT_REF_NUM_CONCENTRATION = 2;      
+unsigned int INIT_REF_NUM_CONCENTRATION = 1;      
 // Number of initial mesh refinements of the mesh for the concentration towards the 
 // part of the boundary where the concentration is prescribed.
-unsigned int INIT_REF_NUM_CONCENTRATION_BDY = 1;  
+unsigned int INIT_REF_NUM_CONCENTRATION_BDY = 0;  
 
 // Equation parameters.
 // Exterior pressure (dimensionless).
@@ -183,7 +183,6 @@ int main(int argc, char* argv[])
   L2Space<double>space_rho_v_x(&mesh_flow, P_INIT_FLOW);
   L2Space<double>space_rho_v_y(&mesh_flow, P_INIT_FLOW);
   L2Space<double>space_e(&mesh_flow, P_INIT_FLOW);
-  L2Space<double> space_stabilization(&mesh_flow, 0);
 
   // Space<double> for concentration.
   H1Space<double> space_c(&mesh_concentration, &bcs_concentration, P_INIT_CONCENTRATION);
@@ -205,7 +204,11 @@ int main(int argc, char* argv[])
   ConstantSolution<double> prev_e(&mesh_flow, QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA));
   ConstantSolution<double> prev_c(&mesh_concentration, 0.0);
 
-  Solution<double> rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e, rsln_c;
+  ConstantSolution<double> rsln_rho(&mesh_flow, RHO_EXT);
+  ConstantSolution<double> rsln_rho_v_x(&mesh_flow, RHO_EXT * V1_EXT);
+  ConstantSolution<double> rsln_rho_v_y(&mesh_flow, RHO_EXT * V2_EXT);
+  ConstantSolution<double> rsln_e(&mesh_flow, QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA));
+  ConstantSolution<double> rsln_c(&mesh_concentration, 0.0);
 
   // Initialize weak formulation.
   WeakForm<double>* wf = NULL;
@@ -250,6 +253,8 @@ int main(int argc, char* argv[])
   {
     info("---- Time step %d, time %3.5f.", iteration++, t);
 
+    time_step_n = time_step_after_adaptivity;
+
     // Periodic global derefinements.
     if (iteration > 1 && iteration % UNREF_FREQ == 0 && (REFINEMENT_COUNT_FLOW > 0 || REFINEMENT_COUNT_CONCENTRATION > 0)) {
       info("Global mesh derefinement.");
@@ -283,7 +288,8 @@ int main(int argc, char* argv[])
       Hermes::vector<Space<double> *>* ref_spaces = Space<double>::construct_refined_spaces(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
         &space_rho_v_y, &space_e, &space_c), order_increase);
 
-      Space<double>* ref_space_stabilization = Space<double>::construct_refined_space(&space_stabilization, 0);
+      Space<double>* ref_space_stabilization = (*ref_spaces)[0]->dup((*ref_spaces)[0]->get_mesh());
+      ref_space_stabilization->set_uniform_order(0);
 
       if(CAND_LIST_FLOW != H2D_HP_ANISO)
         (*ref_spaces)[4]->adjust_element_order(+1, P_INIT_CONCENTRATION);
@@ -406,9 +412,12 @@ int main(int argc, char* argv[])
       else
         CFL.calculate(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), &mesh_flow, util_time_step);
 
-      time_step_n = util_time_step;
+      time_step_after_adaptivity = util_time_step;
 
       ADES.calculate(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y), &mesh_concentration, util_time_step);
+
+      if(time_step_after_adaptivity > util_time_step)
+        time_step_after_adaptivity = util_time_step;
 
       // Calculate element errors and total error estimate.
       info("Calculating error estimates.");
@@ -431,7 +440,7 @@ int main(int argc, char* argv[])
       if (err_est_rel_total_flow < ERR_STOP_INIT_FLOW && err_est_rel_total_concentration < ERR_STOP_INIT_CONCENTRATION)
       {
         done = true;
-        if(SHOCK_CAPTURING)
+        if(SHOCK_CAPTURING && (SHOCK_CAPTURING_TYPE == KUZMIN || SHOCK_CAPTURING_TYPE == KRIVODONOVA))
         {
           if(SHOCK_CAPTURING_TYPE == KUZMIN)
             flux_limiter->limit_second_orders_according_to_detector();
