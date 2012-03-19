@@ -256,7 +256,7 @@ int main(int argc, char* argv[])
     // After some initial runs, begin really adapting.
     if(iteration == 5)
     {
-      ERR_STOP_INIT_FLOW = 3.0;
+      ERR_STOP_INIT_FLOW = 1.5;
       ERR_STOP_INIT_CONCENTRATION = 5.0;
     }
     
