@@ -24,29 +24,39 @@ using namespace RefinementSelectors;
 const bool SEMI_IMPLICIT = true;
 // Visualization.
 // Set to "true" to enable Hermes OpenGL visualization. 
-const bool HERMES_VISUALIZATION = true;
+const bool HERMES_VISUALIZATION = false;
 // Set to "true" to enable VTK output.
-const bool VTK_VISUALIZATION = false;
+const bool VTK_VISUALIZATION = true;
 // Set visual output for every nth step.
 const unsigned int EVERY_NTH_STEP = 1;
 
 // Shock capturing.
+enum shockCapturingType
+{
+  FEISTAUER,
+  KUZMIN,
+  KRIVODONOVA
+};
 bool SHOCK_CAPTURING = true;
-// Quantitative parameter of the discontinuity detector.
+shockCapturingType SHOCK_CAPTURING_TYPE = FEISTAUER;
+// Quantitative parameter of the discontinuity detector in case of Krivodonova.
 double DISCONTINUITY_DETECTOR_PARAM = 1.0;
+// Quantitative parameter of the shock capturing in case of Feistauer.
+const double NU_1 = 0.1;
+const double NU_2 = 0.1;
 
 // Stability for the concentration part.
-double ADVECTION_STABILITY_CONSTANT = 1.0;
-const double DIFFUSION_STABILITY_CONSTANT = 1.0;
+double ADVECTION_STABILITY_CONSTANT = 0.05;
+const double DIFFUSION_STABILITY_CONSTANT = 0.1;
 
 // Polynomial degree for the Euler equations (for the flow).
 const int P_INIT_FLOW = 0;                        
 // Polynomial degree for the concentration.
 const int P_INIT_CONCENTRATION = 1;               
 // CFL value.
-double CFL_NUMBER = 1.0;                          
+double CFL_NUMBER = 0.1;                          
 // Initial and utility time step.
-double time_step = 1E-5, util_time_step;          
+double time_step_n = 1E-5, util_time_step;          
 
 // Adaptivity.
 // Every UNREF_FREQth time step the mesh is unrefined.
@@ -61,7 +71,7 @@ int REFINEMENT_COUNT_FLOW = 0;
 int REFINEMENT_COUNT_CONCENTRATION = 0;                         
 // This is a quantitative parameter of the adapt(...) function and
 // it has different meanings for various adaptive strategies.
-const double THRESHOLD = 0.1;                     
+const double THRESHOLD = 0.3;                     
 // Adaptive strategy:
 // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
 //  error is processed. If more elements have similar errors, refine
@@ -88,20 +98,20 @@ const int MESH_REGULARITY = -1;
 // candidates in hp-adaptivity. Default value is 1.0. 
 const double CONV_EXP = 1;                        
 // Stopping criterion for adaptivity.
-double ERR_STOP_FLOW = 1.0;                 
+double ERR_STOP_INIT_FLOW = 1.0;                 
 // Stopping criterion for adaptivity.
-double ERR_STOP_CONCENTRATION = 10.0;        
+double ERR_STOP_INIT_CONCENTRATION = 10.0;        
 // Adaptivity process stops when the number of degrees of freedom grows over
 // this limit. This is mainly to prevent h-adaptivity to go on forever.
-const int NDOF_STOP = 100000;                     
+const int NDOF_STOP = 10000;                     
 // Matrix solver for orthogonal projections: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
 
 // Number of initial uniform mesh refinements of the mesh for the flow.
-unsigned int INIT_REF_NUM_FLOW = 3;               
+unsigned int INIT_REF_NUM_FLOW = 2;               
 // Number of initial uniform mesh refinements of the mesh for the concentration.
-unsigned int INIT_REF_NUM_CONCENTRATION = 3;      
+unsigned int INIT_REF_NUM_CONCENTRATION = 2;      
 // Number of initial mesh refinements of the mesh for the concentration towards the 
 // part of the boundary where the concentration is prescribed.
 unsigned int INIT_REF_NUM_CONCENTRATION_BDY = 1;  
@@ -112,7 +122,7 @@ const double P_EXT = 2.5;
 // Inlet density (dimensionless).   
 const double RHO_EXT = 1.0;                             
 // Inlet x-velocity (dimensionless).
-const double V1_EXT = 1.25;                             
+const double V1_EXT = 1.0;
 // Inlet y-velocity (dimensionless).
 const double V2_EXT = 0.0;                            
 // Kappa.
@@ -122,7 +132,7 @@ const double CONCENTRATION_EXT = 0.1;
 // Start time of the concentration on the boundary.
 const double CONCENTRATION_EXT_STARTUP_TIME = 0.0;     
 // Diffusivity.
-const double EPSILON = 0.001;                           
+const double EPSILON = 0.01;                           
 
 // Boundary markers.
 const std::string BDY_INLET = "1";
@@ -142,12 +152,10 @@ int main(int argc, char* argv[])
   Hermes::vector<std::string> BDY_NATURAL_CONCENTRATION;
   BDY_NATURAL_CONCENTRATION.push_back("2");
 
-  std::ofstream time_step_out("time_step");
-
   // Load the mesh.
   Mesh basemesh;
   MeshReaderH2D mloader;
-  mloader.load("GAMM-channel.mesh", &basemesh);
+  mloader.load("GAMM-channel-serial.mesh", &basemesh);
 
   // Initialize the meshes.
   Mesh mesh_flow, mesh_concentration;
@@ -157,7 +165,7 @@ int main(int argc, char* argv[])
   for(unsigned int i = 0; i < INIT_REF_NUM_CONCENTRATION; i++)
     mesh_concentration.refine_all_elements(0, true);
 
-  mesh_concentration.refine_towards_boundary(BDY_DIRICHLET_CONCENTRATION, INIT_REF_NUM_CONCENTRATION_BDY, true);
+  mesh_concentration.refine_towards_boundary(BDY_DIRICHLET_CONCENTRATION, INIT_REF_NUM_CONCENTRATION_BDY, false);
   //mesh_flow.refine_towards_boundary(BDY_DIRICHLET_CONCENTRATION, INIT_REF_NUM_CONCENTRATION_BDY);
 
   for(unsigned int i = 0; i < INIT_REF_NUM_FLOW; i++)
@@ -175,6 +183,8 @@ int main(int argc, char* argv[])
   L2Space<double>space_rho_v_x(&mesh_flow, P_INIT_FLOW);
   L2Space<double>space_rho_v_y(&mesh_flow, P_INIT_FLOW);
   L2Space<double>space_e(&mesh_flow, P_INIT_FLOW);
+  L2Space<double> space_stabilization(&mesh_flow, 0);
+
   // Space<double> for concentration.
   H1Space<double> space_c(&mesh_concentration, &bcs_concentration, P_INIT_CONCENTRATION);
 
@@ -189,6 +199,7 @@ int main(int argc, char* argv[])
   ConstantSolution<double> sln_c(&mesh_concentration, 0.0);
 
   ConstantSolution<double> prev_rho(&mesh_flow, RHO_EXT);
+  ConstantSolution<double> prev_rho_stabilization(&mesh_flow, RHO_EXT);
   ConstantSolution<double> prev_rho_v_x(&mesh_flow, RHO_EXT * V1_EXT);
   ConstantSolution<double> prev_rho_v_y(&mesh_flow, RHO_EXT * V2_EXT);
   ConstantSolution<double> prev_e(&mesh_flow, QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA));
@@ -199,11 +210,18 @@ int main(int argc, char* argv[])
   // Initialize weak formulation.
   WeakForm<double>* wf = NULL;
   if(SEMI_IMPLICIT)
+  {
     wf = new EulerEquationsWeakFormSemiImplicitCoupled(KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, BDY_SOLID_WALL_BOTTOM,
-    BDY_SOLID_WALL_TOP, BDY_INLET, BDY_OUTLET, BDY_NATURAL_CONCENTRATION, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_c, EPSILON, (P_INIT_FLOW == 0 && CAND_LIST_FLOW == H2D_H_ANISO));
+      BDY_SOLID_WALL_TOP, BDY_INLET, BDY_OUTLET, BDY_NATURAL_CONCENTRATION, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_c, EPSILON);
+
+    if(SHOCK_CAPTURING && SHOCK_CAPTURING_TYPE == FEISTAUER)
+      static_cast<EulerEquationsWeakFormSemiImplicitCoupled*>(wf)->set_stabilization(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, NU_1, NU_2);
+  }
   else
     wf = new EulerEquationsWeakFormExplicitCoupled(KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, BDY_SOLID_WALL_BOTTOM,
-    BDY_SOLID_WALL_TOP, BDY_INLET, BDY_OUTLET, BDY_NATURAL_CONCENTRATION, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_c, EPSILON, (P_INIT_FLOW == 0 && CAND_LIST_FLOW == H2D_H_ANISO));
+    BDY_SOLID_WALL_TOP, BDY_INLET, BDY_OUTLET, BDY_NATURAL_CONCENTRATION, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_c, EPSILON);
+
+  EulerEquationsWeakFormStabilization wf_stabilization(&prev_rho_stabilization);
 
   // Filters for visualization of Mach number, pressure and entropy.
   MachNumberFilter Mach_number(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA);
@@ -228,15 +246,9 @@ int main(int argc, char* argv[])
   ADEStabilityCalculation ADES(ADVECTION_STABILITY_CONSTANT, DIFFUSION_STABILITY_CONSTANT, EPSILON);
 
   int iteration = 0; double t = 0;
-  for(t = 0.0; t < 100.0; t += time_step)
+  for(t = 0.0; t < 100.0; t += time_step_n)
   {
-    time_step_out << time_step << std::endl;
     info("---- Time step %d, time %3.5f.", iteration++, t);
-
-    if(iteration == 2) {
-      ERR_STOP_FLOW = 0.55;
-      ERR_STOP_CONCENTRATION = 8.3;
-    }
 
     // Periodic global derefinements.
     if (iteration > 1 && iteration % UNREF_FREQ == 0 && (REFINEMENT_COUNT_FLOW > 0 || REFINEMENT_COUNT_CONCENTRATION > 0)) {
@@ -270,6 +282,9 @@ int main(int argc, char* argv[])
         order_increase = 1;
       Hermes::vector<Space<double> *>* ref_spaces = Space<double>::construct_refined_spaces(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
         &space_rho_v_y, &space_e, &space_c), order_increase);
+
+      Space<double>* ref_space_stabilization = Space<double>::construct_refined_space(&space_stabilization, 0);
+
       if(CAND_LIST_FLOW != H2D_HP_ANISO)
         (*ref_spaces)[4]->adjust_element_order(+1, P_INIT_CONCENTRATION);
 
@@ -281,20 +296,10 @@ int main(int argc, char* argv[])
       OGProjection<double>::project_global(ref_spaces_const, Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_c), 
         Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_c), matrix_solver);
 
-      /*
-      if(iteration == 1) {
-        if(CAND_LIST_FLOW == H2D_HP_ANISO)
-        {
-          prev_rho.set_const((*ref_spaces)[4]->get_mesh(), RHO_EXT);
-          prev_rho_v_x.set_const((*ref_spaces)[4]->get_mesh(), RHO_EXT * V1_EXT);
-          prev_rho_v_y.set_const((*ref_spaces)[4]->get_mesh(), RHO_EXT * V2_EXT);
-          prev_e.set_const((*ref_spaces)[4]->get_mesh(), QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA));
-        }
-        prev_c.set_const((*ref_spaces)[4]->get_mesh(), 0.0);
-      }
-      */
+      OGProjection<double>::project_global(ref_space_stabilization, &prev_rho, &prev_rho_stabilization);
 
-      if(as > 1) {
+      if(as > 1) 
+      {
         delete rsln_rho.get_mesh();
         rsln_rho.own_mesh = false;
         delete rsln_rho_v_x.get_mesh();
@@ -320,15 +325,40 @@ int main(int argc, char* argv[])
       // Set up the solver, matrix, and rhs according to the solver selection.
       SparseMatrix<double>* matrix = create_matrix<double>(matrix_solver);
       Vector<double>* rhs = create_vector<double>(matrix_solver);
+      Vector<double>* rhs_stabilization = create_vector<double>(matrix_solver);
       LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver, matrix, rhs);
 
       // Initialize the FE problem.
-      bool is_linear = true;
       DiscreteProblem<double> dp(wf, ref_spaces_const);
+      DiscreteProblem<double> dp_stabilization(&wf_stabilization, ref_space_stabilization);
+      bool* discreteIndicator = NULL;
+
       if(SEMI_IMPLICIT)
-        static_cast<EulerEquationsWeakFormSemiImplicitCoupled*>(wf)->set_time_step(time_step);
+      {
+        static_cast<EulerEquationsWeakFormSemiImplicitCoupled*>(wf)->set_time_step(time_step_n);
+        static_cast<EulerEquationsWeakFormSemiImplicitCoupled*>(wf)->realloc_cache((*ref_spaces)[0]->get_mesh());
+        if(SHOCK_CAPTURING && SHOCK_CAPTURING_TYPE == FEISTAUER)
+        {
+          info("Assembling the stabilization right-hand side vector.");
+          dp_stabilization.assemble(rhs_stabilization);
+          if(discreteIndicator != NULL)
+            delete [] discreteIndicator;
+          discreteIndicator = new bool[ref_space_stabilization->get_mesh()->get_max_element_id() + 1];
+          for(unsigned int i = 0; i < ref_space_stabilization->get_mesh()->get_max_element_id() + 1; i++)
+            discreteIndicator[i] = false;
+          Element* e;
+          for_all_active_elements(e, ref_space_stabilization->get_mesh())
+          {
+            AsmList<double> al;
+            ref_space_stabilization->get_element_assembly_list(e, &al);
+            if(rhs_stabilization->get(al.get_dof()[0]) >= 1)
+              discreteIndicator[e->id] = true;
+          }
+          static_cast<EulerEquationsWeakFormSemiImplicitCoupled*>(wf)->set_discreteIndicator(discreteIndicator);
+        }
+      }
       else
-        static_cast<EulerEquationsWeakFormExplicitCoupled*>(wf)->set_time_step(time_step);
+        static_cast<EulerEquationsWeakFormExplicitCoupled*>(wf)->set_time_step(time_step_n);
 
       // Assemble stiffness matrix and rhs.
       info("Assembling the stiffness matrix and right-hand side vector.");
@@ -336,27 +366,33 @@ int main(int argc, char* argv[])
 
       // Solve the matrix problem.
       info("Solving the matrix problem.");
-      if (solver->solve())
-        Solution<double>::vector_to_solutions(solver->get_sln_vector(), ref_spaces_const, 
-        Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e, &rsln_c));
+      FluxLimiter* flux_limiter;
+      if(solver->solve())
+      {
+        if(!SHOCK_CAPTURING || SHOCK_CAPTURING_TYPE == FEISTAUER)
+        {
+          Solution<double>::vector_to_solutions(solver->get_sln_vector(), ref_spaces_const, 
+            Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e, &rsln_c));
+        }
+        else
+        {
+          Hermes::vector<const Space<double>*> flow_spaces((*ref_spaces)[0], (*ref_spaces)[1], (*ref_spaces)[2], (*ref_spaces)[3]);
+
+          double* flow_solution_vector = new double[Space<double>::get_num_dofs(flow_spaces)];
+
+          OGProjection<double>::project_global(flow_spaces, Hermes::vector<MeshFunction<double> *>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), flow_solution_vector);
+
+          if(SHOCK_CAPTURING_TYPE == KUZMIN)
+            flux_limiter = new FluxLimiter(FluxLimiter::Kuzmin, flow_solution_vector, flow_spaces);
+          else
+            flux_limiter = new FluxLimiter(FluxLimiter::Krivodonova, flow_solution_vector, flow_spaces);
+
+          flux_limiter->get_limited_solutions(Hermes::vector<Solution<double> *>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e));
+        }
+      }
       else
         error ("Matrix solver failed.\n");
 
-      Hermes::vector<const Space<double>*> flow_spaces((*ref_spaces)[0], (*ref_spaces)[1], (*ref_spaces)[2], (*ref_spaces)[3]);
-
-      double* flow_solution_vector = new double[Space<double>::get_num_dofs(flow_spaces)];
-
-      OGProjection<double>::project_global(flow_spaces, Hermes::vector<MeshFunction<double> *>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), flow_solution_vector);
-
-			FluxLimiter flux_limiter(FluxLimiter::Krivodonova, flow_solution_vector, flow_spaces);
-
-			flux_limiter.limit_according_to_detector();
-
-			flux_limiter.get_limited_solutions(Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
-			
-      if(SHOCK_CAPTURING)
-        flux_limiter.get_limited_solutions(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e));
-      
       // Project the fine mesh solution onto the coarse mesh.
       info("Projecting reference solution on coarse mesh.");
       OGProjection<double>::project_global(Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x,
@@ -364,13 +400,13 @@ int main(int argc, char* argv[])
         Hermes::vector<Solution<double>*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y, &sln_e, &sln_c), matrix_solver,
         Hermes::vector<ProjNormType>(HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM));
 
-      util_time_step = time_step;
+      util_time_step = time_step_n;
       if(SEMI_IMPLICIT)
         CFL.calculate_semi_implicit(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), &mesh_flow, util_time_step);
       else
         CFL.calculate(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), &mesh_flow, util_time_step);
 
-      time_step = util_time_step;
+      time_step_n = util_time_step;
 
       ADES.calculate(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y), &mesh_concentration, util_time_step);
 
@@ -392,18 +428,22 @@ int main(int argc, char* argv[])
       info("Error estimate for the concentration part: %g%%", err_est_rel_total_concentration);
 
       // If err_est too large, adapt the mesh.
-      if (err_est_rel_total_flow < ERR_STOP_FLOW && err_est_rel_total_concentration < ERR_STOP_CONCENTRATION)
+      if (err_est_rel_total_flow < ERR_STOP_INIT_FLOW && err_est_rel_total_concentration < ERR_STOP_INIT_CONCENTRATION)
       {
         done = true;
         if(SHOCK_CAPTURING)
-          flux_limiter.limit_according_to_detector(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-            &space_rho_v_y, &space_e));
+        {
+          if(SHOCK_CAPTURING_TYPE == KUZMIN)
+            flux_limiter->limit_second_orders_according_to_detector();
+
+          flux_limiter->limit_according_to_detector();
+        }
       }
 
       else
       {
         info("Adapting coarse meshes.");
-        if(err_est_rel_total_flow > ERR_STOP_FLOW)
+        if(err_est_rel_total_flow > ERR_STOP_INIT_FLOW)
         {
           done = adaptivity_flow.adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&l2selector_flow, &l2selector_flow, &l2selector_flow, &l2selector_flow), 
             THRESHOLD, STRATEGY, MESH_REGULARITY);
@@ -411,7 +451,7 @@ int main(int argc, char* argv[])
         }
         else
           done = true;
-        if(err_est_rel_total_concentration > ERR_STOP_CONCENTRATION)
+        if(err_est_rel_total_concentration > ERR_STOP_INIT_CONCENTRATION)
         {
           if(!adaptivity_concentration.adapt(&l2selector_concentration, THRESHOLD, STRATEGY, MESH_REGULARITY))
             done = false;
@@ -451,7 +491,6 @@ int main(int argc, char* argv[])
           ord.save_orders_vtk((*ref_spaces)[4], filename);
         }
       }
-
       // Clean up.
       delete solver;
       delete matrix;
@@ -478,7 +517,8 @@ int main(int argc, char* argv[])
     rsln_c.own_mesh = false;
 
     // Visualization.
-    if((iteration - 1) % EVERY_NTH_STEP == 0) {
+    if((iteration - 1) % EVERY_NTH_STEP == 0) 
+    {
       // Hermes visualization.
       if(HERMES_VISUALIZATION)
       {
@@ -500,7 +540,6 @@ int main(int argc, char* argv[])
         pressure_view.save_numbered_screenshot("pressure%i.bmp", (int)(iteration / 5), true);
         Mach_number_view.save_numbered_screenshot("Mach_number%i.bmp", (int)(iteration / 5), true);
         s5.save_numbered_screenshot("concentration%i.bmp", (int)(iteration / 5), true);
-
       }
       // Output solution in VTK format.
       if(VTK_VISUALIZATION)
@@ -517,7 +556,6 @@ int main(int argc, char* argv[])
         Linearizer lin_concentration;
         sprintf(filename, "Concentration-%i.vtk", iteration - 1);
         lin_concentration.save_solution_vtk(&prev_c, filename, "Concentration", true);
-
       }
     }
   }
