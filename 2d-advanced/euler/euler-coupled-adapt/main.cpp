@@ -122,7 +122,7 @@ const double P_EXT = 2.5;
 // Inlet density (dimensionless).   
 const double RHO_EXT = 1.0;                             
 // Inlet x-velocity (dimensionless).
-const double V1_EXT = 1.0;
+const double V1_EXT = 1.25;
 // Inlet y-velocity (dimensionless).
 const double V2_EXT = 0.0;                            
 // Kappa.
@@ -252,7 +252,14 @@ int main(int argc, char* argv[])
   for(t = 0.0; t < 100.0; t += time_step_n)
   {
     info("---- Time step %d, time %3.5f.", iteration++, t);
-
+    
+    // After some initial runs, begin really adapting.
+    if(iteration == 5)
+    {
+      ERR_STOP_INIT_FLOW = 3.0;
+      ERR_STOP_INIT_CONCENTRATION = 5.0;
+    }
+    
     time_step_n = time_step_after_adaptivity;
 
     // Periodic global derefinements.
