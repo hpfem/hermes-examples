@@ -98,16 +98,16 @@ const int MESH_REGULARITY = -1;
 // candidates in hp-adaptivity. Default value is 1.0. 
 const double CONV_EXP = 1;           
 // Stopping criterion time steps with the higher tolerance.
-int ERR_STOP_REDUCE_TIME_STEP = 20;
+int ERR_STOP_REDUCE_TIME_STEP = 10;
 // Stopping criterion for adaptivity.
 double ERR_STOP_INIT_FLOW = 4.5;
 double ERR_STOP_FLOW = 1.5;
 // Stopping criterion for adaptivity.
 double ERR_STOP_INIT_CONCENTRATION = 15.0;
-double ERR_STOP_CONCENTRATION = 5.0;
+double ERR_STOP_CONCENTRATION = 4.0;
 // Adaptivity process stops when the number of degrees of freedom grows over
 // this limit. This is mainly to prevent h-adaptivity to go on forever.
-const int NDOF_STOP = 2000;                     
+const int NDOF_STOP = 3000;                     
 // Matrix solver for orthogonal projections: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
@@ -136,7 +136,7 @@ const double CONCENTRATION_EXT = 1.0;
 // Start time of the concentration on the boundary.
 const double CONCENTRATION_EXT_STARTUP_TIME = 0.0;     
 // Diffusivity.
-const double EPSILON = 0.01;                           
+const double EPSILON = 0.001;                           
 
 // Boundary markers.
 const std::string BDY_INLET = "1";
@@ -258,7 +258,7 @@ int main(int argc, char* argv[])
     time_step_n = time_step_after_adaptivity;
     
     // After some initial runs, begin really adapting.
-    if(ERR_STOP_REDUCE_TIME_STEP == 5)
+    if(iteration == ERR_STOP_REDUCE_TIME_STEP)
     {
       ERR_STOP_INIT_FLOW = ERR_STOP_FLOW;
       ERR_STOP_INIT_CONCENTRATION = ERR_STOP_CONCENTRATION;
@@ -420,17 +420,17 @@ int main(int argc, char* argv[])
 
       util_time_step = time_step_n;
       if(SEMI_IMPLICIT)
-        CFL.calculate_semi_implicit(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), &mesh_flow, util_time_step);
+        CFL.calculate_semi_implicit(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), rsln_rho.get_mesh(), util_time_step);
       else
-        CFL.calculate(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), &mesh_flow, util_time_step);
+        CFL.calculate(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), rsln_rho.get_mesh(), util_time_step);
       
       time_step_after_adaptivity = util_time_step;
       
-      ADES.calculate(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y), &mesh_concentration, util_time_step);
+      ADES.calculate(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y), rsln_rho.get_mesh(), util_time_step);
       if(time_step_after_adaptivity > util_time_step)
         time_step_after_adaptivity = util_time_step;
 
-      ADES.calculate(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y), &mesh_flow, util_time_step);
+      ADES.calculate(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y), rsln_c.get_mesh(), util_time_step);
       if(time_step_after_adaptivity > util_time_step)
         time_step_after_adaptivity = util_time_step;
 
