@@ -483,8 +483,12 @@ int main(int argc, char* argv[])
         }
 
         if (Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
-          &space_rho_v_y, &space_e, &space_c)) >= NDOF_STOP) 
+          &space_rho_v_y, &space_e, &space_c)) >= NDOF_STOP)
+        {
           done = true;
+          info("Maximum number of dofs of the coarse meshes, %i, has been reached, adaptivity loop ends.", Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
+          &space_rho_v_y, &space_e, &space_c)));
+        }
         else
           // Increase the counter of performed adaptivity steps.
           as++;
