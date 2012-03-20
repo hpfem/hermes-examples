@@ -60,7 +60,8 @@ double time_step_n = 1E-5, util_time_step, time_step_after_adaptivity;
 
 // Adaptivity.
 // Every UNREF_FREQth time step the mesh is unrefined.
-const int UNREF_FREQ = 10;                         
+const int UNREF_FREQ = 10;
+bool FORCE_UNREF = false;
 // Number of mesh refinements between two unrefinements.
 // The mesh is not unrefined unless there has been a refinement since
 // last unrefinement.
@@ -98,7 +99,7 @@ const int MESH_REGULARITY = -1;
 // candidates in hp-adaptivity. Default value is 1.0. 
 const double CONV_EXP = 1;           
 // Stopping criterion time steps with the higher tolerance.
-int ERR_STOP_REDUCE_TIME_STEP = 10;
+int ERR_STOP_REDUCE_TIME_STEP = 20;
 // Stopping criterion for adaptivity.
 double ERR_STOP_INIT_FLOW = 4.5;
 double ERR_STOP_FLOW = 1.5;
@@ -159,7 +160,7 @@ int main(int argc, char* argv[])
   // Load the mesh.
   Mesh basemesh;
   MeshReaderH2D mloader;
-  mloader.load("GAMM-channel-serial.mesh", &basemesh);
+  mloader.load("GAMM-channel.mesh", &basemesh);
 
   // Initialize the meshes.
   Mesh mesh_flow, mesh_concentration;
@@ -265,7 +266,7 @@ int main(int argc, char* argv[])
     }
     
     // Periodic global derefinements.
-    if (iteration > 1 && iteration % UNREF_FREQ == 0 && (REFINEMENT_COUNT_FLOW > 0 || REFINEMENT_COUNT_CONCENTRATION > 0)) 
+    if ((iteration > 1 && iteration % UNREF_FREQ == 0 && (REFINEMENT_COUNT_FLOW > 0 || REFINEMENT_COUNT_CONCENTRATION > 0)) || FORCE_UNREF) 
     {
       info("Global mesh derefinement.");
       if(REFINEMENT_COUNT_FLOW > 0) 
@@ -488,6 +489,7 @@ int main(int argc, char* argv[])
           done = true;
           info("Maximum number of dofs of the coarse meshes, %i, has been reached, adaptivity loop ends.", Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
           &space_rho_v_y, &space_e, &space_c)));
+          FORCE_UNREF = true;
         }
         else
           // Increase the counter of performed adaptivity steps.
