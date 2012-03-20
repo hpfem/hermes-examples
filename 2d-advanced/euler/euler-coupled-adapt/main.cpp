@@ -37,7 +37,7 @@ enum shockCapturingType
   KUZMIN,
   KRIVODONOVA
 };
-bool SHOCK_CAPTURING = true;
+bool SHOCK_CAPTURING = false;
 shockCapturingType SHOCK_CAPTURING_TYPE = FEISTAUER;
 // Quantitative parameter of the discontinuity detector in case of Krivodonova.
 double DISCONTINUITY_DETECTOR_PARAM = 1.0;
@@ -60,7 +60,7 @@ double time_step_n = 1E-5, util_time_step, time_step_after_adaptivity;
 
 // Adaptivity.
 // Every UNREF_FREQth time step the mesh is unrefined.
-const int UNREF_FREQ = 5;                         
+const int UNREF_FREQ = 10;                         
 // Number of mesh refinements between two unrefinements.
 // The mesh is not unrefined unless there has been a refinement since
 // last unrefinement.
@@ -86,7 +86,7 @@ const int STRATEGY = 1;
 // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
 const CandList CAND_LIST_FLOW = H2D_HP_ANISO, CAND_LIST_CONCENTRATION = H2D_HP_ANISO;     
 // Maximum polynomial degree used. -1 for unlimited.
-const int MAX_P_ORDER = -1;                       
+const int MAX_P_ORDER = -1;
 // Maximum allowed level of hanging nodes:
 // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
 // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
@@ -96,14 +96,18 @@ const int MAX_P_ORDER = -1;
 const int MESH_REGULARITY = -1;                   
 // This parameter influences the selection of
 // candidates in hp-adaptivity. Default value is 1.0. 
-const double CONV_EXP = 1;                        
+const double CONV_EXP = 1;           
+// Stopping criterion time steps with the higher tolerance.
+int ERR_STOP_REDUCE_TIME_STEP = 20;
 // Stopping criterion for adaptivity.
-double ERR_STOP_INIT_FLOW = 5.0;                 
+double ERR_STOP_INIT_FLOW = 4.5;
+double ERR_STOP_FLOW = 1.5;
 // Stopping criterion for adaptivity.
-double ERR_STOP_INIT_CONCENTRATION = 15.0;        
+double ERR_STOP_INIT_CONCENTRATION = 15.0;
+double ERR_STOP_CONCENTRATION = 5.0;
 // Adaptivity process stops when the number of degrees of freedom grows over
 // this limit. This is mainly to prevent h-adaptivity to go on forever.
-const int NDOF_STOP = 10000;                     
+const int NDOF_STOP = 2000;                     
 // Matrix solver for orthogonal projections: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
@@ -114,7 +118,7 @@ unsigned int INIT_REF_NUM_FLOW = 1;
 unsigned int INIT_REF_NUM_CONCENTRATION = 1;      
 // Number of initial mesh refinements of the mesh for the concentration towards the 
 // part of the boundary where the concentration is prescribed.
-unsigned int INIT_REF_NUM_CONCENTRATION_BDY = 0;  
+unsigned int INIT_REF_NUM_CONCENTRATION_BDY = 1;  
 
 // Equation parameters.
 // Exterior pressure (dimensionless).
@@ -128,7 +132,7 @@ const double V2_EXT = 0.0;
 // Kappa.
 const double KAPPA = 1.4;                               
 // Concentration on the boundary.
-const double CONCENTRATION_EXT = 0.1;                  
+const double CONCENTRATION_EXT = 1.0;                  
 // Start time of the concentration on the boundary.
 const double CONCENTRATION_EXT_STARTUP_TIME = 0.0;     
 // Diffusivity.
@@ -165,8 +169,7 @@ int main(int argc, char* argv[])
   for(unsigned int i = 0; i < INIT_REF_NUM_CONCENTRATION; i++)
     mesh_concentration.refine_all_elements(0, true);
 
-  mesh_concentration.refine_towards_boundary(BDY_DIRICHLET_CONCENTRATION, INIT_REF_NUM_CONCENTRATION_BDY, false);
-  //mesh_flow.refine_towards_boundary(BDY_DIRICHLET_CONCENTRATION, INIT_REF_NUM_CONCENTRATION_BDY);
+  mesh_concentration.refine_towards_boundary(BDY_DIRICHLET_CONCENTRATION, INIT_REF_NUM_CONCENTRATION_BDY, true, true);
 
   for(unsigned int i = 0; i < INIT_REF_NUM_FLOW; i++)
     mesh_flow.refine_all_elements(0, true);
@@ -239,8 +242,8 @@ int main(int argc, char* argv[])
   OrderView order_view_conc("Orders - concentration", new WinGeom(700, 700, 600, 400));
 
   // Initialize refinement selector.
-  L2ProjBasedSelector<double> l2selector_flow(CAND_LIST_FLOW, CONV_EXP, H2DRS_DEFAULT_ORDER);
-  L2ProjBasedSelector<double> l2selector_concentration(CAND_LIST_CONCENTRATION, CONV_EXP, H2DRS_DEFAULT_ORDER);
+  L2ProjBasedSelector<double> l2selector_flow(CAND_LIST_FLOW, CONV_EXP, MAX_P_ORDER);
+  L2ProjBasedSelector<double> l2selector_concentration(CAND_LIST_CONCENTRATION, CONV_EXP, MAX_P_ORDER);
 
   // Set up CFL calculation class.
   CFLCalculation CFL(CFL_NUMBER, KAPPA);
@@ -248,24 +251,25 @@ int main(int argc, char* argv[])
   // Set up Advection-Diffusion-Equation stability calculation class.
   ADEStabilityCalculation ADES(ADVECTION_STABILITY_CONSTANT, DIFFUSION_STABILITY_CONSTANT, EPSILON);
 
-  int iteration = 0; double t = 0;
-  for(t = 0.0; t < 100.0; t += time_step_n)
+  int iteration = 0; double t = 0; time_step_after_adaptivity = time_step_n;
+  for(t = 0.0; t < 10.0; t += time_step_after_adaptivity)
   {
     info("---- Time step %d, time %3.5f.", iteration++, t);
+    time_step_n = time_step_after_adaptivity;
     
     // After some initial runs, begin really adapting.
-    if(iteration == 5)
+    if(ERR_STOP_REDUCE_TIME_STEP == 5)
     {
-      ERR_STOP_INIT_FLOW = 1.5;
-      ERR_STOP_INIT_CONCENTRATION = 5.0;
+      ERR_STOP_INIT_FLOW = ERR_STOP_FLOW;
+      ERR_STOP_INIT_CONCENTRATION = ERR_STOP_CONCENTRATION;
     }
     
-    time_step_n = time_step_after_adaptivity;
-
     // Periodic global derefinements.
-    if (iteration > 1 && iteration % UNREF_FREQ == 0 && (REFINEMENT_COUNT_FLOW > 0 || REFINEMENT_COUNT_CONCENTRATION > 0)) {
+    if (iteration > 1 && iteration % UNREF_FREQ == 0 && (REFINEMENT_COUNT_FLOW > 0 || REFINEMENT_COUNT_CONCENTRATION > 0)) 
+    {
       info("Global mesh derefinement.");
-      if(REFINEMENT_COUNT_FLOW > 0) {
+      if(REFINEMENT_COUNT_FLOW > 0) 
+      {
         REFINEMENT_COUNT_FLOW = 0;
         space_rho.unrefine_all_mesh_elements();
         if(CAND_LIST_FLOW == H2D_HP_ANISO)
@@ -274,7 +278,8 @@ int main(int argc, char* argv[])
         space_rho_v_y.copy_orders(&space_rho);
         space_e.copy_orders(&space_rho);
       }
-      if(REFINEMENT_COUNT_CONCENTRATION > 0) {
+      if(REFINEMENT_COUNT_CONCENTRATION > 0) 
+      {
         REFINEMENT_COUNT_CONCENTRATION = 0;
         space_c.unrefine_all_mesh_elements();
         space_c.adjust_element_order(-1, P_INIT_CONCENTRATION);
@@ -418,11 +423,14 @@ int main(int argc, char* argv[])
         CFL.calculate_semi_implicit(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), &mesh_flow, util_time_step);
       else
         CFL.calculate(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), &mesh_flow, util_time_step);
-
+      
       time_step_after_adaptivity = util_time_step;
-
+      
       ADES.calculate(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y), &mesh_concentration, util_time_step);
+      if(time_step_after_adaptivity > util_time_step)
+        time_step_after_adaptivity = util_time_step;
 
+      ADES.calculate(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y), &mesh_flow, util_time_step);
       if(time_step_after_adaptivity > util_time_step)
         time_step_after_adaptivity = util_time_step;
 
