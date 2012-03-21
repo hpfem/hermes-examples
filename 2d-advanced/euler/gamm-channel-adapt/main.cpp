@@ -33,7 +33,7 @@ enum shockCapturingType
   KUZMIN,
   KRIVODONOVA
 };
-bool SHOCK_CAPTURING = true;
+bool SHOCK_CAPTURING = false;
 shockCapturingType SHOCK_CAPTURING_TYPE = KUZMIN;
 // Quantitative parameter of the discontinuity detector in case of Krivodonova.
 double DISCONTINUITY_DETECTOR_PARAM = 1.0;
@@ -42,12 +42,12 @@ const double NU_1 = 0.1;
 const double NU_2 = 0.1;
 
 // For saving/loading of solution.
-bool REUSE_SOLUTION = true;
+bool REUSE_SOLUTION = false;
 
 // Initial polynomial degree. 
 const int P_INIT = 0;                                                  
 // Number of initial uniform mesh refinements.  
-const int INIT_REF_NUM = 2;
+const int INIT_REF_NUM = 1;
 // CFL value.
 double CFL_NUMBER = 0.5;                          
 // Initial time step.
@@ -82,7 +82,7 @@ const int STRATEGY = 1;
 CandList CAND_LIST = H2D_HP_ANISO;                
 
 // Maximum polynomial degree used. -1 for unlimited.
-const int MAX_P_ORDER = 1;                       
+const int MAX_P_ORDER = -1;                       
 
 // Maximum allowed level of hanging nodes:
 // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
@@ -97,11 +97,11 @@ const int MESH_REGULARITY = -1;
 const double CONV_EXP = 1;                        
 
 // Stopping criterion for adaptivity.
-const double ERR_STOP = 0.55;                     
+const double ERR_STOP = 1.0;                     
 
 // Adaptivity process stops when the number of degrees of freedom grows over
 // this limit. This is mainly to prevent h-adaptivity to go on forever.
-const int NDOF_STOP = 100000;                   
+const int NDOF_STOP = 10000;                   
 
 // Matrix solver for orthogonal projections: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
@@ -206,7 +206,6 @@ int main(int argc, char* argv[])
   // Time stepping loop.
   for(; t < 3.5; t += time_step_n)
   {
-    CFL.set_number(CFL_NUMBER + (t/3.5) * 1.0);
     info("---- Time step %d, time %3.5f.", iteration++, t);
 
     // Periodic global derefinements.
@@ -306,6 +305,7 @@ int main(int argc, char* argv[])
       if(P_INIT == 0 && CAND_LIST == H2D_H_ANISO) 
         dp.set_fvm();
 
+      FluxLimiter* flux_limiter;
       dp.assemble(matrix, rhs);
 
       // Solve the matrix problem.
@@ -319,7 +319,6 @@ int main(int argc, char* argv[])
         }
         else
         {
-          FluxLimiter* flux_limiter;
           if(SHOCK_CAPTURING_TYPE == KUZMIN)
             FluxLimiter flux_limiter(FluxLimiter::Kuzmin, solver->get_sln_vector(), ref_spaces_const);
           else
