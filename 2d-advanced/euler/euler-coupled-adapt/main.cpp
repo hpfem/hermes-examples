@@ -60,7 +60,7 @@ double time_step_n = 1E-5, util_time_step, time_step_after_adaptivity;
 
 // Adaptivity.
 // Every UNREF_FREQth time step the mesh is unrefined.
-const int UNREF_FREQ = 10;
+const int UNREF_FREQ = 5;
 bool FORCE_UNREF = false;
 // Number of mesh refinements between two unrefinements.
 // The mesh is not unrefined unless there has been a refinement since
@@ -102,13 +102,13 @@ const double CONV_EXP = 1;
 int ERR_STOP_REDUCE_TIME_STEP = 10;
 // Stopping criterion for adaptivity.
 double ERR_STOP_INIT_FLOW = 4.5;
-double ERR_STOP_FLOW = 1.0;
+double ERR_STOP_FLOW = 1.5;
 // Stopping criterion for adaptivity.
 double ERR_STOP_INIT_CONCENTRATION = 15.0;
-double ERR_STOP_CONCENTRATION = 4.0;
+double ERR_STOP_CONCENTRATION = 6.0;
 // Adaptivity process stops when the number of degrees of freedom grows over
 // this limit. This is mainly to prevent h-adaptivity to go on forever.
-const int NDOF_STOP = 3000;                     
+const int NDOF_STOP = 3200;                     
 // Matrix solver for orthogonal projections: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
@@ -133,7 +133,7 @@ const double V2_EXT = 0.0;
 // Kappa.
 const double KAPPA = 1.4;                               
 // Concentration on the boundary.
-const double CONCENTRATION_EXT = 1.0;                  
+const double CONCENTRATION_EXT = 0.1;                  
 // Start time of the concentration on the boundary.
 const double CONCENTRATION_EXT_STARTUP_TIME = 0.0;     
 // Diffusivity.
