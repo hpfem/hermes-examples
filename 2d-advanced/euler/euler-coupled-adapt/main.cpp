@@ -301,6 +301,12 @@ int main(int argc, char* argv[])
       Hermes::vector<Space<double> *>* ref_spaces = Space<double>::construct_refined_spaces(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
         &space_rho_v_y, &space_e, &space_c), order_increase);
 
+      char filename[40];
+      sprintf(filename, "Flow-mesh-%i.xml", iteration - 1);
+      mloader.save(filename, (*ref_spaces)[0]->get_mesh());
+      sprintf(filename, "Concentration-mesh-%i.xml", iteration - 1);
+      mloader.save(filename, (*ref_spaces)[4]->get_mesh());
+
       Space<double>* ref_space_stabilization = (*ref_spaces)[0]->dup((*ref_spaces)[0]->get_mesh());
       ref_space_stabilization->set_uniform_order(0);
 
