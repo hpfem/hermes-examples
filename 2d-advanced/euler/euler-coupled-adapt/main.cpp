@@ -87,7 +87,7 @@ const int STRATEGY = 1;
 // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
 const CandList CAND_LIST_FLOW = H2D_HP_ANISO, CAND_LIST_CONCENTRATION = H2D_HP_ANISO;     
 // Maximum polynomial degree used. -1 for unlimited.
-const int MAX_P_ORDER = -1;
+const int MAX_P_ORDER = 3;
 // Maximum allowed level of hanging nodes:
 // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
 // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
@@ -133,11 +133,11 @@ const double V2_EXT = 0.0;
 // Kappa.
 const double KAPPA = 1.4;                               
 // Concentration on the boundary.
-const double CONCENTRATION_EXT = 0.1;                  
+const double CONCENTRATION_EXT = 0.01;                  
 // Start time of the concentration on the boundary.
 const double CONCENTRATION_EXT_STARTUP_TIME = 0.0;     
 // Diffusivity.
-const double EPSILON = 0.001;                           
+const double EPSILON = 0.01;                           
 
 // Boundary markers.
 const std::string BDY_INLET = "1";
