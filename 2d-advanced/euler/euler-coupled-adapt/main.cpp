@@ -99,10 +99,10 @@ const int MESH_REGULARITY = -1;
 // candidates in hp-adaptivity. Default value is 1.0. 
 const double CONV_EXP = 1;           
 // Stopping criterion time steps with the higher tolerance.
-int ERR_STOP_REDUCE_TIME_STEP = 20;
+int ERR_STOP_REDUCE_TIME_STEP = 10;
 // Stopping criterion for adaptivity.
 double ERR_STOP_INIT_FLOW = 4.5;
-double ERR_STOP_FLOW = 1.5;
+double ERR_STOP_FLOW = 1.0;
 // Stopping criterion for adaptivity.
 double ERR_STOP_INIT_CONCENTRATION = 15.0;
 double ERR_STOP_CONCENTRATION = 4.0;
