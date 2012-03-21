@@ -302,9 +302,9 @@ int main(int argc, char* argv[])
         &space_rho_v_y, &space_e, &space_c), order_increase);
 
       char filename[40];
-      sprintf(filename, "Flow-mesh-%i.xml", iteration - 1);
+      sprintf(filename, "Flow-mesh-%i-%i.xml", iteration - 1, as - 1);
       mloader.save(filename, (*ref_spaces)[0]->get_mesh());
-      sprintf(filename, "Concentration-mesh-%i.xml", iteration - 1);
+      sprintf(filename, "Concentration-mesh-%i-%i.xml", iteration - 1, as - 1);
       mloader.save(filename, (*ref_spaces)[4]->get_mesh());
 
       Space<double>* ref_space_stabilization = (*ref_spaces)[0]->dup((*ref_spaces)[0]->get_mesh());
