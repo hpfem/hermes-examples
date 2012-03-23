@@ -361,7 +361,6 @@ int main(int argc, char* argv[])
       if(SEMI_IMPLICIT)
       {
         static_cast<EulerEquationsWeakFormSemiImplicitCoupled*>(wf)->set_time_step(time_step_n);
-        static_cast<EulerEquationsWeakFormSemiImplicitCoupled*>(wf)->realloc_cache((*ref_spaces)[0]->get_mesh());
         if(SHOCK_CAPTURING && SHOCK_CAPTURING_TYPE == FEISTAUER)
         {
           info("Assembling the stabilization right-hand side vector.");

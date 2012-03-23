@@ -206,7 +206,6 @@ int main(int argc, char* argv[])
     if(SEMI_IMPLICIT)
     {
       static_cast<EulerEquationsWeakFormSemiImplicitCoupled*>(wf)->set_time_step(time_step_n);
-      static_cast<EulerEquationsWeakFormSemiImplicitCoupled*>(wf)->realloc_cache(&mesh_flow);
       if(SHOCK_CAPTURING && SHOCK_CAPTURING_TYPE == FEISTAUER)
       {
         dp_stabilization.assemble(rhs_stabilization);
