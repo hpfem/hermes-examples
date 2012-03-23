@@ -108,15 +108,15 @@ double ERR_STOP_INIT_CONCENTRATION = 15.0;
 double ERR_STOP_CONCENTRATION = 6.0;
 // Adaptivity process stops when the number of degrees of freedom grows over
 // this limit. This is mainly to prevent h-adaptivity to go on forever.
-const int NDOF_STOP = 3200;                     
+const int NDOF_STOP = 3500;                     
 // Matrix solver for orthogonal projections: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
 
 // Number of initial uniform mesh refinements of the mesh for the flow.
-unsigned int INIT_REF_NUM_FLOW = 1;               
+unsigned int INIT_REF_NUM_FLOW = 2;               
 // Number of initial uniform mesh refinements of the mesh for the concentration.
-unsigned int INIT_REF_NUM_CONCENTRATION = 1;      
+unsigned int INIT_REF_NUM_CONCENTRATION = 2;      
 // Number of initial mesh refinements of the mesh for the concentration towards the 
 // part of the boundary where the concentration is prescribed.
 unsigned int INIT_REF_NUM_CONCENTRATION_BDY = 1;  
@@ -137,7 +137,7 @@ const double CONCENTRATION_EXT = 0.01;
 // Start time of the concentration on the boundary.
 const double CONCENTRATION_EXT_STARTUP_TIME = 0.0;     
 // Diffusivity.
-const double EPSILON = 0.01;                           
+const double EPSILON = 0.005;                           
 
 // Boundary markers.
 const std::string BDY_INLET = "1";
