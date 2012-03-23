@@ -231,7 +231,7 @@ int main(int argc, char* argv[])
   EulerEquationsWeakFormStabilization wf_stabilization(&prev_rho_stabilization);
 
   // Filters for visualization of Mach number, pressure and entropy.
-  MachNumberFilter Mach_number(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA);
+  MachNumberFilter Mach_number(Hermes::vector<MeshFunction<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), KAPPA);
   PressureFilter pressure(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA);
   EntropyFilter entropy(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA, RHO_EXT, P_EXT);
 
@@ -417,6 +417,16 @@ int main(int argc, char* argv[])
       else
         error ("Matrix solver failed.\n");
 
+      Mach_number.reinit();
+      char filenamea[40];
+      Linearizer lin_mach;
+      sprintf(filenamea, "Mach number-3D-%i-%i.vtk", iteration - 1, as);
+      lin_mach.save_solution_vtk(&Mach_number, filenamea, "MachNumber", true);
+      
+      Linearizer lin_concentration;
+      sprintf(filenamea, "Concentration-%i-%i.vtk", iteration - 1, as);
+      lin_concentration.save_solution_vtk(&prev_c, filenamea, "Concentration", true);
+
       // Project the fine mesh solution onto the coarse mesh.
       info("Projecting reference solution on coarse mesh.");
       OGProjection<double>::project_global(Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x,
@@ -579,18 +589,7 @@ int main(int argc, char* argv[])
       // Output solution in VTK format.
       if(VTK_VISUALIZATION)
       {
-        pressure.reinit();
-        Mach_number.reinit();
-        Linearizer lin_pressure;
-        char filename[40];
-        sprintf(filename, "pressure-3D-%i.vtk", iteration - 1);
-        lin_pressure.save_solution_vtk(&pressure, filename, "Pressure", true);
-        Linearizer lin_mach;
-        sprintf(filename, "Mach number-3D-%i.vtk", iteration - 1);
-        lin_mach.save_solution_vtk(&Mach_number, filename, "MachNumber", true);
-        Linearizer lin_concentration;
-        sprintf(filename, "Concentration-%i.vtk", iteration - 1);
-        lin_concentration.save_solution_vtk(&prev_c, filename, "Concentration", true);
+        
       }
     }
   }
