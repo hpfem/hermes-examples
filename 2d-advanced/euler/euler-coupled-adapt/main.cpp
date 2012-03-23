@@ -37,7 +37,7 @@ enum shockCapturingType
   KUZMIN,
   KRIVODONOVA
 };
-bool SHOCK_CAPTURING = false;
+bool SHOCK_CAPTURING = true;
 shockCapturingType SHOCK_CAPTURING_TYPE = FEISTAUER;
 // Quantitative parameter of the discontinuity detector in case of Krivodonova.
 double DISCONTINUITY_DETECTOR_PARAM = 1.0;
@@ -46,7 +46,7 @@ const double NU_1 = 0.1;
 const double NU_2 = 0.1;
 
 // Stability for the concentration part.
-double ADVECTION_STABILITY_CONSTANT = 1.0;
+double ADVECTION_STABILITY_CONSTANT = 0.5;
 const double DIFFUSION_STABILITY_CONSTANT = 1.0;
 
 // Polynomial degree for the Euler equations (for the flow).
@@ -54,7 +54,7 @@ const int P_INIT_FLOW = 0;
 // Polynomial degree for the concentration.
 const int P_INIT_CONCENTRATION = 1;               
 // CFL value.
-double CFL_NUMBER = 0.1;                          
+double CFL_NUMBER = 0.5;                          
 // Initial and utility time step.
 double time_step_n = 1E-5, util_time_step, time_step_after_adaptivity;          
 
@@ -102,10 +102,10 @@ const double CONV_EXP = 1;
 int ERR_STOP_REDUCE_TIME_STEP = 10;
 // Stopping criterion for adaptivity.
 double ERR_STOP_INIT_FLOW = 4.5;
-double ERR_STOP_FLOW = 1.5;
+double ERR_STOP_FLOW = 1.0;
 // Stopping criterion for adaptivity.
 double ERR_STOP_INIT_CONCENTRATION = 15.0;
-double ERR_STOP_CONCENTRATION = 6.0;
+double ERR_STOP_CONCENTRATION = 5.0;
 // Adaptivity process stops when the number of degrees of freedom grows over
 // this limit. This is mainly to prevent h-adaptivity to go on forever.
 const int NDOF_STOP = 3500;                     
