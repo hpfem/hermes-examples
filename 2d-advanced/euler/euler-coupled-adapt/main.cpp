@@ -46,8 +46,8 @@ const double NU_1 = 0.1;
 const double NU_2 = 0.1;
 
 // Stability for the concentration part.
-double ADVECTION_STABILITY_CONSTANT = 0.05;
-const double DIFFUSION_STABILITY_CONSTANT = 0.1;
+double ADVECTION_STABILITY_CONSTANT = 1.0;
+const double DIFFUSION_STABILITY_CONSTANT = 1.0;
 
 // Polynomial degree for the Euler equations (for the flow).
 const int P_INIT_FLOW = 0;                        
