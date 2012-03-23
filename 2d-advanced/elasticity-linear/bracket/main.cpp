@@ -194,8 +194,8 @@ int main(int argc, char* argv[])
     double lambda = (E * nu) / ((1 + nu) * (1 - 2*nu));
     double mu = E / (2*(1 + nu));
     VonMisesFilter stress(Hermes::vector<MeshFunction<double> *>(&u1_sln, &u2_sln), lambda, mu);
-    ValFilter limited_stress(&stress, 0.0, 1e5);
-    mises_view.show(&limited_stress, HERMES_EPS_HIGH, H2D_FN_VAL_0, &u1_sln, &u2_sln, 1e4);
+    ValFilter limited_stress(&stress, 0.0, 2e5);
+    mises_view.show(&limited_stress, HERMES_EPS_HIGH, H2D_FN_VAL_0, &u1_sln, &u2_sln, 0);
 
     // Skip visualization time.
     cpu_time.tick(HERMES_SKIP);
@@ -270,8 +270,8 @@ int main(int argc, char* argv[])
   double lambda = (E * nu) / ((1 + nu) * (1 - 2*nu));
   double mu = E / (2*(1 + nu));
   VonMisesFilter stress(Hermes::vector<MeshFunction<double> *>(&u1_sln_ref, &u2_sln_ref), lambda, mu);
-  ValFilter limited_stress(&stress, 0.0, 1e5);
-  mises_view.show(&limited_stress, HERMES_EPS_HIGH, H2D_FN_VAL_0, &u1_sln_ref, &u2_sln_ref, 1e4);
+  ValFilter limited_stress(&stress, 0.0, 2e5);
+  mises_view.show(&limited_stress, HERMES_EPS_HIGH, H2D_FN_VAL_0, &u1_sln_ref, &u2_sln_ref, 0);
 
   // Wait for all views to be closed.
   View::wait();
