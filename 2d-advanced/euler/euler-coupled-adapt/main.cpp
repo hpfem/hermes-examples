@@ -87,7 +87,7 @@ const int STRATEGY = 1;
 // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
 const CandList CAND_LIST_FLOW = H2D_HP_ANISO, CAND_LIST_CONCENTRATION = H2D_HP_ANISO;     
 // Maximum polynomial degree used. -1 for unlimited.
-const int MAX_P_ORDER = 3;
+const int MAX_P_ORDER = -1;
 // Maximum allowed level of hanging nodes:
 // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
 // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
@@ -531,7 +531,7 @@ int main(int argc, char* argv[])
       delete matrix;
       delete rhs;
     }
-    while (done == false);
+    while (done == false && as < 5);
 
     // Copy the solutions into the previous time level ones.
     prev_rho.copy(&rsln_rho);
