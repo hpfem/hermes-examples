@@ -34,8 +34,8 @@ CustomWeakFormHeatRK::CustomWeakFormHeatRK(std::string bdy_fire, std::string bdy
   add_matrix_form(new CustomJacobianVol(0, 0, rho, heatcap));
 
   // Jacobian - surface part.
-  add_matrix_form_surf(new WeakFormsH1::DefaultMatrixFormSurf<double>(0, 0, bdy_fire, new Hermes2DFunction<double>(-alpha_fire/(rho*heatcap))));
-  add_matrix_form_surf(new WeakFormsH1::DefaultMatrixFormSurf<double>(0, 0, bdy_air, new Hermes2DFunction<double>(-alpha_air/(rho*heatcap))));
+  add_matrix_form_surf(new WeakFormsH1::DefaultMatrixFormSurf<double>(0, 0, new Hermes2DFunction<double>(-alpha_fire/(rho*heatcap)), bdy_fire));
+  add_matrix_form_surf(new WeakFormsH1::DefaultMatrixFormSurf<double>(0, 0, new Hermes2DFunction<double>(-alpha_air/(rho*heatcap)), bdy_air));
 
   // Residual - volumetric part.
   add_vector_form(new CustomFormResidualVol(0, rho, heatcap));
@@ -46,8 +46,8 @@ CustomWeakFormHeatRK::CustomWeakFormHeatRK(std::string bdy_fire, std::string bdy
   add_vector_form_surf(vec_form_surf_1);
 
   // Surface residual - top boundary.
-  add_vector_form_surf(new WeakFormsH1::DefaultResidualSurf<double>(0, HERMES_ANY, new Hermes2DFunction<double>(-alpha_air / (rho*heatcap))));
-  add_vector_form_surf(new WeakFormsH1::DefaultVectorFormSurf<double>(0, HERMES_ANY, new Hermes2DFunction<double>(alpha_air* temp_ext_air / (rho*heatcap))));
+  add_vector_form_surf(new WeakFormsH1::DefaultResidualSurf<double>(0, new Hermes2DFunction<double>(-alpha_air / (rho*heatcap))));
+  add_vector_form_surf(new WeakFormsH1::DefaultVectorFormSurf<double>(0, new Hermes2DFunction<double>(alpha_air* temp_ext_air / (rho*heatcap))));
 }
 
 double CustomWeakFormHeatRK::CustomJacobianVol::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 

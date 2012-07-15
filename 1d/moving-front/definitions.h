@@ -41,12 +41,12 @@ public:
 class CustomVectorFormVol : public VectorFormVol<double>
 {
 public:
-  CustomVectorFormVol(int i = 0, std::string area = HERMES_ANY,
-    Hermes::Hermes2DFunction<double>* coeff = HERMES_ONE,
+  CustomVectorFormVol(int i = 0, 
+    Hermes::Hermes2DFunction<double>* coeff = HERMES_ONE, std::string area = HERMES_ANY,
     GeomType gt = HERMES_PLANAR);
 
-  CustomVectorFormVol(int i, Hermes::vector<std::string> areas,
-    Hermes::Hermes2DFunction<double>* coeff = HERMES_ONE,
+  CustomVectorFormVol(int i, 
+    Hermes::Hermes2DFunction<double>* coeff, Hermes::vector<std::string> areas,
     GeomType gt = HERMES_PLANAR);
 
   ~CustomVectorFormVol();
@@ -67,9 +67,10 @@ private:
 class CustomWeakFormPoisson : public WeakFormsH1::DefaultWeakFormPoisson<double>
 {
 public:
-  CustomWeakFormPoisson(std::string area = HERMES_ANY, 
+  CustomWeakFormPoisson(
     Hermes::Hermes1DFunction<double>* coeff = HERMES_ONE,
     Hermes::Hermes2DFunction<double>* f = HERMES_ONE,
+    std::string area = HERMES_ANY, 
     GeomType gt = HERMES_PLANAR);
 };
 

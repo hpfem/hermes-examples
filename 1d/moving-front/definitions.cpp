@@ -38,18 +38,16 @@ Ord CustomFunction::value(Ord x, Ord y) const
   return Ord(20);
 }
 
-CustomVectorFormVol::CustomVectorFormVol(int i, std::string area,
-					 Hermes::Hermes2DFunction<double>* coeff,
-  GeomType gt)
+CustomVectorFormVol::CustomVectorFormVol(int i, 
+					 Hermes::Hermes2DFunction<double>* coeff, std::string area, GeomType gt)
   : VectorFormVol<double>(i, area), coeff(coeff), gt(gt)
 {
   // If coeff is HERMES_ONE, initialize it to be constant 1.0.
   if (coeff == HERMES_ONE) this->coeff = new Hermes::Hermes2DFunction<double>(1.0);
 }
 
-CustomVectorFormVol::CustomVectorFormVol(int i, Hermes::vector<std::string> areas,
-					 Hermes::Hermes2DFunction<double>* coeff,
-  GeomType gt)
+CustomVectorFormVol::CustomVectorFormVol(int i, 
+					 Hermes::Hermes2DFunction<double>* coeff, Hermes::vector<std::string> areas, GeomType gt)
   : VectorFormVol<double>(i, areas), coeff(coeff), gt(gt)
 {
   // If coeff is HERMES_ONE, initialize it to be constant 1.0.
@@ -116,16 +114,16 @@ VectorFormVol<double>* CustomVectorFormVol::clone()
   return new CustomVectorFormVol(*this);
 }
 
-CustomWeakFormPoisson::CustomWeakFormPoisson(std::string area,
-  Hermes::Hermes1DFunction<double>* coeff, Hermes::Hermes2DFunction<double>* f,
+CustomWeakFormPoisson::CustomWeakFormPoisson(
+  Hermes::Hermes1DFunction<double>* coeff, Hermes::Hermes2DFunction<double>* f, std::string area,
   GeomType gt) : WeakFormsH1::DefaultWeakFormPoisson<double>()
 {
   // Jacobian.
   // NOTE: The flag HERMES_NONSYM is important here.
-  add_matrix_form(new WeakFormsH1::DefaultJacobianDiffusion<double>(0, 0, area, coeff, HERMES_NONSYM, gt));
+  add_matrix_form(new WeakFormsH1::DefaultJacobianDiffusion<double>(0, 0, coeff, area, HERMES_NONSYM, gt));
 
   // Residual.
-  add_vector_form(new WeakFormsH1::DefaultResidualDiffusion<double>(0, area, coeff, gt));
-  add_vector_form(new CustomVectorFormVol(0, area, f, gt));
+  add_vector_form(new WeakFormsH1::DefaultResidualDiffusion<double>(0, coeff, area, gt));
+  add_vector_form(new CustomVectorFormVol(0, f, area, gt));
 };
 

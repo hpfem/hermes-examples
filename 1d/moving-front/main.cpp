@@ -137,7 +137,7 @@ int main(int argc, char* argv[])
 
   // Initialize the weak formulation
   CustomFunction f(x_0, x_1, y_0, y_1, s, c);
-  CustomWeakFormPoisson wf(HERMES_ANY, new Hermes::Hermes1DFunction<double>(-1.0), &f);
+  CustomWeakFormPoisson wf(new Hermes::Hermes1DFunction<double>(-1.0), &f);
 
   // Previous and next time level solution.
   ZeroSolution<double> sln_time_prev(&mesh);
