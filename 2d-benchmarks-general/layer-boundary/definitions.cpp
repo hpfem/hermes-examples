@@ -68,11 +68,11 @@ CustomWeakForm::CustomWeakForm(CustomFunction* f) : WeakForm<double>(1)
 {
   // Jacobian.
   add_matrix_form(new Hermes::Hermes2D::WeakFormsH1::DefaultJacobianDiffusion<double>(0, 0));
-  add_matrix_form(new Hermes::Hermes2D::WeakFormsH1::DefaultMatrixFormVol<double>(0, 0, Hermes::HERMES_ANY, 
+  add_matrix_form(new Hermes::Hermes2D::WeakFormsH1::DefaultMatrixFormVol<double>(0, 0, 
                                                         new Hermes::Hermes2DFunction<double>(f->coeff1*f->coeff1)));
   // Residual.
   add_vector_form(new Hermes::Hermes2D::WeakFormsH1::DefaultResidualDiffusion<double>(0));
-  add_vector_form(new Hermes::Hermes2D::WeakFormsH1::DefaultResidualVol<double>(0, Hermes::HERMES_ANY, 
+  add_vector_form(new Hermes::Hermes2D::WeakFormsH1::DefaultResidualVol<double>(0, 
                                                       new Hermes::Hermes2DFunction<double>(f->coeff1*f->coeff1)));
-  add_vector_form(new Hermes::Hermes2D::WeakFormsH1::DefaultVectorFormVol<double>(0, Hermes::HERMES_ANY, f));
+  add_vector_form(new Hermes::Hermes2D::WeakFormsH1::DefaultVectorFormVol<double>(0, f));
 }

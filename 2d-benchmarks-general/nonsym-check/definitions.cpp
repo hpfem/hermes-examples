@@ -71,6 +71,6 @@ CustomWeakForm::CustomWeakForm(std::string marker_bdy_right) : WeakForm<double>(
   // Residual.
   add_vector_form(new DefaultResidualDiffusion<double>(0));
   add_vector_form(new CustomResidual(0));
-  add_vector_form_surf(new DefaultVectorFormSurf<double>(0, marker_bdy_right, 
-                                                         new Hermes::Hermes2DFunction<double>(1.0)));
+  add_vector_form_surf(new DefaultVectorFormSurf<double>(0, 
+                                                         new Hermes::Hermes2DFunction<double>(1.0), marker_bdy_right));
 }
