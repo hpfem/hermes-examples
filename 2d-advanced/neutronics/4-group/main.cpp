@@ -73,7 +73,7 @@ int main(int argc, char* argv[])
   Hermes::vector<Solution<double>*> solutions(&sln1, &sln2, &sln3, &sln4);
   
   // Define initial conditions.
-  info("Setting initial conditions.");
+  Hermes::Mixins::Loggable::Static::info("Setting initial conditions.");
   ConstantSolution<double> iter1(&mesh, 1.00), iter2(&mesh, 1.00), iter3(&mesh, 1.00), iter4(&mesh, 1.00);
 
   Hermes::vector<MeshFunction<double>*> iterates(&iter1, &iter2, &iter3, &iter4);
@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
   H1Space<double> space4(&mesh, P_INIT_4);
   Hermes::vector<const Space<double>* > spaces(&space1, &space2, &space3, &space4);
   int ndof = Space<double>::get_num_dofs(spaces);
-  info("ndof = %d", ndof);
+  Hermes::Mixins::Loggable::Static::info("ndof = %d", ndof);
 
   // Initialize views.
   ScalarView view1("Neutron flux 1", new WinGeom(0, 0, 320, 600));
@@ -129,9 +129,9 @@ int main(int argc, char* argv[])
   int it = 1; bool done = false;
   do
   {
-    info("------------ Power iteration %d:", it);
+    Hermes::Mixins::Loggable::Static::info("------------ Power iteration %d:", it);
     
-    info("Newton's method (matrix problem solved by %s).", MatrixSolverNames[matrix_solver].c_str());
+    Hermes::Mixins::Loggable::Static::info("Newton's method (matrix problem solved by %s).", MatrixSolverNames[matrix_solver].c_str());
     
     // Perform Newton's iteration.
     try
@@ -164,7 +164,7 @@ int main(int argc, char* argv[])
     SourceFilter source_prev(iterates, &matprop, core);
     
     double k_new = k_eff * (integrate(&source, core) / integrate(&source_prev, core));
-    info("Largest eigenvalue: %.8g, rel. difference from previous it.: %g", k_new, fabs((k_eff - k_new) / k_new));
+    Hermes::Mixins::Loggable::Static::info("Largest eigenvalue: %.8g, rel. difference from previous it.: %g", k_new, fabs((k_eff - k_new) / k_new));
     
     // Stopping criterion.
     if (fabs((k_eff - k_new) / k_new) < ERROR_STOP) done = true;

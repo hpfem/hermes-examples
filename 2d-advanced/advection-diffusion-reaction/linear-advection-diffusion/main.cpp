@@ -119,7 +119,7 @@ int main(int argc, char* argv[])
   bool done = false;
   do
   {
-    info("---- Adaptivity step %d:", as);
+    Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d:", as);
 
     // Construct globally refined reference mesh and setup reference space.
     Space<double>* ref_space = Space<double>::construct_refined_space(&space);
@@ -130,7 +130,7 @@ int main(int argc, char* argv[])
     LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver, matrix, rhs);
 
     // Assemble the reference problem.
-    info("Solving on reference mesh.");
+    Hermes::Mixins::Loggable::Static::info("Solving on reference mesh.");
     DiscreteProblem<double>* dp = new DiscreteProblem<double>(&wf, ref_space);
     dp->assemble(matrix, rhs);
 
@@ -143,7 +143,7 @@ int main(int argc, char* argv[])
     else error ("Matrix solver failed.\n");
 
     // Project the fine mesh solution onto the coarse mesh.
-    info("Projecting reference solution on coarse mesh.");
+    Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
     OGProjection<double>::project_global(&space, &ref_sln, &sln, matrix_solver); 
 
     // Time measurement.
@@ -157,12 +157,12 @@ int main(int argc, char* argv[])
     cpu_time.tick(HERMES_SKIP);
 
     // Calculate element errors and total error estimate.
-    info("Calculating error estimate."); 
+    Hermes::Mixins::Loggable::Static::info("Calculating error estimate."); 
     Adapt<double>* adaptivity = new Adapt<double>(&space);
     double err_est_rel = adaptivity->calc_err_est(&sln, &ref_sln) * 100;
 
     // Report results.
-    info("ndof_coarse: %d, ndof_fine: %d, err_est_rel: %g%%", 
+    Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d, err_est_rel: %g%%", 
       Space<double>::get_num_dofs(&space), Space<double>::get_num_dofs(ref_space), err_est_rel);
 
     // Time measurement.
@@ -178,7 +178,7 @@ int main(int argc, char* argv[])
     if (err_est_rel < ERR_STOP) done = true;
     else 
     {
-      info("Adapting coarse mesh.");
+      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
       done = adaptivity->adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
       
       // Increase the counter of performed adaptivity steps.

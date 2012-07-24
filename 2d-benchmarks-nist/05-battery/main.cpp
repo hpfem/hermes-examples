@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
   int as = 1; bool done = false;
   do
   {
-    info("---- Adaptivity step %d:", as);
+    Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d:", as);
     
     // Time measurement.
     cpu_time.tick();
@@ -112,7 +112,7 @@ int main(int argc, char* argv[])
     int ndof_ref = ref_space->get_num_dofs();
 
     // Initialize fine mesh problem.
-    info("Solving on fine mesh.");
+    Hermes::Mixins::Loggable::Static::info("Solving on fine mesh.");
     DiscreteProblem<double> dp(&wf, ref_space);
     
     NewtonSolver<double> newton(&dp, matrix_solver);
@@ -133,7 +133,7 @@ int main(int argc, char* argv[])
     Solution<double>::vector_to_solution(newton.get_sln_vector(), ref_space, &ref_sln);
     
     // Project the fine mesh solution onto the coarse mesh.
-    info("Projecting fine mesh solution on coarse mesh.");
+    Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh.");
     OGProjection<double>::project_global(&space, &ref_sln, &sln, matrix_solver);
 
     // Time measurement.
@@ -147,13 +147,13 @@ int main(int argc, char* argv[])
       char* title = new char[100];
       sprintf(title, "sln-%d.vtk", as);
       lin.save_solution_vtk(&sln, title, "Potential", false);
-      info("Solution in VTK format saved to file %s.", title);
+      Hermes::Mixins::Loggable::Static::info("Solution in VTK format saved to file %s.", title);
 
       // Output mesh and element orders in VTK format.
       Views::Orderizer ord;
       sprintf(title, "ord-%d.vtk", as);
       ord.save_orders_vtk(&space, title);
-      info("Element orders in VTK format saved to file %s.", title);
+      Hermes::Mixins::Loggable::Static::info("Element orders in VTK format saved to file %s.", title);
     }
 
     // View the coarse mesh solution and polynomial orders.
@@ -167,7 +167,7 @@ int main(int argc, char* argv[])
     cpu_time.tick(HERMES_SKIP);
 
     // Calculate element errors and total error estimate.
-    info("Calculating error estimate.");
+    Hermes::Mixins::Loggable::Static::info("Calculating error estimate.");
     Adapt<double> adaptivity(&space);
     bool solutions_for_adapt = true;
     // In the following function, the Boolean parameter "solutions_for_adapt" determines whether
@@ -181,7 +181,7 @@ int main(int argc, char* argv[])
                          HERMES_TOTAL_ERROR_REL | HERMES_ELEMENT_ERROR_REL) * 100;
 
     // Report results.
-    info("ndof_coarse: %d, ndof_fine: %d, err_est_rel: %g%%",
+    Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d, err_est_rel: %g%%",
       space.get_num_dofs(), ref_space->get_num_dofs(), err_est_rel);
 
     // Add entry to DOF and CPU convergence graphs.
@@ -199,7 +199,7 @@ int main(int argc, char* argv[])
       done = true;
     else
     {
-      info("Adapting coarse mesh.");
+      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
       done = adaptivity.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
 
       // Increase the counter of performed adaptivity steps.

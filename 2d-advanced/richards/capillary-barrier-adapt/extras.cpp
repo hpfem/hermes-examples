@@ -28,7 +28,7 @@ bool printvector(double* vect, int n){
 // Creates a table of precalculated constitutive functions.
 bool get_constitutive_tables(int method, ConstitutiveRelationsGenuchtenWithLayer* constitutive, int material_count)
 {
-  info("Creating tables of constitutive functions (complicated real exponent relations).");
+  Hermes::Mixins::Loggable::Static::info("Creating tables of constitutive functions (complicated real exponent relations).");
 
   // Table values dimension.
   int bound = int(-constitutive->table_limit/constitutive->table_precision)+1;
@@ -68,21 +68,21 @@ bool get_constitutive_tables(int method, ConstitutiveRelationsGenuchtenWithLayer
   }
   
   // Calculate and save K(h).
-  info("Calculating and saving K(h).");
+  Hermes::Mixins::Loggable::Static::info("Calculating and saving K(h).");
   for (int j=0; j<material_count; j++) {
     for (int i=0; i< bound; i++) {
       constitutive->k_table[j][i] = constitutive->K(-constitutive->table_precision*i, j);
     }
   }
   // Calculate and save dKdh(h).
-  info("Calculating and saving dKdh(h).");
+  Hermes::Mixins::Loggable::Static::info("Calculating and saving dKdh(h).");
   for (int j=0; j<material_count; j++) {
     for (int i=0; i< bound; i++) {
       constitutive->dKdh_table[j][i] = constitutive->dKdh(-constitutive->table_precision*i, j);
     }
   }
   // Calculate and save C(h).
-  info("Calculating and saving C(h).");
+  Hermes::Mixins::Loggable::Static::info("Calculating and saving C(h).");
   for (int j=0; j<material_count; j++) {
     for (int i=0; i< bound; i++) {
       constitutive->c_table[j][i] = constitutive->C(-constitutive->table_precision*i, j);
@@ -93,14 +93,14 @@ bool get_constitutive_tables(int method, ConstitutiveRelationsGenuchtenWithLayer
   //If Newton method (method==1) selected constitutive function derivations are required.
   if (method==1){
     // Calculate and save ddKdhh(h).
-    info("Calculating and saving ddKdhh(h).");
+    Hermes::Mixins::Loggable::Static::info("Calculating and saving ddKdhh(h).");
     for (int j=0; j<material_count; j++) {
       for (int i=0; i< bound; i++) {
 	constitutive->ddKdhh_table[j][i] = constitutive->ddKdhh(-constitutive->table_precision*i, j);
       }
     }
     // Calculate and save dCdh(h).
-    info("Calculating and saving dCdh(h).");
+    Hermes::Mixins::Loggable::Static::info("Calculating and saving dCdh(h).");
     for (int j=0; j<material_count; j++) {
       for (int i=0; i< bound; i++) {
 	constitutive->dCdh_table[j][i] = constitutive->dCdh(-constitutive->table_precision*i, j);

@@ -288,9 +288,9 @@ int main(int argc, char* argv[])
     double err_exact = Global<double>::calc_abs_error(&sln, &exact, HERMES_H1_NORM);
    
     // Report results.
-    info(" Cycle %d:", as);
-    info("    Number of degrees of freedom: %d", ndof);
-    info("    H1 error w.r.t. exact soln.:  %g", err_exact);
+    Hermes::Mixins::Loggable::Static::info(" Cycle %d:", as);
+    Hermes::Mixins::Loggable::Static::info("    Number of degrees of freedom: %d", ndof);
+    Hermes::Mixins::Loggable::Static::info("    H1 error w.r.t. exact soln.:  %g", err_exact);
     
     // Stop counting time for adaptation.
     wall_clock.tick(); 
@@ -348,11 +348,11 @@ int main(int argc, char* argv[])
       as++;
     else
     {
-      info("Total running time:  %g s", wall_clock.accumulated());
-      info("   Setup:            %g s", setup_time);
-      info("   Assemble:         %g s", assemble_time);
-      info("   Solve:            %g s", solve_time);
-      info("   Adapt:            %g s", adapt_time);
+      Hermes::Mixins::Loggable::Static::info("Total running time:  %g s", wall_clock.accumulated());
+      Hermes::Mixins::Loggable::Static::info("   Setup:            %g s", setup_time);
+      Hermes::Mixins::Loggable::Static::info("   Assemble:         %g s", assemble_time);
+      Hermes::Mixins::Loggable::Static::info("   Solve:            %g s", solve_time);
+      Hermes::Mixins::Loggable::Static::info("   Adapt:            %g s", adapt_time);
       
       //sview.show(&sln);
       oview.show(&space);

@@ -12,7 +12,7 @@ using namespace Hermes::Hermes2D::RefinementSelectors;
 class CustomInitialConditionWave : public ExactSolutionScalar<double>
 {
 public:
-  CustomInitialConditionWave(Mesh* mesh) : ExactSolutionScalar<double>(mesh) {};
+  CustomInitialConditionWave(const Mesh* mesh) : ExactSolutionScalar<double>(mesh) {};
 
   virtual double value (double x, double y) const;
 

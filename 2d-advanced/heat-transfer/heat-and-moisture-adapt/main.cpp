@@ -128,9 +128,9 @@ int main(int argc, char* argv[])
 {
   // Choose a Butcher's table or define your own.
   ButcherTable bt(butcher_table_type);
-  if (bt.is_explicit()) info("Using a %d-stage explicit R-K method.", bt.get_size());
-  if (bt.is_diagonally_implicit()) info("Using a %d-stage diagonally implicit R-K method.", bt.get_size());
-  if (bt.is_fully_implicit()) info("Using a %d-stage fully implicit R-K method.", bt.get_size());
+  if (bt.is_explicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage explicit R-K method.", bt.get_size());
+  if (bt.is_diagonally_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage diagonally implicit R-K method.", bt.get_size());
+  if (bt.is_fully_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage fully implicit R-K method.", bt.get_size());
 
   // Load the mesh.
   Mesh basemesh, T_mesh, w_mesh;
@@ -151,7 +151,7 @@ int main(int argc, char* argv[])
   H1Space<double> w_space(MULTI ? &w_mesh : &T_mesh, P_INIT);
 
   // Define constant initial conditions.
-  info("Setting initial conditions.");
+  Hermes::Mixins::Loggable::Static::info("Setting initial conditions.");
   ConstantSolution<double> T_time_prev(&T_mesh, T_INITIAL);
   ConstantSolution<double> w_time_prev(&w_mesh, W_INITIAL);
   Solution<double> T_time_new(&T_mesh);
@@ -189,19 +189,19 @@ int main(int argc, char* argv[])
   int ts = 1;
   while (current_time < SIMULATION_TIME)
   {
-    info("Simulation time = %g s (%d h, %d d, %d y)",
+    Hermes::Mixins::Loggable::Static::info("Simulation time = %g s (%d h, %d d, %d y)",
         current_time, (int) current_time / 3600,
         (int) current_time / (3600*24), (int) current_time / (3600*24*364));
 
     // Update time-dependent essential BCs.
     if (current_time <= REACTOR_START_TIME) {
-      info("Updating time-dependent essential BC.");
+      Hermes::Mixins::Loggable::Static::info("Updating time-dependent essential BC.");
       Space<double>::update_essential_bc_values(Hermes::vector<Space<double>*>(&T_space, &w_space), current_time);
     }
 
     // Uniform mesh derefinement.
     if (ts > 1 && ts % UNREF_FREQ == 0) {
-      info("Global mesh derefinement.");
+      Hermes::Mixins::Loggable::Static::info("Global mesh derefinement.");
       switch (UNREF_METHOD) {
         case 1: T_mesh.copy(&basemesh);
                 w_mesh.copy(&basemesh);
@@ -229,7 +229,7 @@ int main(int argc, char* argv[])
     bool done = false; int as = 1; 
     do
     {
-      info("Time step %d, adaptivity step %d:", ts, as);
+      Hermes::Mixins::Loggable::Static::info("Time step %d, adaptivity step %d:", ts, as);
 
       // Construct globally refined reference mesh and setup reference space.
       Hermes::vector<Space<double> *>* ref_spaces 
@@ -243,7 +243,7 @@ int main(int argc, char* argv[])
       RungeKutta<double> runge_kutta(&wf, *ref_spaces, &bt, matrix_solver);
 
       // Perform one Runge-Kutta time step according to the selected Butcher's table.
-      info("Runge-Kutta time step (t = %g s, tau = %g s, stages: %d).",
+      Hermes::Mixins::Loggable::Static::info("Runge-Kutta time step (t = %g s, tau = %g s, stages: %d).",
            current_time, time_step, bt.get_size());
       bool freeze_jacobian = true;
       bool block_diagonal_jacobian = true;
@@ -263,7 +263,7 @@ int main(int argc, char* argv[])
       }
 
       // Project the fine mesh solution onto the coarse meshes.
-      info("Projecting fine mesh solutions on coarse meshes for error estimation.");
+      Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solutions on coarse meshes for error estimation.");
       OGProjection<double>::project_global(Hermes::vector<const Space<double> *>(&T_space, &w_space), 
           Hermes::vector<Solution<double> *>(&T_time_new, &w_time_new), 
 	  Hermes::vector<Solution<double> *>(&T_coarse, &w_coarse),
@@ -283,12 +283,12 @@ int main(int argc, char* argv[])
       */
 
       // Calculate element errors and total error estimate.
-      info("Calculating error estimate."); 
+      Hermes::Mixins::Loggable::Static::info("Calculating error estimate."); 
       double err_est_rel_total = adaptivity->calc_err_est(Hermes::vector<Solution<double> *>(&T_coarse, &w_coarse), 
                                  Hermes::vector<Solution<double> *>(&T_time_new, &w_time_new)) * 100;
 
       // Report results.
-      info("ndof_coarse: %d, ndof_fine: %d, err_est_rel: %g%%", 
+      Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d, err_est_rel: %g%%", 
 	   Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&T_space, &w_space)), 
            Space<double>::get_num_dofs(ref_spaces_const), err_est_rel_total);
 
@@ -297,7 +297,7 @@ int main(int argc, char* argv[])
         done = true;
       else 
       {
-        info("Adapting the coarse mesh.");
+        Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh.");
         done = adaptivity->adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&selector, &selector), THRESHOLD, STRATEGY, MESH_REGULARITY);
 
         if (Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&T_space, &w_space)) >= NDOF_STOP) 

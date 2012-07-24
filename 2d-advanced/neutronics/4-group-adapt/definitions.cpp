@@ -165,7 +165,7 @@ int power_iteration(const MaterialPropertyMaps& matprop,
     // Compute the eigenvalue for current iteration.
     double k_new = wf->get_keff() * (integrate(&new_source, fission_region) / integrate(&old_source, fission_region));
 
-    info("      dominant eigenvalue (est): %g, rel. difference: %g", k_new, fabs((wf->get_keff() - k_new) / k_new));
+    Hermes::Mixins::Loggable::Static::info("      dominant eigenvalue (est): %g, rel. difference: %g", k_new, fabs((wf->get_keff() - k_new) / k_new));
 
     // Stopping criterion.
     if (fabs((wf->get_keff() - k_new) / k_new) < tol) eigen_done = true;

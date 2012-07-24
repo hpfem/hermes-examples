@@ -83,9 +83,9 @@ int main(int argc, char* argv[])
 {
   // Choose a Butcher's table or define your own.
   ButcherTable bt(butcher_table_type);
-  if (bt.is_explicit()) info("Using a %d-stage explicit R-K method.", bt.get_size());
-  if (bt.is_diagonally_implicit()) info("Using a %d-stage diagonally implicit R-K method.", bt.get_size());
-  if (bt.is_fully_implicit()) info("Using a %d-stage fully implicit R-K method.", bt.get_size());
+  if (bt.is_explicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage explicit R-K method.", bt.get_size());
+  if (bt.is_diagonally_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage diagonally implicit R-K method.", bt.get_size());
+  if (bt.is_fully_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage fully implicit R-K method.", bt.get_size());
 
   // Load the mesh.
   Mesh mesh;
@@ -103,7 +103,7 @@ int main(int argc, char* argv[])
   // Create an H1 space with default shapeset.
   H1Space<double> space(&mesh, &bcs, P_INIT);
   int ndof = space.get_num_dofs();
-  info("ndof = %d.", ndof);
+  Hermes::Mixins::Loggable::Static::info("ndof = %d.", ndof);
 
   // Zero initial solutions. This is why we use H_OFFSET.
   ZeroSolution<double> h_time_prev(&mesh), h_time_new(&mesh);
@@ -133,10 +133,10 @@ int main(int argc, char* argv[])
   int ts = 1;
   do 
   {
-    info("---- Time step %d, time %3.5f s", ts, current_time);
+    Hermes::Mixins::Loggable::Static::info("---- Time step %d, time %3.5f s", ts, current_time);
 
     // Perform one Runge-Kutta time step according to the selected Butcher's table.
-    info("Runge-Kutta time step (t = %g s, time step = %g s, stages: %d).", 
+    Hermes::Mixins::Loggable::Static::info("Runge-Kutta time step (t = %g s, time step = %g s, stages: %d).", 
          current_time, time_step, bt.get_size());
     bool freeze_jacobian = false;
     bool block_diagonal_jacobian = false;

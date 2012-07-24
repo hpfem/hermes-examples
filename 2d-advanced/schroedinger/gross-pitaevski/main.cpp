@@ -65,9 +65,9 @@ int main(int argc, char* argv[])
 {
   // Choose a Butcher's table or define your own.
   ButcherTable bt(butcher_table_type);
-  if (bt.is_explicit()) info("Using a %d-stage explicit R-K method.", bt.get_size());
-  if (bt.is_diagonally_implicit()) info("Using a %d-stage diagonally implicit R-K method.", bt.get_size());
-  if (bt.is_fully_implicit()) info("Using a %d-stage fully implicit R-K method.", bt.get_size());
+  if (bt.is_explicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage explicit R-K method.", bt.get_size());
+  if (bt.is_diagonally_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage diagonally implicit R-K method.", bt.get_size());
+  if (bt.is_fully_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage fully implicit R-K method.", bt.get_size());
 
   // Load the mesh.
   Mesh mesh;
@@ -93,7 +93,7 @@ int main(int argc, char* argv[])
   // Create an H1 space with default shapeset.
   H1Space<std::complex<double> > space(&mesh, &bcs, P_INIT);
   int ndof = space.get_num_dofs();
-  info("ndof = %d", ndof);
+  Hermes::Mixins::Loggable::Static::info("ndof = %d", ndof);
  
   // Initialize the FE problem.
   DiscreteProblem<std::complex<double> > dp(&wf, &space);
@@ -113,7 +113,7 @@ int main(int argc, char* argv[])
   for(int ts = 1; ts <= nstep; ts++)
   {
     // Perform one Runge-Kutta time step according to the selected Butcher's table.
-    info("Runge-Kutta time step (t = %g s, time step = %g s, stages: %d).", 
+    Hermes::Mixins::Loggable::Static::info("Runge-Kutta time step (t = %g s, time step = %g s, stages: %d).", 
          current_time, time_step, bt.get_size());
     bool jacobian_changed = false;
     bool verbose = true;

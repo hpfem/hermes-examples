@@ -59,17 +59,14 @@ int main(int argc, char* argv[])
 {
   // Choose a Butcher's table or define your own.
   ButcherTable bt(butcher_table_type);
-  if (bt.is_explicit()) info("Using a %d-stage explicit R-K method.", bt.get_size());
-  if (bt.is_diagonally_implicit()) info("Using a %d-stage diagonally implicit R-K method.", bt.get_size());
-  if (bt.is_fully_implicit()) info("Using a %d-stage fully implicit R-K method.", bt.get_size());
+  if (bt.is_explicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage explicit R-K method.", bt.get_size());
+  if (bt.is_diagonally_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage diagonally implicit R-K method.", bt.get_size());
+  if (bt.is_fully_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage fully implicit R-K method.", bt.get_size());
 
   // Load the mesh.
   Mesh mesh;
   MeshReaderH2D mloader;
   mloader.load("domain.mesh", &mesh);
-
-  // Convert to quadrilaterals.
-  mesh.convert_triangles_to_quads();
 
   // Refine towards boundary.
   mesh.refine_towards_boundary("Bdy", 1, true);
@@ -92,7 +89,7 @@ int main(int argc, char* argv[])
   // Create x- and y- displacement space using the default H1 shapeset.
   H1Space<double> u_space(&mesh, &bcs, P_INIT);
   H1Space<double> v_space(&mesh, &bcs, P_INIT);
-  info("ndof = %d.", Space<double>::get_num_dofs(Hermes::vector<const Space<double>*>(&u_space, &v_space)));
+  Hermes::Mixins::Loggable::Static::info("ndof = %d.", Space<double>::get_num_dofs(Hermes::vector<const Space<double>*>(&u_space, &v_space)));
 
   // Initialize views.
   ScalarView u_view("Solution u", new WinGeom(0, 0, 500, 400));
@@ -103,27 +100,28 @@ int main(int argc, char* argv[])
   v_view.fix_scale_width(50);
 
   // Initialize Runge-Kutta time stepping.
-  RungeKutta<double> runge_kutta(&wf, Hermes::vector<Space<double>*>(&u_space, &v_space), &bt, matrix_solver);
+  RungeKutta<double> runge_kutta(&wf, Hermes::vector<const Space<double>*>(&u_space, &v_space), &bt);
 
   // Time stepping loop.
   double current_time = 0; int ts = 1;
   do
   {
     // Perform one Runge-Kutta time step according to the selected Butcher's table.
-    info("Runge-Kutta time step (t = %g s, time_step = %g s, stages: %d).", 
+    Hermes::Mixins::Loggable::Static::info("Runge-Kutta time step (t = %g s, time_step = %g s, stages: %d).", 
          current_time, time_step, bt.get_size());
     bool jacobian_changed = false;
     bool verbose = true;
 
     try
     {
-      runge_kutta.rk_time_step_newton(current_time, time_step, slns, 
-                                  slns, !jacobian_changed, false, verbose);
+      runge_kutta.setTime(current_time);
+      runge_kutta.setTimeStep(time_step);
+
+      runge_kutta.rk_time_step_newton(slns, slns);
     }
     catch(Exceptions::Exception& e)
     {
       e.printMsg();
-      error("Runge-Kutta time step failed");
     }
 
     // Visualize the solutions.

@@ -203,7 +203,7 @@ int main(int argc, char* argv[])
   // The van Genuchten + Mualem K(h) function is approximated by polynomials close 
   // to zero in case of CONSTITUTIVE_TABLE_METHOD==1.
   // In case of CONSTITUTIVE_TABLE_METHOD==2, all constitutive functions are approximated by polynomials.
-  info("Initializing polynomial approximations.");
+  Hermes::Mixins::Loggable::Static::info("Initializing polynomial approximations.");
   for (int i=0; i < MATERIAL_COUNT; i++)
   {
     // Points to be used for polynomial approximation of K(h).
@@ -241,7 +241,7 @@ int main(int argc, char* argv[])
   // Create an H1 space with default shapeset.
   H1Space<double> space(&mesh, &bcs, P_INIT);
   int ndof = Space<double>::get_num_dofs(&space);
-  info("ndof = %d.", ndof);
+  Hermes::Mixins::Loggable::Static::info("ndof = %d.", ndof);
 
   // Create a selector which will select optimal candidate.
   H1ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
@@ -255,21 +255,21 @@ int main(int argc, char* argv[])
   WeakForm<double>* wf;
   if (ITERATIVE_METHOD == 1) {
     if (TIME_INTEGRATION == 1) {
-      info("Creating weak formulation for the Newton's method (implicit Euler in time).");
+      Hermes::Mixins::Loggable::Static::info("Creating weak formulation for the Newton's method (implicit Euler in time).");
       wf = new WeakFormRichardsNewtonEuler(&constitutive_relations, time_step, &sln_prev_time, &mesh);
     }
     else {
-      info("Creating weak formulation for the Newton's method (Crank-Nicolson in time).");
+      Hermes::Mixins::Loggable::Static::info("Creating weak formulation for the Newton's method (Crank-Nicolson in time).");
       wf = new WeakFormRichardsNewtonCrankNicolson(&constitutive_relations, time_step, &sln_prev_time, &mesh);
     }
   }
   else {
     if (TIME_INTEGRATION == 1) {
-      info("Creating weak formulation for the Picard's method (implicit Euler in time).");
+      Hermes::Mixins::Loggable::Static::info("Creating weak formulation for the Picard's method (implicit Euler in time).");
       wf = new WeakFormRichardsPicardEuler(&constitutive_relations, time_step, &sln_prev_iter, &sln_prev_time, &mesh);
     }
     else {
-      info("Creating weak formulation for the Picard's method (Crank-Nicolson in time).");
+      Hermes::Mixins::Loggable::Static::info("Creating weak formulation for the Picard's method (Crank-Nicolson in time).");
       error("Not implemented yet.");
     }
   }
@@ -292,7 +292,7 @@ int main(int argc, char* argv[])
   int num_time_steps = (int)(T_FINAL/time_step + 0.5);
   for(int ts = 1; ts <= num_time_steps; ts++)
   {
-    info("---- Time step %d:", ts);
+    Hermes::Mixins::Loggable::Static::info("---- Time step %d:", ts);
 
     // Time measurement.
     cpu_time.tick();
@@ -300,7 +300,7 @@ int main(int argc, char* argv[])
     // Periodic global derefinement.
     if (ts > 1 && ts % UNREF_FREQ == 0) 
     {
-      info("Global mesh derefinement.");
+      Hermes::Mixins::Loggable::Static::info("Global mesh derefinement.");
       switch (UNREF_METHOD) {
         case 1: mesh.copy(&basemesh);
                 space.set_uniform_order(P_INIT);
@@ -324,7 +324,7 @@ int main(int argc, char* argv[])
     double err_est_rel;
     do
     {
-      info("---- Time step %d, time step lenght %g, time %g (days), adaptivity step %d:", ts, time_step, current_time, as);
+      Hermes::Mixins::Loggable::Static::info("---- Time step %d, time step lenght %g, time %g (days), adaptivity step %d:", ts, time_step, current_time, as);
 
       // Construct globally refined reference mesh
       // and setup reference space.
@@ -338,11 +338,11 @@ int main(int argc, char* argv[])
      
         // Calculate initial coefficient vector for Newton on the fine mesh.
         if (as == 1 && ts == 1) {
-          info("Projecting coarse mesh solution to obtain initial vector on new fine mesh.");
+          Hermes::Mixins::Loggable::Static::info("Projecting coarse mesh solution to obtain initial vector on new fine mesh.");
           OGProjection<double>::project_global(ref_space, &sln_prev_time, coeff_vec, matrix_solver);
         }
         else {
-          info("Projecting previous fine mesh solution to obtain initial vector on new fine mesh.");
+          Hermes::Mixins::Loggable::Static::info("Projecting previous fine mesh solution to obtain initial vector on new fine mesh.");
           OGProjection<double>::project_global(ref_space, &ref_sln, coeff_vec, matrix_solver);
           delete ref_sln.get_space();
           delete ref_sln.get_mesh();
@@ -354,7 +354,7 @@ int main(int argc, char* argv[])
         // Perform Newton's iteration on the reference mesh. If necessary, 
         // reduce time step to make it converge, but then restore time step 
         // size to its original value.
-        info("Performing Newton's iteration (tau = %g days):", time_step);
+        Hermes::Mixins::Loggable::Static::info("Performing Newton's iteration (tau = %g days):", time_step);
         bool success, verbose = true;
         double* save_coeff_vec = new double[ndof];
         
@@ -365,7 +365,7 @@ int main(int argc, char* argv[])
         bc_essential.set_current_time(current_time);
         
         // Perform Newton's iteration.
-        info("Solving nonlinear problem:");
+        Hermes::Mixins::Loggable::Static::info("Solving nonlinear problem:");
         Hermes::Hermes2D::NewtonSolver<double> newton(&dp, matrix_solver);
         bool newton_converged = false;
         while(!newton_converged)
@@ -386,7 +386,7 @@ int main(int argc, char* argv[])
             // Restore solution from the beginning of time step.
             for (int i=0; i < ndof; i++) coeff_vec[i] = save_coeff_vec[i];
             // Reducing time step to 50%.
-            info("Reducing time step size from %g to %g days for the rest of this time step.", 
+            Hermes::Mixins::Loggable::Static::info("Reducing time step size from %g to %g days for the rest of this time step.", 
                  time_step, time_step * time_step_dec);
             time_step *= time_step_dec;
             // If time_step less than the prescribed minimum, stop.
@@ -406,18 +406,18 @@ int main(int argc, char* argv[])
       else {
         // Calculate initial condition for Picard on the fine mesh.
         if (as == 1 && ts == 1) {
-          info("Projecting coarse mesh solution to obtain initial vector on new fine mesh.");
+          Hermes::Mixins::Loggable::Static::info("Projecting coarse mesh solution to obtain initial vector on new fine mesh.");
           OGProjection<double>::project_global(ref_space, &sln_prev_time, &sln_prev_iter, matrix_solver);
         }
         else {
-          info("Projecting previous fine mesh solution to obtain initial vector on new fine mesh.");
+          Hermes::Mixins::Loggable::Static::info("Projecting previous fine mesh solution to obtain initial vector on new fine mesh.");
           OGProjection<double>::project_global(ref_space, &ref_sln, &sln_prev_iter, matrix_solver);
         }
 
         // Perform Picard iteration on the reference mesh. If necessary, 
         // reduce time step to make it converge, but then restore time step 
         // size to its original value.
-        info("Performing Picard's iteration (tau = %g days):", time_step);
+        Hermes::Mixins::Loggable::Static::info("Performing Picard's iteration (tau = %g days):", time_step);
         bool verbose = true;
 
         bc_essential.set_current_time(current_time);
@@ -430,7 +430,7 @@ int main(int argc, char* argv[])
           // Restore solution from the beginning of time step.
           sln_prev_iter.copy(&sln_prev_time);
           // Reducing time step to 50%.
-          info("Reducing time step size from %g to %g days for the rest of this time step", time_step, time_step * time_step_inc);
+          Hermes::Mixins::Loggable::Static::info("Reducing time step size from %g to %g days for the rest of this time step", time_step, time_step * time_step_inc);
           time_step *= time_step_dec;
           // If time_step less than the prescribed minimum, stop.
           if (time_step < time_step_min) error("Time step dropped below prescribed minimum value.");
@@ -443,25 +443,25 @@ int main(int argc, char* argv[])
       /*** ADAPTIVITY ***/
 
       // Project the fine mesh solution on the coarse mesh.
-      info("Projecting fine mesh solution on coarse mesh for error calculation.");
+      Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh for error calculation.");
       if(space.get_mesh() == NULL) error("it is NULL");
       OGProjection<double>::project_global(&space, &ref_sln, &sln, matrix_solver);
 
       // Calculate element errors.
-      info("Calculating error estimate."); 
+      Hermes::Mixins::Loggable::Static::info("Calculating error estimate."); 
       Adapt<double>* adaptivity = new Adapt<double>(&space);
       
       // Calculate error estimate wrt. fine mesh solution.
       err_est_rel = adaptivity->calc_err_est(&sln, &ref_sln) * 100;
 
       // Report results.
-      info("ndof_coarse: %d, ndof_fine: %d, space_err_est_rel: %g%%", 
+      Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d, space_err_est_rel: %g%%", 
         Space<double>::get_num_dofs(&space), Space<double>::get_num_dofs(ref_space), err_est_rel);
 
       // If space_err_est too large, adapt the mesh.
       if (err_est_rel < ERR_STOP) done = true;
       else {
-        info("Adapting coarse mesh.");
+        Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
         done = adaptivity->adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
         if (Space<double>::get_num_dofs(&space) >= NDOF_STOP) {
           done = true;
@@ -497,7 +497,7 @@ int main(int argc, char* argv[])
     char* filename = new char[100];
     sprintf(filename, "outputs/tsln_%f.dat", current_time);
     sln.save(filename);
-    info("Solution at time %g saved to file %s.", current_time, filename);
+    Hermes::Mixins::Loggable::Static::info("Solution at time %g saved to file %s.", current_time, filename);
 
     // Copy new reference level solution into sln_prev_time.
     // This starts new time step.
@@ -508,7 +508,7 @@ int main(int argc, char* argv[])
 
     // Increase time step.
     if (time_step*time_step_inc < time_step_max) {
-      info("Increasing time step from %g to %g days.", time_step, time_step * time_step_inc);
+      Hermes::Mixins::Loggable::Static::info("Increasing time step from %g to %g days.", time_step, time_step * time_step_inc);
       time_step *= time_step_inc;
     }
   }

@@ -83,7 +83,7 @@ int main(int argc, char* argv[])
   H1Space<double> e_r_space(&mesh, &bcs, P_INIT);
   H1Space<double> e_i_space(&mesh, &bcs_im, P_INIT);
   int ndof = Space<double>::get_num_dofs(&e_r_space);
-  info("ndof = %d", ndof);
+  Hermes::Mixins::Loggable::Static::info("ndof = %d", ndof);
 
   // Initialize the weak formulation.
   WeakFormHelmholtz wf(eps, mu, omega, sigma, beta, E0, h);

@@ -133,7 +133,7 @@ int main(int argc, char* argv[])
   // Calculate and report the number of degrees of freedom.
   int ndof = Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&xvel_space, 
       &yvel_space, &p_space, &temperature_space));
-  Hermes::Mixins::Loggable::Static::info("ndof = %d.", ndof);
+  //Hermes::Mixins::Loggable::Static::Hermes::Mixins::Loggable::Static::info("ndof = %d.", ndof);
 
   // Define projection norms.
   ProjNormType vel_proj_norm = HERMES_H1_NORM;
@@ -147,7 +147,7 @@ int main(int argc, char* argv[])
       vel_proj_norm, p_proj_norm, temperature_proj_norm);
 
   // Initial conditions and such.
-  Hermes::Mixins::Loggable::Static::info("Setting initial conditions.");
+  //Hermes::Mixins::Loggable::Static::Hermes::Mixins::Loggable::Static::info("Setting initial conditions.");
   ZeroSolution<double> xvel_prev_time(&mesh_with_hole), yvel_prev_time(&mesh_with_hole), p_prev_time(&mesh_with_hole);
   CustomInitialConditionTemperature temperature_init_cond(&mesh_whole_domain, HOLE_MID_X, HOLE_MID_Y, 
       0.5*OBSTACLE_DIAMETER, TEMPERATURE_INIT_FLUID, TEMPERATURE_INIT_GRAPHITE); 
@@ -163,7 +163,7 @@ int main(int argc, char* argv[])
   // FIXME - currently the LocalProjection only does the lowest-order part (linear
   // interpolation) at the moment. Higher-order part needs to be added.
   double* coeff_vec = new double[ndof];
-  Hermes::Mixins::Loggable::Static::info("Projecting initial condition to obtain initial vector for the Newton's method.");
+  //Hermes::Mixins::Loggable::Static::Hermes::Mixins::Loggable::Static::info("Projecting initial condition to obtain initial vector for the Newton's method.");
   //OGProjection<double>::project_global(all_spaces, all_meshfns, coeff_vec, matrix_solver, all_proj_norms);
   LocalProjection<double>::project_local(all_spaces_const, all_meshfns, coeff_vec, all_proj_norms);
 
@@ -173,7 +173,7 @@ int main(int argc, char* argv[])
 
   // Calculate Reynolds number.
   double reynolds_number = VEL_INLET * OBSTACLE_DIAMETER / KINEMATIC_VISCOSITY_FLUID;
-  Hermes::Mixins::Loggable::Static::info("RE = %g", reynolds_number);
+  //Hermes::Mixins::Loggable::Static::Hermes::Mixins::Loggable::Static::info("RE = %g", reynolds_number);
 
   // Initialize weak formulation.
   CustomWeakFormHeatAndFlow wf(STOKES, reynolds_number, time_step, &xvel_prev_time, &yvel_prev_time, &temperature_prev_time, 
@@ -185,8 +185,6 @@ int main(int argc, char* argv[])
 
   // Initialize the Newton solver.
   NewtonSolver<double> newton(&dp);
-  newton.set_newton_max_iter(NEWTON_MAX_ITER);
-  newton.set_newton_tol(NEWTON_TOL);
 
   // Initialize views.
   Views::VectorView vview("velocity [m/s]", new Views::WinGeom(0, 0, 700, 360));
@@ -207,18 +205,18 @@ int main(int argc, char* argv[])
   for (int ts = 1; ts <= num_time_steps; ts++)
   {
     current_time += time_step;
-    Hermes::Mixins::Loggable::Static::info("---- Time step %d, time = %g:", ts, current_time);
+    //Hermes::Mixins::Loggable::Static::Hermes::Mixins::Loggable::Static::info("---- Time step %d, time = %g:", ts, current_time);
 
     // Update time-dependent essential BCs.
     if (current_time <= STARTUP_TIME) 
     {
-      Hermes::Mixins::Loggable::Static::info("Updating time-dependent essential BC.");
+      //Hermes::Mixins::Loggable::Static::Hermes::Mixins::Loggable::Static::info("Updating time-dependent essential BC.");
       Space<double>::update_essential_bc_values(Hermes::vector<Space<double> *>(&xvel_space, &yvel_space, &p_space, 
                                                 &temperature_space), current_time);
     }
 
     // Perform Newton's iteration.
-    Hermes::Mixins::Loggable::Static::info("Solving nonlinear problem:");
+    //Hermes::Mixins::Loggable::Static::Hermes::Mixins::Loggable::Static::info("Solving nonlinear problem:");
     bool verbose = true;
     // Perform Newton's iteration and translate the resulting coefficient vector into previous time level solutions.
     newton.set_verbose_output(verbose);
@@ -239,7 +237,7 @@ int main(int argc, char* argv[])
     // Show the solution at the end of time step.
     sprintf(title, "Velocity [m/s], time %g s", current_time);
     vview.set_title(title);
-    vview.show(&xvel_prev_time, &yvel_prev_time);
+    //vview.show(&xvel_prev_time, &yvel_prev_time);
     sprintf(title, "Pressure [Pa], time %g s", current_time);
     pview.set_title(title);
     pview.show(&p_prev_time);

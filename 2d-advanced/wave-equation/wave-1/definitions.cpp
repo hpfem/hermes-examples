@@ -25,8 +25,8 @@ CustomWeakFormWave::CustomWeakFormWave(double tau, double c_squared, Solution<do
                                        Solution<double>* v_prev_sln) : WeakForm<double>(2) 
 {
   // Volumetric matrix forms.
-  add_matrix_form(new WeakFormsH1::DefaultMatrixFormVol<double>(0, 1, new Hermes2DFunction<double>(1.0), HERMES_ANY, HERMES_NONSYM));
-  add_matrix_form(new WeakFormsH1::DefaultJacobianDiffusion<double>(1, 0, new Hermes1DFunction<double>(-c_squared), HERMES_ANY, HERMES_NONSYM));
+  add_matrix_form(new WeakFormsH1::DefaultMatrixFormVol<double>(0, 1, HERMES_ANY, new Hermes2DFunction<double>(1.0), HERMES_NONSYM));
+  add_matrix_form(new WeakFormsH1::DefaultJacobianDiffusion<double>(1, 0, HERMES_ANY, new Hermes1DFunction<double>(-c_squared), HERMES_NONSYM));
 
   // Volumetric surface forms.
   add_vector_form(new VectorFormVolWave_0());

@@ -23,7 +23,7 @@ CustomWeakFormRichardsRK::CustomWeakFormRichardsRK(ConstitutiveRelations* consti
 double CustomWeakFormRichardsRK::CustomJacobianFormVol::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
                                                               Func<double> *v, Geom<double> *e, ExtData<double> *ext) const 
 {
-  info("1");
+  Hermes::Mixins::Loggable::Static::info("1");
   double result = 0;
   Func<double>* h_prev_newton = u_ext[0];
   for (int i = 0; i < n; i++)
@@ -68,7 +68,7 @@ MatrixFormVol<double>* CustomWeakFormRichardsRK::CustomJacobianFormVol::clone()
 double CustomWeakFormRichardsRK::CustomResidualFormVol::value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e,
                                                               ExtData<double> *ext) const 
 {
-  info("2");
+  Hermes::Mixins::Loggable::Static::info("2");
   double result = 0;
   Func<double>* h_prev_newton = u_ext[0];
   for (int i = 0; i < n; i++)

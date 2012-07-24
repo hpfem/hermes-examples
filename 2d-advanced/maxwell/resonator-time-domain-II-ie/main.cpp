@@ -76,7 +76,7 @@ int main(int argc, char* argv[])
   HcurlSpace<double> F_space(&mesh, &bcs, P_INIT);
   Hermes::vector<const Space<double> *> spaces = Hermes::vector<const Space<double> *>(&E_space, &F_space);
   int ndof = HcurlSpace<double>::get_num_dofs(spaces);
-  info("ndof = %d.", ndof);
+  Hermes::Mixins::Loggable::Static::info("ndof = %d.", ndof);
 
   // Initialize the FE problem.
   DiscreteProblem<double> dp(&wf, spaces);
@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
   // coefficient vector for the Newton's method.
   // NOTE: If you want to start from the zero vector, just define 
   // coeff_vec to be a vector of ndof zeros (no projection is needed).
-  info("Projecting to obtain initial vector for the Newton's method.");
+  Hermes::Mixins::Loggable::Static::info("Projecting to obtain initial vector for the Newton's method.");
   double* coeff_vec = new double[ndof];
   OGProjection<double>::project_global(spaces, slns, coeff_vec, matrix_solver); 
 
@@ -107,7 +107,7 @@ int main(int argc, char* argv[])
   do
   {
     // Perform one implicit Euler time step.
-    info("Implicit Euler time step (t = %g s, time_step = %g s).", current_time, time_step);
+    Hermes::Mixins::Loggable::Static::info("Implicit Euler time step (t = %g s, time_step = %g s).", current_time, time_step);
 
     // Perform Newton's iteration.
     try

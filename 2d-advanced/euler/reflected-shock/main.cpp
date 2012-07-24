@@ -49,7 +49,7 @@ bool REUSE_SOLUTION = false;
 // Initial polynomial degree.      
 const int P_INIT = 0;                                                   
 // Number of initial uniform mesh refinements.      
-const int INIT_REF_NUM = 3;                                              
+const int INIT_REF_NUM = 4;                                              
 // CFL value.
 double CFL_NUMBER = 0.1;                                
 // Initial time step.
@@ -109,7 +109,7 @@ int main(int argc, char* argv[])
   L2Space<double> space_e(&mesh, P_INIT);
   L2Space<double> space_stabilization(&mesh, 0);
   int ndof = Space<double>::get_num_dofs(Hermes::vector<const Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
-  info("ndof: %d", ndof);
+  Hermes::Mixins::Loggable::Static::info("ndof: %d", ndof);
 
   // Initialize solutions, set initial conditions.
   ConstantSolution<double> prev_rho(&mesh, RHO_INIT);
@@ -131,12 +131,6 @@ int main(int argc, char* argv[])
   ScalarView s2("prev_rho_v_x", new WinGeom(700, 0, 600, 300));
   ScalarView s3("prev_rho_v_y", new WinGeom(0, 400, 600, 300));
   ScalarView s4("prev_e", new WinGeom(700, 400, 600, 300));
-
-  // Set up the solver, matrix, and rhs according to the solver selection.
-  SparseMatrix<double>* matrix = create_matrix<double>(matrix_solver);
-  Vector<double>* rhs = create_vector<double>(matrix_solver);
-  Vector<double>* rhs_stabilization = create_vector<double>(matrix_solver);
-  LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver, matrix, rhs);
 
   // Set up CFL calculation class.
   CFLCalculation CFL(CFL_NUMBER, KAPPA);
@@ -164,8 +158,8 @@ int main(int argc, char* argv[])
     wf.set_stabilization(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, NU_1, NU_2);
 
   // Initialize the FE problem.
-  DiscreteProblem<double> dp(&wf, Hermes::vector<const Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
-  DiscreteProblem<double> dp_stabilization(&wf_stabilization, &space_stabilization);
+  DiscreteProblemLinear<double> dp(&wf, Hermes::vector<const Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
+  LinearSolver<double> solver(&dp);
 
   // If the FE problem is in fact a FV problem.
   if(P_INIT == 0) 
@@ -174,61 +168,39 @@ int main(int argc, char* argv[])
   // Time stepping loop.
   for(; t < 6.0; t += time_step)
   {
-    info("---- Time step %d, time %3.5f.", iteration++, t);
-
-    if(SHOCK_CAPTURING && SHOCK_CAPTURING_TYPE == FEISTAUER)
-    {
-      assert(space_stabilization.get_num_dofs() == space_stabilization.get_mesh()->get_num_active_elements());
-      dp_stabilization.assemble(rhs_stabilization);
-      bool* discreteIndicator = new bool[space_stabilization.get_num_dofs()];
-      memset(discreteIndicator, 0, space_stabilization.get_num_dofs() * sizeof(bool));
-      Element* e;
-      for_all_active_elements(e, space_stabilization.get_mesh())
-      {
-        AsmList<double> al;
-        space_stabilization.get_element_assembly_list(e, &al);
-        if(rhs_stabilization->get(al.get_dof()[0]) >= 1)
-          discreteIndicator[e->id] = true;
-      }
-      wf.set_discreteIndicator(discreteIndicator);
-    }
+    Hermes::Mixins::Loggable::Static::info("---- Time step %d, time %3.5f.", iteration++, t);
 
     // Set the current time step.
     wf.set_time_step(time_step);
 
     // Assemble the stiffness matrix and rhs.
-    info("Assembling the stiffness matrix and right-hand side vector.");
-    dp.assemble(matrix, rhs);
+    Hermes::Mixins::Loggable::Static::info("Assembling the stiffness matrix and right-hand side vector.");
 
     // Solve the matrix problem.
-    info("Solving the matrix problem.");
-    if(solver->solve())
+    Hermes::Mixins::Loggable::Static::info("Solving the matrix problem.");
+    solver.solve();
+    if(!SHOCK_CAPTURING || SHOCK_CAPTURING_TYPE == FEISTAUER)
     {
-      if(!SHOCK_CAPTURING || SHOCK_CAPTURING_TYPE == FEISTAUER)
-      {
-        Solution<double>::vector_to_solutions(solver->get_sln_vector(), Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
-          &space_rho_v_y, &space_e), Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
-      }
-      else
-      {      
-        FluxLimiter* flux_limiter;
-        if(SHOCK_CAPTURING_TYPE == KUZMIN)
-          flux_limiter = new FluxLimiter(FluxLimiter::Kuzmin, solver->get_sln_vector(), Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
-          &space_rho_v_y, &space_e));
-        else
-          flux_limiter = new FluxLimiter(FluxLimiter::Krivodonova, solver->get_sln_vector(), Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
-          &space_rho_v_y, &space_e));
-
-        if(SHOCK_CAPTURING_TYPE == KUZMIN)
-          flux_limiter->limit_second_orders_according_to_detector();
-
-        flux_limiter->limit_according_to_detector();
-
-        flux_limiter->get_limited_solutions(Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
-      }
+      Solution<double>::vector_to_solutions(solver.get_sln_vector(), Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
+        &space_rho_v_y, &space_e), Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
     }
     else
-      error ("Matrix solver failed.\n");
+    {      
+      FluxLimiter* flux_limiter;
+      if(SHOCK_CAPTURING_TYPE == KUZMIN)
+        flux_limiter = new FluxLimiter(FluxLimiter::Kuzmin, solver.get_sln_vector(), Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
+        &space_rho_v_y, &space_e));
+      else
+        flux_limiter = new FluxLimiter(FluxLimiter::Krivodonova, solver.get_sln_vector(), Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
+        &space_rho_v_y, &space_e));
+
+      if(SHOCK_CAPTURING_TYPE == KUZMIN)
+        flux_limiter->limit_second_orders_according_to_detector();
+
+      flux_limiter->limit_according_to_detector();
+
+      flux_limiter->get_limited_solutions(Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
+    }
 
     CFL.calculate_semi_implicit(Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), &mesh, time_step);
 
@@ -259,13 +231,6 @@ int main(int argc, char* argv[])
         lin_mach.save_solution_vtk(&Mach_number, filename, "MachNumber", true);
       }
     }
-    // Save a current state on the disk.
-    continuity.add_record(t);
-    continuity.get_last_record()->save_mesh(&mesh);
-    continuity.get_last_record()->save_spaces(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-      &space_rho_v_y, &space_e));
-    continuity.get_last_record()->save_solutions(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
-    continuity.get_last_record()->save_time_step_length(time_step);
   }
 
   pressure_view.close();

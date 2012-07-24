@@ -148,7 +148,7 @@ int main(int argc, char* argv[])
   L2Space<double>space_rho_v_y(&mesh, P_INIT);
   L2Space<double>space_e(&mesh, P_INIT);
   int ndof = Space<double>::get_num_dofs(Hermes::vector<const Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
-  info("ndof: %d", ndof);
+  Hermes::Mixins::Loggable::Static::info("ndof: %d", ndof);
 
   // Initialize solutions, set initial conditions.
   ConstantSolution<double> sln_rho(&mesh, RHO_EXT);
@@ -206,12 +206,12 @@ int main(int argc, char* argv[])
   // Time stepping loop.
   for(; t < 3.5; t += time_step_n)
   {
-    info("---- Time step %d, time %3.5f.", iteration++, t);
+    Hermes::Mixins::Loggable::Static::info("---- Time step %d, time %3.5f.", iteration++, t);
 
     // Periodic global derefinements.
     if (iteration > 1 && iteration % UNREF_FREQ == 0 && REFINEMENT_COUNT > 0) 
     {
-      info("Global mesh derefinement.");
+      Hermes::Mixins::Loggable::Static::info("Global mesh derefinement.");
       REFINEMENT_COUNT = 0;
 
       space_rho.unrefine_all_mesh_elements(true);
@@ -228,7 +228,7 @@ int main(int argc, char* argv[])
     bool done = false;
     do
     {
-      info("---- Adaptivity step %d:", as);
+      Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d:", as);
 
       // Construct globally refined reference mesh and setup reference space.
       int order_increase = CAND_LIST == H2D_HP_ANISO ? 1 : 0;
@@ -250,7 +250,7 @@ int main(int argc, char* argv[])
       ndofs_prev = Space<double>::get_num_dofs(ref_spaces_const);
 
       // Project the previous time level solution onto the new fine mesh.
-      info("Projecting the previous time level solution onto the new fine mesh.");
+      Hermes::Mixins::Loggable::Static::info("Projecting the previous time level solution onto the new fine mesh.");
       if(iteration == 1)
       {
         delete prev_rho;
@@ -283,12 +283,12 @@ int main(int argc, char* argv[])
       EulerEquationsWeakFormStabilization wf_stabilization(prev_rho);
 
       // Report NDOFs.
-      info("ndof_coarse: %d, ndof_fine: %d.", 
+      Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d.", 
         Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
         &space_rho_v_y, &space_e)), Space<double>::get_num_dofs(ref_spaces_const));
 
       // Assemble the reference problem.
-      info("Solving on reference mesh.");
+      Hermes::Mixins::Loggable::Static::info("Solving on reference mesh.");
       DiscreteProblem<double> dp(&wf, ref_spaces_const);
       DiscreteProblem<double> dp_stabilization(&wf_stabilization, &refspace_stabilization);
       bool* discreteIndicator = NULL;
@@ -309,7 +309,7 @@ int main(int argc, char* argv[])
       dp.assemble(matrix, rhs);
 
       // Solve the matrix problem.
-      info("Solving the matrix problem.");
+      Hermes::Mixins::Loggable::Static::info("Solving the matrix problem.");
       if(solver->solve())
       {
         if(!SHOCK_CAPTURING)
@@ -337,14 +337,14 @@ int main(int argc, char* argv[])
         error ("Matrix solver failed.\n");
 
       // Project the fine mesh solution onto the coarse mesh.
-      info("Projecting reference solution on coarse mesh.");
+      Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
       OGProjection<double>::project_global(Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
         &space_rho_v_y, &space_e), Hermes::vector<Solution<double>*>(rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e), 
         Hermes::vector<Solution<double>*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y, &sln_e), matrix_solver, 
         Hermes::vector<ProjNormType>(HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM)); 
 
       // Calculate element errors and total error estimate.
-      info("Calculating error estimate.");
+      Hermes::Mixins::Loggable::Static::info("Calculating error estimate.");
       Adapt<double>* adaptivity = new Adapt<double>(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
         &space_rho_v_y, &space_e), Hermes::vector<ProjNormType>(HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM));
       double err_est_rel_total = adaptivity->calc_err_est(Hermes::vector<Solution<double>*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y, &sln_e),
@@ -353,14 +353,14 @@ int main(int argc, char* argv[])
       CFL.calculate(Hermes::vector<Solution<double> *>(rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e), (ref_spaces_const)[0]->get_mesh(), time_step_n);
 
       // Report results.
-      info("err_est_rel: %g%%", err_est_rel_total);
+      Hermes::Mixins::Loggable::Static::info("err_est_rel: %g%%", err_est_rel_total);
 
       // If err_est too large, adapt the mesh.
       if (err_est_rel_total < ERR_STOP)
         done = true;
       else
       {
-        info("Adapting coarse mesh.");
+        Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
         done = adaptivity->adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&selector, &selector, &selector, &selector), 
           THRESHOLD, STRATEGY, MESH_REGULARITY);
 

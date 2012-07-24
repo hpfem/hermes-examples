@@ -106,7 +106,7 @@ int main(int argc, char* argv[])
   // Create x- and y- displacement space using the default H1 shapeset.
   H1Space<double> u1_space(&u1_mesh, &bcs, P_INIT);
   H1Space<double> u2_space(&u2_mesh, &bcs, P_INIT);
-  info("ndof = %d.", Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&u1_space, &u2_space)));
+  Hermes::Mixins::Loggable::Static::info("ndof = %d.", Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&u1_space, &u2_space)));
 
   // Initialize the weak formulation.
   // NOTE; These weak forms are identical to those in example P01-linear/08-system.
@@ -139,7 +139,7 @@ int main(int argc, char* argv[])
   bool done = false;
   do
   {
-    info("---- Adaptivity step %d:", as);
+    Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d:", as);
 
     // Construct globally refined reference mesh and setup reference space.
     Hermes::vector<Space<double> *>* ref_spaces = 
@@ -161,7 +161,7 @@ int main(int argc, char* argv[])
     cpu_time.tick();
 
     // Perform Newton's iteration.
-    info("Solving on reference mesh.");
+    Hermes::Mixins::Loggable::Static::info("Solving on reference mesh.");
     try
     {
       newton.solve(NULL, NEWTON_TOL, NEWTON_MAX_ITER);
@@ -180,7 +180,7 @@ int main(int argc, char* argv[])
         Hermes::vector<Solution<double> *>(&u1_sln_ref, &u2_sln_ref));
 
     // Project the fine mesh solution onto the coarse mesh.
-    info("Projecting reference solution on coarse mesh.");
+    Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
     OGProjection<double>::project_global(Hermes::vector<const Space<double> *>(&u1_space, &u2_space), 
         Hermes::vector<Solution<double> *>(&u1_sln_ref, &u2_sln_ref), 
         Hermes::vector<Solution<double> *>(&u1_sln, &u2_sln), matrix_solver); 
@@ -212,7 +212,7 @@ int main(int argc, char* argv[])
     */
 
     // Calculate error estimate for each solution component and the total error estimate.
-    info("Calculating error estimate and exact error."); 
+    Hermes::Mixins::Loggable::Static::info("Calculating error estimate and exact error."); 
     Hermes::vector<double> err_est_rel;
     double err_est_rel_total = adaptivity->calc_err_est(Hermes::vector<Solution<double> *>(&u1_sln, &u2_sln), 
                                Hermes::vector<Solution<double> *>(&u1_sln_ref, &u2_sln_ref), &err_est_rel) * 100;
@@ -221,11 +221,11 @@ int main(int argc, char* argv[])
     cpu_time.tick();
 
     // Report results.
-    info("ndof_coarse[0]: %d, ndof_fine[0]: %d, err_est_rel[0]: %g%%", 
+    Hermes::Mixins::Loggable::Static::info("ndof_coarse[0]: %d, ndof_fine[0]: %d, err_est_rel[0]: %g%%", 
          u1_space.Space<double>::get_num_dofs(), Space<double>::get_num_dofs((*ref_spaces)[0]), err_est_rel[0]*100);
-    info("ndof_coarse[1]: %d, ndof_fine[1]: %d, err_est_rel[1]: %g%%",
+    Hermes::Mixins::Loggable::Static::info("ndof_coarse[1]: %d, ndof_fine[1]: %d, err_est_rel[1]: %g%%",
          u2_space.Space<double>::get_num_dofs(), Space<double>::get_num_dofs((*ref_spaces)[1]), err_est_rel[1]*100);
-    info("ndof_coarse_total: %d, ndof_fine_total: %d, err_est_rel_total: %g%%",
+    Hermes::Mixins::Loggable::Static::info("ndof_coarse_total: %d, ndof_fine_total: %d, err_est_rel_total: %g%%",
          Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&u1_space, &u2_space)), 
          Space<double>::get_num_dofs(ref_spaces_const), err_est_rel_total);
 
@@ -241,7 +241,7 @@ int main(int argc, char* argv[])
       done = true;
     else 
     {
-      info("Adapting coarse mesh.");
+      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
       done = adaptivity->adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&selector, &selector), 
                                MULTI == true ? THRESHOLD_MULTI : THRESHOLD_SINGLE, STRATEGY, MESH_REGULARITY);
     }

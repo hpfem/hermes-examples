@@ -120,9 +120,9 @@ int main(int argc, char* argv[])
 {
   // Choose a Butcher's table or define your own.
   ButcherTable bt(butcher_table_type);
-  if (bt.is_explicit()) info("Using a %d-stage explicit R-K method.", bt.get_size());
-  if (bt.is_diagonally_implicit()) info("Using a %d-stage diagonally implicit R-K method.", bt.get_size());
-  if (bt.is_fully_implicit()) info("Using a %d-stage fully implicit R-K method.", bt.get_size());
+  if (bt.is_explicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage explicit R-K method.", bt.get_size());
+  if (bt.is_diagonally_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage diagonally implicit R-K method.", bt.get_size());
+  if (bt.is_fully_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage fully implicit R-K method.", bt.get_size());
 
   // Load the mesh.
   Mesh mesh, basemesh;
@@ -141,7 +141,7 @@ int main(int argc, char* argv[])
   // Create an H1 space with default shapeset.
   H1Space<double> space(&mesh, &bcs, P_INIT);
   int ndof_coarse = Space<double>::get_num_dofs(&space);
-  info("ndof_coarse = %d.", ndof_coarse);
+  Hermes::Mixins::Loggable::Static::info("ndof_coarse = %d.", ndof_coarse);
 
   // Zero initial solution. This is why we use H_OFFSET.
   ZeroSolution<double> h_time_prev(&mesh), h_time_new(&mesh);
@@ -183,7 +183,7 @@ int main(int argc, char* argv[])
     // Periodic global derefinement.
     if (ts > 1 && ts % UNREF_FREQ == 0) 
     {
-      info("Global mesh derefinement.");
+      Hermes::Mixins::Loggable::Static::info("Global mesh derefinement.");
       switch (UNREF_METHOD) {
         case 1: mesh.copy(&basemesh);
                 space.set_uniform_order(P_INIT);
@@ -205,7 +205,7 @@ int main(int argc, char* argv[])
     bool done = false; int as = 1;
     double err_est;
     do {
-      info("Time step %d, adaptivity step %d:", ts, as);
+      Hermes::Mixins::Loggable::Static::info("Time step %d, adaptivity step %d:", ts, as);
 
       // Construct globally refined reference mesh and setup reference space.
       Space<double>* ref_space = Space<double>::construct_refined_space(&space);
@@ -218,7 +218,7 @@ int main(int argc, char* argv[])
       RungeKutta<double> runge_kutta(&wf, ref_space, &bt, matrix_solver);
 
       // Perform one Runge-Kutta time step according to the selected Butcher's table.
-      info("Runge-Kutta time step (t = %g s, tau = %g s, stages: %d).",
+      Hermes::Mixins::Loggable::Static::info("Runge-Kutta time step (t = %g s, tau = %g s, stages: %d).",
            current_time, time_step, bt.get_size());
       bool freeze_jacobian = false;
       bool block_diagonal_jacobian = false;
@@ -240,16 +240,16 @@ int main(int argc, char* argv[])
 
       // Project the fine mesh solution onto the coarse mesh.
       Solution<double> sln_coarse;
-      info("Projecting fine mesh solution on coarse mesh for error estimation.");
+      Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh for error estimation.");
       OGProjection<double>::project_global(&space, &h_time_new, &sln_coarse, matrix_solver); 
 
       // Calculate element errors and total error estimate.
-      info("Calculating error estimate.");
+      Hermes::Mixins::Loggable::Static::info("Calculating error estimate.");
       Adapt<double>* adaptivity = new Adapt<double>(&space);
       double err_est_rel_total = adaptivity->calc_err_est(&sln_coarse, &h_time_new) * 100;
 
       // Report results.
-      info("ndof_coarse: %d, ndof_ref: %d, err_est_rel: %g%%", 
+      Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_ref: %d, err_est_rel: %g%%", 
            Space<double>::get_num_dofs(&space), Space<double>::get_num_dofs(ref_space), err_est_rel_total);
 
       // Time measurement.
@@ -259,7 +259,7 @@ int main(int argc, char* argv[])
       if (err_est_rel_total < ERR_STOP) done = true;
       else 
       {
-        info("Adapting the coarse mesh.");
+        Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh.");
         done = adaptivity->adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
 
         if (Space<double>::get_num_dofs(&space) >= NDOF_STOP) 

@@ -135,7 +135,7 @@ int main(int argc, char* argv[])
 
   // Calculate and report the number of degrees of freedom.
   int ndof = Space<double>::get_num_dofs(spaces_const);
-  info("ndof = %d.", ndof);
+  Hermes::Mixins::Loggable::Static::info("ndof = %d.", ndof);
 
   // Define projection norms.
   ProjNormType vel_proj_norm = HERMES_H1_NORM;
@@ -146,7 +146,7 @@ int main(int argc, char* argv[])
 #endif
 
   // Solutions for the Newton's iteration and time stepping.
-  info("Setting initial conditions.");
+  Hermes::Mixins::Loggable::Static::info("Setting initial conditions.");
   ZeroSolution<double> xvel_prev_time(&mesh);
   ZeroSolution<double> yvel_prev_time(&mesh);
   ZeroSolution<double> p_prev_time(&mesh);
@@ -175,14 +175,14 @@ int main(int argc, char* argv[])
   for (int ts = 1; ts <= num_time_steps; ts++)
   {
     current_time += TAU;
-    info("---- Time step %d, time = %g:", ts, current_time);
+    Hermes::Mixins::Loggable::Static::info("---- Time step %d, time = %g:", ts, current_time);
 
     // Update time-dependent essential BCs.
-    info("Updating time-dependent essential BC.");
+    Hermes::Mixins::Loggable::Static::info("Updating time-dependent essential BC.");
     Space<double>::update_essential_bc_values(Hermes::vector<Space<double>*>(&xvel_space, &yvel_space, &p_space), current_time);
 
     // Perform Newton's iteration.
-    info("Solving nonlinear problem:");
+    Hermes::Mixins::Loggable::Static::info("Solving nonlinear problem:");
     Hermes::Hermes2D::NewtonSolver<double> newton(&dp, matrix_solver);
     try
     {

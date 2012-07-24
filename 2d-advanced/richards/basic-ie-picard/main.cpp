@@ -82,7 +82,7 @@ int main(int argc, char* argv[])
   // Create an H1 space with default shapeset.
   H1Space<double> space(&mesh, &bcs, P_INIT);
   int ndof = space.get_num_dofs();
-  info("ndof = %d.", ndof);
+  Hermes::Mixins::Loggable::Static::info("ndof = %d.", ndof);
 
   // Zero initial solutions. This is why we use H_OFFSET.
   ZeroSolution<double> h_time_prev(&mesh), h_iter_prev(&mesh);
@@ -116,7 +116,7 @@ int main(int argc, char* argv[])
   int ts = 1;
   do 
   {
-    info("---- Time step %d, time %3.5f s", ts, current_time);
+    Hermes::Mixins::Loggable::Static::info("---- Time step %d, time %3.5f s", ts, current_time);
 
     // Perform the Picard's iteration (Anderson acceleration on by default).
     if (!picard.solve(PICARD_TOL, PICARD_MAX_ITER, PICARD_NUM_LAST_ITER_USED, 

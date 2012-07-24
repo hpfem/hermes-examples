@@ -59,7 +59,7 @@ int main(int argc, char* argv[])
   bool extrapolate_der_right = false;
   CubicSpline mu_inv_iron(mu_inv_pts, mu_inv_val, bc_left, bc_right, first_der_left, first_der_right,
                           extrapolate_der_left, extrapolate_der_right);
-  info("Saving cubic spline into a Pylab file spline.dat.");
+  Hermes::Mixins::Loggable::Static::info("Saving cubic spline into a Pylab file spline.dat.");
   // The interval of definition of the spline will be
   // extended by "interval_extension" on both sides.
   double interval_extension = 1.0; 
@@ -83,7 +83,7 @@ int main(int argc, char* argv[])
   // Create an H1 space with default shapeset.
   H1Space<double> space(&mesh, &bcs, P_INIT);
   int ndof = space.get_num_dofs();
-  info("ndof: %d", ndof);
+  Hermes::Mixins::Loggable::Static::info("ndof: %d", ndof);
 
   // Initialize the weak formulation
   // This determines the increase of integration order
@@ -100,7 +100,7 @@ int main(int argc, char* argv[])
 
   // Project the initial condition on the FE space to obtain initial
   // coefficient vector for the Newton's method.
-  info("Projecting to obtain initial vector for the Newton's method.");
+  Hermes::Mixins::Loggable::Static::info("Projecting to obtain initial vector for the Newton's method.");
   double* coeff_vec = new double[ndof] ;
   OGProjection<double>::project_global(&space, &sln, coeff_vec, matrix_solver);
 
@@ -140,7 +140,7 @@ int main(int argc, char* argv[])
   Linearizer lin;
   bool mode_3D = true;
   lin.save_solution_vtk(&flux_density, "sln.vtk", "Flux density", mode_3D);
-  info("Solution in VTK format saved to file %s.", "sln.vtk");
+  Hermes::Mixins::Loggable::Static::info("Solution in VTK format saved to file %s.", "sln.vtk");
 
   OrderView o_view("Mesh", new WinGeom(720, 0, 350, 450));
   o_view.show(&space);

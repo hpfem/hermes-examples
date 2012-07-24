@@ -101,7 +101,7 @@ int main(int argc, char* argv[])
 
   // Calculate and report the number of degrees of freedom.
   int ndof = Space<double>::get_num_dofs(spaces);
-  info("ndof = %d.", ndof);
+  Hermes::Mixins::Loggable::Static::info("ndof = %d.", ndof);
 
   // Define projection norms.
   ProjNormType vel_proj_norm = HERMES_H1_NORM;
@@ -113,7 +113,7 @@ int main(int argc, char* argv[])
   ProjNormType t_proj_norm = HERMES_H1_NORM;
 
   // Solutions for the Newton's iteration and time stepping.
-  info("Setting initial conditions.");
+  Hermes::Mixins::Loggable::Static::info("Setting initial conditions.");
   ZeroSolution<double> xvel_prev_time(&mesh);
   ZeroSolution<double> yvel_prev_time(&mesh);
   ZeroSolution<double> p_prev_time(&mesh);
@@ -141,7 +141,7 @@ int main(int argc, char* argv[])
   // Project the initial condition on the FE space to obtain initial
   // coefficient vector for the Newton's method.
   double* coeff_vec = new double[Space<double>::get_num_dofs(spaces)];
-  info("Projecting initial condition to obtain initial vector for the Newton's method.");
+  Hermes::Mixins::Loggable::Static::info("Projecting initial condition to obtain initial vector for the Newton's method.");
   OGProjection<double>::project_global(spaces, slns, coeff_vec, matrix_solver, 
       Hermes::vector<ProjNormType>(vel_proj_norm, vel_proj_norm, p_proj_norm, t_proj_norm));
 
@@ -151,7 +151,7 @@ int main(int argc, char* argv[])
   int num_time_steps = T_FINAL / time_step;
   for (int ts = 1; ts <= num_time_steps; ts++)
   {
-    info("---- Time step %d, time = %g:", ts, current_time);
+    Hermes::Mixins::Loggable::Static::info("---- Time step %d, time = %g:", ts, current_time);
 
     // Perform Newton's iteration.
     Hermes::Hermes2D::NewtonSolver<double> newton(&dp, matrix_solver);

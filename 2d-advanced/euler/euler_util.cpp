@@ -43,7 +43,8 @@ void CFLCalculation::calculate(Hermes::vector<Solution<double>*> solutions, Mesh
 
   double* sln_vector = new double[constant_rho_space.get_num_dofs() * 4];
 
-  OGProjection<double>::project_global(Hermes::vector<const Space<double>*>(&constant_rho_space, &constant_rho_v_x_space, &constant_rho_v_y_space, &constant_energy_space), solutions, sln_vector);
+  OGProjection<double> ogProjection;
+  ogProjection.project_global(Hermes::vector<const Space<double>*>(&constant_rho_space, &constant_rho_v_x_space, &constant_rho_v_y_space, &constant_energy_space), solutions, sln_vector);
 
   // Determine the time step according to the CFL condition.
 
@@ -82,7 +83,8 @@ void CFLCalculation::calculate_semi_implicit(Hermes::vector<Solution<double>*> s
 
   double* sln_vector = new double[constant_rho_space.get_num_dofs() * 4];
 
-  OGProjection<double>::project_global(Hermes::vector<const Space<double>*>(&constant_rho_space, &constant_rho_v_x_space, &constant_rho_v_y_space, &constant_energy_space), solutions, sln_vector);
+  OGProjection<double> ogProjection;
+  ogProjection.project_global(Hermes::vector<const Space<double>*>(&constant_rho_space, &constant_rho_v_x_space, &constant_rho_v_y_space, &constant_energy_space), solutions, sln_vector);
 
   // Determine the time step according to the CFL condition.
 
@@ -177,7 +179,8 @@ void ADEStabilityCalculation::calculate(Hermes::vector<Solution<double>*> soluti
 
   double* sln_vector = new double[constant_rho_space.get_num_dofs() * 3];
 
-  OGProjection<double>::project_global(Hermes::vector<const Space<double>*>(&constant_rho_space, &constant_rho_v_x_space, &constant_rho_v_y_space), solutions, sln_vector);
+  OGProjection<double> ogProjection;
+  ogProjection.project_global(Hermes::vector<const Space<double>*>(&constant_rho_space, &constant_rho_v_x_space, &constant_rho_v_y_space), solutions, sln_vector);
 
   // Determine the time step according to the conditions.
   double min_condition_advection = 0.;
@@ -234,7 +237,7 @@ KrivodonovaDiscontinuityDetector::KrivodonovaDiscontinuityDetector(Hermes::vecto
   unsigned int mesh0_seq = spaces[0]->get_mesh()->get_seq();
   for(unsigned int i = 0; i < spaces.size(); i++)
     if(spaces[i]->get_mesh()->get_seq() != mesh0_seq)
-      error("So far DiscontinuityDetector works only for single mesh.");
+      throw Hermes::Exceptions::Exception("So far DiscontinuityDetector works only for single mesh.");
   mesh = spaces[0]->get_mesh();
 };
 
@@ -510,7 +513,7 @@ KuzminDiscontinuityDetector::KuzminDiscontinuityDetector(Hermes::vector<const Sp
   unsigned int mesh0_seq = spaces[0]->get_mesh()->get_seq();
   for(unsigned int i = 0; i < spaces.size(); i++)
     if(spaces[i]->get_mesh()->get_seq() != mesh0_seq)
-      error("So far DiscontinuityDetector works only for single mesh.");
+      throw Hermes::Exceptions::Exception("So far DiscontinuityDetector works only for single mesh.");
   mesh = spaces[0]->get_mesh();
 };
 
@@ -527,7 +530,7 @@ std::set<int>& KuzminDiscontinuityDetector::get_discontinuous_element_ids()
       if(this->second_order_discontinuous_element_ids.find(e->id) == this->second_order_discontinuous_element_ids.end())
         continue;
     if(e->get_num_surf() == 3)
-      error("So far this limiter is implemented just for quads.");
+      throw Hermes::Exceptions::Exception("So far this limiter is implemented just for quads.");
     double u_c[4], u_dx_c[4], u_dy_c[4];
     find_centroid_values(e, u_c);
     find_centroid_derivatives(e, u_dx_c, u_dy_c);
@@ -571,7 +574,7 @@ std::set<int>& KuzminDiscontinuityDetector::get_second_order_discontinuous_eleme
   for_all_active_elements(e, mesh)
   {
     if(e->get_num_surf() == 3)
-      error("So far this limiter is implemented just for quads.");
+      throw Hermes::Exceptions::Exception("So far this limiter is implemented just for quads.");
     double u_dx_c[4], u_dy_c[4], u_dxx_c[4], u_dxy_c[4], u_dyy_c[4];
     find_centroid_derivatives(e, u_dx_c, u_dy_c);
     find_second_centroid_derivatives(e, u_dxx_c, u_dxy_c, u_dyy_c);
@@ -1050,7 +1053,7 @@ void FluxLimiter::limit_second_orders_according_to_detector(Hermes::vector<Space
   if(dynamic_cast<KuzminDiscontinuityDetector*>(this->detector))
     discontinuous_elements = static_cast<KuzminDiscontinuityDetector*>(this->detector)->get_second_order_discontinuous_element_ids();
   else
-    error("limit_second_orders_according_to_detector() is to be used only with Kuzmin's vertex based detector.");
+    throw Hermes::Exceptions::Exception("limit_second_orders_according_to_detector() is to be used only with Kuzmin's vertex based detector.");
 
   // First adjust the solution_vector.
   for(unsigned int space_i = 0; space_i < spaces.size(); space_i++)

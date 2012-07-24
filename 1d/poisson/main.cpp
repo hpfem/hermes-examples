@@ -61,7 +61,7 @@ int main(int argc, char* argv[])
   // Create an H1 space with default shapeset.
   H1Space<double> space(&mesh, &bcs, P_INIT);
   int ndof = space.get_num_dofs();
-  info("ndof = %d", ndof);
+  Hermes::Mixins::Loggable::Static::info("ndof = %d", ndof);
   
   // Show the mesh and poly degrees.
   Views::OrderView oview("Mesh", new Views::WinGeom(0, 0, 900, 250));
@@ -94,12 +94,12 @@ int main(int argc, char* argv[])
     Views::Linearizer lin;
     bool mode_3D = true;
     lin.save_solution_vtk(&sln, "sln.vtk", "Temperature", mode_3D);
-    info("Solution in VTK format saved to file %s.", "sln.vtk");
+    Hermes::Mixins::Loggable::Static::info("Solution in VTK format saved to file %s.", "sln.vtk");
 
     // Output mesh and element orders in VTK format.
     Views::Orderizer ord;
     ord.save_orders_vtk(&space, "ord.vtk");
-    info("Element orders in VTK format saved to file %s.", "ord.vtk");
+    Hermes::Mixins::Loggable::Static::info("Element orders in VTK format saved to file %s.", "ord.vtk");
   }
 
   // Visualize the solution.

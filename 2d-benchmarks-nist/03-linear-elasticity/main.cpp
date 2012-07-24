@@ -171,10 +171,10 @@ int main(int argc, char* argv[])
     Hermes::vector<const Space<double>*> ref_spaces_const((*ref_spaces)[0], (*ref_spaces)[1]);
     int ndof_ref = Space<double>::get_num_dofs(ref_spaces_const);
 
-    info("---- Adaptivity step %d (%d DOF):", as, ndof_ref);
+    Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d (%d DOF):", as, ndof_ref);
     cpu_time.tick();
     
-    info("Solving on reference mesh.");
+    Hermes::Mixins::Loggable::Static::info("Solving on reference mesh.");
     
     // Assemble the discrete problem.    
     DiscreteProblem<double> dp(&wf, ref_spaces_const);
@@ -200,7 +200,7 @@ int main(int argc, char* argv[])
     verbose("Solution: %g s", cpu_time.last());
     
     // Project the fine mesh solution onto the coarse mesh.
-    info("Calculating error estimate and exact error.");
+    Hermes::Mixins::Loggable::Static::info("Calculating error estimate and exact error.");
     OGProjection<double>::project_global(Hermes::vector<const Space<double>*>(&u_space, &v_space), 
         Hermes::vector<Solution<double>*>(&u_ref_sln, &v_ref_sln), 
         Hermes::vector<Solution<double>*>(&u_sln, &v_sln), matrix_solver);
@@ -222,15 +222,15 @@ int main(int argc, char* argv[])
     verbose("Error calculation: %g s", cpu_time.last());
     
     // Report results.
-    info("ndof_coarse[u]: %d, ndof_fine[u]: %d",
+    Hermes::Mixins::Loggable::Static::info("ndof_coarse[u]: %d, ndof_fine[u]: %d",
          u_space.Space<double>::get_num_dofs(), Space<double>::get_num_dofs((*ref_spaces)[0]));
-    info("err_est_rel[u]: %g%%, err_exact_rel[u]: %g%%", err_est_rel[0]*100, err_exact_rel[0]*100);
-    info("ndof_coarse[v]: %d, ndof_fine[v]: %d",
+    Hermes::Mixins::Loggable::Static::info("err_est_rel[u]: %g%%, err_exact_rel[u]: %g%%", err_est_rel[0]*100, err_exact_rel[0]*100);
+    Hermes::Mixins::Loggable::Static::info("ndof_coarse[v]: %d, ndof_fine[v]: %d",
          v_space.Space<double>::get_num_dofs(), Space<double>::get_num_dofs((*ref_spaces)[1]));
-    info("err_est_rel[v]: %g%%, err_exact_rel[v]: %g%%", err_est_rel[1]*100, err_exact_rel[1]*100);
-    info("ndof_coarse_total: %d, ndof_fine_total: %d",
+    Hermes::Mixins::Loggable::Static::info("err_est_rel[v]: %g%%, err_exact_rel[v]: %g%%", err_est_rel[1]*100, err_exact_rel[1]*100);
+    Hermes::Mixins::Loggable::Static::info("ndof_coarse_total: %d, ndof_fine_total: %d",
          Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&u_space, &v_space)), Space<double>::get_num_dofs(ref_spaces_const));
-    info("err_est_rel_total: %g%%, err_est_exact_total: %g%%", err_est_rel_total, err_exact_rel_total);
+    Hermes::Mixins::Loggable::Static::info("err_est_rel_total: %g%%, err_est_exact_total: %g%%", err_est_rel_total, err_exact_rel_total);
 
     // Time measurement.
     cpu_time.tick();
@@ -261,7 +261,7 @@ int main(int argc, char* argv[])
       done = true;
     else 
     {
-      info("Adapting coarse mesh.");
+      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
       done = adaptivity->adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&selector, &selector), 
                                THRESHOLD, STRATEGY, MESH_REGULARITY);
     }

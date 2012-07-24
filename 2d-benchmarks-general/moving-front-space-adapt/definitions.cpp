@@ -138,10 +138,10 @@ CustomWeakFormPoisson::CustomWeakFormPoisson(std::string area,
 {
   // Jacobian.
   // NOTE: The flag HERMES_NONSYM is important here.
-  add_matrix_form(new WeakFormsH1::DefaultJacobianDiffusion<double>(0, 0, coeff, area, HERMES_NONSYM, gt));
+  add_matrix_form(new WeakFormsH1::DefaultJacobianDiffusion<double>(0, 0, area, coeff, HERMES_NONSYM, gt));
 
   // Residual.
-  add_vector_form(new WeakFormsH1::DefaultResidualDiffusion<double>(0, coeff, area, gt));
+  add_vector_form(new WeakFormsH1::DefaultResidualDiffusion<double>(0, area, coeff, gt));
   add_vector_form(new CustomVectorFormVol(0, area, f, gt));
 };
 

@@ -87,7 +87,7 @@ public:
       add_vector_form_surf(new EulerEquationsLinearFormSolidWall(3, solid_wall_top_marker, kappa));
     }
     else
-      warning("Are you sure that solid wall top and bottom markers should coincide?");
+      Hermes::Mixins::Loggable::Static::warn("Are you sure that solid wall top and bottom markers should coincide?");
 
     add_vector_form_surf(new EulerEquationsLinearFormInlet(0, inlet_marker, kappa));
     add_vector_form_surf(new EulerEquationsLinearFormInlet(1, inlet_marker, kappa));
@@ -642,16 +642,16 @@ public:
   WeakForm<double>(num_of_equations), rho_ext(rho_ext), v1_ext(v1_ext), v2_ext(v2_ext), pressure_ext(pressure_ext), 
     energy_ext(QuantityCalculator::calc_energy(rho_ext, rho_ext * v1_ext, rho_ext * v2_ext, pressure_ext, kappa)), euler_fluxes(new EulerFluxes(kappa)), centralElemId(-1), neighbElemId(-1), uTrn(-1), vTrn(-1), iSurf(-1)
   {
-    P_plus_cache = new double**[Global<double>::Hermes_omp_get_max_threads()];
-    for(int i = 0; i < Global<double>::Hermes_omp_get_max_threads(); i++)
+    P_plus_cache = new double**[Hermes::Hermes2D::Hermes2DApi.getParamValue(Hermes::Hermes2D::numThreads)];
+    for(int i = 0; i < Hermes::Hermes2D::Hermes2DApi.getParamValue(Hermes::Hermes2D::numThreads); i++)
     {
       P_plus_cache[i] = new double*[13];
       for(int j = 0; j < 13; j++)
         P_plus_cache[i][j] = new double[16];
     }
 
-    P_minus_cache = new double**[Global<double>::Hermes_omp_get_max_threads()];
-    for(int i = 0; i < Global<double>::Hermes_omp_get_max_threads(); i++)
+    P_minus_cache = new double**[Hermes::Hermes2D::Hermes2DApi.getParamValue(Hermes::Hermes2D::numThreads)];
+    for(int i = 0; i < Hermes::Hermes2D::Hermes2DApi.getParamValue(Hermes::Hermes2D::numThreads); i++)
     {
       P_minus_cache[i] = new double*[13];
       for(int j = 0; j < 13; j++)
@@ -742,7 +742,7 @@ public:
       add_matrix_form_surf(new EulerEquationsMatrixFormSolidWall(3, 3, solid_wall_top_marker, kappa));
     }
     else
-      warning("Are you sure that solid wall top and bottom markers should coincide?");
+      Hermes::Mixins::Loggable::Static::warn("Are you sure that solid wall top and bottom markers should coincide?");
 
     add_matrix_form_surf(new EulerEquationsMatrixFormSemiImplicitInletOutlet(0, 0, inlet_marker, kappa));
     add_matrix_form_surf(new EulerEquationsMatrixFormSemiImplicitInletOutlet(1, 0, inlet_marker, kappa));

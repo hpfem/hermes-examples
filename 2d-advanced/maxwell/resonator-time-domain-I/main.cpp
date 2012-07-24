@@ -55,9 +55,9 @@ int main(int argc, char* argv[])
 {
   // Choose a Butcher's table or define your own.
   ButcherTable bt(butcher_table_type);
-  if (bt.is_explicit()) info("Using a %d-stage explicit R-K method.", bt.get_size());
-  if (bt.is_diagonally_implicit()) info("Using a %d-stage diagonally implicit R-K method.", bt.get_size());
-  if (bt.is_fully_implicit()) info("Using a %d-stage fully implicit R-K method.", bt.get_size());
+  if (bt.is_explicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage explicit R-K method.", bt.get_size());
+  if (bt.is_diagonally_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage diagonally implicit R-K method.", bt.get_size());
+  if (bt.is_fully_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage fully implicit R-K method.", bt.get_size());
 
   // Load the mesh.
   Mesh mesh;
@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
   H1Space<double> B_space(&mesh, &bcs_B, P_INIT);
   Hermes::vector<const Space<double> *> spaces(&E_space, &B_space);
   Hermes::vector<Space<double> *> spaces_mutable(&E_space, &B_space);
-  info("ndof = %d.", Space<double>::get_num_dofs(spaces));
+  Hermes::Mixins::Loggable::Static::info("ndof = %d.", Space<double>::get_num_dofs(spaces));
 
   // Initialize views.
   ScalarView E1_view("Solution E1", new WinGeom(0, 0, 400, 350));
@@ -103,7 +103,7 @@ int main(int argc, char* argv[])
   do
   {
     // Perform one Runge-Kutta time step according to the selected Butcher's table.
-    info("Runge-Kutta time step (t = %g s, time_step = %g s, stages: %d).", 
+    Hermes::Mixins::Loggable::Static::info("Runge-Kutta time step (t = %g s, time_step = %g s, stages: %d).", 
          current_time, time_step, bt.get_size());
     bool jacobian_changed = false;
     bool verbose = true;

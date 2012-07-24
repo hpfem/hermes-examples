@@ -109,7 +109,7 @@ int main(int argc, char* argv[])
   L2Space<double> space_e(&mesh, P_INIT);
   L2Space<double> space_stabilization(&mesh, 0);
   int ndof = Space<double>::get_num_dofs(Hermes::vector<const Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
-  info("ndof: %d", ndof);
+  Hermes::Mixins::Loggable::Static::info("ndof: %d", ndof);
 
   // Initialize solutions, set initial conditions.
   ConstantSolution<double> prev_rho(&mesh, RHO_EXT);
@@ -172,18 +172,18 @@ int main(int argc, char* argv[])
   // Time stepping loop.
   for(; t < 10.0; t += time_step)
   {
-    info("---- Time step %d, time %3.5f.", iteration++, t);
+    Hermes::Mixins::Loggable::Static::info("---- Time step %d, time %3.5f.", iteration++, t);
     CFL.set_number(0.1 + (t/7.0) * 1.0);
 
     // Set the current time step.
     wf.set_time_step(time_step);
 
     // Assemble the stiffness matrix and rhs.
-    info("Assembling the stiffness matrix and right-hand side vector.");
+    Hermes::Mixins::Loggable::Static::info("Assembling the stiffness matrix and right-hand side vector.");
     dp.assemble(matrix, rhs);
 
     // Solve the matrix problem.
-    info("Solving the matrix problem.");
+    Hermes::Mixins::Loggable::Static::info("Solving the matrix problem.");
     if(solver->solve())
     {
       if(!SHOCK_CAPTURING)

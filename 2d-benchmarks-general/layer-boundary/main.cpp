@@ -119,10 +119,10 @@ int main(int argc, char* argv[])
     Space<double>* ref_space = Space<double>::construct_refined_space(&space);
     int ndof_ref = ref_space->get_num_dofs();
 
-    info("---- Adaptivity step %d (%d DOF):", as, ndof_ref);
+    Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d (%d DOF):", as, ndof_ref);
     cpu_time.tick();
     
-    info("Solving on reference mesh.");
+    Hermes::Mixins::Loggable::Static::info("Solving on reference mesh.");
 
     // Assemble the discrete problem.
     DiscreteProblem<double> dp(&wf, ref_space);
@@ -147,7 +147,7 @@ int main(int argc, char* argv[])
     verbose("Solution: %g s", cpu_time.last());
 
     // Project the fine mesh solution onto the coarse mesh.
-    info("Calculating error estimate and exact error.");
+    Hermes::Mixins::Loggable::Static::info("Calculating error estimate and exact error.");
     OGProjection<double>::project_global(&space, &ref_sln, &sln, matrix_solver);
 
     // Calculate element errors and total error estimate.
@@ -161,8 +161,8 @@ int main(int argc, char* argv[])
     verbose("Error calculation: %g s", cpu_time.last());
     
     // Report results.
-    info("ndof_coarse: %d, ndof_fine: %d", space.get_num_dofs(), ref_space->get_num_dofs());
-    info("err_est_rel: %g%%, err_exact_rel: %g%%", err_est_rel, err_exact_rel);
+    Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d", space.get_num_dofs(), ref_space->get_num_dofs());
+    Hermes::Mixins::Loggable::Static::info("err_est_rel: %g%%, err_exact_rel: %g%%", err_est_rel, err_exact_rel);
 
     // Time measurement.
     cpu_time.tick();

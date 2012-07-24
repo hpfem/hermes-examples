@@ -249,14 +249,14 @@ int main(int argc, char* argv[])
   }
   
   // Initial power iteration to obtain a coarse estimate of the eigenvalue and the fission source.
-  info("Coarse mesh power iteration, %d + %d + %d + %d = %d ndof:", report_num_dofs(spaces));
+  Hermes::Mixins::Loggable::Static::info("Coarse mesh power iteration, %d + %d + %d + %d = %d ndof:", report_num_dofs(spaces));
   power_iteration(matprop, const_spaces, &wf, power_iterates, core, TOL_PIT_CM, matrix_solver);
   
   // Adaptivity loop:
   int as = 1; bool done = false;
   do 
   {
-    info("---- Adaptivity step %d:", as);
+    Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d:", as);
     
     // Construct globally refined meshes and setup reference spaces on them.
     Hermes::vector<const Space<double>*> ref_spaces_const;
@@ -291,14 +291,14 @@ int main(int argc, char* argv[])
 #endif    
 
     // Solve the fine mesh problem.
-    info("Fine mesh power iteration, %d + %d + %d + %d = %d ndof:", report_num_dofs(ref_spaces_const));
+    Hermes::Mixins::Loggable::Static::info("Fine mesh power iteration, %d + %d + %d + %d = %d ndof:", report_num_dofs(ref_spaces_const));
     power_iteration(matprop, ref_spaces_const, &wf, power_iterates, core, TOL_PIT_RM, matrix_solver);
     
     // Store the results.
     for (unsigned int g = 0; g < matprop.get_G(); g++) 
       fine_solutions[g]->copy((static_cast<Solution<double>*>(power_iterates[g])));
 
-    info("Projecting fine mesh solutions on coarse meshes.");
+    Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solutions on coarse meshes.");
     // This is commented out as the appropriate method was deleted in the commit
     // "Cleaning global projections" (b282194946225014faa1de37f20112a5a5d7ab5a).
     //OGProjection<double>::project_global(spaces, projection_jacobian, projection_residual, coarse_solutions, matrix_solver);
@@ -317,7 +317,7 @@ int main(int argc, char* argv[])
     cpu_time.tick(HERMES_SKIP);
 
     // Report the number of negative eigenfunction values.
-    info("Num. of negative values: %d, %d, %d, %d",
+    Hermes::Mixins::Loggable::Static::info("Num. of negative values: %d, %d, %d, %d",
          get_num_of_neg(coarse_solutions[0]), get_num_of_neg(coarse_solutions[1]),
          get_num_of_neg(coarse_solutions[2]), get_num_of_neg(coarse_solutions[3]));
 
@@ -331,7 +331,7 @@ int main(int argc, char* argv[])
     }
     
     // Calculate element errors and error estimates in H1 and L2 norms. Use the H1 estimate to drive adaptivity.
-    info("Calculating errors.");
+    Hermes::Mixins::Loggable::Static::info("Calculating errors.");
     Hermes::vector<double> h1_group_errors, l2_group_errors;
     double h1_err_est = adapt_h1.calc_err_est(coarse_solutions, fine_solutions, &h1_group_errors) * 100;
     double l2_err_est = adapt_l2.calc_err_est(coarse_solutions, fine_solutions, &l2_group_errors, false) * 100;
@@ -341,16 +341,16 @@ int main(int argc, char* argv[])
     double cta = cpu_time.accumulated();
     
     // Report results.
-    info("ndof_coarse: %d + %d + %d + %d = %d", report_num_dofs(spaces));
+    Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d + %d + %d + %d = %d", report_num_dofs(spaces));
 
     // Millipercent eigenvalue error w.r.t. the reference value (see physical_parameters.cpp). 
     double keff_err = 1e5*fabs(wf.get_keff() - REF_K_EFF)/REF_K_EFF;
 
-    info("per-group err_est_coarse (H1): %g%%, %g%%, %g%%, %g%%", report_errors(h1_group_errors));
-    info("per-group err_est_coarse (L2): %g%%, %g%%, %g%%, %g%%", report_errors(l2_group_errors));
-    info("total err_est_coarse (H1): %g%%", h1_err_est);
-    info("total err_est_coarse (L2): %g%%", l2_err_est);
-    info("k_eff err: %g milli-percent", keff_err);
+    Hermes::Mixins::Loggable::Static::info("per-group err_est_coarse (H1): %g%%, %g%%, %g%%, %g%%", report_errors(h1_group_errors));
+    Hermes::Mixins::Loggable::Static::info("per-group err_est_coarse (L2): %g%%, %g%%, %g%%, %g%%", report_errors(l2_group_errors));
+    Hermes::Mixins::Loggable::Static::info("total err_est_coarse (H1): %g%%", h1_err_est);
+    Hermes::Mixins::Loggable::Static::info("total err_est_coarse (L2): %g%%", l2_err_est);
+    Hermes::Mixins::Loggable::Static::info("k_eff err: %g milli-percent", keff_err);
 
     // Add entry to DOF convergence graph.
     int ndof_coarse = spaces[0]->get_num_dofs() + spaces[1]->get_num_dofs() 
@@ -375,7 +375,7 @@ int main(int argc, char* argv[])
       done = true;
     else 
     {
-      info("Adapting the coarse mesh.");
+      Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh.");
       done = adapt_h1.adapt(selectors, THRESHOLD, STRATEGY, MESH_REGULARITY);
       if (spaces[0]->get_num_dofs() + spaces[1]->get_num_dofs() 
           + spaces[2]->get_num_dofs() + spaces[3]->get_num_dofs() >= NDOF_STOP) 

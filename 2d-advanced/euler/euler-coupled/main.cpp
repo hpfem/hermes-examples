@@ -142,7 +142,7 @@ int main(int argc, char* argv[])
   H1Space<double> space_c(&mesh_concentration, &bcs_concentration, P_CONCENTRATION);
 
   int ndof = Space<double>::get_num_dofs(Hermes::vector<const Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e, &space_c));
-  info("ndof: %d", ndof);
+  Hermes::Mixins::Loggable::Static::info("ndof: %d", ndof);
 
   // Initialize solutions, set initial conditions.
   ConstantSolution<double> sln_rho(&mesh_flow, RHO_EXT);
@@ -201,7 +201,7 @@ int main(int argc, char* argv[])
   int iteration = 0; double t = 0;
   for(t = 0.0; t < 100.0; t += time_step_n)
   {
-    info("---- Time step %d, time %3.5f.", iteration++, t);
+    Hermes::Mixins::Loggable::Static::info("---- Time step %d, time %3.5f.", iteration++, t);
 
     if(SEMI_IMPLICIT)
     {
@@ -229,11 +229,11 @@ int main(int argc, char* argv[])
       static_cast<EulerEquationsWeakFormExplicitCoupled*>(wf)->set_time_step(time_step_n);
 
     // Assemble stiffness matrix and rhs.
-    info("Assembling the stiffness matrix and right-hand side vector.");
+    Hermes::Mixins::Loggable::Static::info("Assembling the stiffness matrix and right-hand side vector.");
     dp.assemble(matrix, rhs);
 
     // Solve the matrix problem.
-    info("Solving the matrix problem.");
+    Hermes::Mixins::Loggable::Static::info("Solving the matrix problem.");
     if(solver->solve())
     {
       if(!SHOCK_CAPTURING || SHOCK_CAPTURING_TYPE == FEISTAUER)
