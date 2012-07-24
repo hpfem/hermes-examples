@@ -49,13 +49,13 @@ CustomWeakFormHeatAndFlow::CustomWeakFormHeatAndFlow(bool Stokes, double Reynold
 
     // Jacobian - temperature part. 
     // Contribution from implicit Euler.
-    add_matrix_form(new WeakFormsH1::DefaultMatrixFormVol<double>(3, 3, new Hermes2DFunction<double>(1.0/time_step), "Fluid", HERMES_NONSYM));
-    add_matrix_form(new WeakFormsH1::DefaultMatrixFormVol<double>(3, 3, new Hermes2DFunction<double>(1.0/time_step), "Graphite", HERMES_NONSYM));
+    add_matrix_form(new WeakFormsH1::DefaultMatrixFormVol<double>(3, 3, "Fluid", new Hermes2DFunction<double>(1.0/time_step), HERMES_NONSYM));
+    add_matrix_form(new WeakFormsH1::DefaultMatrixFormVol<double>(3, 3, "Graphite", new Hermes2DFunction<double>(1.0/time_step), HERMES_NONSYM));
 
     // Contribution from temperature diffusion. 
-    add_matrix_form(new WeakFormsH1::DefaultJacobianDiffusion<double>(3, 3, new Hermes1DFunction<double>(thermal_conductivity_fluid/(rho_fluid * specific_heat_fluid)), "Fluid", HERMES_NONSYM));
-    add_matrix_form(new WeakFormsH1::DefaultJacobianDiffusion<double>(3, 3, 
-        new Hermes1DFunction<double>(thermal_conductivity_graphite/(rho_graphite * specific_heat_graphite)), "Graphite", HERMES_NONSYM));
+    add_matrix_form(new WeakFormsH1::DefaultJacobianDiffusion<double>(3, 3, "Fluid", new Hermes1DFunction<double>(thermal_conductivity_fluid/(rho_fluid * specific_heat_fluid)), HERMES_NONSYM));
+    add_matrix_form(new WeakFormsH1::DefaultJacobianDiffusion<double>(3, 3, "Graphite", 
+        new Hermes1DFunction<double>(thermal_conductivity_graphite/(rho_graphite * specific_heat_graphite)), HERMES_NONSYM));
     // Contribution from temperature advection - only in fluid.
     if (simple_temp_advection)     
     {
@@ -92,10 +92,10 @@ CustomWeakFormHeatAndFlow::CustomWeakFormHeatAndFlow(bool Stokes, double Reynold
     vft->ext.push_back(T_prev_time);
     add_vector_form(vft);
     // Contribution from temperature diffusion.
-    add_vector_form(new WeakFormsH1::DefaultResidualDiffusion<double>(3, new Hermes1DFunction<double>(thermal_conductivity_fluid/(rho_fluid * specific_heat_fluid)), "Fluid"));
-    add_vector_form(new WeakFormsH1::DefaultResidualDiffusion<double>(3, new Hermes1DFunction<double>(thermal_conductivity_graphite/(rho_graphite * specific_heat_graphite)), "Graphite"));
+    add_vector_form(new WeakFormsH1::DefaultResidualDiffusion<double>(3, "Fluid", new Hermes1DFunction<double>(thermal_conductivity_fluid/(rho_fluid * specific_heat_fluid))));
+    add_vector_form(new WeakFormsH1::DefaultResidualDiffusion<double>(3, "Graphite", new Hermes1DFunction<double>(thermal_conductivity_graphite/(rho_graphite * specific_heat_graphite))));
     // Contribution from heat sources.
-    add_vector_form(new WeakFormsH1::DefaultVectorFormVol<double>(3, new Hermes::Hermes2DFunction<double>(-heat_source/(rho_graphite * specific_heat_graphite)), "Graphite"));
+    add_vector_form(new WeakFormsH1::DefaultVectorFormVol<double>(3, "Graphite", new Hermes::Hermes2DFunction<double>(-heat_source/(rho_graphite * specific_heat_graphite))));
     // Contribution from temperature advection.
     if (simple_temp_advection)     
     {
