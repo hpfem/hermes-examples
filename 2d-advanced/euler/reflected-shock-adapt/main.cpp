@@ -209,6 +209,8 @@ int main(int argc, char* argv[])
 
   if(P_INIT == 0 && CAND_LIST == H2D_H_ANISO)
     dp.set_fvm();
+
+  Hermes::vector<Space<double>*> spaces_to_delete;
       
   // Time stepping loop.
   for(; t < 6.0; t += time_step)
@@ -217,24 +219,27 @@ int main(int argc, char* argv[])
     Hermes::Mixins::Loggable::Static::info("---- Time step %d, time %3.5f.", iteration++, t);
 
     // Periodic global derefinements.
-    if (iteration > 1 && iteration % UNREF_FREQ == 0 && REFINEMENT_COUNT > 0) 
+    if (iteration > 1 && iteration % UNREF_FREQ == 0)
     {
-      Hermes::Mixins::Loggable::Static::info("Global mesh derefinement.");
-      REFINEMENT_COUNT = 0;
+      if(REFINEMENT_COUNT > 0) 
+      {
+        Hermes::Mixins::Loggable::Static::info("Global mesh derefinement.");
+        REFINEMENT_COUNT = 0;
 
-      space_rho.unrefine_all_mesh_elements(true);
+        space_rho.unrefine_all_mesh_elements(true);
 
-      space_rho.adjust_element_order(-1, P_INIT);
-      space_rho_v_x.copy_orders(&space_rho);
-      space_rho_v_y.copy_orders(&space_rho);
-      space_e.copy_orders(&space_rho);
+        space_rho.adjust_element_order(-1, P_INIT);
+        space_rho_v_x.copy_orders(&space_rho);
+        space_rho_v_y.copy_orders(&space_rho);
+        space_e.copy_orders(&space_rho);
+      }
+      dp.delete_cache();
     }
 
     // Adaptivity loop:
     int as = 1; 
     int ndofs_prev = 0;
     bool done = false;
-    Hermes::vector<Space<double>*> spaces_to_delete;
     do
     {
       Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d:", as);
@@ -345,12 +350,7 @@ int main(int argc, char* argv[])
           THRESHOLD, STRATEGY, MESH_REGULARITY);
 
         if(!done)
-        {
-          spaces_to_delete.clear();
-          for(int i = 0; i < ref_spaces->size(); i++)
-            spaces_to_delete.push_back((*ref_spaces)[i]);
           as++;
-        }
       }
 
       // Visualization and saving on disk.
