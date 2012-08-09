@@ -73,7 +73,7 @@ Hermes::MatrixSolverType matrix_solver = Hermes::SOLVER_UMFPACK;
 // true... velocity from previous time level is used in temperature 
 //         equation (which makes it linear).
 // false... full Newton's method is used.
-bool SIMPLE_TEMPERATURE_ADVECTION = true; 
+bool SIMPLE_TEMPERATURE_ADVECTION = false; 
 
 int main(int argc, char* argv[])
 {

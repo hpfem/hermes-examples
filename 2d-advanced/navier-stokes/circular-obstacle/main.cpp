@@ -31,8 +31,6 @@
 const bool HERMES_VISUALIZATION = true;
 // Set to "true" to enable VTK output.
 const bool VTK_VISUALIZATION = true;
-// Set visual output for every nth step.
-const unsigned int EVERY_NTH_STEP = 10;
 
 // For application of Stokes flow (creeping flow).
 const bool STOKES = false;                        
@@ -143,7 +141,6 @@ int main(int argc, char* argv[])
   wf = new WeakFormNSNewton(STOKES, RE, TAU, &xvel_prev_time, &yvel_prev_time);
 
   // Initialize the FE problem.
-  DiscreteProblem<double> dp(wf, spaces_const);
 
   // Initialize views.
   VectorView vview("velocity [m/s]", new WinGeom(0, 0, 750, 240));
@@ -153,6 +150,7 @@ int main(int argc, char* argv[])
   //pview.set_min_max_range(-0.9, 1.0);
   pview.fix_scale_width(80);
   pview.show_mesh(true);
+    DiscreteProblem<double> dp(wf, spaces_const);
 
   // Time-stepping loop:
   char title[100];
@@ -170,47 +168,45 @@ int main(int argc, char* argv[])
 
     // Perform Newton's iteration.
     Hermes::Mixins::Loggable::Static::info("Solving nonlinear problem:");
-    Hermes::Hermes2D::NewtonSolver<double> newton(&dp, matrix_solver);
+    Hermes::Hermes2D::NewtonSolver<double> newton(&dp);
+    newton.set_newton_max_iter(NEWTON_MAX_ITER);
+    newton.set_newton_tol(NEWTON_TOL);
     try
     {
-      newton.solve(NULL, NEWTON_TOL, NEWTON_MAX_ITER);
+      newton.solve();
     }
     catch(Hermes::Exceptions::Exception e)
     {
       e.printMsg();
-      error("Newton's iteration failed.");
     };
 
     // Update previous time level solutions.
     Solution<double>::vector_to_solutions(newton.get_sln_vector(), spaces_const, slns_prev_time);
 
     // Visualization.
-    if((ts - 1) % EVERY_NTH_STEP == 0) 
+    // Hermes visualization.
+    if(HERMES_VISUALIZATION) 
     {
-      // Hermes visualization.
-      if(HERMES_VISUALIZATION) 
-      {
-        // Show the solution at the end of time step.
-        sprintf(title, "Velocity, time %g", current_time);
-        vview.set_title(title);
-        //vview.show(&xvel_prev_time, &yvel_prev_time, HERMES_EPS_LOW);
-        sprintf(title, "Pressure, time %g", current_time);
-        pview.set_title(title);
-        pview.show(&p_prev_time);
-      }
-      // Output solution in VTK format.
-      if(VTK_VISUALIZATION) 
-      {
-        Linearizer lin;
-        Hermes::vector<MeshFunction<double>* > slns_prev_time0 = Hermes::vector<MeshFunction<double>* >(&xvel_prev_time, &yvel_prev_time);
-        MagFilter<double> mag(slns_prev_time0, Hermes::vector<int>(H2D_FN_VAL, H2D_FN_VAL));
-        std::stringstream ss_vel;
-        ss_vel << "Velocity-" << ts << ".vtk";
-        lin.save_solution_vtk(&mag, ss_vel.str().c_str(), "VelocityMagnitude");
-        std::stringstream ss_pres;
-        ss_pres << "Pressure-" << ts << ".vtk";
-        lin.save_solution_vtk(&p_prev_time, ss_pres.str().c_str(), "Pressure");
-      }
+      // Show the solution at the end of time step.
+      sprintf(title, "Velocity, time %g", current_time);
+      vview.set_title(title);
+      vview.show(&xvel_prev_time, &yvel_prev_time, HERMES_EPS_LOW);
+      sprintf(title, "Pressure, time %g", current_time);
+      pview.set_title(title);
+      pview.show(&p_prev_time);
+    }
+    // Output solution in VTK format.
+    if(VTK_VISUALIZATION) 
+    {
+      Linearizer lin;
+      Hermes::vector<MeshFunction<double>* > slns_prev_time0 = Hermes::vector<MeshFunction<double>* >(&xvel_prev_time, &yvel_prev_time);
+      MagFilter<double> mag(slns_prev_time0, Hermes::vector<int>(H2D_FN_VAL, H2D_FN_VAL));
+      std::stringstream ss_vel;
+      ss_vel << "Velocity-" << ts << ".vtk";
+      lin.save_solution_vtk(&mag, ss_vel.str().c_str(), "VelocityMagnitude");
+      std::stringstream ss_pres;
+      ss_pres << "Pressure-" << ts << ".vtk";
+      lin.save_solution_vtk(&p_prev_time, ss_pres.str().c_str(), "Pressure");
     }
   }
 

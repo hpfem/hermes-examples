@@ -288,7 +288,7 @@ double WeakFormNSNewton::BilinearFormNonsymVel_1_0::value(int n, double *wt, Fun
 {
   double result = 0;
   if(!Stokes) {
-    Func<double>* yvel_prev_newton = u_ext[0];
+    Func<double>* yvel_prev_newton = u_ext[1];
     for (int i = 0; i < n; i++)
       result += wt[i] * (u->val[i] * v->val[i] * yvel_prev_newton->dx[i]);
   }
@@ -300,7 +300,7 @@ Ord WeakFormNSNewton::BilinearFormNonsymVel_1_0::ord(int n, double *wt, Func<Ord
 {
   Ord result = Ord(0);
   if(!Stokes) {
-    Func<Ord>* yvel_prev_newton = u_ext[0];
+    Func<Ord>* yvel_prev_newton = u_ext[1];
     for (int i = 0; i < n; i++)
       result += wt[i] * (u->val[i] * v->val[i] * yvel_prev_newton->dx[i]);
   }

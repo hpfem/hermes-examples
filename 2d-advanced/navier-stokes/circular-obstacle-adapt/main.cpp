@@ -237,7 +237,10 @@ int main(int argc, char* argv[])
       yvel_space.set_uniform_order(P_INIT_VEL);
       p_space.set_uniform_order(P_INIT_PRESSURE);
     }
-
+      
+    DiscreteProblem<double> dp(wf, spaces);
+    Hermes::Hermes2D::NewtonSolver<double> newton(&dp);
+      
     // Spatial adaptivity loop. Note: xvel_prev_time, yvel_prev_time and pvel_prev_time
     // must not be changed during spatial adaptivity. 
     bool done = false; int as = 1;
@@ -251,36 +254,33 @@ int main(int argc, char* argv[])
       Hermes::vector<const Space<double> *> ref_spaces_const((*ref_spaces)[0], (*ref_spaces)[1], (*ref_spaces)[2]);
 
       // Initialize discrete problem on the reference mesh.
-      DiscreteProblem<double> dp(wf, ref_spaces_const);
 
       // Calculate initial coefficient vector for Newton on the fine mesh.
       double* coeff_vec = new double[Space<double>::get_num_dofs(ref_spaces_const)];
 
       if (ts == 1) {
         Hermes::Mixins::Loggable::Static::info("Projecting coarse mesh solution to obtain coefficient vector on new fine mesh.");
-        OGProjection<double>::project_global(ref_spaces_const, Hermes::vector<MeshFunction<double>*>(&xvel_sln, &yvel_sln, &p_sln), 
-                      coeff_vec, matrix_solver);
+        OGProjection<double> ogProj; ogProj.project_global(ref_spaces_const, Hermes::vector<MeshFunction<double>*>(&xvel_sln, &yvel_sln, &p_sln), 
+                      coeff_vec);
       }
       else {
         Hermes::Mixins::Loggable::Static::info("Projecting previous fine mesh solution to obtain coefficient vector on new fine mesh.");
-        OGProjection<double>::project_global(ref_spaces_const, Hermes::vector<MeshFunction<double>*>(&xvel_ref_sln, &yvel_ref_sln, &p_ref_sln), 
-            coeff_vec, matrix_solver);
-        delete xvel_ref_sln.get_mesh();
-        delete yvel_ref_sln.get_mesh();
-        delete p_ref_sln.get_mesh();
+        OGProjection<double> ogProj; ogProj.project_global(ref_spaces_const, Hermes::vector<MeshFunction<double>*>(&xvel_ref_sln, &yvel_ref_sln, &p_ref_sln), 
+            coeff_vec);
       }
 
       // Perform Newton's iteration.
       Hermes::Mixins::Loggable::Static::info("Solving nonlinear problem:");
-      Hermes::Hermes2D::NewtonSolver<double> newton(&dp, matrix_solver);
       try
       {
-        newton.solve(coeff_vec, NEWTON_TOL, NEWTON_MAX_ITER);
+        newton.set_spaces(ref_spaces_const);
+        newton.set_newton_max_iter(NEWTON_MAX_ITER);
+        newton.set_newton_tol(NEWTON_TOL);
+        newton.solve(coeff_vec);
       }
       catch(Hermes::Exceptions::Exception e)
       {
         e.printMsg();
-        error("Newton's iteration failed.");
       };
 
       // Update previous time level solutions.
@@ -288,9 +288,9 @@ int main(int argc, char* argv[])
        
       // Project the fine mesh solution onto the coarse mesh.
       Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
-      OGProjection<double>::project_global(Hermes::vector<const Space<double>*>(&xvel_space, &yvel_space, &p_space), 
+      OGProjection<double> ogProj; ogProj.project_global(Hermes::vector<const Space<double>*>(&xvel_space, &yvel_space, &p_space), 
           Hermes::vector<Solution<double>*>(&xvel_ref_sln, &yvel_ref_sln, &p_ref_sln), 
-          Hermes::vector<Solution<double>*>(&xvel_sln, &yvel_sln, &p_sln), matrix_solver, 
+          Hermes::vector<Solution<double>*>(&xvel_sln, &yvel_sln, &p_sln), 
           Hermes::vector<ProjNormType>(vel_proj_norm, vel_proj_norm, p_proj_norm) );
 
       // Calculate element errors and total error estimate.
@@ -323,7 +323,6 @@ int main(int argc, char* argv[])
 
       // Clean up.
       delete adaptivity;
-      delete ref_spaces;
       delete [] coeff_vec;
     }
     while (done == false);
