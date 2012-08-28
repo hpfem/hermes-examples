@@ -5,7 +5,7 @@
 CustomWeakForm::CustomWeakForm( const Hermes::Hermes2D::WeakFormsNeutronics::Multigroup::MaterialProperties::Diffusion::MaterialPropertyMaps& matprop,
                                 Hermes::vector<MeshFunction<double>*>& iterates,
                                 double init_keff, std::string bdy_vacuum )
-  :  Hermes::Hermes2D::WeakFormsNeutronics::Multigroup::CompleteWeakForms::Diffusion::DefaultWeakFormSourceIteration<double>(matprop, iterates[0]->get_mesh(), iterates, init_keff, HERMES_AXISYM_Y)
+  :  Hermes::Hermes2D::WeakFormsNeutronics::Multigroup::CompleteWeakForms::Diffusion::DefaultWeakFormSourceIteration<double>(matprop, const_cast<Mesh*>(iterates[0]->get_mesh()), iterates, init_keff, HERMES_AXISYM_Y)
 {
   for (unsigned int g = 0; g < matprop.get_G(); g++)
   {
@@ -22,7 +22,7 @@ double integrate(MeshFunction<double>* sln, std::string area)
   
   double integral = 0.0;
   Element* e;
-  Mesh* mesh = sln->get_mesh();
+  Mesh* mesh = const_cast<Mesh*>(sln->get_mesh());
   int marker = mesh->get_element_markers_conversion().get_internal_marker(area).marker;
   
   for_all_active_elements(e, mesh)

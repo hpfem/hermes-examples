@@ -164,7 +164,7 @@ int main(int argc, char* argv[])
   // interpolation) at the moment. Higher-order part needs to be added.
   double* coeff_vec = new double[ndof];
   //Hermes::Mixins::Loggable::Static::Hermes::Mixins::Loggable::Static::info("Projecting initial condition to obtain initial vector for the Newton's method.");
-  //OGProjection<double>::project_global(all_spaces, all_meshfns, coeff_vec, matrix_solver, all_proj_norms);
+  //OGProjection<double> ogProjection; ogProjection.project_global(all_spaces, all_meshfns, coeff_vec, all_proj_norms);
   LocalProjection<double>::project_local(all_spaces_const, all_meshfns, coeff_vec, all_proj_norms);
 
   // Translate the solution vector back to Solutions. This is needed to replace

@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
   SimpleGraph graph_dof, graph_cpu;
   
   // Time measurement.
-  TimePeriod cpu_time;
+  Hermes::Mixins::TimeMeasurable cpu_time;
 
   // Adaptivity loop:
   int as = 1; bool done = false;
@@ -115,7 +115,7 @@ int main(int argc, char* argv[])
     Hermes::Mixins::Loggable::Static::info("Solving on fine mesh.");
     DiscreteProblem<double> dp(&wf, ref_space);
     
-    NewtonSolver<double> newton(&dp, matrix_solver);
+    NewtonSolver<double> newton(&dp);
     newton.set_verbose_output(false);
 
     // Perform Newton's iteration.
@@ -126,7 +126,7 @@ int main(int argc, char* argv[])
     catch(Hermes::Exceptions::Exception e)
     {
       e.printMsg();
-      error("Newton's iteration failed.");
+      throw Hermes::Exceptions::Exception("Newton's iteration failed.");
     }
 
     // Translate the resulting coefficient vector into the instance of Solution.
@@ -134,7 +134,7 @@ int main(int argc, char* argv[])
     
     // Project the fine mesh solution onto the coarse mesh.
     Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh.");
-    OGProjection<double>::project_global(&space, &ref_sln, &sln, matrix_solver);
+    OGProjection<double> ogProjection; ogProjection.project_global(&space, &ref_sln, &sln);
 
     // Time measurement.
     cpu_time.tick();
@@ -164,7 +164,7 @@ int main(int argc, char* argv[])
     }
 
     // Skip visualization time.
-    cpu_time.tick(HERMES_SKIP);
+    cpu_time.tick(Hermes::Mixins::TimeMeasurable::HERMES_SKIP);
 
     // Calculate element errors and total error estimate.
     Hermes::Mixins::Loggable::Static::info("Calculating error estimate.");
@@ -192,7 +192,7 @@ int main(int argc, char* argv[])
     graph_dof.save("conv_dof_est.dat");
     
     // Skip the time spent to save the convergence graphs.
-    cpu_time.tick(HERMES_SKIP);
+    cpu_time.tick(Hermes::Mixins::TimeMeasurable::HERMES_SKIP);
 
     // If err_est too large, adapt the mesh.
     if (err_est_rel < ERR_STOP) 
@@ -218,7 +218,7 @@ int main(int argc, char* argv[])
   }
   while (done == false);
 
-  verbose("Total running time: %g s", cpu_time.accumulated());
+  Hermes::Mixins::Loggable::Static::info("Total running time: %g s", cpu_time.accumulated());
 
   // Show the fine mesh solution - final result.
   sview.set_title("Fine mesh solution");

@@ -187,10 +187,10 @@ int main(int argc, char* argv[])
   ScalarView Mach_number_view("Mach number", new WinGeom(700, 0, 600, 400));
   ScalarView s5("Concentration", new WinGeom(700, 400, 600, 400));
   // Set up the solver, matrix, and rhs according to the solver selection.
-  SparseMatrix<double>* matrix = create_matrix<double>(matrix_solver);
-  Vector<double>* rhs = create_vector<double>(matrix_solver);
-  Vector<double>* rhs_stabilization = create_vector<double>(matrix_solver);
-  LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver, matrix, rhs);
+  SparseMatrix<double>* matrix = create_matrix<double>();
+  Vector<double>* rhs = create_vector<double>();
+  Vector<double>* rhs_stabilization = create_vector<double>();
+  LinearMatrixSolver<double>* solver = create_linear_solver<double>(matrix, rhs);
   
   // Set up CFL calculation class.
   CFLCalculation CFL(CFL_NUMBER, KAPPA);
@@ -260,7 +260,7 @@ int main(int argc, char* argv[])
       }
     }
     else
-      error ("Matrix solver failed.\n");
+       throw Hermes::Exceptions::Exception("Matrix solver failed.\n");
 
     util_time_step = time_step_n;
     if(SEMI_IMPLICIT)

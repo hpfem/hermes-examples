@@ -142,9 +142,10 @@ int main(int argc, char* argv[])
   // coefficient vector for the Newton's method.
   double* coeff_vec = new double[Space<double>::get_num_dofs(spaces)];
   Hermes::Mixins::Loggable::Static::info("Projecting initial condition to obtain initial vector for the Newton's method.");
-  OGProjection<double>::project_global(spaces, slns, coeff_vec, matrix_solver, 
+  OGProjection<double> ogProjection; ogProjection.project_global(spaces, slns, coeff_vec, 
       Hermes::vector<ProjNormType>(vel_proj_norm, vel_proj_norm, p_proj_norm, t_proj_norm));
 
+    Hermes::Hermes2D::NewtonSolver<double> newton(&dp);
   // Time-stepping loop:
   char title[100];
   double current_time = 0;
@@ -154,16 +155,17 @@ int main(int argc, char* argv[])
     Hermes::Mixins::Loggable::Static::info("---- Time step %d, time = %g:", ts, current_time);
 
     // Perform Newton's iteration.
-    Hermes::Hermes2D::NewtonSolver<double> newton(&dp, matrix_solver);
     newton.set_verbose_output(true);
     try
     {
-      newton.solve(coeff_vec, NEWTON_TOL, NEWTON_MAX_ITER);
+      newton.set_newton_max_iter(NEWTON_MAX_ITER);
+      newton.set_newton_tol(NEWTON_TOL);
+      newton.solve(coeff_vec);
     }
     catch(Hermes::Exceptions::Exception e)
     {
       e.printMsg();
-      error("Newton's iteration failed.");
+      throw Hermes::Exceptions::Exception("Newton's iteration failed.");
     };
 
     // Update previous time level solutions.

@@ -106,10 +106,10 @@ int main(int argc, char* argv[])
   CustomWeakFormRichardsIEPicard wf(time_step, &h_time_prev, &h_iter_prev, constitutive_relations);
 
   // Initialize the FE problem.
-  DiscreteProblem<double> dp(&wf, &space);
+  DiscreteProblemLinear<double> dp(&wf, &space);
 
   // Initialize the Picard solver.
-  PicardSolver<double> picard(&dp, &h_iter_prev, matrix_solver);
+  PicardSolver<double> picard(&dp, &h_iter_prev);
   picard.set_verbose_output(true);
 
   // Time stepping:
@@ -119,8 +119,19 @@ int main(int argc, char* argv[])
     Hermes::Mixins::Loggable::Static::info("---- Time step %d, time %3.5f s", ts, current_time);
 
     // Perform the Picard's iteration (Anderson acceleration on by default).
-    if (!picard.solve(PICARD_TOL, PICARD_MAX_ITER, PICARD_NUM_LAST_ITER_USED, 
-        PICARD_ANDERSON_BETA)) error("Picard's iteration failed.");
+    picard.set_picard_tol(PICARD_TOL);
+    picard.set_picard_max_iter(PICARD_MAX_ITER);
+    picard.set_num_last_vector_used(PICARD_NUM_LAST_ITER_USED);
+    picard.set_anderson_beta(PICARD_ANDERSON_BETA);
+
+    try
+    {
+      picard.solve();
+    }
+    catch(std::exception& e)
+    {
+      std::cout << e.what();
+    }
 
     // Translate the coefficient vector into a Solution. 
     Solution<double>::vector_to_solution(picard.get_sln_vector(), &space, &h_iter_prev);

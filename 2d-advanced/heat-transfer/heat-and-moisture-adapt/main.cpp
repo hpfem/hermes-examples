@@ -161,7 +161,7 @@ int main(int argc, char* argv[])
   Solution<double> T_coarse, w_coarse;
 
   // Initialize the weak formulation.
-  CustomWeakFormHeatMoistureRK wf(c_TT, c_ww, d_TT, d_Tw, d_wT, d_ww, 
+  const CustomWeakFormHeatMoistureRK wf(c_TT, c_ww, d_TT, d_Tw, d_wT, d_ww, 
 				  k_TT, k_ww, T_EXTERIOR, W_EXTERIOR, "bdy_ext");
 
   // Initialize refinement selector.
@@ -220,7 +220,7 @@ int main(int argc, char* argv[])
                 T_space.adjust_element_order(-1, -1, P_INIT, P_INIT);
                 w_space.adjust_element_order(-1, -1, P_INIT, P_INIT);
                 break;
-        default: error("Wrong global derefinement method.");
+        default: throw Hermes::Exceptions::Exception("Wrong global derefinement method.");
       }
     }
 
@@ -240,31 +240,29 @@ int main(int argc, char* argv[])
       DiscreteProblem<double> dp(&wf, ref_spaces_const);
 
       // Initialize Runge-Kutta time stepping.
-      RungeKutta<double> runge_kutta(&wf, *ref_spaces, &bt, matrix_solver);
+      RungeKutta<double> runge_kutta(&wf, ref_spaces_const, &bt);
 
       // Perform one Runge-Kutta time step according to the selected Butcher's table.
       Hermes::Mixins::Loggable::Static::info("Runge-Kutta time step (t = %g s, tau = %g s, stages: %d).",
            current_time, time_step, bt.get_size());
-      bool freeze_jacobian = true;
-      bool block_diagonal_jacobian = true;
-      bool verbose = true;
-      
       try
       {
-        runge_kutta.rk_time_step_newton(current_time, time_step, 
-            Hermes::vector<Solution<double> *>(&T_time_prev, &w_time_prev), 
-            Hermes::vector<Solution<double> *>(&T_time_new, &w_time_new), 
-            freeze_jacobian, block_diagonal_jacobian, verbose, NEWTON_TOL, NEWTON_MAX_ITER);
+        runge_kutta.setTime(current_time);
+        runge_kutta.setTimeStep(time_step);
+        runge_kutta.set_newton_max_iter(NEWTON_MAX_ITER);
+        runge_kutta.set_newton_tol(NEWTON_TOL);
+        runge_kutta.rk_time_step_newton(Hermes::vector<Solution<double> *>(&T_time_prev, &w_time_prev), 
+            Hermes::vector<Solution<double> *>(&T_time_new, &w_time_new));
       }
       catch(Exceptions::Exception& e)
       {
         e.printMsg();
-        error("Runge-Kutta time step failed");
+        throw Hermes::Exceptions::Exception("Runge-Kutta time step failed");
       }
 
       // Project the fine mesh solution onto the coarse meshes.
       Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solutions on coarse meshes for error estimation.");
-      OGProjection<double>::project_global(Hermes::vector<const Space<double> *>(&T_space, &w_space), 
+      OGProjection<double> ogProjection; ogProjection.project_global(Hermes::vector<const Space<double> *>(&T_space, &w_space), 
           Hermes::vector<Solution<double> *>(&T_time_new, &w_time_new), 
 	  Hermes::vector<Solution<double> *>(&T_coarse, &w_coarse),
           matrix_solver); 

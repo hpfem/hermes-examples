@@ -90,7 +90,7 @@ const double K = 100.;
 int main(int argc, char* argv[])
 {
   // Time measurement.
-  Hermes::TimePeriod cpu_time;
+  Hermes::Mixins::TimeMeasurable cpu_time;
   cpu_time.tick();
 
   // Load the mesh.
@@ -184,7 +184,7 @@ int main(int argc, char* argv[])
     Hermes::Mixins::Loggable::Static::info("Solving on reference mesh.");
     DiscreteProblem<double> dp(&wf, ref_spaces_const);
 
-    NewtonSolver<double> newton(&dp, matrix_solver);
+    NewtonSolver<double> newton(&dp);
     newton.set_verbose_output(true);
 
     // Time measurement.
@@ -198,7 +198,7 @@ int main(int argc, char* argv[])
     catch(Hermes::Exceptions::Exception e)
     {
       e.printMsg();
-      error("Newton's iteration failed.");
+      throw Hermes::Exceptions::Exception("Newton's iteration failed.");
     };
 
     // Translate the resulting coefficient vector into the Solution<double> sln.
@@ -207,9 +207,9 @@ int main(int argc, char* argv[])
 
     // Project the fine mesh solution onto the coarse mesh.
     Hermes::Mixins::Loggable::Static::info("Projecting reference solutions on coarse meshes.");
-    OGProjection<double>::project_global(Hermes::vector<const Space<double> *>(&u_space, &v_space), 
+    OGProjection<double> ogProjection; ogProjection.project_global(Hermes::vector<const Space<double> *>(&u_space, &v_space), 
         Hermes::vector<Solution<double> *>(&u_ref_sln, &v_ref_sln), 
-        Hermes::vector<Solution<double> *>(&u_sln, &v_sln), matrix_solver);
+        Hermes::vector<Solution<double> *>(&u_sln, &v_sln));
    
     cpu_time.tick();
 
@@ -299,7 +299,7 @@ int main(int argc, char* argv[])
   }
   while (done == false);
 
-  verbose("Total running time: %g s", cpu_time.accumulated());
+  Hermes::Mixins::Loggable::Static::info("Total running time: %g s", cpu_time.accumulated());
 
   // Wait for all views to be closed.
   Views::View::wait();

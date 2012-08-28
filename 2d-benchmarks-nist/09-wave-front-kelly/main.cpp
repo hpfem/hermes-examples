@@ -149,7 +149,7 @@ int main(int argc, char* argv[])
   SimpleGraph graph_dof, graph_cpu, graph_dof_exact, graph_cpu_exact;
 
   // Time measurement.
-  Hermes::TimePeriod cpu_time;
+  Hermes::Mixins::TimeMeasurable cpu_time;
 
   // Adaptivity loop:
   int as = 1; bool done = false;
@@ -166,7 +166,7 @@ int main(int argc, char* argv[])
     double* coeff_vec = new double[ndof];
     memset(coeff_vec, 0, ndof * sizeof(double));
     
-    NewtonSolver<double> newton(&dp, matrix_solver);
+    NewtonSolver<double> newton(&dp);
     newton.set_verbose_output(false);
 
     try
@@ -176,13 +176,13 @@ int main(int argc, char* argv[])
     catch(Hermes::Exceptions::Exception e)
     {
       e.printMsg();
-      error("Newton's iteration failed.");
+      throw Hermes::Exceptions::Exception("Newton's iteration failed.");
     };
 
     Solution<double>::vector_to_solution(newton.get_sln_vector(), &space, &sln);
     
     cpu_time.tick();
-    verbose("Solution: %g s", cpu_time.last());
+    Hermes::Mixins::Loggable::Static::info("Solution: %g s", cpu_time.last());
     
     // Calculate element errors and total error estimate.
     Hermes::Hermes2D::BasicKellyAdapt<double> adaptivity(&space);
@@ -197,7 +197,7 @@ int main(int argc, char* argv[])
     double err_exact_rel = Global<double>::calc_rel_error(&sln, &exact, HERMES_H1_NORM) * 100;
     
     cpu_time.tick();
-    verbose("Error calculation: %g s", cpu_time.last());
+    Hermes::Mixins::Loggable::Static::info("Error calculation: %g s", cpu_time.last());
     
     Hermes::Mixins::Loggable::Static::info("err_est_rel: %g%%, err_exact_rel: %g%%", err_est_rel, err_exact_rel);
 
@@ -231,7 +231,7 @@ int main(int argc, char* argv[])
         err_est_rel = err_exact_rel = 0; // Exit the adaptivity loop.
       }
       
-      cpu_time.tick(Hermes::HERMES_SKIP);
+      cpu_time.tick(Hermes::Mixins::TimeMeasurable::HERMES_SKIP);
     }
     
     // Report results.
@@ -253,7 +253,7 @@ int main(int argc, char* argv[])
     graph_cpu_exact.add_values(accum_time, err_exact_rel);
     graph_cpu_exact.save("conv_cpu_exact.dat");
 
-    cpu_time.tick(Hermes::HERMES_SKIP);
+    cpu_time.tick(Hermes::Mixins::TimeMeasurable::HERMES_SKIP);
     
     // If err_est too large, adapt the mesh. The NDOF test must be here, so that the solution may be visualized
     // after ending due to this criterion.
@@ -263,7 +263,7 @@ int main(int argc, char* argv[])
       done = adaptivity.adapt(THRESHOLD, STRATEGY, MESH_REGULARITY);
     
     cpu_time.tick();
-    verbose("Adaptation: %g s", cpu_time.last());
+    Hermes::Mixins::Loggable::Static::info("Adaptation: %g s", cpu_time.last());
     
     // Increase the counter of performed adaptivity steps.
     if (done == false)  
@@ -281,7 +281,7 @@ int main(int argc, char* argv[])
   while (done == false);
 
   cpu_time.tick();
-  verbose("Total running time: %g s", cpu_time.accumulated());
+  Hermes::Mixins::Loggable::Static::info("Total running time: %g s", cpu_time.accumulated());
 
   // Wait for all views to be closed.
   Views::View::wait();

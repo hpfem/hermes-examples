@@ -1,5 +1,6 @@
 #include "hermes2d.h"
 
+using namespace Hermes;
 using namespace Hermes::Hermes2D;
 using namespace WeakFormsH1;
 using Hermes::Ord;
@@ -9,7 +10,7 @@ using Hermes::Ord;
 class CustomExactSolution : public ExactSolutionScalar<double>
 {
 public:
-  CustomExactSolution(Mesh* mesh) : ExactSolutionScalar<double>(mesh) 
+  CustomExactSolution(const Mesh* mesh) : ExactSolutionScalar<double>(mesh) 
   {
   }
 

@@ -87,10 +87,10 @@ int main(int argc, char* argv[])
   // coeff_vec to be a vector of ndof zeros (no projection is needed).
   Hermes::Mixins::Loggable::Static::info("Projecting to obtain initial vector for the Newton's method.");
   double* coeff_vec = new double[ndof];
-  OGProjection<double>::project_global(spaces, slns, coeff_vec, matrix_solver); 
+  OGProjection<double> ogProjection; ogProjection.project_global(spaces, slns, coeff_vec); 
 
   // Initialize Newton solver.
-  NewtonSolver<double> newton(&dp, matrix_solver);
+  NewtonSolver<double> newton(&dp);
 
   // Initialize views.
   ScalarView E1_view("Solution E1", new WinGeom(0, 0, 400, 350));
@@ -112,12 +112,14 @@ int main(int argc, char* argv[])
     // Perform Newton's iteration.
     try
     {
-      newton.solve_keep_jacobian(coeff_vec, NEWTON_TOL, NEWTON_MAX_ITER);
+      newton.set_newton_max_iter(NEWTON_MAX_ITER);
+      newton.set_newton_tol(NEWTON_TOL);
+      newton.solve_keep_jacobian(coeff_vec);
     }
     catch(Hermes::Exceptions::Exception e)
     {
       e.printMsg();
-      error("Newton's iteration failed.");
+      throw Hermes::Exceptions::Exception("Newton's iteration failed.");
     }
 
     // Translate the resulting coefficient vector into Solutions.

@@ -7,7 +7,7 @@
 CustomWeakForm::CustomWeakForm(const MaterialPropertyMaps& matprop,
                                 Hermes::vector<MeshFunction<double>*>& iterates,
                                 double init_keff, std::string bdy_vacuum)
-                                : DefaultWeakFormSourceIteration<double>(matprop, iterates[0]->get_mesh(), iterates, init_keff, HERMES_AXISYM_Y)
+                                : DefaultWeakFormSourceIteration<double>(matprop, const_cast<Mesh*>(iterates[0]->get_mesh()), iterates, init_keff, HERMES_AXISYM_Y)
 {
   for (unsigned int g = 0; g < matprop.get_G(); g++)
   {
@@ -27,7 +27,7 @@ double ErrorForm::value(int n, double *wt, Func<double> *u_ext[],
     case HERMES_H1_NORM:
       return h1_error_form_axisym<double, double>(n, wt, u_ext, u, v, e, ext);
     default:
-      error("Only the H1 and L2 norms are currently implemented.");
+      throw Hermes::Exceptions::Exception("Only the H1 and L2 norms are currently implemented.");
       return 0.0;
   }
 }
@@ -43,7 +43,7 @@ Ord ErrorForm::ord(int n, double *wt, Func<Ord> *u_ext[],
     case HERMES_H1_NORM:
       return h1_error_form_axisym<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
     default:
-      error("Only the H1 and L2 norms are currently implemented.");
+      throw Hermes::Exceptions::Exception("Only the H1 and L2 norms are currently implemented.");
       return Ord();
   }
 }
@@ -56,7 +56,7 @@ double integrate(MeshFunction<double>* sln, std::string area)
   
   double integral = 0.0;
   Element* e;
-  Mesh *mesh = sln->get_mesh();
+  Mesh* mesh = const_cast<Mesh*>(sln->get_mesh());
   int marker = mesh->get_element_markers_conversion().get_internal_marker(area).marker;
   
   for_all_active_elements(e, mesh)
@@ -86,7 +86,7 @@ int get_num_of_neg(MeshFunction<double> *sln)
   Quad2D* quad = &g_quad_2d_std;
   sln->set_quad_2d(quad);
   Element* e;
-  Mesh* mesh = sln->get_mesh();
+  const Mesh* mesh = sln->get_mesh();
   
   int n = 0;
   
@@ -116,7 +116,7 @@ int power_iteration(const MaterialPropertyMaps& matprop,
 {
   // Sanity checks.
   if (spaces.size() != solutions.size()) 
-    error("Spaces and solutions supplied to power_iteration do not match."); 
+    throw Hermes::Exceptions::Exception("Spaces and solutions supplied to power_iteration do not match."); 
  
   // Number of energy groups.
   int G = spaces.size();
@@ -142,7 +142,7 @@ int power_iteration(const MaterialPropertyMaps& matprop,
   {
     memset(coeff_vec, 0.0, ndof*sizeof(double));
 
-    NewtonSolver<double> newton(&dp, matrix_solver);
+    NewtonSolver<double> newton(&dp);
 
     try
     {
@@ -151,7 +151,7 @@ int power_iteration(const MaterialPropertyMaps& matprop,
     catch(Hermes::Exceptions::Exception e)
     {
       e.printMsg();
-      error("Newton's iteration failed.");
+      throw Hermes::Exceptions::Exception("Newton's iteration failed.");
     };
 
     // Convert coefficients vector into a set of Solution pointers.

@@ -221,7 +221,7 @@ int main(int argc, char* argv[])
   }
 
   // Time measurement.
-  TimePeriod cpu_time;
+  Hermes::Mixins::TimeMeasurable cpu_time;
   cpu_time.tick();
 
   // Load the mesh.
@@ -231,8 +231,8 @@ int main(int argc, char* argv[])
   
   // Perform initial mesh refinements.
   mesh.copy(&basemesh);
-  for(int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
-  mesh.refine_towards_boundary(BDY_TOP, INIT_REF_NUM_BDY_TOP);
+  for(int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements(0, true);
+  mesh.refine_towards_boundary(BDY_TOP, INIT_REF_NUM_BDY_TOP, true, true);
 
   // Initialize boundary conditions.
   RichardsEssentialBC bc_essential(BDY_TOP, H_ELEVATION, PULSE_END_TIME, H_INIT, STARTUP_TIME);
@@ -270,7 +270,7 @@ int main(int argc, char* argv[])
     }
     else {
       Hermes::Mixins::Loggable::Static::info("Creating weak formulation for the Picard's method (Crank-Nicolson in time).");
-      error("Not implemented yet.");
+      throw Hermes::Exceptions::Exception("Not implemented yet.");
     }
   }
 
@@ -282,7 +282,7 @@ int main(int argc, char* argv[])
   ScalarView view("Initial condition", new WinGeom(0, 0, 630, 350));
   view.fix_scale_width(50);
   OrderView ordview("Initial mesh", new WinGeom(640, 0, 600, 350));
-  view.show(&sln_prev_time, HERMES_EPS_VERYHIGH);
+  view.show(&sln_prev_time);
   ordview.show(&space);
   //MeshView mview("Mesh", new WinGeom(840, 0, 600, 350));
   //mview.show(&mesh);
@@ -312,7 +312,7 @@ int main(int argc, char* argv[])
                 //space.adjust_element_order(-1, P_INIT);
                 space.adjust_element_order(-1, -1, P_INIT, P_INIT);
                 break;
-        default: error("Wrong global derefinement method.");
+        default: throw Hermes::Exceptions::Exception("Wrong global derefinement method.");
       }
 
       ndof = Space<double>::get_num_dofs(&space);
@@ -339,13 +339,13 @@ int main(int argc, char* argv[])
         // Calculate initial coefficient vector for Newton on the fine mesh.
         if (as == 1 && ts == 1) {
           Hermes::Mixins::Loggable::Static::info("Projecting coarse mesh solution to obtain initial vector on new fine mesh.");
-          OGProjection<double>::project_global(ref_space, &sln_prev_time, coeff_vec, matrix_solver);
+          OGProjection<double> ogProjection; ogProjection.project_global(ref_space, &sln_prev_time, coeff_vec);
         }
         else {
           Hermes::Mixins::Loggable::Static::info("Projecting previous fine mesh solution to obtain initial vector on new fine mesh.");
-          OGProjection<double>::project_global(ref_space, &ref_sln, coeff_vec, matrix_solver);
-          delete ref_sln.get_space();
-          delete ref_sln.get_mesh();
+          OGProjection<double> ogProjection; ogProjection.project_global(ref_space, &ref_sln, coeff_vec);
+          if(as > 1)
+            delete ref_sln.get_mesh();
         }
 
         // Initialize the FE problem.
@@ -366,13 +366,15 @@ int main(int argc, char* argv[])
         
         // Perform Newton's iteration.
         Hermes::Mixins::Loggable::Static::info("Solving nonlinear problem:");
-        Hermes::Hermes2D::NewtonSolver<double> newton(&dp, matrix_solver);
+        Hermes::Hermes2D::NewtonSolver<double> newton(&dp);
         bool newton_converged = false;
         while(!newton_converged)
         {
           try
           {
-            newton.solve(coeff_vec, NEWTON_TOL, NEWTON_MAX_ITER);
+            newton.set_newton_max_iter(NEWTON_MAX_ITER);
+            newton.set_newton_tol(NEWTON_TOL);
+            newton.solve(coeff_vec);
             newton_converged = true;
           }
           catch(Hermes::Exceptions::Exception e)
@@ -390,7 +392,7 @@ int main(int argc, char* argv[])
                  time_step, time_step * time_step_dec);
             time_step *= time_step_dec;
             // If time_step less than the prescribed minimum, stop.
-            if (time_step < time_step_min) error("Time step dropped below prescribed minimum value.");
+            if (time_step < time_step_min) throw Hermes::Exceptions::Exception("Time step dropped below prescribed minimum value.");
           }
         }
         // Delete the saved coefficient vector.
@@ -407,11 +409,11 @@ int main(int argc, char* argv[])
         // Calculate initial condition for Picard on the fine mesh.
         if (as == 1 && ts == 1) {
           Hermes::Mixins::Loggable::Static::info("Projecting coarse mesh solution to obtain initial vector on new fine mesh.");
-          OGProjection<double>::project_global(ref_space, &sln_prev_time, &sln_prev_iter, matrix_solver);
+          OGProjection<double> ogProjection; ogProjection.project_global(ref_space, &sln_prev_time, &sln_prev_iter);
         }
         else {
           Hermes::Mixins::Loggable::Static::info("Projecting previous fine mesh solution to obtain initial vector on new fine mesh.");
-          OGProjection<double>::project_global(ref_space, &ref_sln, &sln_prev_iter, matrix_solver);
+          OGProjection<double> ogProjection; ogProjection.project_global(ref_space, &ref_sln, &sln_prev_iter);
         }
 
         // Perform Picard iteration on the reference mesh. If necessary, 
@@ -422,30 +424,43 @@ int main(int argc, char* argv[])
 
         bc_essential.set_current_time(current_time);
 
-        DiscreteProblem<double> dp(wf, ref_space);
-        PicardSolver<double> picard(&dp, &sln_prev_iter, matrix_solver);
+        DiscreteProblemLinear<double> dp(wf, ref_space);
+        PicardSolver<double> picard(&dp, &sln_prev_iter);
         picard.set_verbose_output(verbose);
-        while(!picard.solve(PICARD_TOL, PICARD_MAX_ITER)) 
+        picard.set_picard_max_iter(PICARD_MAX_ITER);
+        picard.set_picard_tol(PICARD_TOL);
+        while(true)
+        {
+          try
           {
-          // Restore solution from the beginning of time step.
-          sln_prev_iter.copy(&sln_prev_time);
-          // Reducing time step to 50%.
-          Hermes::Mixins::Loggable::Static::info("Reducing time step size from %g to %g days for the rest of this time step", time_step, time_step * time_step_inc);
-          time_step *= time_step_dec;
-          // If time_step less than the prescribed minimum, stop.
-          if (time_step < time_step_min) error("Time step dropped below prescribed minimum value.");
+            picard.solve();
+            Solution<double>::vector_to_solution(picard.get_sln_vector(), ref_space, &ref_sln);
+            if(ts > 1)
+              delete sln_prev_time.get_mesh();
+            break;
+          }
+          catch(std::exception& e)
+          {
+            std::cout << e.what();
+            
+            // Restore solution from the beginning of time step.
+            sln_prev_iter.copy(&sln_prev_time);
+            // Reducing time step to 50%.
+            Hermes::Mixins::Loggable::Static::info("Reducing time step size from %g to %g days for the rest of this time step", time_step, time_step * time_step_inc);
+            time_step *= time_step_dec;
+            
+            // If time_step less than the prescribed minimum, stop.
+            if (time_step < time_step_min) throw Hermes::Exceptions::Exception("Time step dropped below prescribed minimum value.");
+          }
         }	
-
-        ref_sln.copy(&sln_prev_iter);
       }
-
 
       /*** ADAPTIVITY ***/
 
       // Project the fine mesh solution on the coarse mesh.
       Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh for error calculation.");
-      if(space.get_mesh() == NULL) error("it is NULL");
-      OGProjection<double>::project_global(&space, &ref_sln, &sln, matrix_solver);
+      if(space.get_mesh() == NULL) throw Hermes::Exceptions::Exception("it is NULL");
+      OGProjection<double> ogProjection; ogProjection.project_global(&space, &ref_sln, &sln);
 
       // Calculate element errors.
       Hermes::Mixins::Loggable::Static::info("Calculating error estimate."); 
@@ -471,6 +486,7 @@ int main(int argc, char* argv[])
       }
 
       delete adaptivity;
+      delete ref_space;
     }
     while (!done);
 
@@ -488,7 +504,7 @@ int main(int argc, char* argv[])
     char title[100];
     sprintf(title, "Solution, time %g days", current_time);
     view.set_title(title);
-    view.show(&sln, HERMES_EPS_VERYHIGH);
+    view.show(&sln);
     sprintf(title, "Mesh, time %g days", current_time);
     ordview.set_title(title);
     ordview.show(&space);
@@ -501,6 +517,8 @@ int main(int argc, char* argv[])
 
     // Copy new reference level solution into sln_prev_time.
     // This starts new time step.
+    if(ts > 1)
+      delete sln_prev_time.get_mesh();
     sln_prev_time.copy(&ref_sln);
 
     // Updating time step. Note that time_step might have been reduced during adaptivity.

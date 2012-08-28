@@ -7,16 +7,16 @@ CustomWeakFormMagnetostatics::CustomWeakFormMagnetostatics(std::string material_
 {
 
   // Jacobian.
-  add_matrix_form(new DefaultJacobianMagnetostatics<double>(0, 0, 
-    1.0, HERMES_DEFAULT_SPLINE, Hermes::vector<std::string>(material_air, material_copper), HERMES_NONSYM, HERMES_AXISYM_Y, order_inc));
-  add_matrix_form(new DefaultJacobianMagnetostatics<double>(0, 0, 1.0,
-    mu_inv_iron, Hermes::vector<std::string>(material_iron_1, material_iron_2), HERMES_NONSYM, HERMES_AXISYM_Y, order_inc));
+  add_matrix_form(new DefaultJacobianMagnetostatics<double>(0, 0, Hermes::vector<std::string>(material_air, material_copper), 
+    1.0, HERMES_DEFAULT_SPLINE, HERMES_NONSYM, HERMES_AXISYM_Y, order_inc));
+  add_matrix_form(new DefaultJacobianMagnetostatics<double>(0, 0, Hermes::vector<std::string>(material_iron_1, material_iron_2), 1.0,
+    mu_inv_iron, HERMES_NONSYM, HERMES_AXISYM_Y, order_inc));
   // Residual.
-  add_vector_form(new DefaultResidualMagnetostatics<double>(0, 
-    1.0, HERMES_ONE, Hermes::vector<std::string>(material_air, material_copper), HERMES_AXISYM_Y, order_inc));
-  add_vector_form(new DefaultResidualMagnetostatics<double>(0, 1.0, 
-    mu_inv_iron, Hermes::vector<std::string>(material_iron_1, material_iron_2), HERMES_AXISYM_Y, order_inc));
-  add_vector_form(new DefaultVectorFormVol<double>(0, new Hermes2DFunction<double>(-current_density * mu_vacuum), material_copper));
+  add_vector_form(new DefaultResidualMagnetostatics<double>(0, Hermes::vector<std::string>(material_air, material_copper), 
+    1.0, HERMES_ONE, HERMES_AXISYM_Y, order_inc));
+  add_vector_form(new DefaultResidualMagnetostatics<double>(0, Hermes::vector<std::string>(material_iron_1, material_iron_2), 1.0, 
+    mu_inv_iron, HERMES_AXISYM_Y, order_inc));
+  add_vector_form(new DefaultVectorFormVol<double>(0, material_copper, new Hermes2DFunction<double>(-current_density * mu_vacuum)));
 }
 
 
@@ -38,7 +38,7 @@ MeshFunction<double>* FilterVectorPotential::clone()
   Hermes::vector<int> items;
   for(int i = 0; i < this->num; i++)
   {
-    fns.push_back(this->sln[i]);
+    fns.push_back(this->sln[i]->clone());
     items.push_back(item[i]);
   }
   return new FilterVectorPotential(fns, items);
@@ -56,14 +56,14 @@ FilterFluxDensity::FilterFluxDensity(Hermes::vector<MeshFunction<double>*> solut
 
 double FilterFluxDensity::get_pt_value(double x, double y, int item) 
 {
-  error("Not implemented yet"); return 0;
+  throw Hermes::Exceptions::Exception("Not implemented yet"); return 0;
 }
 
 MeshFunction<double>* FilterFluxDensity::clone()
 {
   Hermes::vector<MeshFunction<double>*> fns;
   for(int i = 0; i < this->num; i++)
-    fns.push_back(this->sln[i]);
+    fns.push_back(this->sln[i]->clone());
   return new FilterFluxDensity(fns);
 }
 

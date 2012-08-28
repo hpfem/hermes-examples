@@ -124,10 +124,10 @@ int main(int argc, char* argv[])
   ScalarView s4("prev_e", new WinGeom(700, 400, 600, 300));
 
   // Set up the solver, matrix, and rhs according to the solver selection.
-  SparseMatrix<double>* matrix = create_matrix<double>(matrix_solver);
-  Vector<double>* rhs = create_vector<double>(matrix_solver);
-  Vector<double>* rhs_stabilization = create_vector<double>(matrix_solver);
-  LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver, matrix, rhs);
+  SparseMatrix<double>* matrix = create_matrix<double>();
+  Vector<double>* rhs = create_vector<double>();
+  Vector<double>* rhs_stabilization = create_vector<double>();
+  LinearMatrixSolver<double>* solver = create_linear_solver<double>( matrix, rhs);
 
   // Set up CFL calculation class.
   CFLCalculation CFL(CFL_NUMBER, KAPPA);
@@ -198,8 +198,6 @@ int main(int argc, char* argv[])
     // Assemble the stiffness matrix and rhs.
     Hermes::Mixins::Loggable::Static::info("Assembling the stiffness matrix and right-hand side vector.");
 
-    wf.realloc_cache(&mesh);
-
     dp.assemble(matrix, rhs);
 
     // Solve the matrix problem.
@@ -230,7 +228,7 @@ int main(int argc, char* argv[])
       }
     }
     else
-      error ("Matrix solver failed.\n");
+      throw Hermes::Exceptions::Exception("Matrix solver failed.\n");
 
     CFL.calculate_semi_implicit(Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), &mesh, time_step_n);
 
@@ -260,17 +258,6 @@ int main(int argc, char* argv[])
         sprintf(filename, "Mach number-3D-%i.vtk", iteration - 1);
         lin_mach.save_solution_vtk(&Mach_number, filename, "MachNumber", true);
       }
-    }
-    // Save a current state on the disk.
-    if(iteration > 1)
-    {
-      continuity.add_record(t);
-      continuity.get_last_record()->save_mesh(&mesh);
-      continuity.get_last_record()->save_spaces(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-        &space_rho_v_y, &space_e));
-      continuity.get_last_record()->save_solutions(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
-      continuity.get_last_record()->save_time_step_length(time_step_n);
-      continuity.get_last_record()->save_time_step_length_n_minus_one(time_step_n_minus_one);
     }
   }
 

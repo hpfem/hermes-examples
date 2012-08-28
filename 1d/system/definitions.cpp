@@ -85,7 +85,7 @@ CustomRightHandSide2::~CustomRightHandSide2()
 }
 
 
-ExactSolutionFitzHughNagumo1::ExactSolutionFitzHughNagumo1(Mesh* mesh)
+ExactSolutionFitzHughNagumo1::ExactSolutionFitzHughNagumo1(const Mesh* mesh)
      : ExactSolutionScalar<double>(mesh) 
 {
   cef1 = new CustomExactFunction1();
@@ -112,7 +112,7 @@ ExactSolutionFitzHughNagumo1::~ExactSolutionFitzHughNagumo1()
   delete cef1;
 }
 
-ExactSolutionFitzHughNagumo2::ExactSolutionFitzHughNagumo2(Mesh* mesh, double K)
+ExactSolutionFitzHughNagumo2::ExactSolutionFitzHughNagumo2(const Mesh* mesh, double K)
      : ExactSolutionScalar<double>(mesh) 
 {
   cef2 = new CustomExactFunction2(K);
@@ -216,12 +216,12 @@ VectorFormVol<double>* CustomResidual2::clone()
 CustomWeakForm::CustomWeakForm(CustomRightHandSide1* g1, CustomRightHandSide2* g2) : WeakForm<double>(2) 
 {
   // Jacobian.
-  add_matrix_form(new WeakFormsH1::DefaultJacobianDiffusion<double>(0, 0, new Hermes::Hermes1DFunction<double>(g1->d_u * g1->d_u)));
-  add_matrix_form(new WeakFormsH1::DefaultMatrixFormVol<double>(0, 0, new Hermes::Hermes2DFunction<double>(-1.0)));
-  add_matrix_form(new WeakFormsH1::DefaultMatrixFormVol<double>(0, 1, new Hermes::Hermes2DFunction<double>(g1->sigma), Hermes::HERMES_ANY, HERMES_NONSYM));
-  add_matrix_form(new WeakFormsH1::DefaultMatrixFormVol<double>(1, 0, new Hermes::Hermes2DFunction<double>(-1.0), Hermes::HERMES_ANY, HERMES_NONSYM));
-  add_matrix_form(new WeakFormsH1::DefaultJacobianDiffusion<double>(1, 1, new Hermes::Hermes1DFunction<double>(g2->d_v * g2->d_v)));
-  add_matrix_form(new WeakFormsH1::DefaultMatrixFormVol<double>(1, 1, new Hermes::Hermes2DFunction<double>(1.0)));
+  add_matrix_form(new WeakFormsH1::DefaultJacobianDiffusion<double>(0, 0, Hermes::HERMES_ANY, new Hermes::Hermes1DFunction<double>(g1->d_u * g1->d_u)));
+  add_matrix_form(new WeakFormsH1::DefaultMatrixFormVol<double>(0, 0, Hermes::HERMES_ANY, new Hermes::Hermes2DFunction<double>(-1.0)));
+  add_matrix_form(new WeakFormsH1::DefaultMatrixFormVol<double>(0, 1, Hermes::HERMES_ANY, new Hermes::Hermes2DFunction<double>(g1->sigma), HERMES_NONSYM));
+  add_matrix_form(new WeakFormsH1::DefaultMatrixFormVol<double>(1, 0, Hermes::HERMES_ANY, new Hermes::Hermes2DFunction<double>(-1.0), HERMES_NONSYM));
+  add_matrix_form(new WeakFormsH1::DefaultJacobianDiffusion<double>(1, 1, Hermes::HERMES_ANY, new Hermes::Hermes1DFunction<double>(g2->d_v * g2->d_v)));
+  add_matrix_form(new WeakFormsH1::DefaultMatrixFormVol<double>(1, 1, Hermes::HERMES_ANY, new Hermes::Hermes2DFunction<double>(1.0)));
 
   // Residual.
   add_vector_form(new CustomResidual1(g1->d_u, g1->sigma, g1));

@@ -15,7 +15,7 @@ double CustomExactFunction::dduhat_dxx(double x)
   return -K*K * (exp(K*x) + exp(-K*x)) / (exp(K) + exp(-K));
 }
 
-CustomExactSolution::CustomExactSolution(Mesh* mesh, double K) : ExactSolutionScalar<double>(mesh)
+CustomExactSolution::CustomExactSolution(const Mesh* mesh, double K) : ExactSolutionScalar<double>(mesh)
 {
   cef = new CustomExactFunction(K);
 }
@@ -67,11 +67,11 @@ CustomWeakForm::CustomWeakForm(CustomFunction* f) : WeakForm<double>(1)
 {
   // Jacobian.
   add_matrix_form(new Hermes::Hermes2D::WeakFormsH1::DefaultJacobianDiffusion<double>(0, 0));
-  add_matrix_form(new Hermes::Hermes2D::WeakFormsH1::DefaultMatrixFormVol<double>(0, 0, 
+  add_matrix_form(new Hermes::Hermes2D::WeakFormsH1::DefaultMatrixFormVol<double>(0, 0, HERMES_ANY,
                                                         new Hermes::Hermes2DFunction<double>(f->coeff1*f->coeff1)));
   // Residual.
   add_vector_form(new Hermes::Hermes2D::WeakFormsH1::DefaultResidualDiffusion<double>(0));
-  add_vector_form(new Hermes::Hermes2D::WeakFormsH1::DefaultResidualVol<double>(0, 
+  add_vector_form(new Hermes::Hermes2D::WeakFormsH1::DefaultResidualVol<double>(0, HERMES_ANY,
                                                       new Hermes::Hermes2DFunction<double>(f->coeff1*f->coeff1)));
-  add_vector_form(new Hermes::Hermes2D::WeakFormsH1::DefaultVectorFormVol<double>(0, f));
+  add_vector_form(new Hermes::Hermes2D::WeakFormsH1::DefaultVectorFormVol<double>(0, HERMES_ANY, f));
 }

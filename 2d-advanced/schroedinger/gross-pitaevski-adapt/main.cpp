@@ -133,7 +133,7 @@ int main(int argc, char* argv[])
 
   // Turn off adaptive time stepping if R-K method is not embedded.
   if (bt.is_embedded() == false && ADAPTIVE_TIME_STEP_ON == true) {
-    warn("R-K method not embedded, turning off adaptive time stepping.");
+    Hermes::Mixins::Loggable::Static::warn("R-K method not embedded, turning off adaptive time stepping.");
     ADAPTIVE_TIME_STEP_ON = false;
   }
 
@@ -219,7 +219,7 @@ int main(int argc, char* argv[])
         case 3: space.unrefine_all_mesh_elements();
                 space.adjust_element_order(-1, -1, P_INIT, P_INIT);
                 break;
-        default: error("Wrong global derefinement method.");
+        default: throw Hermes::Exceptions::Exception("Wrong global derefinement method.");
       }
 
       ndof = Space<std::complex<double> >::get_num_dofs(&space);
@@ -241,7 +241,7 @@ int main(int argc, char* argv[])
       // Initialize discrete problem on reference mesh.
       DiscreteProblem<std::complex<double> >* ref_dp = new DiscreteProblem<std::complex<double> >(&wf, ref_space);
       
-      RungeKutta<std::complex<double> > runge_kutta(&wf, ref_space, &bt, matrix_solver);
+      RungeKutta<std::complex<double> > runge_kutta(&wf, ref_space, &bt);
 
       // Runge-Kutta step on the fine mesh.
       Hermes::Mixins::Loggable::Static::info("Runge-Kutta time step on fine mesh (t = %g s, time step = %g s, stages: %d).", 
@@ -250,14 +250,16 @@ int main(int argc, char* argv[])
 
       try
       {
-        runge_kutta.rk_time_step_newton(current_time, time_step, &psi_time_prev, 
-                                    &ref_sln, time_error_fn, false, false, verbose, 
-                                    NEWTON_TOL_FINE, NEWTON_MAX_ITER);
+        runge_kutta.setTime(current_time);
+        runge_kutta.setTimeStep(time_step);
+        runge_kutta.set_newton_max_iter(NEWTON_MAX_ITER);
+        runge_kutta.set_newton_tol(NEWTON_TOL_FINE);
+        runge_kutta.rk_time_step_newton(&psi_time_prev, &ref_sln, time_error_fn);
       }
       catch(Exceptions::Exception& e)
       {
         e.printMsg();
-        error("Runge-Kutta time step failed");
+        throw Hermes::Exceptions::Exception("Runge-Kutta time step failed");
       }
 
       /* If ADAPTIVE_TIME_STEP_ON == true, estimate temporal error. 
@@ -274,7 +276,7 @@ int main(int argc, char* argv[])
         time_error_view.show_mesh(false);
         RealFilter abs_time(time_error_fn);
         AbsFilter abs_tef(&abs_time);
-        time_error_view.show(&abs_tef, HERMES_EPS_HIGH);
+        time_error_view.show(&abs_tef);
 
         rel_err_time = Global<std::complex<double> >::calc_norm(time_error_fn, HERMES_H1_NORM) / 
                        Global<std::complex<double> >::calc_norm(&ref_sln, HERMES_H1_NORM) * 100;
@@ -316,7 +318,7 @@ int main(int argc, char* argv[])
       // Project the fine mesh solution onto the coarse mesh.
       Solution<std::complex<double> > sln;
       Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh for error estimation.");
-      OGProjection<std::complex<double> >::project_global(&space, &ref_sln, &sln, matrix_solver); 
+      OGProjection<std::complex<double> > ogProjection; ogProjection.project_global(&space, &ref_sln, &sln); 
 
       // Show spatial error.
       sprintf(title, "Spatial error est, spatial adaptivity step %d", as);  

@@ -155,6 +155,7 @@ int main(int argc, char* argv[])
   // Time-stepping loop:
   char title[100];
   int num_time_steps = T_FINAL / TAU;
+    Hermes::Hermes2D::NewtonSolver<double> newton(&dp);
   for (int ts = 1; ts <= num_time_steps; ts++)
   {
     current_time += TAU;
@@ -168,7 +169,6 @@ int main(int argc, char* argv[])
 
     // Perform Newton's iteration.
     Hermes::Mixins::Loggable::Static::info("Solving nonlinear problem:");
-    Hermes::Hermes2D::NewtonSolver<double> newton(&dp);
     newton.set_newton_max_iter(NEWTON_MAX_ITER);
     newton.set_newton_tol(NEWTON_TOL);
     try

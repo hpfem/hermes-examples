@@ -89,7 +89,7 @@ int main(int argc, char* argv[])
   DiscreteProblem<double> dp(&wf, &space);
 
   // Initialize Newton solver.
-  NewtonSolver<double> newton(&dp, matrix_solver);
+  NewtonSolver<double> newton(&dp);
 
   // Perform Newton's iteration.
   try
@@ -99,7 +99,7 @@ int main(int argc, char* argv[])
   catch(Hermes::Exceptions::Exception e)
   {
     e.printMsg();
-    error("Newton's iteration failed.");
+    throw Hermes::Exceptions::Exception("Newton's iteration failed.");
   }
 
   // Translate the resulting coefficient vector into a Solution.
@@ -107,9 +107,9 @@ int main(int argc, char* argv[])
   Solution<double>::vector_to_solution(newton.get_sln_vector(), &space, &sln);
 
   Solution<double> sln_proj;
-  LocalProjection<double>::project_local(&space, &sln, &sln_proj, matrix_solver, HERMES_H1_NORM);
+  LocalProjection<double>::project_local(&space, &sln, &sln_proj, HERMES_H1_NORM);
   ScalarView view1("Projection", new WinGeom(0, 0, 440, 350));
-  view1.show(&sln_proj, HERMES_EPS_HIGH);
+  view1.show(&sln_proj);
   View::wait();
 
   // VTK output.
@@ -136,7 +136,7 @@ int main(int argc, char* argv[])
     // tolerance for that. Options are HERMES_EPS_LOW, HERMES_EPS_NORMAL (default), 
     // HERMES_EPS_HIGH and HERMES_EPS_VERYHIGH. The size of the graphics file grows 
     // considerably with more accurate representation, so use it wisely.
-    view.show(&sln, HERMES_EPS_HIGH);
+    view.show(&sln);
     View::wait();
   }
 

@@ -72,7 +72,7 @@ const std::complex<double>  P_SOURCE(1.0, 0.0);
 int main(int argc, char* argv[])
 {
   // Time measurement.
-  TimePeriod cpu_time;
+  Hermes::Mixins::TimeMeasurable cpu_time;
   cpu_time.tick();
 
   // Load the mesh.
@@ -136,7 +136,7 @@ int main(int argc, char* argv[])
     cpu_time.tick();
 
     // Perform Newton's iteration.
-    Hermes::Hermes2D::NewtonSolver<std::complex<double> > newton(&dp, matrix_solver);
+    Hermes::Hermes2D::NewtonSolver<std::complex<double> > newton(&dp);
     try
     {
       newton.solve();
@@ -144,14 +144,14 @@ int main(int argc, char* argv[])
     catch(Hermes::Exceptions::Exception e)
     {
       e.printMsg();
-      error("Newton's iteration failed.");
+      throw Hermes::Exceptions::Exception("Newton's iteration failed.");
     };
     // Translate the resulting coefficient vector into the Solution<std::complex<double> > sln.
     Hermes::Hermes2D::Solution<std::complex<double> >::vector_to_solution(newton.get_sln_vector(), ref_space, &ref_sln);
 
     // Project the fine mesh solution onto the coarse mesh.
     Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
-    OGProjection<std::complex<double> >::project_global(&space, &ref_sln, &sln, matrix_solver);
+    OGProjection<std::complex<double> > ogProjection; ogProjection.project_global(&space, &ref_sln, &sln);
 
     // Time measurement.
     cpu_time.tick();
@@ -198,7 +198,7 @@ int main(int argc, char* argv[])
   }
   while (done == false);
 
-  verbose("Total running time: %g s", cpu_time.accumulated());
+  Hermes::Mixins::Loggable::Static::info("Total running time: %g s", cpu_time.accumulated());
 
   // Show the reference solution - the final result.
   RealFilter ref_mag(&ref_sln);

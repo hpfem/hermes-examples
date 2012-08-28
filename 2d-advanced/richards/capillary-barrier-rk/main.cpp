@@ -231,10 +231,10 @@ int main(int argc, char* argv[])
    // Visualize the projection and mesh.
   ScalarView sview("Initial condition", new WinGeom(0, 0, 400, 350));
   sview.fix_scale_width(50);
-  sview.show(&h_time_prev, HERMES_EPS_VERYHIGH);
+  sview.show(&h_time_prev);
   ScalarView eview("Temporal error", new WinGeom(405, 0, 400, 350));
   eview.fix_scale_width(50);
-  eview.show(&time_error_fn, HERMES_EPS_VERYHIGH);
+  eview.show(&time_error_fn);
   OrderView oview("Initial mesh", new WinGeom(810, 0, 350, 350));
   oview.show(&space);
 
@@ -243,7 +243,7 @@ int main(int argc, char* argv[])
   Hermes::Mixins::Loggable::Static::info("Time step history will be saved to file time_step_history.dat.");
 
   // Initialize Runge-Kutta time stepping.
-  RungeKutta<double> runge_kutta(&wf, &space, &bt, matrix_solver);
+  RungeKutta<double> runge_kutta(&wf, &space, &bt);
 
   // Time stepping:
   double current_time = 0;
@@ -257,17 +257,14 @@ int main(int argc, char* argv[])
     // Perform one Runge-Kutta time step according to the selected Butcher's table.
     Hermes::Mixins::Loggable::Static::info("Runge-Kutta time step (t = %g s, time step = %g s, stages: %d).", 
          current_time, time_step, bt.get_size());
-    bool freeze_jacobian = false;
-    bool block_diagonal_jacobian = false;
-    bool verbose = true;
-    double damping_coeff = 1.0;
-    double max_allowed_residual_norm = 1e10;
-
     try
     {
-      runge_kutta.rk_time_step_newton(current_time, time_step, &h_time_prev, 
-          &h_time_new, &time_error_fn, freeze_jacobian, block_diagonal_jacobian, verbose,
-          NEWTON_TOL, NEWTON_MAX_ITER, damping_coeff, max_allowed_residual_norm);
+      runge_kutta.setTime(current_time);
+      runge_kutta.setTimeStep(time_step);
+      runge_kutta.set_newton_max_iter(NEWTON_MAX_ITER);
+      runge_kutta.set_newton_tol(NEWTON_TOL);
+      runge_kutta.rk_time_step_newton(&h_time_prev, 
+          &h_time_new, &time_error_fn);
     }
     catch(Exceptions::Exception& e)
     {
@@ -275,7 +272,7 @@ int main(int argc, char* argv[])
            time_step, time_step * time_step_dec);
       time_step *= time_step_dec;
       if (time_step < time_step_min) 
-        error("Time step became too small.");
+        throw Hermes::Exceptions::Exception("Time step became too small.");
       continue;
     }
     
@@ -286,7 +283,7 @@ int main(int argc, char* argv[])
     char title[100];
     sprintf(title, "Temporal error, t = %g", current_time);
     eview.set_title(title);
-    eview.show(&time_error_fn, HERMES_EPS_VERYHIGH);
+    eview.show(&time_error_fn);
 
     // Calculate relative time stepping error and decide whether the 
     // time step can be accepted. If not, then the time step size is 
@@ -317,7 +314,7 @@ int main(int argc, char* argv[])
     // Show the new time level solution.
     sprintf(title, "Solution, t = %g", current_time);
     sview.set_title(title);
-    sview.show(&h_time_new, HERMES_EPS_VERYHIGH);
+    sview.show(&h_time_new);
     oview.show(&space);
 
     // Save complete Solution.

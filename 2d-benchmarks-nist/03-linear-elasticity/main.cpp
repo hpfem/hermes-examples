@@ -158,7 +158,7 @@ int main(int argc, char* argv[])
   SimpleGraph graph_dof_est, graph_cpu_est, graph_dof_exact, graph_cpu_exact;
 
   // Time measurement.
-  Hermes::TimePeriod cpu_time;
+  Hermes::Mixins::TimeMeasurable cpu_time;
 
   // Adaptivity loop:
   int as = 1; bool done = false;
@@ -179,7 +179,7 @@ int main(int argc, char* argv[])
     // Assemble the discrete problem.    
     DiscreteProblem<double> dp(&wf, ref_spaces_const);
     
-    NewtonSolver<double> newton(&dp, matrix_solver);
+    NewtonSolver<double> newton(&dp);
     newton.set_verbose_output(false);
     
     Solution<double> u_ref_sln, v_ref_sln;
@@ -190,20 +190,20 @@ int main(int argc, char* argv[])
     catch(Hermes::Exceptions::Exception e)
     {
       e.printMsg();
-      error("Newton's iteration failed.");
+      throw Hermes::Exceptions::Exception("Newton's iteration failed.");
     };
 
     // Translate the resulting coefficient vector into the instance of Solution.
     Solution<double>::vector_to_solutions(newton.get_sln_vector(), ref_spaces_const, Hermes::vector<Solution<double>*>(&u_ref_sln, &v_ref_sln));
     
     cpu_time.tick();
-    verbose("Solution: %g s", cpu_time.last());
+    Hermes::Mixins::Loggable::Static::info("Solution: %g s", cpu_time.last());
     
     // Project the fine mesh solution onto the coarse mesh.
     Hermes::Mixins::Loggable::Static::info("Calculating error estimate and exact error.");
-    OGProjection<double>::project_global(Hermes::vector<const Space<double>*>(&u_space, &v_space), 
+    OGProjection<double> ogProjection; ogProjection.project_global(Hermes::vector<const Space<double>*>(&u_space, &v_space), 
         Hermes::vector<Solution<double>*>(&u_ref_sln, &v_ref_sln), 
-        Hermes::vector<Solution<double>*>(&u_sln, &v_sln), matrix_solver);
+        Hermes::vector<Solution<double>*>(&u_sln, &v_sln));
 
     // Calculate element errors and total error estimate.
     Hermes::vector<double> err_est_rel;
@@ -219,7 +219,7 @@ int main(int argc, char* argv[])
                                  &err_exact_rel, solutions_for_adapt) * 100.;
 
     cpu_time.tick();
-    verbose("Error calculation: %g s", cpu_time.last());
+    Hermes::Mixins::Loggable::Static::info("Error calculation: %g s", cpu_time.last());
     
     // Report results.
     Hermes::Mixins::Loggable::Static::info("ndof_coarse[u]: %d, ndof_fine[u]: %d",
@@ -242,7 +242,7 @@ int main(int argc, char* argv[])
     s_view_v.show(&v_sln); 
     o_view_v.show(&v_space);
     VonMisesFilter stress(Hermes::vector<MeshFunction<double> *>(&u_sln, &v_sln), lambda, mu);
-    mises_view.show(&stress, HERMES_EPS_HIGH, H2D_FN_VAL_0, &u_sln, &v_sln, 0.03);
+    mises_view.show(&stress, HERMES_EPS_NORMAL, H2D_FN_VAL_0, &u_sln, &v_sln, 0.03);
 
     // Add entry to DOF and CPU convergence graphs.
     graph_dof_est.add_values(Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&u_space, &v_space)), err_est_rel_total);
@@ -254,7 +254,7 @@ int main(int argc, char* argv[])
     graph_cpu_exact.add_values(cpu_time.accumulated(), err_exact_rel_total);
     graph_cpu_exact.save("conv_cpu_exact.dat");
     
-    cpu_time.tick(Hermes::HERMES_SKIP);
+    cpu_time.tick(Hermes::Mixins::TimeMeasurable::HERMES_SKIP);
 
     // If err_est too large, adapt the mesh.
     if (err_est_rel_total < ERR_STOP) 
@@ -268,7 +268,7 @@ int main(int argc, char* argv[])
     if (Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&u_space, &v_space)) >= NDOF_STOP) done = true;
    
     cpu_time.tick();
-    verbose("Adaptation: %g s", cpu_time.last());
+    Hermes::Mixins::Loggable::Static::info("Adaptation: %g s", cpu_time.last());
     
     // Increase the counter of adaptivity steps.
     if (done == false)  
@@ -281,7 +281,7 @@ int main(int argc, char* argv[])
   }
   while (done == false);
   
-  verbose("Total running time: %g s", cpu_time.accumulated());
+  Hermes::Mixins::Loggable::Static::info("Total running time: %g s", cpu_time.accumulated());
 
   // Wait for all views to be closed.
   Views::View::wait();

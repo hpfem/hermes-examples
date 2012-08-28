@@ -102,20 +102,22 @@ int main(int argc, char* argv[])
   // coefficient vector for the Newton's method.
   Hermes::Mixins::Loggable::Static::info("Projecting to obtain initial vector for the Newton's method.");
   double* coeff_vec = new double[ndof] ;
-  OGProjection<double>::project_global(&space, &sln, coeff_vec, matrix_solver);
+  OGProjection<double> ogProjection; ogProjection.project_global(&space, &sln, coeff_vec);
 
   // Perform Newton's iteration.
-  Hermes::Hermes2D::NewtonSolver<double> newton(&dp, matrix_solver);
+  Hermes::Hermes2D::NewtonSolver<double> newton(&dp);
   bool verbose = true;
   newton.set_verbose_output(verbose);
   try
   {
-    newton.solve(coeff_vec, NEWTON_TOL, NEWTON_MAX_ITER);
+    newton.set_newton_max_iter(NEWTON_MAX_ITER);
+    newton.set_newton_tol(NEWTON_TOL);
+    newton.solve(coeff_vec);
   }
   catch(Hermes::Exceptions::Exception e)
   {
     e.printMsg();
-    error("Newton's iteration failed.");
+    throw Hermes::Exceptions::Exception("Newton's iteration failed.");
   };
 
   // Translate the resulting coefficient vector into the Solution sln.

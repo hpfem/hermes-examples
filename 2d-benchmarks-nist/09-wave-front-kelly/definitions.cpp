@@ -75,7 +75,7 @@ double ResidualErrorForm::value(int n, double* wt,
 
   return result * Hermes::sqr(e->diam);
 #else
-  error("Define H2D_SECOND_DERIVATIVES_ENABLED in hermes2d_common_defs.h"
+  throw Hermes::Exceptions::Exception("Define H2D_SECOND_DERIVATIVES_ENABLED in hermes2d_common_defs.h"
         "if you want to use second derivatives in weak forms.");
 #endif
 }
@@ -87,7 +87,7 @@ Ord ResidualErrorForm::ord(int n, double* wt,
 #ifdef H2D_SECOND_DERIVATIVES_ENABLED
   return sqr( -rhs->value(e->x[0], e->y[0]) + u->laplace[0] );
 #else
-  error("Define H2D_SECOND_DERIVATIVES_ENABLED in hermes2d_common_defs.h"
+  throw Hermes::Exceptions::Exception("Define H2D_SECOND_DERIVATIVES_ENABLED in hermes2d_common_defs.h"
         "if you want to use second derivatives in weak forms.");
 #endif
 }

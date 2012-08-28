@@ -126,7 +126,7 @@ int main(int argc, char* argv[])
   CustomWeakFormRichardsRK wf(constitutive_relations);
 
   // Initialize Runge-Kutta time stepping.
-  RungeKutta<double> runge_kutta(&wf, &space, &bt, matrix_solver);
+  RungeKutta<double> runge_kutta(&wf, &space, &bt);
 
   // Time stepping:
   double current_time = 0;
@@ -138,22 +138,18 @@ int main(int argc, char* argv[])
     // Perform one Runge-Kutta time step according to the selected Butcher's table.
     Hermes::Mixins::Loggable::Static::info("Runge-Kutta time step (t = %g s, time step = %g s, stages: %d).", 
          current_time, time_step, bt.get_size());
-    bool freeze_jacobian = false;
-    bool block_diagonal_jacobian = false;
-    bool verbose = true;
-    double damping_coeff = 1.0;
-    double max_allowed_residual_norm = 1e10;
-
     try
     {
-      runge_kutta.rk_time_step_newton(current_time, time_step, &h_time_prev, 
-          &h_time_new, freeze_jacobian, block_diagonal_jacobian, verbose,
-          NEWTON_TOL, NEWTON_MAX_ITER, damping_coeff, max_allowed_residual_norm);
+      runge_kutta.setTime(current_time);
+      runge_kutta.setTimeStep(time_step);
+      runge_kutta.set_newton_max_iter(NEWTON_MAX_ITER);
+      runge_kutta.set_newton_tol(NEWTON_TOL);
+      runge_kutta.rk_time_step_newton(&h_time_prev, &h_time_new);
     }
     catch(Exceptions::Exception& e)
     {
       e.printMsg();
-      error("Runge-Kutta time step failed");
+      throw Hermes::Exceptions::Exception("Runge-Kutta time step failed");
     }
 
     // Copy solution for the new time step.

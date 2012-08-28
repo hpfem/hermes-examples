@@ -105,7 +105,7 @@ int main(int argc, char* argv[])
   sview_imag.fix_scale_width(80);
 
   // Initialize Runge-Kutta time stepping.
-  RungeKutta<std::complex<double> > runge_kutta(&wf, &space, &bt, matrix_solver);
+  RungeKutta<std::complex<double> > runge_kutta(&wf, &space, &bt);
   
   // Time stepping:
   int ts = 1;
@@ -115,18 +115,17 @@ int main(int argc, char* argv[])
     // Perform one Runge-Kutta time step according to the selected Butcher's table.
     Hermes::Mixins::Loggable::Static::info("Runge-Kutta time step (t = %g s, time step = %g s, stages: %d).", 
          current_time, time_step, bt.get_size());
-    bool jacobian_changed = false;
-    bool verbose = true;
     
     try
     {
-      runge_kutta.rk_time_step_newton(current_time, time_step, &psi_time_prev, 
-                                  &psi_time_new, !jacobian_changed, false, verbose);
+      runge_kutta.setTime(current_time);
+      runge_kutta.setTimeStep(time_step);
+      runge_kutta.rk_time_step_newton(&psi_time_prev, &psi_time_new);
     }
     catch(Exceptions::Exception& e)
     {
       e.printMsg();
-      error("Runge-Kutta time step failed");
+      throw Hermes::Exceptions::Exception("Runge-Kutta time step failed");
     }
 
     // Show the new time level solution.

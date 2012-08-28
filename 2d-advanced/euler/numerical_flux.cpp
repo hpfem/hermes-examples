@@ -343,14 +343,14 @@ void StegerWarmingNumericalFlux::numerical_flux_inlet(double result[4], double w
         q_L_star[1] = a_l_star;
         q_L_star[2] = q_L_star[0] * q_L[2] / q_L[0];
         q_L_star[3] = QuantityCalculator::calc_energy(q_L_star[0], q_L_star[1], q_L_star[2], q_L_star[0] * a_l_star * a_l_star / kappa, kappa);
-        double first_f_1[4];
-        double second_f_1[4];
-        double third_f_1[4];
-        f_1(first_f_1, q_B);
-        f_1(second_f_1, q_L_star);
-        f_1(third_f_1, q_1);
+        double first1[4];
+        double second1[4];
+        double third1[4];
+        f_1(first1, q_B);
+        f_1(second1, q_L_star);
+        f_1(third1, q_1);
         for(unsigned int i = 0; i < 4; i++)
-          result[i] = first_f_1[i] + second_f_1[i] - third_f_1[i];
+          result[i] = first1[i] + second1[i] - third1[i];
         Q_inv(result, result, nx, ny);
         return;
       }
@@ -508,14 +508,14 @@ void OsherSolomonNumericalFlux::numerical_flux(double result[4], double w_L[4], 
     // Second row.
     if(0 < q_1[1] / q_1[0] && q_1[1] / q_1[0] < a_1) {
       calculate_q_L_star();
-      double first_f_1[4];
-      double second_f_1[4];
-      double third_f_1[4];
-      f_1(first_f_1, q_L);
-      f_1(second_f_1, q_L_star);
-      f_1(third_f_1, q_1);
+      double first1[4];
+      double second1[4];
+      double third1[4];
+      f_1(first1, q_L);
+      f_1(second1, q_L_star);
+      f_1(third1, q_1);
       for(unsigned int i = 0; i < 4; i++)
-        result[i] = first_f_1[i] - second_f_1[i] + third_f_1[i];
+        result[i] = first1[i] - second1[i] + third1[i];
       Q_inv(result, result, nx, ny);
       return;
     }
@@ -523,14 +523,14 @@ void OsherSolomonNumericalFlux::numerical_flux(double result[4], double w_L[4], 
     if(-a_3 <= q_1[1] / q_1[0] && q_1[1] / q_1[0] <= 0) {
       calculate_q_L_star();
       calculate_q_3();
-      double first_f_1[4];
-      double second_f_1[4];
-      double third_f_1[4];
-      f_1(first_f_1, q_L);
-      f_1(second_f_1, q_L_star);
-      f_1(third_f_1, q_3);
+      double first1[4];
+      double second1[4];
+      double third1[4];
+      f_1(first1, q_L);
+      f_1(second1, q_L_star);
+      f_1(third1, q_3);
       for(unsigned int i = 0; i < 4; i++)
-        result[i] = first_f_1[i] - second_f_1[i] + third_f_1[i];
+        result[i] = first1[i] - second1[i] + third1[i];
       Q_inv(result, result, nx, ny);
       return;
     }
@@ -538,14 +538,14 @@ void OsherSolomonNumericalFlux::numerical_flux(double result[4], double w_L[4], 
     if(q_1[1] / q_1[0] < -a_3) {
       calculate_q_L_star();
       calculate_q_R_star();
-      double first_f_1[4];
-      double second_f_1[4];
-      double third_f_1[4];
-      f_1(first_f_1, q_L);
-      f_1(second_f_1, q_L_star);
-      f_1(third_f_1, q_R_star);
+      double first1[4];
+      double second1[4];
+      double third1[4];
+      f_1(first1, q_L);
+      f_1(second1, q_L_star);
+      f_1(third1, q_R_star);
       for(unsigned int i = 0; i < 4; i++)
-        result[i] = first_f_1[i] - second_f_1[i] + third_f_1[i];
+        result[i] = first1[i] - second1[i] + third1[i];
       Q_inv(result, result, nx, ny);
       return;
     }
@@ -557,28 +557,28 @@ void OsherSolomonNumericalFlux::numerical_flux(double result[4], double w_L[4], 
     if(a_1 <= q_1[1] / q_1[0]) {
       calculate_q_R_star();
       calculate_q_L_star();
-      double first_f_1[4];
-      double second_f_1[4];
-      double third_f_1[4];
-      f_1(first_f_1, q_R);
-      f_1(second_f_1, q_R_star);
-      f_1(third_f_1, q_L_star);
+      double first1[4];
+      double second1[4];
+      double third1[4];
+      f_1(first1, q_R);
+      f_1(second1, q_R_star);
+      f_1(third1, q_L_star);
       for(unsigned int i = 0; i < 4; i++)
-        result[i] = first_f_1[i] - second_f_1[i] + third_f_1[i];
+        result[i] = first1[i] - second1[i] + third1[i];
       Q_inv(result, result, nx, ny);
       return;
     }
     // Second row.
     if(0 < q_1[1] / q_1[0] && q_1[1] / q_1[0] < a_1) {
       calculate_q_R_star();
-      double first_f_1[4];
-      double second_f_1[4];
-      double third_f_1[4];
-      f_1(first_f_1, q_R);
-      f_1(second_f_1, q_R_star);
-      f_1(third_f_1, q_1);
+      double first1[4];
+      double second1[4];
+      double third1[4];
+      f_1(first1, q_R);
+      f_1(second1, q_R_star);
+      f_1(third1, q_1);
       for(unsigned int i = 0; i < 4; i++)
-        result[i] = first_f_1[i] - second_f_1[i] + third_f_1[i];
+        result[i] = first1[i] - second1[i] + third1[i];
       Q_inv(result, result, nx, ny);
       return;
     }
@@ -586,14 +586,14 @@ void OsherSolomonNumericalFlux::numerical_flux(double result[4], double w_L[4], 
     if(-a_3 <= q_1[1] / q_1[0] && q_1[1] / q_1[0] <= 0) {
       calculate_q_R_star();
       calculate_q_3();
-      double first_f_1[4];
-      double second_f_1[4];
-      double third_f_1[4];
-      f_1(first_f_1, q_R);
-      f_1(second_f_1, q_R_star);
-      f_1(third_f_1, q_3);
+      double first1[4];
+      double second1[4];
+      double third1[4];
+      f_1(first1, q_R);
+      f_1(second1, q_R_star);
+      f_1(third1, q_3);
       for(unsigned int i = 0; i < 4; i++)
-        result[i] = first_f_1[i] - second_f_1[i] + third_f_1[i];
+        result[i] = first1[i] - second1[i] + third1[i];
       return;
     }
     // Fourth row.
@@ -609,14 +609,14 @@ void OsherSolomonNumericalFlux::numerical_flux(double result[4], double w_L[4], 
     // First row.
     if(a_1 <= q_1[1] / q_1[0]) {
       calculate_q_R_star();
-      double first_f_1[4];
-      double second_f_1[4];
-      double third_f_1[4];
-      f_1(first_f_1, q_L);
-      f_1(second_f_1, q_R_star);
-      f_1(third_f_1, q_R);
+      double first1[4];
+      double second1[4];
+      double third1[4];
+      f_1(first1, q_L);
+      f_1(second1, q_R_star);
+      f_1(third1, q_R);
       for(unsigned int i = 0; i < 4; i++)
-        result[i] = first_f_1[i] - second_f_1[i] + third_f_1[i];
+        result[i] = first1[i] - second1[i] + third1[i];
       Q_inv(result, result, nx, ny);
       return;
     }
@@ -624,18 +624,18 @@ void OsherSolomonNumericalFlux::numerical_flux(double result[4], double w_L[4], 
     if(0 < q_1[1] / q_1[0] && q_1[1] / q_1[0] < a_1) {
       calculate_q_R_star();
       calculate_q_L_star();
-      double first_f_1[4];
-      double second_f_1[4];
-      double third_f_1[4];
-      double fourth_f_1[4];
-      double fifth_f_1[4];
-      f_1(first_f_1, q_L);
-      f_1(second_f_1, q_R_star);
-      f_1(third_f_1, q_R);
-      f_1(fourth_f_1, q_L_star);
-      f_1(fifth_f_1, q_1);
+      double first1[4];
+      double second1[4];
+      double third1[4];
+      double fourth1[4];
+      double fifth1[4];
+      f_1(first1, q_L);
+      f_1(second1, q_R_star);
+      f_1(third1, q_R);
+      f_1(fourth1, q_L_star);
+      f_1(fifth1, q_1);
       for(unsigned int i = 0; i < 4; i++)
-        result[i] = first_f_1[i] - second_f_1[i] + third_f_1[i] - fourth_f_1[i] + fifth_f_1[i];
+        result[i] = first1[i] - second1[i] + third1[i] - fourth1[i] + fifth1[i];
       Q_inv(result, result, nx, ny);
       return;
     }
@@ -644,32 +644,32 @@ void OsherSolomonNumericalFlux::numerical_flux(double result[4], double w_L[4], 
       calculate_q_R_star();
       calculate_q_L_star();
       calculate_q_3();
-      double first_f_1[4];
-      double second_f_1[4];
-      double third_f_1[4];
-      double fourth_f_1[4];
-      double fifth_f_1[4];
-      f_1(first_f_1, q_L);
-      f_1(second_f_1, q_R_star);
-      f_1(third_f_1, q_R);
-      f_1(fourth_f_1, q_L_star);
-      f_1(fifth_f_1, q_3);
+      double first1[4];
+      double second1[4];
+      double third1[4];
+      double fourth1[4];
+      double fifth1[4];
+      f_1(first1, q_L);
+      f_1(second1, q_R_star);
+      f_1(third1, q_R);
+      f_1(fourth1, q_L_star);
+      f_1(fifth1, q_3);
       for(unsigned int i = 0; i < 4; i++)
-        result[i] = first_f_1[i] - second_f_1[i] + third_f_1[i] - fourth_f_1[i] + fifth_f_1[i];
+        result[i] = first1[i] - second1[i] + third1[i] - fourth1[i] + fifth1[i];
       Q_inv(result, result, nx, ny);
       return;
     }
     // Fourth row.
     if(q_1[1] / q_1[0] < -a_3) {
       calculate_q_L_star();
-      double first_f_1[4];
-      double second_f_1[4];
-      double third_f_1[4];
-      f_1(first_f_1, q_L);
-      f_1(second_f_1, q_R);
-      f_1(third_f_1, q_L_star);
+      double first1[4];
+      double second1[4];
+      double third1[4];
+      f_1(first1, q_L);
+      f_1(second1, q_R);
+      f_1(third1, q_L_star);
       for(unsigned int i = 0; i < 4; i++)
-        result[i] = first_f_1[i] + second_f_1[i] - third_f_1[i];
+        result[i] = first1[i] + second1[i] - third1[i];
       Q_inv(result, result, nx, ny);
       return;
     }
@@ -731,14 +731,14 @@ void OsherSolomonNumericalFlux::numerical_flux_inlet(double result[4], double w_
         q_L_star[1] = a_l_star;
         q_L_star[2] = q_L_star[0] * q_L[2] / q_L[0];
         q_L_star[3] = QuantityCalculator::calc_energy(q_L_star[0], q_L_star[1], q_L_star[2], q_L_star[0] * a_l_star * a_l_star / kappa, kappa);
-        double first_f_1[4];
-        double second_f_1[4];
-        double third_f_1[4];
-        f_1(first_f_1, q_B);
-        f_1(second_f_1, q_L_star);
-        f_1(third_f_1, q_1);
+        double first1[4];
+        double second1[4];
+        double third1[4];
+        f_1(first1, q_B);
+        f_1(second1, q_L_star);
+        f_1(third1, q_1);
         for(unsigned int i = 0; i < 4; i++)
-          result[i] = first_f_1[i] + second_f_1[i] - third_f_1[i];
+          result[i] = first1[i] + second1[i] - third1[i];
         Q_inv(result, result, nx, ny);
         return;
       }
@@ -890,7 +890,7 @@ double NumericalFlux::f_x(int component, double w0, double w1, double w3, double
     else if (i == 3)
         return w1/w0 * (w4 + (kappa - 1.) * (w4 - (w1*w1+w3*w3)/(2*w0)));
 
-    error("Invalid index.");
+    throw Hermes::Exceptions::Exception("Invalid index.");
     return 0.0;
 }
 
@@ -905,7 +905,7 @@ double NumericalFlux::f_z(int component, double w0, double w1, double w3, double
     else if (i == 3)
         return w3/w0 * (w4 + (kappa - 1.) * (w4 - (w1*w1+w3*w3)/(2*w0)));
 
-    error("Invalid index.");
+    throw Hermes::Exceptions::Exception("Invalid index.");
     return 0.0;
 }
 
@@ -954,7 +954,7 @@ double NumericalFlux::A_x(int component, int j, double w0, double w1, double w3,
         return w1/w0 + (kappa - 1.) * w1/w0;
 
     printf("i=%d, j=%d;\n", i, j);
-    error("Invalid index.");
+    throw Hermes::Exceptions::Exception("Invalid index.");
     return 0.0;
 }
 
@@ -1002,7 +1002,7 @@ double NumericalFlux::A_z(int component, int j, double w0, double w1, double w3,
     else if (i == 3 && j == 3)
         return w3/w0 + (kappa - 1.) * w3/w0;
 
-    error("Invalid index.");
+    throw Hermes::Exceptions::Exception("Invalid index.");
     return 0.0;
 }
 
@@ -1052,7 +1052,7 @@ double NumericalFlux::matrix_R(int component, int j, double w0, double w1, doubl
         return v2/2 + c*c/(kappa-1) + u*c;
 
     printf("i=%d, j=%d;\n", i, j);
-    error("Invalid index.");
+    throw Hermes::Exceptions::Exception("Invalid index.");
     return 0.0;
 }
 
@@ -1103,7 +1103,7 @@ double NumericalFlux::matrix_R_inv(int component, int j, double w0, double w1, d
         result = (kappa-1)/2;
     else {
         printf("i=%d, j=%d;\n", i, j);
-        error("Invalid index.");
+        throw Hermes::Exceptions::Exception("Invalid index.");
     }
     return result/(c*c);
 }
@@ -1157,7 +1157,7 @@ double NumericalFlux::matrix_D_minus(int component, int j, double w0, double w1,
         return 0;
 
     printf("i=%d, j=%d;\n", i, j);
-    error("Invalid index.");
+    throw Hermes::Exceptions::Exception("Invalid index.");
     return 0.0;
 }
 

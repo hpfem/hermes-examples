@@ -104,7 +104,7 @@ double TOL_PIT_RM = 5e-6;
 int main(int argc, char* argv[])
 {
   // Time measurement.
-  TimePeriod cpu_time;
+  Hermes::Mixins::TimeMeasurable cpu_time;
   cpu_time.tick();
   
   // Load physical data of the problem.
@@ -166,10 +166,10 @@ int main(int argc, char* argv[])
   // Initialize the discrete algebraic representation of the problem and its solver.
   //
   // Create the matrix and right-hand side vector for the solver.
-  SparseMatrix<double>* mat = create_matrix<double>(matrix_solver);
-  Vector<double>* rhs = create_vector<double>(matrix_solver);
+  SparseMatrix<double>* mat = create_matrix<double>();
+  Vector<double>* rhs = create_vector<double>();
   // Instantiate the solver itself.
-  LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver, mat, rhs);
+  LinearMatrixSolver<double>* solver = create_linear_solver<double>( mat, rhs);
 
   // Initialize views.
   /* for 1280x800 display */
@@ -284,9 +284,9 @@ int main(int argc, char* argv[])
       
       // Create a new one.
       matrix_solver = SOLVER_UMFPACK;
-      mat = create_matrix<double>(matrix_solver);
-      rhs = create_vector<double>(matrix_solver);
-      solver = create_linear_solver<double>(matrix_solver, mat, rhs);
+      mat = create_matrix<double>();
+      rhs = create_vector<double>();
+      solver = create_linear_solver<double>( mat, rhs);
     }
 #endif    
 
@@ -301,7 +301,7 @@ int main(int argc, char* argv[])
     Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solutions on coarse meshes.");
     // This is commented out as the appropriate method was deleted in the commit
     // "Cleaning global projections" (b282194946225014faa1de37f20112a5a5d7ab5a).
-    //OGProjection<double>::project_global(spaces, projection_jacobian, projection_residual, coarse_solutions, matrix_solver);
+    //OGProjection<double> ogProjection; ogProjection.project_global(spaces, projection_jacobian, projection_residual, coarse_solutions);
 
     // Time measurement.
     cpu_time.tick();
@@ -314,7 +314,7 @@ int main(int argc, char* argv[])
     }
 
     // Skip visualization time.
-    cpu_time.tick(HERMES_SKIP);
+    cpu_time.tick(Hermes::Mixins::TimeMeasurable::HERMES_SKIP);
 
     // Report the number of negative eigenfunction values.
     Hermes::Mixins::Loggable::Static::info("Num. of negative values: %d, %d, %d, %d",
@@ -367,7 +367,7 @@ int main(int argc, char* argv[])
     for (unsigned int g = 0; g < matprop.get_G(); g++)
       graph_dof_evol.add_values(g, as, Space<double>::get_num_dofs(spaces[g]));
 
-    cpu_time.tick(HERMES_SKIP);
+    cpu_time.tick(Hermes::Mixins::TimeMeasurable::HERMES_SKIP);
 
     // If err_est too large, adapt the mesh (L2 norm chosen since (weighted integrals of) solution values
     // are more important for further analyses than the derivatives. 
@@ -395,7 +395,7 @@ int main(int argc, char* argv[])
   }
   while(done == false);
 
-  verbose("Total running time: %g s", cpu_time.accumulated());
+  Hermes::Mixins::Loggable::Static::info("Total running time: %g s", cpu_time.accumulated());
   
   for (unsigned int g = 0; g < matprop.get_G(); g++) 
   {

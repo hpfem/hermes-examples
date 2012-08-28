@@ -173,7 +173,7 @@ int main(int argc, char* argv[])
   SimpleGraph graph_dof, graph_cpu;
   
   // Time measurement.
-  TimePeriod cpu_time;
+  Hermes::Mixins::TimeMeasurable cpu_time;
   cpu_time.tick();
   
   // Time stepping loop.
@@ -194,7 +194,7 @@ int main(int argc, char* argv[])
         case 3: space.unrefine_all_mesh_elements();
                 space.adjust_element_order(-1, -1, P_INIT, P_INIT);
                 break;
-        default: error("Wrong global derefinement method.");
+        default: throw Hermes::Exceptions::Exception("Wrong global derefinement method.");
       }
 
       ndof_coarse = Space<double>::get_num_dofs(&space);
@@ -215,33 +215,29 @@ int main(int argc, char* argv[])
       cpu_time.tick();
 
       // Initialize Runge-Kutta time stepping.
-      RungeKutta<double> runge_kutta(&wf, ref_space, &bt, matrix_solver);
+      RungeKutta<double> runge_kutta(&wf, ref_space, &bt);
 
       // Perform one Runge-Kutta time step according to the selected Butcher's table.
       Hermes::Mixins::Loggable::Static::info("Runge-Kutta time step (t = %g s, tau = %g s, stages: %d).",
            current_time, time_step, bt.get_size());
-      bool freeze_jacobian = false;
-      bool block_diagonal_jacobian = false;
-      bool verbose = true;
-      double damping_coeff = 1.0;
-      double max_allowed_residual_norm = 1e10;
-
       try
       {
-        runge_kutta.rk_time_step_newton(current_time, time_step, &h_time_prev, 
-            &h_time_new, freeze_jacobian, block_diagonal_jacobian, verbose,
-            NEWTON_TOL, NEWTON_MAX_ITER, damping_coeff, max_allowed_residual_norm);
+        runge_kutta.setTime(current_time);
+        runge_kutta.setTimeStep(time_step);
+        runge_kutta.set_newton_max_iter(NEWTON_MAX_ITER);
+        runge_kutta.set_newton_tol(NEWTON_TOL);
+        runge_kutta.rk_time_step_newton(&h_time_prev, &h_time_new);
       }
       catch(Exceptions::Exception& e)
       {
         e.printMsg();
-        error("Runge-Kutta time step failed");
+        throw Hermes::Exceptions::Exception("Runge-Kutta time step failed");
       }
 
       // Project the fine mesh solution onto the coarse mesh.
       Solution<double> sln_coarse;
       Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh for error estimation.");
-      OGProjection<double>::project_global(&space, &h_time_new, &sln_coarse, matrix_solver); 
+      OGProjection<double> ogProjection; ogProjection.project_global(&space, &h_time_new, &sln_coarse); 
 
       // Calculate element errors and total error estimate.
       Hermes::Mixins::Loggable::Static::info("Calculating error estimate.");
@@ -273,7 +269,6 @@ int main(int argc, char* argv[])
       delete adaptivity;
       if(!done)
       {
-        delete h_time_new.get_space();
         delete h_time_new.get_mesh();
       }
     }

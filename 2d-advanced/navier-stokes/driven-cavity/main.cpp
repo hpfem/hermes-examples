@@ -19,7 +19,7 @@
 // The following parameters can be changed:
 
 // Number of initial uniform mesh refinements. 
-const int INIT_REF_NUM = 2;                       
+const int INIT_REF_NUM = 1;                       
 // Number of initial mesh refinements towards boundary. 
 const int INIT_BDY_REF_NUM_INNER = 2;             
 // For application of Stokes flow (creeping flow).
@@ -51,8 +51,7 @@ const double T_FINAL = 3600.0;
 // Stopping criterion for the Newton's method.
 const double NEWTON_TOL = 1e-5;                   
 // Maximum allowed number of Newton iterations.
-const int NEWTON_MAX_ITER = 10;                   
-// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
+const int NEWTON_MAX_ITER = 10;                   // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
 
@@ -67,7 +66,7 @@ double integrate_over_wall(MeshFunction<double>* meshfn, int marker)
 
   double integral = 0.0;
   Element* e;
-  Mesh* mesh = meshfn->get_mesh();
+  const Mesh* mesh = meshfn->get_mesh();
 
   for_all_active_elements(e, mesh)
   {
@@ -173,27 +172,30 @@ int main(int argc, char* argv[])
 
     // Perform Newton's iteration.
     Hermes::Mixins::Loggable::Static::info("Solving nonlinear problem:");
-    Hermes::Hermes2D::NewtonSolver<double> newton(&dp, matrix_solver);
+    Hermes::Hermes2D::NewtonSolver<double> newton(&dp);
     try
     {
-      newton.solve(NULL, NEWTON_TOL, NEWTON_MAX_ITER);
+      newton.set_newton_max_iter(NEWTON_MAX_ITER);
+      newton.set_newton_tol(NEWTON_TOL);
+      newton.solve();
     }
     catch(Hermes::Exceptions::Exception e)
     {
       e.printMsg();
-      error("Newton's iteration failed.");
+      throw Hermes::Exceptions::Exception("Newton's iteration failed.");
     };
 
     // Update previous time level solutions.
     Solution<double>::vector_to_solutions(newton.get_sln_vector(), spaces, slns_prev_time);
 
     // Show the solution at the end of time step.
-    sprintf(title, "Velocity, time %g", current_time);
-    vview.set_title(title);
-    vview.show(&xvel_prev_time, &yvel_prev_time);
     sprintf(title, "Pressure, time %g", current_time);
     pview.set_title(title);
     pview.show(&p_prev_time);
+    sprintf(title, "Velocity, time %g", current_time);
+    vview.set_title(title);
+    vview.show(&xvel_prev_time, &yvel_prev_time, HERMES_EPS_LOW*10);
+    
  }
 
   // Wait for all views to be closed.

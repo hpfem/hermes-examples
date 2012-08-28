@@ -62,7 +62,7 @@ public:
 class CustomExactSolution : public ExactSolutionScalar<double>
 {
 public:
-  CustomExactSolution(Mesh* mesh, double alpha, double x_loc, double y_loc, double r_zero)
+  CustomExactSolution(const Mesh* mesh, double alpha, double x_loc, double y_loc, double r_zero)
     : ExactSolutionScalar<double>(mesh), alpha(alpha), x_loc(x_loc), y_loc(y_loc), r_zero(r_zero) 
   { };
 
@@ -184,7 +184,7 @@ class ConvergenceTable
     {
       if (columns.size() == 0) add_column("", default_fmt);
       if (col < 0 || col >= columns.size()) 
-        error("Invalid column number.");
+        throw Hermes::Exceptions::Exception("Invalid column number.");
       
       columns[col].data.push_back(Column::Entry(x));
     }

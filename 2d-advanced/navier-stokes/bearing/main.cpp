@@ -73,7 +73,7 @@ double integrate_over_wall(MeshFunction<double>* meshfn, int marker)
 
   double integral = 0.0;
   Element* e;
-  Mesh* mesh = meshfn->get_mesh();
+  const Mesh* mesh = meshfn->get_mesh();
 
   for_all_active_elements(e, mesh)
   {
@@ -169,6 +169,8 @@ int main(int argc, char* argv[])
   pview.fix_scale_width(80);
   pview.show_mesh(true);
 
+  Hermes::Hermes2D::NewtonSolver<double> newton(&dp);
+
   // Time-stepping loop:
   char title[100];
   int num_time_steps = T_FINAL / TAU;
@@ -183,15 +185,16 @@ int main(int argc, char* argv[])
 
     // Perform Newton's iteration.
     Hermes::Mixins::Loggable::Static::info("Solving nonlinear problem:");
-    Hermes::Hermes2D::NewtonSolver<double> newton(&dp, matrix_solver);
     try
     {
-      newton.solve(NULL, NEWTON_TOL, NEWTON_MAX_ITER);
+      newton.set_newton_max_iter(NEWTON_MAX_ITER);
+      newton.set_newton_tol(NEWTON_TOL);
+      newton.solve();
     }
     catch(Hermes::Exceptions::Exception e)
     {
       e.printMsg();
-      error("Newton's iteration failed.");
+      throw Hermes::Exceptions::Exception("Newton's iteration failed.");
     };
 
     // Update previous time level solutions.

@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
 
   // Initialize the weak formulation.
   Hermes::Hermes1DFunction<double> lambda(1.0);
-  DefaultWeakFormPoisson<double> wf(&lambda, &f);
+  DefaultWeakFormPoisson<double> wf(HERMES_ANY, &lambda, &f);
   
   // Initialize boundary conditions
   DefaultEssentialBCNonConst<double> bc_essential("Bdy", &exact_sln);
@@ -110,7 +110,7 @@ int main(int argc, char* argv[])
   SimpleGraph graph_dof_est, graph_cpu_est, graph_dof_exact, graph_cpu_exact;
 
   // Time measurement.
-  Hermes::TimePeriod cpu_time;
+  Hermes::Mixins::TimeMeasurable cpu_time;
   cpu_time.tick();
 
   // Adaptivity loop:
@@ -131,7 +131,7 @@ int main(int argc, char* argv[])
     // Assemble the discrete problem.
     DiscreteProblem<double> dp(&wf, ref_space);
 
-    NewtonSolver<double> newton(&dp, matrix_solver);
+    NewtonSolver<double> newton(&dp);
     newton.set_verbose_output(false);
     
     Solution<double> ref_sln;
@@ -142,17 +142,17 @@ int main(int argc, char* argv[])
     catch(Hermes::Exceptions::Exception e)
     {
       e.printMsg();
-      error("Newton's iteration failed.");
+      throw Hermes::Exceptions::Exception("Newton's iteration failed.");
     };
     // Translate the resulting coefficient vector into the instance of Solution.
     Solution<double>::vector_to_solution(newton.get_sln_vector(), ref_space, &ref_sln);
     
     cpu_time.tick();
-    verbose("Solution: %g s", cpu_time.last());
+    Hermes::Mixins::Loggable::Static::info("Solution: %g s", cpu_time.last());
 
     // Project the fine mesh solution onto the coarse mesh.
     Hermes::Mixins::Loggable::Static::info("Calculating error estimate and exact error.");
-    OGProjection<double>::project_global(&space, &ref_sln, &sln, matrix_solver);
+    OGProjection<double> ogProjection; ogProjection.project_global(&space, &ref_sln, &sln);
 
     // Calculate element errors and total error estimate.
     Adapt<double> adaptivity(&space);
@@ -162,7 +162,7 @@ int main(int argc, char* argv[])
     double err_exact_rel = Global<double>::calc_rel_error(&sln, &exact_sln, HERMES_H1_NORM) * 100;
 
     cpu_time.tick();
-    verbose("Error calculation: %g s", cpu_time.last());
+    Hermes::Mixins::Loggable::Static::info("Error calculation: %g s", cpu_time.last());
     
     // Report results.
     Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d", space.get_num_dofs(), ref_space->get_num_dofs());
@@ -186,7 +186,7 @@ int main(int argc, char* argv[])
     graph_cpu_exact.add_values(accum_time, err_exact_rel);
     graph_cpu_exact.save("conv_cpu_exact.dat");
     
-    cpu_time.tick(Hermes::HERMES_SKIP);
+    cpu_time.tick(Hermes::Mixins::TimeMeasurable::HERMES_SKIP);
 
     // If err_est too large, adapt the mesh. The NDOF test must be here, so that the solution may be visualized
     // after ending due to this criterion.
@@ -196,7 +196,7 @@ int main(int argc, char* argv[])
       done = adaptivity.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
    
     cpu_time.tick();
-    verbose("Adaptation: %g s", cpu_time.last());
+    Hermes::Mixins::Loggable::Static::info("Adaptation: %g s", cpu_time.last());
     
     // Increase the counter of adaptivity steps.
     if (done == false)  
@@ -208,7 +208,7 @@ int main(int argc, char* argv[])
   }
   while (done == false);
 
-  verbose("Total running time: %g s", cpu_time.accumulated());
+  Hermes::Mixins::Loggable::Static::info("Total running time: %g s", cpu_time.accumulated());
 
   // Wait for all views to be closed.
   Views::View::wait();

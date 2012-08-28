@@ -86,7 +86,7 @@ const double f1  = 0;
 int main(int argc, char* argv[])
 {
   // Time measurement.
-  TimePeriod cpu_time;
+  Hermes::Mixins::TimeMeasurable cpu_time;
   cpu_time.tick();
 
   // Load the mesh.
@@ -156,7 +156,7 @@ int main(int argc, char* argv[])
     DiscreteProblem<double> dp(&wf, ref_spaces_const);
 
     // Initialize Newton solver.
-    NewtonSolver<double> newton(&dp, matrix_solver);
+    NewtonSolver<double> newton(&dp);
     newton.set_verbose_output(true);
 
     // Time measurement.
@@ -166,12 +166,14 @@ int main(int argc, char* argv[])
     Hermes::Mixins::Loggable::Static::info("Solving on reference mesh.");
     try
     {
-      newton.solve(NULL, NEWTON_TOL, NEWTON_MAX_ITER);
+      newton.set_newton_max_iter(NEWTON_MAX_ITER);
+      newton.set_newton_tol(NEWTON_TOL);
+      newton.solve();
     }
     catch(Hermes::Exceptions::Exception e)
     {
       e.printMsg();
-      error("Newton's iteration failed.");
+      throw Hermes::Exceptions::Exception("Newton's iteration failed.");
     }
   
     // Time measurement.
@@ -183,9 +185,9 @@ int main(int argc, char* argv[])
 
     // Project the fine mesh solution onto the coarse mesh.
     Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
-    OGProjection<double>::project_global(Hermes::vector<const Space<double> *>(&u1_space, &u2_space), 
+    OGProjection<double> ogProjection; ogProjection.project_global(Hermes::vector<const Space<double> *>(&u1_space, &u2_space), 
         Hermes::vector<Solution<double> *>(&u1_sln_ref, &u2_sln_ref), 
-        Hermes::vector<Solution<double> *>(&u1_sln, &u2_sln), matrix_solver); 
+        Hermes::vector<Solution<double> *>(&u1_sln, &u2_sln)); 
    
     // View the coarse mesh solution and polynomial orders.
     s_view_0.show(&u1_sln); 
@@ -196,10 +198,10 @@ int main(int argc, char* argv[])
     double lambda = (E * nu) / ((1 + nu) * (1 - 2*nu));
     double mu = E / (2*(1 + nu));
     VonMisesFilter stress(Hermes::vector<MeshFunction<double> *>(&u1_sln, &u2_sln), lambda, mu);
-    mises_view.show(&stress, HERMES_EPS_HIGH, H2D_FN_VAL_0, &u1_sln, &u2_sln, 1e3);
+    mises_view.show(&stress, HERMES_EPS_NORMAL, H2D_FN_VAL_0, &u1_sln, &u2_sln, 1e3);
 
     // Skip visualization time.
-    cpu_time.tick(HERMES_SKIP);
+    cpu_time.tick(Hermes::Mixins::TimeMeasurable::HERMES_SKIP);
 
     // Initialize adaptivity.
     Adapt<double>* adaptivity = new Adapt<double>(Hermes::vector<Space<double> *>(&u1_space, &u2_space));
@@ -260,7 +262,7 @@ int main(int argc, char* argv[])
   }
   while (done == false);
 
-  verbose("Total running time: %g s", cpu_time.accumulated());
+  Hermes::Mixins::Loggable::Static::info("Total running time: %g s", cpu_time.accumulated());
 
   // Show the reference solution - the final result.
   s_view_0.set_title("Fine mesh solution (x-displacement)");
@@ -271,10 +273,9 @@ int main(int argc, char* argv[])
   double lambda = (E * nu) / ((1 + nu) * (1 - 2*nu));
   double mu = E / (2*(1 + nu));
   VonMisesFilter stress(Hermes::vector<MeshFunction<double> *>(&u1_sln_ref, &u2_sln_ref), lambda, mu);
-  mises_view.show(&stress, HERMES_EPS_HIGH, H2D_FN_VAL_0, &u1_sln_ref, &u2_sln_ref, 1e3);
+  mises_view.show(&stress, HERMES_EPS_NORMAL, H2D_FN_VAL_0, &u1_sln_ref, &u2_sln_ref, 1e3);
 
   // Wait for all views to be closed.
   View::wait();
   return 0;
 }
-

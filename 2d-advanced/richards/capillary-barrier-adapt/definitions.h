@@ -16,7 +16,7 @@ using namespace Hermes::Hermes2D::RefinementSelectors;
 class InitialSolutionRichards : public ExactSolutionScalar<double>
 {
 public:
-  InitialSolutionRichards(Mesh* mesh, double constant) 
+  InitialSolutionRichards(const Mesh* mesh, double constant) 
          : ExactSolutionScalar<double>(mesh), constant(constant) {};
 
   virtual double value (double x, double y) const {
@@ -44,7 +44,7 @@ public:
 class ExactSolutionPoisson : public ExactSolutionScalar<double>
 {
 public:
-  ExactSolutionPoisson(Mesh* mesh) : ExactSolutionScalar<double>(mesh) {};
+  ExactSolutionPoisson(const Mesh* mesh) : ExactSolutionScalar<double>(mesh) {};
 
   virtual double value (double x, double y) const {
     return x*x +y*y;

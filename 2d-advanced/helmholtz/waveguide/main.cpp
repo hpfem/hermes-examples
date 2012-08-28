@@ -97,15 +97,17 @@ int main(int argc, char* argv[])
   // Initial coefficient vector for the Newton's method.  
   ndof = Space<double>::get_num_dofs(Hermes::vector<const Space<double>*>(&e_r_space, &e_i_space));
 
-  Hermes::Hermes2D::NewtonSolver<double> newton(&dp, matrix_solver);
+  Hermes::Hermes2D::NewtonSolver<double> newton(&dp);
   try
   {
-    newton.solve(NULL, NEWTON_TOL, NEWTON_MAX_ITER);
+    newton.set_newton_tol(NEWTON_TOL);
+    newton.set_newton_max_iter(NEWTON_MAX_ITER);
+    newton.solve();
   }
   catch(Hermes::Exceptions::Exception e)
   {
     e.printMsg();
-    error("Newton's iteration failed.");
+    throw Hermes::Exceptions::Exception("Newton's iteration failed.");
   };
 
   // Translate the resulting coefficient vector into Solutions.

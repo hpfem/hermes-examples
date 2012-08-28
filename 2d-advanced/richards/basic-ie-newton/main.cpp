@@ -110,7 +110,7 @@ int main(int argc, char* argv[])
   DiscreteProblem<double> dp(&wf, &space);
 
   // Initialize Newton solver.
-  NewtonSolver<double> newton(&dp, matrix_solver);
+  NewtonSolver<double> newton(&dp);
   newton.set_verbose_output(true);
 
   // Time stepping:
@@ -122,13 +122,14 @@ int main(int argc, char* argv[])
     // Perform Newton's iteration.
     try
     {
-      // NULL = zero initial coefficient vector.
-      newton.solve(NULL, NEWTON_TOL, NEWTON_MAX_ITER);
+      newton.set_newton_max_iter(NEWTON_MAX_ITER);
+      newton.set_newton_tol(NEWTON_TOL);
+      newton.solve();
     }
     catch(Hermes::Exceptions::Exception e)
     {
       e.printMsg();
-      error("Newton's iteration failed.");
+      throw Hermes::Exceptions::Exception("Newton's iteration failed.");
     };
 
     // Translate the resulting coefficient vector into the Solution<double> sln.

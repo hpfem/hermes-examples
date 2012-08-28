@@ -101,7 +101,6 @@ int main(int argc, char* argv[])
   HcurlSpace<double> E_space(&mesh, &bcs, P_INIT);
   HcurlSpace<double> F_space(&mesh, &bcs, P_INIT);
   Hermes::vector<const Space<double> *> spaces(&E_space, &F_space);
-  Hermes::vector<Space<double> *> spaces_mutable(&E_space, &F_space);
   int ndof = HcurlSpace<double>::get_num_dofs(spaces);
   Hermes::Mixins::Loggable::Static::info("ndof = %d.", ndof);
 
@@ -116,7 +115,7 @@ int main(int argc, char* argv[])
   F2_view.fix_scale_width(50);
 
   // Initialize Runge-Kutta time stepping.
-  RungeKutta<double> runge_kutta(&wf, spaces_mutable, &bt, matrix_solver);
+  RungeKutta<double> runge_kutta(&wf, spaces, &bt);
 
   // Time stepping loop.
   double current_time = 0; int ts = 1;
@@ -125,22 +124,18 @@ int main(int argc, char* argv[])
     // Perform one Runge-Kutta time step according to the selected Butcher's table.
     Hermes::Mixins::Loggable::Static::info("Runge-Kutta time step (t = %g s, time_step = %g s, stages: %d).", 
          current_time, time_step, bt.get_size());
-    bool freeze_jacobian = true;
-    bool block_diagonal_jacobian = false;
-    bool verbose = true;
-    double damping_coeff = 1.0;
-    double max_allowed_residual_norm = 1e10;
-
     try
     {
-      runge_kutta.rk_time_step_newton(current_time, time_step, slns_time_prev, slns_time_new, freeze_jacobian, 
-          block_diagonal_jacobian, verbose, NEWTON_TOL, NEWTON_MAX_ITER, damping_coeff,
-          max_allowed_residual_norm);
+      runge_kutta.setTime(current_time);
+      runge_kutta.setTimeStep(time_step);
+      runge_kutta.set_newton_max_iter(NEWTON_MAX_ITER);
+      runge_kutta.set_newton_tol(NEWTON_TOL);
+      runge_kutta.rk_time_step_newton(slns_time_prev, slns_time_new);
     }
     catch(Exceptions::Exception& e)
     {
       e.printMsg();
-      error("Runge-Kutta time step failed");
+      throw Hermes::Exceptions::Exception("Runge-Kutta time step failed");
     }
 
     // Visualize the solutions.

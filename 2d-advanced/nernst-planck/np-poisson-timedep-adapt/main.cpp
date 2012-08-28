@@ -244,13 +244,13 @@ int main (int argc, char* argv[]) {
     }
   } else {
     if (SCALED)
-      error("Forward Euler is not implemented for scaled problem");
+      throw Hermes::Exceptions::Exception("Forward Euler is not implemented for scaled problem");
     wf = new WeakFormPNPEuler(TAU, C0, K, L, D, &C_prev_time);
   }
 
   DiscreteProblem<double> dp_coarse(wf, Hermes::vector<const Space<double> *>(&C_space, &phi_space));
 
-  NewtonSolver<double>* solver_coarse = new NewtonSolver<double>(&dp_coarse, matrix_solver);
+  NewtonSolver<double>* solver_coarse = new NewtonSolver<double>(&dp_coarse);
 
   // Project the initial condition on the FE space to obtain initial
   // coefficient vector for the Newton's method.
@@ -258,9 +258,9 @@ int main (int argc, char* argv[]) {
   int ndof = Space<double>::get_num_dofs(Hermes::vector<const Space<double>*>(&C_space, &phi_space));
   double* coeff_vec_coarse = new double[ndof] ;
 
-  OGProjection<double>::project_global(Hermes::vector<const Space<double> *>(&C_space, &phi_space),
+  OGProjection<double> ogProjection; ogProjection.project_global(Hermes::vector<const Space<double> *>(&C_space, &phi_space),
       Hermes::vector<MeshFunction<double> *>(&C_prev_time, &phi_prev_time),
-      coeff_vec_coarse, matrix_solver);
+      coeff_vec_coarse);
 
   // Create a selector which will select optimal candidate.
   H1ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
@@ -281,12 +281,14 @@ int main (int argc, char* argv[]) {
   Hermes::Mixins::Loggable::Static::info("Solving on initial coarse mesh");
   try
   {
-    solver_coarse->solve(coeff_vec_coarse, NEWTON_TOL_COARSE, NEWTON_MAX_ITER);
+    solver_coarse->set_newton_max_iter(NEWTON_MAX_ITER);
+    solver_coarse->set_newton_tol(NEWTON_TOL_COARSE);
+    solver_coarse->solve(coeff_vec_coarse);
   }
   catch(Hermes::Exceptions::Exception e)
   {
     e.printMsg();
-    error("Newton's iteration failed.");
+    throw Hermes::Exceptions::Exception("Newton's iteration failed.");
   };
 
   //View::wait(HERMES_WAIT_KEYPRESS);
@@ -341,20 +343,20 @@ int main (int argc, char* argv[]) {
 
       double* coeff_vec = new double[ndof_ref];
 
-      NewtonSolver<double>* solver = new NewtonSolver<double>(dp, matrix_solver);
+      NewtonSolver<double>* solver = new NewtonSolver<double>(dp);
 
       // Calculate initial coefficient vector for Newton on the fine mesh.
       if (as == 1 && pid.get_timestep_number() == 1) {
         Hermes::Mixins::Loggable::Static::info("Projecting coarse mesh solution to obtain coefficient vector on new fine mesh.");
-        OGProjection<double>::project_global(ref_spaces_const,
+        OGProjection<double> ogProjection; ogProjection.project_global(ref_spaces_const,
               Hermes::vector<MeshFunction<double> *>(&C_sln, &phi_sln),
-              coeff_vec, matrix_solver);
+              coeff_vec);
       }
       else {
         Hermes::Mixins::Loggable::Static::info("Projecting previous fine mesh solution to obtain coefficient vector on new fine mesh.");
-        OGProjection<double>::project_global(ref_spaces_const,
+        OGProjection<double> ogProjection; ogProjection.project_global(ref_spaces_const,
               Hermes::vector<MeshFunction<double> *>(&C_ref_sln, &phi_ref_sln),
-              coeff_vec, matrix_solver);
+              coeff_vec);
       }
       if (as > 1) {
         // Now deallocate the previous mesh
@@ -365,14 +367,16 @@ int main (int argc, char* argv[]) {
 
       // Newton's loop on the fine mesh.
       Hermes::Mixins::Loggable::Static::info("Solving on fine mesh:");
-       try
+      try
       {
-        solver->solve(coeff_vec, NEWTON_TOL_FINE, NEWTON_MAX_ITER);
+        solver->set_newton_max_iter(NEWTON_MAX_ITER);
+        solver->set_newton_tol(NEWTON_TOL_FINE);
+        solver->solve(coeff_vec);
       }
       catch(Hermes::Exceptions::Exception e)
       {
         e.printMsg();
-        error("Newton's iteration failed.");
+        throw Hermes::Exceptions::Exception("Newton's iteration failed.");
       };
 
       // Store the result in ref_sln.
@@ -381,7 +385,7 @@ int main (int argc, char* argv[]) {
 
       // Projecting reference solution onto the coarse mesh
       Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh.");
-      OGProjection<double>::project_global(Hermes::vector<const Space<double> *>(&C_space, &phi_space),
+      OGProjection<double> ogProjection; ogProjection.project_global(Hermes::vector<const Space<double> *>(&C_space, &phi_space),
           Hermes::vector<Solution<double> *>(&C_ref_sln, &phi_ref_sln),
           Hermes::vector<Solution<double> *>(&C_sln, &phi_sln),
           matrix_solver);

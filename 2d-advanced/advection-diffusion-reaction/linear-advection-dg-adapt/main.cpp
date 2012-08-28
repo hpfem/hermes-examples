@@ -83,7 +83,7 @@ int main(int argc, char* args[])
   SimpleGraph graph_dof_est, graph_cpu_est;
 
   // Time measurement.
-  TimePeriod cpu_time;
+  Hermes::Mixins::TimeMeasurable cpu_time;
   cpu_time.tick();
 
   // Display the mesh.
@@ -116,9 +116,9 @@ int main(int argc, char* args[])
     DiscreteProblem<double>* dp = new DiscreteProblem<double>(&wf, ref_space);
     
     // Set up the solver, matrix, and rhs according to the solver selection.
-    SparseMatrix<double>* matrix = create_matrix<double>(matrix_solver);
-    Vector<double>* rhs = create_vector<double>(matrix_solver);
-    LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver, matrix, rhs);
+    SparseMatrix<double>* matrix = create_matrix<double>();
+    Vector<double>* rhs = create_vector<double>();
+    LinearMatrixSolver<double>* solver = create_linear_solver<double>( matrix, rhs);
 
     // Assemble the linear problem.
     Hermes::Mixins::Loggable::Static::info("Assembling (ndof: %d).", Space<double>::get_num_dofs(ref_space));
@@ -127,11 +127,11 @@ int main(int argc, char* args[])
     // Solve the linear system. If successful, obtain the solution.
     Hermes::Mixins::Loggable::Static::info("Solving.");
     if(solver->solve()) Solution<double>::vector_to_solution(solver->get_sln_vector(), ref_space, &ref_sln);
-    else error ("Matrix solver failed.\n");
+    else throw Hermes::Exceptions::Exception("Matrix solver failed.\n");
     
     // Project the fine mesh solution onto the coarse mesh.
     Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
-    OGProjection<double>::project_global(&space, &ref_sln, &sln, matrix_solver, HERMES_L2_NORM);  
+    OGProjection<double> ogProjection; ogProjection.project_global(&space, &ref_sln, &sln, HERMES_L2_NORM);  
 
     // Time measurement.
     cpu_time.tick();
@@ -141,7 +141,7 @@ int main(int argc, char* args[])
     oview.show(&space);
     bview.show(&space);
     // Skip visualization time.
-    cpu_time.tick(HERMES_SKIP);
+    cpu_time.tick(Hermes::Mixins::TimeMeasurable::HERMES_SKIP);
 
     // Calculate element errors and total error estimate.
     Hermes::Mixins::Loggable::Static::info("Calculating error estimate."); 

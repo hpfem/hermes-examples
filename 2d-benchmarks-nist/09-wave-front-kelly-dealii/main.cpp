@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
   {
     refinement_mode = atoi(argv[1]);
     if (refinement_mode < 1 || refinement_mode > 12)
-      error("Invalid run case: %d (valid range is [1,12])", refinement_mode);
+      throw Hermes::Exceptions::Exception("Invalid run case: %d (valid range is [1,12])", refinement_mode);
   }
   
   double threshold = 0.3;                     
@@ -190,7 +190,7 @@ int main(int argc, char* argv[])
   double setup_time = 0, assemble_time = 0, solve_time = 0, adapt_time = 0;
   
   // Time measurement.
-  Hermes::TimePeriod wall_clock;
+  Hermes::Mixins::TimeMeasurable wall_clock;
   // Stop counting time for adaptation.
   wall_clock.tick(); 
 
@@ -247,7 +247,7 @@ int main(int argc, char* argv[])
   conv_table.add_column(" solve time ", "  %8.3f  ");
   conv_table.add_column(" adapt time ", "  %8.3f  ");
   
-  wall_clock.tick(Hermes::HERMES_SKIP);
+  wall_clock.tick(Hermes::Mixins::TimeMeasurable::HERMES_SKIP);
 
   // Adaptivity loop:
   int as = 0; bool done = false;
@@ -262,9 +262,8 @@ int main(int argc, char* argv[])
     // Actual ndof.
     int ndof = space.get_num_dofs();
     
-    NewtonSolver<double> newton(&dp, matrix_solver);
+    NewtonSolver<double> newton(&dp);
     newton.set_verbose_output(false);
-    newton.attach_timer(&wall_clock);
 
     // Setup time continues in NewtonSolver::solve().
     try
@@ -274,7 +273,7 @@ int main(int argc, char* argv[])
     catch(Hermes::Exceptions::Exception e)
     {
       e.printMsg();
-      error("Newton's iteration failed.");
+      throw Hermes::Exceptions::Exception("Newton's iteration failed.");
     };
 
     setup_time += newton.get_setup_time();

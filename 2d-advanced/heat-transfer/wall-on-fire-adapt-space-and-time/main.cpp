@@ -152,7 +152,7 @@ int main(int argc, char* argv[])
 
   // Turn off adaptive time stepping if R-K method is not embedded.
   if (bt.is_embedded() == false && ADAPTIVE_TIME_STEP_ON == true) {
-    warn("R-K method not embedded, turning off adaptive time stepping.");
+    Hermes::Mixins::Loggable::Static::warn("R-K method not embedded, turning off adaptive time stepping.");
     ADAPTIVE_TIME_STEP_ON = false;
   }
 
@@ -197,7 +197,7 @@ int main(int argc, char* argv[])
   time_error_view.fix_scale_width(40);
   ScalarView space_error_view("Spatial error", new WinGeom(0, 1220, 1500, 360));
   space_error_view.fix_scale_width(40);
-  sln_view.show(&sln_prev_time, HERMES_EPS_VERYHIGH);
+  sln_view.show(&sln_prev_time);
   ordview.show(&space);
 
   // Graph for time step history.
@@ -224,7 +224,7 @@ int main(int argc, char* argv[])
                 //space.adjust_element_order(-1, P_INIT);
                 space.adjust_element_order(-1, -1, P_INIT, P_INIT);
                 break;
-        default: error("Wrong global derefinement method.");
+        default: throw Hermes::Exceptions::Exception("Wrong global derefinement method.");
       }
 
       ndof = Space<double>::get_num_dofs(&space);
@@ -241,10 +241,10 @@ int main(int argc, char* argv[])
       Space<double>* ref_space = Space<double>::construct_refined_space(&space);
 
       // Initialize Runge-Kutta time stepping on the reference mesh.
-      RungeKutta<double> runge_kutta(&wf, ref_space, &bt, matrix_solver);
+      RungeKutta<double> runge_kutta(&wf, ref_space, &bt);
 
-      OGProjection<double>::project_global(ref_space, &sln_prev_time, 
-                                   &sln_prev_time, matrix_solver);
+      OGProjection<double> ogProjection; ogProjection.project_global(ref_space, &sln_prev_time, 
+                                   &sln_prev_time);
       
       // Runge-Kutta step on the fine mesh.
       Hermes::Mixins::Loggable::Static::info("Runge-Kutta time step on fine mesh (t = %g s, tau = %g s, stages: %d).", 
@@ -254,13 +254,16 @@ int main(int argc, char* argv[])
 
       try
       {
-        runge_kutta.rk_time_step_newton(current_time, time_step, &sln_prev_time, &ref_sln, bt.is_embedded() ? &time_error_fn : NULL,
-                                      !jacobian_changed, false, verbose, NEWTON_TOL_FINE, NEWTON_MAX_ITER);
+        runge_kutta.setTime(current_time);
+        runge_kutta.setTimeStep(time_step);
+        runge_kutta.set_newton_max_iter(NEWTON_MAX_ITER);
+        runge_kutta.set_newton_tol(NEWTON_TOL_FINE);
+        runge_kutta.rk_time_step_newton(&sln_prev_time, &ref_sln, bt.is_embedded() ? &time_error_fn : NULL);
       }
       catch(Exceptions::Exception& e)
       {
         e.printMsg();
-        error("Runge-Kutta time step failed");
+        throw Hermes::Exceptions::Exception("Runge-Kutta time step failed");
       }
 
       /* If ADAPTIVE_TIME_STEP_ON == true, estimate temporal error. 
@@ -276,7 +279,7 @@ int main(int argc, char* argv[])
         sprintf(title, "Temporal error est, spatial adaptivity step %d", as);     
         time_error_view.set_title(title);
         //time_error_view.show_mesh(false);
-        time_error_view.show(&time_error_fn, HERMES_EPS_VERYHIGH);
+        time_error_view.show(&time_error_fn);
 
         rel_err_time = Global<double>::calc_norm(&time_error_fn, HERMES_H1_NORM) 
                        / Global<double>::calc_norm(&ref_sln, HERMES_H1_NORM) * 100;
@@ -317,7 +320,7 @@ int main(int argc, char* argv[])
       // Project the fine mesh solution onto the coarse mesh.
       Solution<double> sln;
       Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh for error estimation.");
-      OGProjection<double>::project_global(&space, &ref_sln, &sln, matrix_solver); 
+      ogProjection.project_global(&space, &ref_sln, &sln); 
 
       // Show spatial error.
       sprintf(title, "Spatial error est, spatial adaptivity step %d", as);  
@@ -325,7 +328,7 @@ int main(int argc, char* argv[])
       space_error_view.set_title(title);
       //space_error_view.show_mesh(false);
       AbsFilter abs_sef(&space_error_fn);
-      space_error_view.show(&abs_sef, HERMES_EPS_VERYHIGH);
+      space_error_view.show(&abs_sef);
 
       // Calculate element errors and spatial error estimate.
       Hermes::Mixins::Loggable::Static::info("Calculating spatial error estimate.");
@@ -362,7 +365,7 @@ int main(int argc, char* argv[])
     sprintf(title, "Solution, time %g s", current_time);
     sln_view.set_title(title);
     //sln_view.show_mesh(false);
-    sln_view.show(&ref_sln, HERMES_EPS_VERYHIGH);
+    sln_view.show(&ref_sln);
     sprintf(title, "Mesh, time %g s", current_time);
     ordview.set_title(title);
     ordview.show(&space);

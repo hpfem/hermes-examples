@@ -35,6 +35,6 @@ CustomWeakFormPoisson::CustomWeakFormPoisson(std::string bdy_marker_top) : WeakF
 
   // Residual.
   add_vector_form(new DefaultResidualDiffusion<double>(0));
-  add_vector_form(new DefaultVectorFormVol<double>(0, new CustomFunction));
-  add_vector_form_surf(new DefaultVectorFormSurf<double>(0, new Hermes::Hermes2DFunction<double>(1.0), bdy_marker_top));
+  add_vector_form(new DefaultVectorFormVol<double>(0, HERMES_ANY, new CustomFunction));
+  add_vector_form_surf(new DefaultVectorFormSurf<double>(0, bdy_marker_top, new Hermes::Hermes2DFunction<double>(1.0)));
 }

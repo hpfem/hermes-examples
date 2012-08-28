@@ -75,7 +75,7 @@ double ResidualErrorForm::value(int n, double* wt,
 
   return result * Hermes::sqr(e->diam);
 #else
-  error("Define H2D_SECOND_DERIVATIVES_ENABLED in hermes2d_common_defs.h"
+  throw Hermes::Exceptions::Exception("Define H2D_SECOND_DERIVATIVES_ENABLED in hermes2d_common_defs.h"
         "if you want to use second derivatives in weak forms.");
 #endif
 }
@@ -87,20 +87,20 @@ Ord ResidualErrorForm::ord(int n, double* wt,
 #ifdef H2D_SECOND_DERIVATIVES_ENABLED
   return sqr( -rhs->value(e->x[0], e->y[0]) + u->laplace[0] );
 #else
-  error("Define H2D_SECOND_DERIVATIVES_ENABLED in hermes2d_common_defs.h"
+  throw Hermes::Exceptions::Exception("Define H2D_SECOND_DERIVATIVES_ENABLED in hermes2d_common_defs.h"
         "if you want to use second derivatives in weak forms.");
 #endif
 }
 
 void ConvergenceTable::save(const char* filename) const
 {
-  if (num_columns() == 0) error("No data columns defined.");
+  if (num_columns() == 0) throw Hermes::Exceptions::Exception("No data columns defined.");
   for (unsigned int i = 1; i < num_columns(); i++)
     if (columns[i].data.size() != num_rows())
-      error("Incompatible column sizes."); 
+      throw Hermes::Exceptions::Exception("Incompatible column sizes."); 
   
   FILE* f = fopen(filename, "w");
-  if (f == NULL) error("Error writing to %s.", filename);
+  if (f == NULL) throw Hermes::Exceptions::Exception("Error writing to %s.", filename);
     
   for (unsigned int i = 0; i < num_columns(); i++)
     fprintf(f, columns[i].label.c_str());
@@ -119,7 +119,7 @@ void ConvergenceTable::save(const char* filename) const
   }
   
   fclose(f);
-  verbose("Convergence table saved to file '%s'.", filename);
+  Hermes::Mixins::Loggable::Static::info("Convergence table saved to file '%s'.", filename);
 }
 
 std::string itos(const unsigned int i)

@@ -34,7 +34,7 @@ Scalar WeakFormLinearAdvectionDiffusion::MatrixFormVolAdvectionDiffusion::matrix
       result += wt[i] * tau * (-b1 * v->dx[i] - b2 * v->dy[i] + epsilon * v->laplace[i])
                             * (-b1 * u->dx[i] - b2 * u->dy[i] + epsilon * u->laplace[i]);
 #else
-      error("Define H2D_SECOND_DERIVATIVES_ENABLED in h2d_common.h if you want to use second derivatives of shape functions in weak forms.");
+      throw Hermes::Exceptions::Exception("Define H2D_SECOND_DERIVATIVES_ENABLED in h2d_common.h if you want to use second derivatives of shape functions in weak forms.");
 #endif
     }
   }

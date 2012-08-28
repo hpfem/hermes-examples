@@ -62,10 +62,10 @@ Ord CustomExactSolution::ord (Ord x, Ord y) const
 CustomWeakFormPoisson::CustomWeakFormPoisson(std::string area_1, double r, std::string area_2) : WeakForm<double>(1)
 {
   // Jacobian.
-  add_matrix_form(new WeakFormsH1::DefaultJacobianDiffusion<double>(0, 0, new Hermes1DFunction<double>(r), area_1));
-  add_matrix_form(new WeakFormsH1::DefaultJacobianDiffusion<double>(0, 0, HERMES_ONE, area_2));
+  add_matrix_form(new WeakFormsH1::DefaultJacobianDiffusion<double>(0, 0, area_1, new Hermes1DFunction<double>(r)));
+  add_matrix_form(new WeakFormsH1::DefaultJacobianDiffusion<double>(0, 0, area_2, HERMES_ONE));
 
   // Residual.
-  add_vector_form(new WeakFormsH1::DefaultResidualDiffusion<double>(0, new Hermes1DFunction<double>(r), area_1));
-  add_vector_form(new WeakFormsH1::DefaultResidualDiffusion<double>(0, HERMES_ONE, area_2));
+  add_vector_form(new WeakFormsH1::DefaultResidualDiffusion<double>(0, area_1, new Hermes1DFunction<double>(r)));
+  add_vector_form(new WeakFormsH1::DefaultResidualDiffusion<double>(0, area_2, HERMES_ONE));
 }

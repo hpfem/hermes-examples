@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
   B_view.fix_scale_width(50);
 
   // Initialize Runge-Kutta time stepping.
-  RungeKutta<double> runge_kutta(&wf, spaces_mutable, &bt, matrix_solver);
+  RungeKutta<double> runge_kutta(&wf, spaces, &bt);
 
   // Time stepping loop.
   double current_time = time_step; int ts = 1;
@@ -110,12 +110,14 @@ int main(int argc, char* argv[])
     
     try
     {
-      runge_kutta.rk_time_step_newton(current_time, time_step, slns, slns, jacobian_changed, verbose);
+      runge_kutta.setTime(current_time);
+      runge_kutta.setTimeStep(time_step);
+      runge_kutta.rk_time_step_newton(slns, slns);
     }
     catch(Exceptions::Exception& e)
     {
       e.printMsg();
-      error("Runge-Kutta time step failed");
+      throw Hermes::Exceptions::Exception("Runge-Kutta time step failed");
     }
 
     // Visualize the solutions.

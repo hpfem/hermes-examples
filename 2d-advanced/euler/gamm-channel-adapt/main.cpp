@@ -272,8 +272,8 @@ int main(int argc, char* argv[])
       }
       else
       {
-        OGProjection<double>::project_global(ref_spaces_const, Hermes::vector<Solution<double>*>(prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e), 
-          Hermes::vector<Solution<double>*>(prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e), matrix_solver, Hermes::vector<Hermes::Hermes2D::ProjNormType>(), iteration > 1);
+        OGProjection<double> ogProjection; ogProjection.project_global(ref_spaces_const, Hermes::vector<Solution<double>*>(prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e), 
+          Hermes::vector<Solution<double>*>(prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e), Hermes::vector<Hermes::Hermes2D::ProjNormType>(), iteration > 1);
       }
 
       // Initialize weak formulation.
@@ -293,10 +293,10 @@ int main(int argc, char* argv[])
       DiscreteProblem<double> dp_stabilization(&wf_stabilization, &refspace_stabilization);
       bool* discreteIndicator = NULL;
 
-      SparseMatrix<double>* matrix = create_matrix<double>(matrix_solver);
-      Vector<double>* rhs = create_vector<double>(matrix_solver);
-      Vector<double>* rhs_stabilization = create_vector<double>(matrix_solver);
-      LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver, matrix, rhs);
+      SparseMatrix<double>* matrix = create_matrix<double>();
+      Vector<double>* rhs = create_vector<double>();
+      Vector<double>* rhs_stabilization = create_vector<double>();
+      LinearMatrixSolver<double>* solver = create_linear_solver<double>( matrix, rhs);
 
       // Set the current time step.
       wf.set_time_step(time_step_n);
@@ -334,13 +334,13 @@ int main(int argc, char* argv[])
         }
       }
       else
-        error ("Matrix solver failed.\n");
+        throw Hermes::Exceptions::Exception("Matrix solver failed.\n");
 
       // Project the fine mesh solution onto the coarse mesh.
       Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
-      OGProjection<double>::project_global(Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
+      OGProjection<double> ogProjection; ogProjection.project_global(Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
         &space_rho_v_y, &space_e), Hermes::vector<Solution<double>*>(rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e), 
-        Hermes::vector<Solution<double>*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y, &sln_e), matrix_solver, 
+        Hermes::vector<Solution<double>*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y, &sln_e), 
         Hermes::vector<ProjNormType>(HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM)); 
 
       // Calculate element errors and total error estimate.
@@ -375,17 +375,6 @@ int main(int argc, char* argv[])
       // Visualization and saving on disk.
       if(done && (iteration - 1) % EVERY_NTH_STEP == 0 && iteration > 1)
       {
-        // Save a current state on the disk.
-        if(iteration > 1)
-        {
-          continuity.add_record(t);
-          continuity.get_last_record()->save_mesh(&mesh);
-          continuity.get_last_record()->save_spaces(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-              &space_rho_v_y, &space_e));
-          continuity.get_last_record()->save_solutions(Hermes::vector<Solution<double>*>(prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e));
-          continuity.get_last_record()->save_time_step_length(time_step_n);
-        }
-  
         // Hermes visualization.
         if(HERMES_VISUALIZATION)
         {        
@@ -432,13 +421,10 @@ int main(int argc, char* argv[])
     prev_e->copy(rsln_e);
 
     delete rsln_rho->get_mesh();
-    rsln_rho->own_mesh = false;
+    
     delete rsln_rho_v_x->get_mesh();
-    rsln_rho_v_x->own_mesh = false;
     delete rsln_rho_v_y->get_mesh();
-    rsln_rho_v_y->own_mesh = false;
     delete rsln_e->get_mesh();
-    rsln_e->own_mesh = false;
   }
 
   pressure_view.close();

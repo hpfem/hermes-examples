@@ -72,7 +72,7 @@ int main(int argc, char* argv[])
 
   // Perform Newton's iteration and translate the resulting coefficient vector into a Solution.
   Solution<double> sln;
-  NewtonSolver<double> newton(&dp, matrix_solver);
+  NewtonSolver<double> newton(&dp);
   try
   {
     newton.solve();
@@ -80,7 +80,7 @@ int main(int argc, char* argv[])
   catch(Hermes::Exceptions::Exception e)
   {
     e.printMsg();
-    error("Newton's iteration failed.");
+    throw Hermes::Exceptions::Exception("Newton's iteration failed.");
   };
   Solution<double>::vector_to_solution(newton.get_sln_vector(), &space, &sln);
 

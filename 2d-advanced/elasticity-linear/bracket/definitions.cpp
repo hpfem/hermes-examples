@@ -7,21 +7,21 @@ CustomWeakFormLinearElasticity::CustomWeakFormLinearElasticity(double E, double 
   double mu = E / (2*(1 + nu));
 
   // Jacobian.
-  add_matrix_form(new DefaultJacobianElasticity_0_0<double>(0, 0, lambda, mu, HERMES_ANY));
-  add_matrix_form(new DefaultJacobianElasticity_0_1<double>(0, 1, lambda, mu, HERMES_ANY));
-  add_matrix_form(new DefaultJacobianElasticity_1_1<double>(1, 1, lambda, mu, HERMES_ANY));
+  add_matrix_form(new DefaultJacobianElasticity_0_0<double>(0, 0, HERMES_ANY, lambda, mu));
+  add_matrix_form(new DefaultJacobianElasticity_0_1<double>(0, 1, HERMES_ANY, lambda, mu));
+  add_matrix_form(new DefaultJacobianElasticity_1_1<double>(1, 1, HERMES_ANY, lambda, mu));
 
   // Residual - first equation.
-  add_vector_form(new DefaultResidualElasticity_0_0<double>(0, lambda, mu, HERMES_ANY));
-  add_vector_form(new DefaultResidualElasticity_0_1<double>(0, lambda, mu, HERMES_ANY));
+  add_vector_form(new DefaultResidualElasticity_0_0<double>(0, HERMES_ANY, lambda, mu));
+  add_vector_form(new DefaultResidualElasticity_0_1<double>(0, HERMES_ANY, lambda, mu));
   // Surface force (first component).
-  add_vector_form_surf(new DefaultVectorFormSurf<double>(0, new Hermes2DFunction<double>(-f0), surface_force_bdy)); 
+  add_vector_form_surf(new DefaultVectorFormSurf<double>(0, surface_force_bdy, new Hermes2DFunction<double>(-f0))); 
 
   // Residual - second equation.
-  add_vector_form(new DefaultResidualElasticity_1_0<double>(1, lambda, mu, HERMES_ANY));
-  add_vector_form(new DefaultResidualElasticity_1_1<double>(1, lambda, mu, HERMES_ANY));
+  add_vector_form(new DefaultResidualElasticity_1_0<double>(1, HERMES_ANY, lambda, mu));
+  add_vector_form(new DefaultResidualElasticity_1_1<double>(1, HERMES_ANY, lambda, mu));
   // Gravity loading in the second vector component.
-  add_vector_form(new DefaultVectorFormVol<double>(1, new Hermes2DFunction<double>(-rho_g)));
+  add_vector_form(new DefaultVectorFormVol<double>(1, HERMES_ANY, new Hermes2DFunction<double>(-rho_g)));
   // Surface force (second component).
-  add_vector_form_surf(new DefaultVectorFormSurf<double>(1, new Hermes2DFunction<double>(-f1), surface_force_bdy)); 
+  add_vector_form_surf(new DefaultVectorFormSurf<double>(1, surface_force_bdy, new Hermes2DFunction<double>(-f1))); 
 }

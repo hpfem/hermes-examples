@@ -46,7 +46,6 @@ private:
   static Scalar h1_axisym_projection_biform(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u,
                                             Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
   {
-    _F_
     Scalar result = (Scalar)0;
     for (int i = 0; i < n; i++)
       result += wt[i] * e->x[i] * (u->val[i] * v->val[i] + u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i]);
@@ -80,7 +79,7 @@ private:
   Scalar h1_axisym_projection_liform(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v,
                                      Geom<Real> *e, ExtData<Scalar> *ext) const
   {
-    _F_
+    
     Scalar result = (Scalar)0;
     for (int i = 0; i < n; i++)
       result += wt[i] * e->x[i] * ( (u_ext[this->i]->val[i] - ext->fn[0]->val[i]) * v->val[i] 

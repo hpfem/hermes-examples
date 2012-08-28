@@ -120,10 +120,10 @@ int main(int argc, char* argv[])
   DiscreteProblem<double> dp(&wf, spaces);
 
   // Initialize Newton solver.
-  NewtonSolver<double> newton(&dp, matrix_solver);
+  NewtonSolver<double> newton(&dp);
 
   // Time measurement.
-  TimePeriod cpu_time;
+  Hermes::Mixins::TimeMeasurable cpu_time;
       
   // Main power iteration loop:
   int it = 1; bool done = false;
@@ -131,19 +131,19 @@ int main(int argc, char* argv[])
   {
     Hermes::Mixins::Loggable::Static::info("------------ Power iteration %d:", it);
     
-    Hermes::Mixins::Loggable::Static::info("Newton's method (matrix problem solved by %s).", MatrixSolverNames[matrix_solver].c_str());
+    Hermes::Mixins::Loggable::Static::info("Newton's method.");
     
     // Perform Newton's iteration.
     try
     {
-      // The problem is linear and we can use NULL 
-      // to make Newton start from zero vector.
-      newton.solve_keep_jacobian(NULL, NEWTON_TOL, NEWTON_MAX_ITER);
+      newton.set_newton_max_iter(NEWTON_MAX_ITER);
+      newton.set_newton_tol(NEWTON_TOL);
+      newton.solve_keep_jacobian();
     }
     catch(Hermes::Exceptions::Exception e)
     {
       e.printMsg();
-      error("Newton's iteration failed.");
+      throw Hermes::Exceptions::Exception("Newton's iteration failed.");
     }
        
     // Debug.
@@ -196,10 +196,10 @@ int main(int argc, char* argv[])
   view4.show(&sln4);
   
   // Skip visualization time.
-  cpu_time.tick(HERMES_SKIP);
+  cpu_time.tick(Hermes::Mixins::TimeMeasurable::HERMES_SKIP);
 
   // Print timing information.
-  verbose("Total running time: %g s", cpu_time.accumulated());
+  Hermes::Mixins::Loggable::Static::info("Total running time: %g s", cpu_time.accumulated());
     
   // Wait for all views to be closed.
   View::wait();

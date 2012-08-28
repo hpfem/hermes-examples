@@ -318,23 +318,23 @@ int main(int argc, char* argv[])
 
       // Project the previous time level solution onto the new fine mesh.
       Hermes::Mixins::Loggable::Static::info("Projecting the previous time level solution onto the new fine mesh.");
-      OGProjection<double>::project_global(ref_spaces_const, Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_c), 
-        Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_c), matrix_solver);
+      OGProjection<double> ogProjection; ogProjection.project_global(ref_spaces_const, Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_c), 
+        Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_c));
 
-      OGProjection<double>::project_global(ref_space_stabilization, &prev_rho, &prev_rho_stabilization);
+      ogProjection.project_global(ref_space_stabilization, &prev_rho, &prev_rho_stabilization);
 
       if(as > 1) 
       {
         delete rsln_rho.get_mesh();
-        rsln_rho.own_mesh = false;
+        
         delete rsln_rho_v_x.get_mesh();
-        rsln_rho_v_x.own_mesh = false;
+        
         delete rsln_rho_v_y.get_mesh();
-        rsln_rho_v_y.own_mesh = false;
+        
         delete rsln_e.get_mesh();
-        rsln_e.own_mesh = false;
+        
         delete rsln_c.get_mesh();
-        rsln_c.own_mesh = false;
+        
       }
 
       // Report NDOFs.
@@ -348,10 +348,10 @@ int main(int argc, char* argv[])
       (*ref_spaces)[3]->get_mesh()->set_seq((*ref_spaces)[0]->get_mesh()->get_seq());
 
       // Set up the solver, matrix, and rhs according to the solver selection.
-      SparseMatrix<double>* matrix = create_matrix<double>(matrix_solver);
-      Vector<double>* rhs = create_vector<double>(matrix_solver);
-      Vector<double>* rhs_stabilization = create_vector<double>(matrix_solver);
-      LinearSolver<double>* solver = create_linear_solver<double>(matrix_solver, matrix, rhs);
+      SparseMatrix<double>* matrix = create_matrix<double>();
+      Vector<double>* rhs = create_vector<double>();
+      Vector<double>* rhs_stabilization = create_vector<double>();
+      LinearMatrixSolver<double>* solver = create_linear_solver<double>( matrix, rhs);
 
       // Initialize the FE problem.
       DiscreteProblem<double> dp(wf, ref_spaces_const);
@@ -404,7 +404,7 @@ int main(int argc, char* argv[])
 
           double* flow_solution_vector = new double[Space<double>::get_num_dofs(flow_spaces)];
 
-          OGProjection<double>::project_global(flow_spaces, Hermes::vector<MeshFunction<double> *>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), flow_solution_vector);
+          OGProjection<double> ogProjection; ogProjection.project_global(flow_spaces, Hermes::vector<MeshFunction<double> *>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), flow_solution_vector);
 
           if(SHOCK_CAPTURING_TYPE == KUZMIN)
             flux_limiter = new FluxLimiter(FluxLimiter::Kuzmin, flow_solution_vector, flow_spaces);
@@ -415,7 +415,7 @@ int main(int argc, char* argv[])
         }
       }
       else
-        error ("Matrix solver failed.\n");
+        throw Hermes::Exceptions::Exception("Matrix solver failed.\n");
 
       Mach_number.reinit();
       char filenamea[40];
@@ -429,24 +429,24 @@ int main(int argc, char* argv[])
 
       // Project the fine mesh solution onto the coarse mesh.
       Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
-      OGProjection<double>::project_global(Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x,
+      ogProjection.project_global(Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x,
         &space_rho_v_y, &space_e, &space_c), Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e, &rsln_c),
-        Hermes::vector<Solution<double>*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y, &sln_e, &sln_c), matrix_solver,
+        Hermes::vector<Solution<double>*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y, &sln_e, &sln_c),
         Hermes::vector<ProjNormType>(HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM));
 
       util_time_step = time_step_n;
       if(SEMI_IMPLICIT)
-        CFL.calculate_semi_implicit(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), rsln_rho.get_mesh(), util_time_step);
+        CFL.calculate_semi_implicit(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), const_cast<Mesh*>(rsln_rho.get_mesh()), util_time_step);
       else
-        CFL.calculate(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), rsln_rho.get_mesh(), util_time_step);
+        CFL.calculate(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), const_cast<Mesh*>(rsln_rho.get_mesh()), util_time_step);
       
       time_step_after_adaptivity = util_time_step;
       
-      ADES.calculate(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y), rsln_rho.get_mesh(), util_time_step);
+      ADES.calculate(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y), const_cast<Mesh*>(rsln_rho.get_mesh()), util_time_step);
       if(time_step_after_adaptivity > util_time_step)
         time_step_after_adaptivity = util_time_step;
 
-      ADES.calculate(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y), rsln_c.get_mesh(), util_time_step);
+      ADES.calculate(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y), const_cast<Mesh*>(rsln_c.get_mesh()), util_time_step);
       if(time_step_after_adaptivity > util_time_step)
         time_step_after_adaptivity = util_time_step;
 
@@ -551,15 +551,15 @@ int main(int argc, char* argv[])
     prev_c.copy(&rsln_c);
 
     delete rsln_rho.get_mesh();
-    rsln_rho.own_mesh = false;
+    
     delete rsln_rho_v_x.get_mesh();
-    rsln_rho_v_x.own_mesh = false;
+    
     delete rsln_rho_v_y.get_mesh();
-    rsln_rho_v_y.own_mesh = false;
+    
     delete rsln_e.get_mesh();
-    rsln_e.own_mesh = false;
+    
     delete rsln_c.get_mesh();
-    rsln_c.own_mesh = false;
+    
 
     // Visualization.
     if((iteration - 1) % EVERY_NTH_STEP == 0) 

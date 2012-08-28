@@ -134,7 +134,7 @@ int main(int argc, char* argv[])
   SimpleGraph graph_dof, graph_cpu;
   
   // Time measurement.
-  TimePeriod cpu_time;
+  Hermes::Mixins::TimeMeasurable cpu_time;
   cpu_time.tick();
 
   // Adaptivity loop:
@@ -155,22 +155,24 @@ int main(int argc, char* argv[])
     cpu_time.tick();
 
     // Perform Newton's iteration.
-    Hermes::Hermes2D::NewtonSolver<std::complex<double> > newton(&dp, matrix_solver);
+    Hermes::Hermes2D::NewtonSolver<std::complex<double> > newton(&dp);
     try
     {
-      newton.solve(NULL, NEWTON_TOL, NEWTON_MAX_ITER);
+      newton.set_newton_max_iter(NEWTON_MAX_ITER);
+      newton.set_newton_tol(NEWTON_TOL);
+      newton.solve();
     }
     catch(Hermes::Exceptions::Exception e)
     {
       e.printMsg();
-      error("Newton's iteration failed.");
+      throw Hermes::Exceptions::Exception("Newton's iteration failed.");
     };
     // Translate the resulting coefficient vector into the Solution<std::complex<double> > sln.
     Hermes::Hermes2D::Solution<std::complex<double> >::vector_to_solution(newton.get_sln_vector(), ref_space, &ref_sln);
   
     // Project the fine mesh solution onto the coarse mesh.
     Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
-    OGProjection<std::complex<double> >::project_global(&space, &ref_sln, &sln, matrix_solver); 
+    OGProjection<std::complex<double> > ogProjection; ogProjection.project_global(&space, &ref_sln, &sln); 
    
     // View the coarse mesh solution and polynomial orders.
     RealFilter real(&sln);
@@ -229,7 +231,7 @@ int main(int argc, char* argv[])
   }
   while (done == false);
   
-  verbose("Total running time: %g s", cpu_time.accumulated());
+  Hermes::Mixins::Loggable::Static::info("Total running time: %g s", cpu_time.accumulated());
 
   RealFilter ref_real(&sln);
   MagFilter<double> ref_magn(&ref_real);
