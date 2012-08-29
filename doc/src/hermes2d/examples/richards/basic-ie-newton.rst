@@ -8,8 +8,8 @@ This example solves a simple version of the time-dependent
 Richard's equation using the backward Euler method in time 
 combined with the Newton's method in each time step. It describes
 infiltration into an initially dry soil. The example has a exact 
-solution that is given in terms of a Fourier series (see a paper 
-by Tracy). The exact solution is not used here.
+Solution<double> that is given in terms of a Fourier series (see a paper 
+by Tracy). The exact Solution<double> is not used here.
 
 We assume the time-dependent Richard's equation
 
@@ -44,7 +44,7 @@ Defining weak forms
 
 The weak formulation is a combination of custom Jacobian and Residual weak forms::
 
-    CustomWeakFormRichardsIE::CustomWeakFormRichardsIE(double time_step, Solution* h_time_prev) : WeakForm<double>(1)
+    CustomWeakFormRichardsIE::CustomWeakFormRichardsIE(double time_step, Solution<double>* h_time_prev) : WeakForm<double>(1)
     {
       // Jacobian volumetric part.
       CustomJacobianFormVol* jac_form_vol = new CustomJacobianFormVol(0, 0, time_step);
@@ -60,14 +60,14 @@ The weak formulation is a combination of custom Jacobian and Residual weak forms
 Sample results
 ~~~~~~~~~~~~~~
 
-Solution at t = 0.01 s:
+Solution<double> at t = 0.01 s:
 
 .. image:: basic-ie-newton/basic-ie-newton-0-01s.png
    :align: center
    :scale: 40%
    :alt: sample result
 
-Solution at t = 0.03 s:
+Solution<double> at t = 0.03 s:
 
 .. image:: basic-ie-newton/basic-ie-newton-0-03s.png
    :align: center

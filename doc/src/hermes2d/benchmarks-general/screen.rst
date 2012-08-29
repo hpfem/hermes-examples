@@ -27,9 +27,9 @@ the midpoint of the left side. It is filled with air:
 Boundary conditions
 ~~~~~~~~~~~~~~~~~~~
 
-Tangential component of solution taken from known exact solution (essential BC). 
+Tangential component of Solution<double> taken from known exact Solution<double> (essential BC). 
 
-Exact solution 
+Exact Solution<double> 
 ~~~~~~~~~~~~~~
 
 This is rather complicated in this case - see the file 

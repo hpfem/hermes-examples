@@ -1,7 +1,7 @@
 Interior Layer (Elliptic)
 -------------------------
 
-This example has a smooth solution that exhibits a steep interior layer.
+This example has a smooth Solution<double> that exhibits a steep interior layer.
 
 Model problem
 ~~~~~~~~~~~~~
@@ -31,7 +31,7 @@ use $S = 60$ in the following.
 Right-hand side
 ~~~~~~~~~~~~~~~
 
-Obtained by inserting the exact solution into the equation:
+Obtained by inserting the exact Solution<double> into the equation:
 
 .. math::
     :label: layer-interior-rhs

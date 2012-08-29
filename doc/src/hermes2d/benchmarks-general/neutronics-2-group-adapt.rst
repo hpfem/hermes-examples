@@ -72,9 +72,9 @@ Typical conditions for nuclear reactor core calculations are used:
 
     -\frac{\partial D_1\phi_1}{\partial n} = \gamma_1 \phi_1, \quad\quad -\frac{\partial D_2\phi_2}{\partial n} = \gamma_2 \phi_2,
   
-where the *reflector albedo* :math:`\gamma` is given by the exact solution and is equal for both groups to 8.
+where the *reflector albedo* :math:`\gamma` is given by the exact Solution<double> and is equal for both groups to 8.
 
-Exact solution 
+Exact Solution<double> 
 ~~~~~~~~~~~~~~
 
 Quite complicated, see the source code.
@@ -83,7 +83,7 @@ Quite complicated, see the source code.
 Right-hand side
 ~~~~~~~~~~~~~~~
 
-Obtained by inserting the exact solution into the equation.
+Obtained by inserting the exact Solution<double> into the equation.
 The function *get_material* is used to obtain the material marker given the physical coordinates (see 
 `main.cpp <http://git.hpfem.org/hermes.git/blob/HEAD:/hermes2d/benchmarks-general/neutronics-2-group-adapt/main.cpp>`_). 
 
@@ -112,9 +112,9 @@ The following figures show the computed distributions of neutron flux for both n
    :figclass: align-center
    :alt: Both components of solution.
 
-Notice the largely different behavior of the two solution components, where the first one is quite smooth while the other one more oscillating. It reflects the typical behavior observed in real cases, which arises from the different rate of interactions of fast (`1`\ :sup:`st` group) and slow (`2`\ :sup:`nd` group) neutrons with surrounding nuclei. This makes `multimesh <http://hpfem.org/hermes/doc/src/hermes2d/tutorial-2.html#multimesh-hp-fem>`_ a preferred choice for automatic adaptivity, as can be clearly seen from the first of the series of convergence comparisons presented below. 
+Notice the largely different behavior of the two Solution<double> components, where the first one is quite smooth while the other one more oscillating. It reflects the typical behavior observed in real cases, which arises from the different rate of interactions of fast (`1`\ :sup:`st` group) and slow (`2`\ :sup:`nd` group) neutrons with surrounding nuclei. This makes `multimesh <http://hpfem.org/hermes/doc/src/hermes2d/tutorial-2.html#multimesh-hp-fem>`_ a preferred choice for automatic adaptivity, as can be clearly seen from the first of the series of convergence comparisons presented below. 
 
-In each convergence comparison, the reported error is the true approximation error calculated wrt. the exact solution given above and measured in a `H`\ :sup:`1` norm. The calculation was ended when the energy error estimate (often used to guide adaptivity in real multiphysics problems where exact solution is not known) became lower than 0.1%.
+In each convergence comparison, the reported error is the true approximation error calculated wrt. the exact Solution<double> given above and measured in a `H`\ :sup:`1` norm. The calculation was ended when the energy error estimate (often used to guide adaptivity in real multiphysics problems where exact Solution<double> is not known) became lower than 0.1%.
 
 Comparison of single/multi-mesh hp-FEM 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -200,7 +200,7 @@ CPU convergence graphs:
 Comparison of hp-FEM with iso, p-aniso, h-aniso and hp-aniso refinements
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The solution is almost isotropic in this case and using the generally more expensive anisotropic refinements may not neccessarily result in better meshes (and errors). The possible strategies for capturing anisotropy are compared below. Note that only the p-anisotropic refinements produced better mesh (with a lower number of DOF) than the simple isotropic refinements, but took more time than would be justified for the increase in accuracy. 
+The Solution<double> is almost isotropic in this case and using the generally more expensive anisotropic refinements may not neccessarily result in better meshes (and errors). The possible strategies for capturing anisotropy are compared below. Note that only the p-anisotropic refinements produced better mesh (with a lower number of DOF) than the simple isotropic refinements, but took more time than would be justified for the increase in accuracy. 
 
 Final mesh (hp-FEM, isotropic refinements): 1724 DOF, error = 3.46713%
 

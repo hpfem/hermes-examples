@@ -1,7 +1,7 @@
 NIST-11 (Intersecting Interfaces)
 ---------------------------------
 
-The solution to this problem has a discontinuous derivative along the interfaces, and an infinite 
+The Solution<double> to this problem has a discontinuous derivative along the interfaces, and an infinite 
 derivative at the origin that posses a challenge to adaptive algorithms. 
  
 

@@ -27,7 +27,7 @@ Boundary conditions: Dirichlet, given by exact solution.
 
 Exact solution
 ~~~~~~~~~~~~~~
-Known exact solution for mode 1: 
+Known exact Solution<double> for mode 1: 
 
 .. math::
 
@@ -39,7 +39,7 @@ Known exact solution for mode 1:
 
 here \lambda = 0.5444837367825, and Q = 0.5430755788367.
 
-Known exact solution for mode 2: 
+Known exact Solution<double> for mode 2: 
 
 .. math::
 
@@ -55,7 +55,7 @@ Both in mode 1 and mode 2, $k = 3 - 4 \nu$, and $G = E / (2(1 + \nu))$.
 Sample solution
 ~~~~~~~~~~~~~~~
 
-Solution for mode 1: 
+Solution<double> for mode 1: 
 
 .. figure:: nist-03/solution-u.png
    :align: center

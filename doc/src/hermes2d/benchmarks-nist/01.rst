@@ -31,12 +31,12 @@ where parameter $p$ determines the degree of the polynomial solution.
 Right-hand side 
 ~~~~~~~~~~~~~~~
 
-Obtained by inserting the exact solution into the equation.
+Obtained by inserting the exact Solution<double> into the equation.
 
 Sample solution
 ~~~~~~~~~~~~~~~
 
-Solution for $p = 10$:
+Solution<double> for $p = 10$:
 
 .. figure:: nist-01/solution.png
    :align: center

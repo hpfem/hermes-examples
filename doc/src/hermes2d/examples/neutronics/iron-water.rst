@@ -60,7 +60,7 @@ Solution:
 .. figure:: example-iron-water/iron-water-sol.png
    :align: center
    :scale: 50%
-   :alt: Solution to the iron-water example.
+   :alt: Solution<double> to the iron-water example.
 
 
 Final mesh (h-FEM with linear elements):

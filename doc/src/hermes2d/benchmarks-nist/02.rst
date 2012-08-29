@@ -59,7 +59,7 @@ This benchmark has four different versions, we use the global variable PARAM (be
 Sample solution
 ~~~~~~~~~~~~~~~
 
-Solution for $\omega = 3\pi / 2$:
+Solution<double> for $\omega = 3\pi / 2$:
 
 .. figure:: nist-02/solution.png
    :align: center

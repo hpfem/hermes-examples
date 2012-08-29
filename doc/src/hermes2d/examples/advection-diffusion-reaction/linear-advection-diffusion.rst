@@ -15,11 +15,11 @@ a constant advection velocity. We assume that $b_1 > 0$ and $b_2 > 0$. The bound
 conditions are Dirichlet. 
 
 With a small $\epsilon$, this is a singularly 
-perturbed problem whose solution is close to 1 in most of the domain and forms 
+perturbed problem whose Solution<double> is close to 1 in most of the domain and forms 
 a thin boundary layer along the top 
 and right edges of $\Omega$. 
 
-Solution for $\epsilon = 0.01$. Note - view selected to show the boundary layer:
+Solution<double> for $\epsilon = 0.01$. Note - view selected to show the boundary layer:
 
 .. figure:: example-linear-advection-diffusion/solution.png
    :align: center
@@ -36,7 +36,7 @@ Initial mesh for automatic adaptivity:
    :alt: Mesh.
 
 This mesh is not fine enough in the boundary layer region to 
-prevent the solution from oscillating:
+prevent the Solution<double> from oscillating:
 
 .. figure:: example-linear-advection-diffusion/sol_init.png
    :align: center
@@ -44,7 +44,7 @@ prevent the solution from oscillating:
    :figclass: align-center
    :alt: Solution.
 
-Here we use the same view as for the solution above. 
+Here we use the same view as for the Solution<double> above. 
 As you can see, this approximation is not very close to the final solution. The oscillations 
 can be suppressed by applying the multiscale stabilization (STABILIZATION_ON = true):
 

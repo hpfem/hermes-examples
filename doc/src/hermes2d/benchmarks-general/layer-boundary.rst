@@ -1,7 +1,7 @@
 Boundary Layer (Elliptic)
 -------------------------
 
-This example is a singularly perturbed problem with known exact solution that exhibits a thin boundary layer 
+This example is a singularly perturbed problem with known exact Solution<double> that exhibits a thin boundary layer 
 The reader can use it to perform various experiments with adaptivity. The sample numerical results presented 
 below imply that:
 
@@ -30,13 +30,13 @@ Exact solution
 
     u(x,y) = \hat u(x) \hat u(y)
 
-where $\hat u$ is the exact solution of the 1D singularly-perturbed problem
+where $\hat u$ is the exact Solution<double> of the 1D singularly-perturbed problem
 
 .. math::
 
     -u'' + K^2 u = K^2
 
-in $(-1,1)$ with zero Dirichlet boundary conditions. This solution has the form 
+in $(-1,1)$ with zero Dirichlet boundary conditions. This Solution<double> has the form 
 
 .. math::
 
@@ -45,7 +45,7 @@ in $(-1,1)$ with zero Dirichlet boundary conditions. This solution has the form
 Right-hand side
 ~~~~~~~~~~~~~~~
 
-Calculated by inserting the exact solution into the equation. 
+Calculated by inserting the exact Solution<double> into the equation. 
 
 Sample solution
 ~~~~~~~~~~~~~~~
@@ -57,7 +57,7 @@ Sample solution
    :alt: Solution.
 
 Below we present a series of convergence comparisons. Note that the error plotted
-is the true approximate error calculated wrt. the exact solution given above.
+is the true approximate error calculated wrt. the exact Solution<double> given above.
 
 Convergence comparison for isotropic refinements
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

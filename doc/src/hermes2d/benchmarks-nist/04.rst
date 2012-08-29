@@ -31,12 +31,12 @@ $\alpha$ determines the strength of the peak.
 Right-hand side 
 ~~~~~~~~~~~~~~~
 
-Obtained by inserting the exact solution into the equation.
+Obtained by inserting the exact Solution<double> into the equation.
 
 Sample solution
 ~~~~~~~~~~~~~~~
 
-Solution for $\alpha = 1000$, $(x_{loc}, y_{loc}) = (0.5, 0.5)$:
+Solution<double> for $\alpha = 1000$, $(x_{loc}, y_{loc}) = (0.5, 0.5)$:
 
 .. figure:: nist-04/solution.png
    :align: center

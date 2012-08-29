@@ -1,7 +1,7 @@
 NIST-10 (Interior Line Singularity)
 -----------------------------------
 
-This example is an extension of Boundary Line Singularity (NIST-07) with an anisotropic solution to allow 
+This example is an extension of Boundary Line Singularity (NIST-07) with an anisotropic Solution<double> to allow 
 for a sloped line so that the singularity does not necessarily coincide with element edges. 
 
 
@@ -32,12 +32,12 @@ where $K$ and $\alpha$ are real constants.
 Right-hand side 
 ~~~~~~~~~~~~~~~
 
-Obtained by inserting the exact solution into the equation.
+Obtained by inserting the exact Solution<double> into the equation.
 
 Sample solution
 ~~~~~~~~~~~~~~~
 
-Solution for $K = \pi/2$ and $\alpha = 2.01$:
+Solution<double> for $K = \pi/2$ and $\alpha = 2.01$:
 
 .. figure:: nist-10/solution.png
    :align: center

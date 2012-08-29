@@ -30,12 +30,12 @@ Exact solution
 Right-hand side 
 ~~~~~~~~~~~~~~~
 
-Obtained by inserting the exact solution into the equation.
+Obtained by inserting the exact Solution<double> into the equation.
 
 Sample solution
 ~~~~~~~~~~~~~~~
 
-Solution for $\alpha = \frac{1}{10 \pi}$:
+Solution<double> for $\alpha = \frac{1}{10 \pi}$:
 
 .. figure:: nist-08/solution.png
    :align: center

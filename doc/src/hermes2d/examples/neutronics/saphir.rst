@@ -38,7 +38,7 @@ Solution:
    :align: center
    :scale: 50% 
    :figclass: align-center
-   :alt: Solution to the saphir example.
+   :alt: Solution<double> to the saphir example.
 
 Final mesh (h-FEM with linear elements):
 

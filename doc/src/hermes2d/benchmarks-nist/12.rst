@@ -47,7 +47,7 @@ Last but not least, $\epsilon$ determines the strength of the boundary layer; th
 Sample solution
 ~~~~~~~~~~~~~~~
 
-Solution for $\omega_C = 3 \pi /2$,  $(x_{W}, y_{W}) = (0, -3/4)$,  $r_{0} = 3/4$, 
+Solution<double> for $\omega_C = 3 \pi /2$,  $(x_{W}, y_{W}) = (0, -3/4)$,  $r_{0} = 3/4$, 
 $\alpha_{W} = 200$,  $(x_{P}, y_{P}) = (\sqrt{5} / 4, -1/4)$,  $\epsilon = 1/100$:
 
 .. figure:: nist-12/solution.png
@@ -134,3 +134,5 @@ CPU convergence graphs:
    :figclass: align-center
    :alt: CPU convergence graph.
 
+
+	 

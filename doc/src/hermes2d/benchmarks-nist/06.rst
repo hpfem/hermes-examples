@@ -29,12 +29,12 @@ where $\epsilon$ determines the strength of the boundary layer.
 Right-hand side 
 ~~~~~~~~~~~~~~~
 
-Obtained by inserting the exact solution into the latter equation.
+Obtained by inserting the exact Solution<double> into the latter equation.
 
 Sample solution
 ~~~~~~~~~~~~~~~
 
-Solution for $\epsilon = 10^{-1}$:
+Solution<double> for $\epsilon = 10^{-1}$:
 
 .. figure:: nist-06/solution.png
    :align: center

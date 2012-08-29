@@ -1,7 +1,7 @@
 NIST-09 (Wave Front)
 --------------------
 
-Commonly used for testing adaptive refinement algorithms is Poisson's equation with a solution that has
+Commonly used for testing adaptive refinement algorithms is Poisson's equation with a Solution<double> that has
 a steep wave front in the interior of the domain.
 
 Model problem
@@ -46,7 +46,7 @@ This benchmark has four different versions, we use the global variable PARAM (be
 Sample solution
 ~~~~~~~~~~~~~~~
 
-Solution for $\alpha = 50$, $(x_{loc}, y_{loc}) = (0.5, 0.5)$, and $r_{0} = 0.25$:
+Solution<double> for $\alpha = 50$, $(x_{loc}, y_{loc}) = (0.5, 0.5)$, and $r_{0} = 0.25$:
 
 .. figure:: nist-09/solution.png
    :align: center

@@ -38,7 +38,7 @@ wall::
   temp_bc_type.add_bc_dirichlet(BDY_REACTOR_WALL);
   temp_bc_type.add_bc_neumann(BDY_SYMMETRY);
   temp_bc_type.add_bc_newton(BDY_EXTERIOR_WALL);
-  moist_bc_type.add_bc_neumann(Hermes::Tuple<int>(BDY_SYMMETRY, BDY_REACTOR_WALL));
+  moist_bc_type.add_bc_neumann(Hermes::vector<int>(BDY_SYMMETRY, BDY_REACTOR_WALL));
   moist_bc_type.add_bc_newton(BDY_EXTERIOR_WALL);
 
   // Enter Dirichlet boundary values.
@@ -64,8 +64,8 @@ Initialization of spaces
 ::
 
     // Create H1 spaces with default shapesets.
-    H1Space T_space(&T_mesh, &temp_bc_type, &bc_values, P_INIT);
-    H1Space M_space(MULTI ? &M_mesh : &T_mesh, &moist_bc_type, (BCValues *) NULL, P_INIT);
+    H1Space<double> T_space(&T_mesh, &temp_bc_type, &bc_values, P_INIT);
+    H1Space<double> M_space(MULTI ? &M_mesh : &T_mesh, &moist_bc_type, (BCValues *) NULL, P_INIT);
 
 Definition of constant initial conditions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -74,7 +74,7 @@ Definition of constant initial conditions
 
     // Define constant initial conditions.
     info("Setting initial conditions.");
-    Solution T_prev, M_prev;
+    Solution<double> T_prev, M_prev;
     T _prev.set_const(&T_mesh, TEMP_INITIAL);
     M_prev.set_const(&M_mesh, MOIST_INITIAL);
 
@@ -86,7 +86,7 @@ time level. Also note that both matrix and vector surface forms are
 hooked to the Newton marker BDY_EXTERIOR_WALL::
 
   // Initialize the weak formulation.
-  WeakForm wf(2);
+  WeakForm<double> wf(2);
   wf.add_matrix_form(0, 0, callback(bilinear_form_sym_0_0));
   wf.add_matrix_form(0, 1, callback(bilinear_form_sym_0_1));
   wf.add_matrix_form(1, 1, callback(bilinear_form_sym_1_1));
@@ -119,7 +119,7 @@ Creating globally refined reference meshes
 ::
 
     // Construct globally refined reference mesh and setup reference space.
-    Hermes::Tuple<Space *>* ref_spaces = construct_refined_spaces(Hermes::Tuple<Space *>(&T_space, &M_space));
+    Hermes::vector<Space<double> *>* ref_spaces = construct_refined_spaces(Hermes::vector<Space<double> *>(&T_space, &M_space));
 
 Initializing matrix solver
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -127,9 +127,9 @@ Initializing matrix solver
 ::
 
     // Initialize matrix solver.
-    SparseMatrix* matrix = create_matrix(matrix_solver);
-    Vector* rhs = create_vector(matrix_solver);
-    Solver* solver = create_linear_solver(matrix_solver, matrix, rhs);
+    SparseMatrix* matrix = create_matrix();
+    Vector* rhs = create_vector();
+    LinearMatrixSolver* solver = create_linear_solver(matrix, rhs);
 
 Assembling and solving the reference mesh problem
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -139,27 +139,27 @@ Assembling and solving the reference mesh problem
     // Assemble the reference problem.
     info("Solving on reference mesh.");
     bool is_linear = true;
-    DiscreteProblem* dp = new DiscreteProblem(&wf, *ref_spaces, is_linear);
+    DiscreteProblemLinear* dp = new DiscreteProblemLinear(&wf, *ref_spaces, is_linear);
     dp->assemble(matrix, rhs);
 
     // Now we can deallocate the previous fine meshes.
     if(as > 1){ delete T_fine.get_mesh(); delete M_fine.get_mesh(); }
 
     // Solve the linear system of the reference problem. If successful, obtain the solutions.
-    if(solver->solve()) Solution::vector_to_solutions(solver->get_solution(), *ref_spaces, 
-                                            Hermes::Tuple<Solution *>(&T_fine, &M_fine));
+    if(solver->solve()) Solution<double>::vector_to_solutions(solver->get_solution(), *ref_spaces, 
+                                            Hermes::vector<Solution<double> *>(&T_fine, &M_fine));
     else error ("Matrix solver failed.\n");
 
-Projecting reference solution on coarse meshes
+Projecting reference Solution on coarse meshes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
-    // Project the fine mesh solution onto the coarse mesh.
-    info("Projecting reference solution on coarse mesh.");
-    OGProjection::project_global(Hermes::Tuple<Space *>(&T_space, &M_space), 
-                   Hermes::Tuple<Solution *>(&T_fine, &M_fine), 
-                   Hermes::Tuple<Solution *>(&T_coarse, &M_coarse), matrix_solver); 
+    // Project the fine mesh Solution onto the coarse mesh.
+    info("Projecting reference Solution on coarse mesh.");
+    OGProjection<double> ogProjection; ogProjection.project_global(Hermes::vector<Space<double> *>(&T_space, &M_space), 
+                   Hermes::vector<Solution<double> *>(&T_fine, &M_fine), 
+                   Hermes::vector<Solution<double> *>(&T_coarse, &M_coarse), matrix_solver); 
 
 Registering custom forms for error calculation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -170,8 +170,8 @@ two fields depend on each other. Therefore we use for adaptivity
 a custom energy norm that reflects this::  
 
     // Registering custom forms for error calculation.
-    Adapt* adaptivity = new Adapt(Hermes::Tuple<Space *>(&T_space, &M_space), 
-                        Hermes::Tuple<ProjNormType>(HERMES_H1_NORM, HERMES_H1_NORM));
+    Adapt* adaptivity = new Adapt(Hermes::vector<Space<double> *>(&T_space, &M_space), 
+                        Hermes::vector<ProjNormType>(HERMES_H1_NORM, HERMES_H1_NORM));
     adaptivity->set_error_form(0, 0, callback(bilinear_form_sym_0_0));
     adaptivity->set_error_form(0, 1, callback(bilinear_form_sym_0_1));
     adaptivity->set_error_form(1, 0, callback(bilinear_form_sym_1_0));
@@ -185,8 +185,8 @@ Calculating element errors and a global error estimate
     // Calculate element errors and total error estimate.
     info("Calculating error estimate."); 
     bool solutions_for_adapt = true;
-    double err_est_rel_total = adaptivity->calc_err_est(Hermes::Tuple<Solution *>(&T_coarse, &M_coarse), 
-                               Hermes::Tuple<Solution *>(&T_fine, &M_fine), solutions_for_adapt,
+    double err_est_rel_total = adaptivity->calc_err_est(Hermes::vector<Solution<double> *>(&T_coarse, &M_coarse), 
+                               Hermes::vector<Solution<double> *>(&T_fine, &M_fine), solutions_for_adapt,
                                HERMES_TOTAL_ERROR_REL | HERMES_ELEMENT_ERROR_REL) * 100;
 
 Refining the meshes
@@ -201,9 +201,9 @@ those with largest errors are selected for refinement::
     else 
     {
       info("Adapting coarse mesh.");
-      done = adaptivity->adapt(Hermes::Tuple<RefinementSelectors::Selector *>(&selector, &selector), 
+      done = adaptivity->adapt(Hermes::vector<RefinementSelectors::Selector *>(&selector, &selector), 
                                THRESHOLD, STRATEGY, MESH_REGULARITY);
-      if (Space::get_num_dofs(Hermes::Tuple<Space *>(&T_space, &M_space)) >= NDOF_STOP) 
+      if (Space::get_num_dofs(Hermes::vector<Space<double> *>(&T_space, &M_space)) >= NDOF_STOP) 
         done = true;
       else
         // Increase the counter of performed adaptivity steps.
@@ -228,10 +228,10 @@ is very useful (see the above paper). Adaptive time stepping is not part of this
 tutorial example. 
 
 In the results below, notice that the moisture is not resolved with great accuracy at the beginning of computation.
-This is due to the fact that the resolution of moisture 
+This is due to the fact that the reSolution<double> of moisture 
 does not have a significant influence on the overall accuracy in the energy norm. 
 
-Solution and mesh at t = 10 days:
+Solution<double> and mesh at t = 10 days:
 
 .. figure:: heat-and-moisture-adapt/1.png
    :align: center
@@ -239,7 +239,7 @@ Solution and mesh at t = 10 days:
    :figclass: align-center
    :alt: Sample screenshot
 
-Solution and mesh at t = 20 days:
+Solution<double> and mesh at t = 20 days:
 
 .. figure:: heat-and-moisture-adapt/2.png
    :align: center
@@ -247,7 +247,7 @@ Solution and mesh at t = 20 days:
    :figclass: align-center
    :alt: Sample screenshot
 
-Solution and mesh at t = 50 days:
+Solution<double> and mesh at t = 50 days:
 
 .. figure:: heat-and-moisture-adapt/3.png
    :align: center

@@ -87,12 +87,12 @@ We define three spaces for the two velocity components and pressure.
 This is either [H1, H1, H1] or [H1, H1, L2]:: 
 
       // Spaces for velocity components and pressure.
-      H1Space xvel_space(&mesh, &bcs_vel_x, P_INIT_VEL);
-      H1Space yvel_space(&mesh, &bcs_vel_y, P_INIT_VEL);
+      H1Space<double> xvel_space(&mesh, &bcs_vel_x, P_INIT_VEL);
+      H1Space<double> yvel_space(&mesh, &bcs_vel_y, P_INIT_VEL);
     #ifdef PRESSURE_IN_L2
-      L2Space p_space(&mesh, &bcs_pressure, P_INIT_PRESSURE);
+      L2Space<double> p_space(&mesh, &bcs_pressure, P_INIT_PRESSURE);
     #else
-      H1Space p_space(&mesh, &bcs_pressure, P_INIT_PRESSURE);
+      H1Space<double> p_space(&mesh, &bcs_pressure, P_INIT_PRESSURE);
     #endif
 
 Defining projection norms
@@ -119,10 +119,10 @@ we calculate the initial coefficient vector $\bfY_0$ for the Newton's method:
 
     // Project the initial condition on the FE space to obtain initial
     // coefficient vector for the Newton's method.
-    scalar* coeff_vec = new scalar[Space::get_num_dofs(Hermes::vector<Space *>(&xvel_space, &yvel_space, &p_space))];
+    scalar* coeff_vec = new scalar[Space::get_num_dofs(Hermes::vector<Space<double> *>(&xvel_space, &yvel_space, &p_space))];
     if (NEWTON) {
       info("Projecting initial condition to obtain initial vector for the Newton's method.");
-      OGProjection::project_global(Hermes::vector<Space *>(&xvel_space, &yvel_space, &p_space),
+      OGProjection<double> ogProjection; ogProjection.project_global(Hermes::vector<Space<double> *>(&xvel_space, &yvel_space, &p_space),
 		     Hermes::vector<MeshFunction *>(&xvel_prev_time, &yvel_prev_time, &p_prev_time),
 		     coeff_vec, matrix_solver,
 		     Hermes::vector<ProjNormType>(vel_proj_norm, vel_proj_norm, p_proj_norm));
@@ -133,11 +133,11 @@ we calculate the initial coefficient vector $\bfY_0$ for the Newton's method:
 
     // Project the initial condition on the FE space to obtain initial
     // coefficient vector for the Newton's method.
-    scalar* coeff_vec = new scalar[Space::get_num_dofs(Hermes::vector<Space *>(&xvel_space,
+    scalar* coeff_vec = new scalar[Space::get_num_dofs(Hermes::vector<Space<double> *>(&xvel_space,
                                           &yvel_space, &p_space))];
     if (NEWTON) {
       info("Projecting initial condition to obtain initial vector for the Newton's method.");
-      OGProjection::project_global(Hermes::vector<Space *>(&xvel_space, &yvel_space, &p_space),
+      OGProjection<double> ogProjection; ogProjection.project_global(Hermes::vector<Space<double> *>(&xvel_space, &yvel_space, &p_space),
 		     Hermes::vector<MeshFunction *>(&xvel_prev_time, &yvel_prev_time, 
                      &p_prev_time), coeff_vec, matrix_solver,
 		     Hermes::vector<ProjNormType>(vel_proj_norm, vel_proj_norm, p_proj_norm));

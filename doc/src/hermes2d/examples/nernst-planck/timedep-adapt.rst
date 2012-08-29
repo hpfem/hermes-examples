@@ -28,7 +28,7 @@ The following Bibtex entry can be used for the reference::
 		doi = {10.1117/12.848281}
 	}
 
-The example is concerned with the finite element solution 
+The example is concerned with the finite element Solution<double> 
 of the Poisson and Nernst-Planck equation system. The Nernst-Planck
 equation is often used to describe the diffusion, convection,
 and migration of charged particles:
@@ -318,13 +318,13 @@ the following code in the *main()* function enables multimeshing
 .. code-block:: c
 	
     // Spaces for concentration and the voltage.
-    H1Space C(&Cmesh, C_bc_types, C_essential_bc_values, P_INIT);
-    H1Space phi(MULTIMESH ? &phimesh : &Cmesh, phi_bc_types, phi_essential_bc_values, P_INIT);
+    H1Space<double> C(&Cmesh, C_bc_types, C_essential_bc_values, P_INIT);
+    H1Space<double> phi(MULTIMESH ? &phimesh : &Cmesh, phi_bc_types, phi_essential_bc_values, P_INIT);
 
 When ``MULTIMESH`` is defined in `main.cpp <http://git.hpfem.org/hermes.git/blob/HEAD:/hermes2d/examples/nernst-planck/nernst-planck-timedep-adapt/main.cpp>`_.
 then different H1Spaces for ``phi`` and ``C`` are created. It must be noted that when adaptivity
 is not used, the multimeshing in this example does not have any advantage, however, when
-adaptivity is turned on, then mesh for H1Space ``C`` is refined much more than for ``phi``.
+adaptivity is turned on, then mesh for H1Space<double> ``C`` is refined much more than for ``phi``.
 
 Sample results (non-adaptive)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

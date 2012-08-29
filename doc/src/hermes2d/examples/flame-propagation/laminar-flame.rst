@@ -107,9 +107,9 @@ The reaction rate $\omega$ and its derivatives are handled
 via Filters::
 
     // Filters for the reaction rate omega and its derivatives.
-    DXDYFilter omega(omega_fn, Tuple<MeshFunction*>(&t_prev_newton, &c_prev_newton));
-    DXDYFilter omega_dt(omega_dt_fn, Tuple<MeshFunction*>(&t_prev_newton, &c_prev_newton));
-    DXDYFilter omega_dc(omega_dc_fn, Tuple<MeshFunction*>(&t_prev_newton, &c_prev_newton));
+    DXDYFilter omega(omega_fn, Hermes::vector<MeshFunction*>(&t_prev_newton, &c_prev_newton));
+    DXDYFilter omega_dt(omega_dt_fn, Hermes::vector<MeshFunction*>(&t_prev_newton, &c_prev_newton));
+    DXDYFilter omega_dc(omega_dc_fn, Hermes::vector<MeshFunction*>(&t_prev_newton, &c_prev_newton));
 
 Details on the functions omega_fn, omega_dt_fn, omega_dy_fn and the weak 
 forms can be found in the file `forms.cpp 
@@ -123,8 +123,8 @@ This is necessary as the functions defining the Filter have changed::
 
     // Set current solutions to the latest Newton iterate 
     // and reinitialize filters of these solutions.
-    Solution::vector_to_solutions(newton.get_sln_vector(), Tuple<Space *>(&tspace, &cspace), 
-                                  Tuple<Solution *>(&t_prev_newton, &c_prev_newton));
+    Solution<double>::vector_to_solutions(newton.get_sln_vector(), Hermes::vector<Space<double> *>(&tspace, &cspace), 
+                                  Hermes::vector<Solution<double> *>(&t_prev_newton, &c_prev_newton));
     omega.reinit();
     omega_dt.reinit();
     omega_dc.reinit();
@@ -135,7 +135,7 @@ Visualization of a Filter
 Also notice the visualization of a Filter::
 
     // Visualization.
-    DXDYFilter omega_view(omega_fn, Tuple<MeshFunction*>(&t_prev_newton, &c_prev_newton));
+    DXDYFilter omega_view(omega_fn, Hermes::vector<MeshFunction*>(&t_prev_newton, &c_prev_newton));
     rview.set_min_max_range(0.0,2.0);
     char title[100];
     sprintf(title, "Reaction rate, t = %g", current_time);

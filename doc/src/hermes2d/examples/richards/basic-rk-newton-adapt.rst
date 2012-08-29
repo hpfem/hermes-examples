@@ -54,7 +54,7 @@ The weak formulation is a combination of custom Jacobian and Residual weak forms
 Sample results
 ~~~~~~~~~~~~~~
 
-Solution and mesh at t = 0.0005 s:
+Solution<double> and mesh at t = 0.0005 s:
 
 .. image:: basic-rk-newton-adapt/solution-0-0005s.png 
    :align: center
@@ -66,7 +66,7 @@ Solution and mesh at t = 0.0005 s:
    :scale: 40%
    :alt: sample result
 
-Solution and mesh at t = 0.0015 s:
+Solution<double> and mesh at t = 0.0015 s:
 
 .. image:: basic-rk-newton-adapt/solution-0-0015s.png 
    :align: center

@@ -11,11 +11,11 @@ The computational domain is the unit square, and the equation solved has the for
     -\Delta u + K^2 u - K^2 = 0.
 
 The boundary conditions are homogeneous Dirichlet. The right-hand side is chosen in this way 
-in order to keep the solution $u(x,y) \approx 1$ inside the domain. For this presentation 
+in order to keep the Solution<double> $u(x,y) \approx 1$ inside the domain. For this presentation 
 we choose $K^2 = 10^4$ but everything works for larger values of $K$ as well. We find quite 
 important to perform initial refinements towards the boundary, thus providing a better 
 initial mesh for adaptivity. One does not have to do this, but then the convergence is slower. 
-The solution is shown in the following figure:
+The Solution<double> is shown in the following figure:
 
 .. figure:: example-singular-perturbation/sol_3d_view.png
    :align: center

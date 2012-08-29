@@ -4,7 +4,7 @@ NIST-05 (Battery):
 Model problem
 ~~~~~~~~~~~~~
 
-This problem models heat conduction in a battery with nonhomogeneous materials. The solution has multiple 
+This problem models heat conduction in a battery with nonhomogeneous materials. The Solution<double> has multiple 
 point singularities in the interior of the domain. The domain is the rectangle shown in the following figure; 
 the numbered regions indicate the areas of different material constants.
 

@@ -2,7 +2,7 @@ NIST-07 (Boundary Line Singularity)
 -----------------------------------
 
 Many papers on testing adaptive algorithms use a 1D example with a singularity of the form $x^{\alpha}$
-at the left endpoint of the domain. This can be extended to 2D by simply making the solution be
+at the left endpoint of the domain. This can be extended to 2D by simply making the Solution<double> be
 constant in $y$.
 
 
@@ -32,12 +32,12 @@ where $\alpha \geq 0.5$ determines the strength of the singularity.
 Right-hand side 
 ~~~~~~~~~~~~~~~
 
-Obtained by inserting the exact solution into the equation.
+Obtained by inserting the exact Solution<double> into the equation.
 
 Sample solution
 ~~~~~~~~~~~~~~~
 
-Solution for $\alpha = 0.6$:
+Solution<double> for $\alpha = 0.6$:
 
 .. figure:: nist-07/solution.png
    :align: center

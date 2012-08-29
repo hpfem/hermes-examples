@@ -31,9 +31,9 @@ Boundary conditions: Dirichlet, prescribed on the inflow parts of the domain bou
 Exact solution
 ~~~~~~~~~~~~~~
 
-Exact solution has been obtained by the method of characteristics, but it cannot be stated in a fully analytic form. Using Mathematica 7.0, the expression for the solution has been derived symbolically without any numerical approximation and its numerical evaluation at any point :math:`(x,y)\in\Omega` only amounts to calulating roots of `14`\ :sup:`th` order polynomials with coefficients defined by :math:`x,y`, evaluating standard analytical functions (exponential, sine) and performing standard algebraic operations. All these operations can be realized by Mathematica in machine precision and hence the solution may be considered exact for the purposes of comparison with the approximate results of Hermes. The `source notebook <http://git.hpfem.org/hermes.git/blob/HEAD:/hermes2d/benchmarks-general/stabilized-advection-reaction/exact/hyper_moc.nb>`_ is included [1]_.
+Exact Solution<double> has been obtained by the method of characteristics, but it cannot be stated in a fully analytic form. Using Mathematica 7.0, the expression for the Solution<double> has been derived symbolically without any numerical approximation and its numerical evaluation at any point :math:`(x,y)\in\Omega` only amounts to calulating roots of `14`\ :sup:`th` order polynomials with coefficients defined by :math:`x,y`, evaluating standard analytical functions (exponential, sine) and performing standard algebraic operations. All these operations can be realized by Mathematica in machine precision and hence the Solution<double> may be considered exact for the purposes of comparison with the approximate results of Hermes. The `source notebook <http://git.hpfem.org/hermes.git/blob/HEAD:/hermes2d/benchmarks-general/stabilized-advection-reaction/exact/hyper_moc.nb>`_ is included [1]_.
 
-For illustration purposes, the plots below were produced by the Matlab script `plotu.m <http://git.hpfem.org/hermes.git/blob/HEAD:/hermes2d/benchmarks-general/stabilized-advection-reaction/exact/plotu.m>`_ from file `sol_101x101.map <http://git.hpfem.org/hermes.git/blob/HEAD:/hermes2d/benchmarks-general/stabilized-advection-reaction/exact/sol_100x100.map>`_, which contains the solution values on a uniform grid of :math:`101\times101` points in :math:`\Omega`. 
+For illustration purposes, the plots below were produced by the Matlab script `plotu.m <http://git.hpfem.org/hermes.git/blob/HEAD:/hermes2d/benchmarks-general/stabilized-advection-reaction/exact/plotu.m>`_ from file `sol_101x101.map <http://git.hpfem.org/hermes.git/blob/HEAD:/hermes2d/benchmarks-general/stabilized-advection-reaction/exact/sol_100x100.map>`_, which contains the Solution<double> values on a uniform grid of :math:`101\times101` points in :math:`\Omega`. 
 
 .. figure:: benchmark-stabilized-advection-reaction/exact_complete.png
    :align: center
@@ -45,7 +45,7 @@ For illustration purposes, the plots below were produced by the Matlab script `p
 Methods overview
 ~~~~~~~~~~~~~~~~
 
-According to the classical theory, the advection term in eq. :eq:`eq-adv-rea` propagates boundary data into the domain along the *characteristics*, i.e. curves :math:`\vec x(s)` satisfying :math:`\mathrm d\vec x/\mathrm ds = \vec\beta`. Hence,  :eq:`eq-adv-rea` with jump-discontinuous boundary conditions :eq:`bc-adv-rea` has a unique solution with jump-discontinuities normal to the characteristics passing through the point of discontinuity at the boundary. It is well known that the classical conforming FEM solution realized by globally continuous basis functions is not likely to produce satisfactory results -- unlike the problems with steep but continuous solution gradients, which could be resolved by sufficiently high h-refinement, spurious *Gibbs* oscillations will be introduced in the vicinity of the jumps and spread to the more distant parts of the domain -- see the figure below. 
+According to the classical theory, the advection term in eq. :eq:`eq-adv-rea` propagates boundary data into the domain along the *characteristics*, i.e. curves :math:`\vec x(s)` satisfying :math:`\mathrm d\vec x/\mathrm ds = \vec\beta`. Hence,  :eq:`eq-adv-rea` with jump-discontinuous boundary conditions :eq:`bc-adv-rea` has a unique Solution<double> with jump-discontinuities normal to the characteristics passing through the point of discontinuity at the boundary. It is well known that the classical conforming FEM Solution<double> realized by globally continuous basis functions is not likely to produce satisfactory results -- unlike the problems with steep but continuous Solution<double> gradients, which could be resolved by sufficiently high h-refinement, spurious *Gibbs* oscillations will be introduced in the vicinity of the jumps and spread to the more distant parts of the domain -- see the figure below. 
 
 .. figure:: benchmark-stabilized-advection-reaction/cg1/sln_and_mesh.png
    :align: center
@@ -53,15 +53,15 @@ According to the classical theory, the advection term in eq. :eq:`eq-adv-rea` pr
    :figclass: align-center
    :alt: Continuous Galerkin approximation.
    
-   Solution by the continuous Galerkin method without stabilization.
+   Solution<double> by the continuous Galerkin method without stabilization.
 
 The two mostly used Galerkin methods which circumvent these stability issues will be briefly introduced now.
 
 -   **Stabilized continuous Galerkin methods.**
-    These methods effectively add artificial diffusion to the equation, changing its behavior to that of an advection-reaction-diffusion equation with a globally continuous solution. Typical methods from this category include the *Streamline upwind Petrov-Galerkin (SUPG)*, *Galerkin least squares (GLS)* or *Subgrid scale (SGS)* methods (see e.g. [C98]_ and the references therein). The discretization procedure (carried out in the standard :math:`H^1(\Omega)` space) leads to much smaller linear algebraic systems comparing to the methods from the other category. However, it is usually very difficult to tune the amount of added diffusion so that the solution does not diverge too much from that of the original `1`\ :sup:`st` order problem, particularly for the higher-order multidimensional schemes.
+    These methods effectively add artificial diffusion to the equation, changing its behavior to that of an advection-reaction-diffusion equation with a globally continuous solution. Typical methods from this category include the *Streamline upwind Petrov-Galerkin (SUPG)*, *Galerkin least squares (GLS)* or *Subgrid scale (SGS)* methods (see e.g. [C98]_ and the references therein). The discretization procedure (carried out in the standard :math:`H^1(\Omega)` space) leads to much smaller linear algebraic systems comparing to the methods from the other category. However, it is usually very difficult to tune the amount of added diffusion so that the Solution<double> does not diverge too much from that of the original `1`\ :sup:`st` order problem, particularly for the higher-order multidimensional schemes.
     
 -   **Discontinuous Galerkin (DG) methods.**
-    In the DG methods, discretization is carried out in the :math:`L^2(\Omega)` space, using basis functions which are smooth inside each element but discontinuous across element interfaces. Relaxation of the interelement continuity allows for capturing the solution jumps and results in a stable scheme without the need for additional tuning, but at the expense of a bigger algebraic system to solve and more difficult assembling.
+    In the DG methods, discretization is carried out in the :math:`L^2(\Omega)` space, using basis functions which are smooth inside each element but discontinuous across element interfaces. Relaxation of the interelement continuity allows for capturing the Solution<double> jumps and results in a stable scheme without the need for additional tuning, but at the expense of a bigger algebraic system to solve and more difficult assembling.
     
 This benchmark implements the SUPG and DG methods (and the classical continuous FEM for comparison). Note that both methods may be used to ensure stability, i.e. that numerical oscillations will be fully contained in a close vicinity of the point where they appear, but they do not *per se* prevent the oscillations from actually occuring. In order to do so, monotonicity of the scheme has to be ensured as well by proper discontinuity capturing techniques, which are however not implemented in this benchmark. 
 
@@ -77,7 +77,7 @@ The bilinear form for the SUPG discretization of problem :eq:`eq-adv-rea`, :eq:`
 
     \int_\Omega (\vec\beta\cdot\nabla u + c)v \,\mathrm{d}x.
 
-Note that we do not apply the Green's theorem and seek the *strong* solution, which lies in :math:`L^2(\Omega)` together with its *streamline derivative* :math:`\vec\beta\cdot\nabla u` [2]_. Space of such functions contains :math:`H^1(\Omega)` and in particular its finite-dimensional subspace of piecewise continuous polynomials up to a specified order, which we use for the practical implementation. 
+Note that we do not apply the Green's theorem and seek the *strong* solution, which lies in :math:`L^2(\Omega)` together with its *streamline derivative* :math:`\vec\beta\cdot\nabla u` [2]_. Space<double> of such functions contains :math:`H^1(\Omega)` and in particular its finite-dimensional subspace of piecewise continuous polynomials up to a specified order, which we use for the practical implementation. 
  
 The second part reads
 
@@ -96,14 +96,14 @@ Appropriate choice of parameter :math:`\tau`, so that the scheme is neither over
     
 and is working reasonably well for the current problem. Nevertheless, the reader is encouraged to derive and experiment with his own expressions. 
 
-The final part of the SUPG bilinear form, together with the corresponding linear form, enforces the Dirichlet boundary conditions on the inflow boundaries in an :math:`L^2`-integral sense. Although this form has been traditionally used in literature rather for mathematical analysis than for practical computation, we have found it advantageous for the latter purpose as well since with open quadrature rules currently used in Hermes, the problematic evaluation of the boundary condition and approximate solution at the vertices of discontinuity is hence avoided.
+The final part of the SUPG bilinear form, together with the corresponding linear form, enforces the Dirichlet boundary conditions on the inflow boundaries in an :math:`L^2`-integral sense. Although this form has been traditionally used in literature rather for mathematical analysis than for practical computation, we have found it advantageous for the latter purpose as well since with open quadrature rules currently used in Hermes, the problematic evaluation of the boundary condition and approximate Solution<double> at the vertices of discontinuity is hence avoided.
 
 Discontinuous Galerkin
 ^^^^^^^^^^^^^^^^^^^^^^
 
 There are several possibilities how to formulate the DGM. We choose that presented and analysed in [BMS04]_.
 
-The weak solution is well defined in the *broken Sobolev space* of functions :math:`u\in L^2(\Omega)` such that :math:`u\in H^1(K)` for every element :math:`K`,
+The weak Solution<double> is well defined in the *broken Sobolev space* of functions :math:`u\in L^2(\Omega)` such that :math:`u\in H^1(K)` for every element :math:`K`,
 whose finite-dimensional subspace suitable for the FE discretization is represented in Hermes by class ``L2Space``. Since :math:`u` is not expected to be continuous across element interfaces, the Green's theorem has been applied element-wise. The consequence is the presence of surface integrals of basis and test functions, or more precisely of their arithmetic averages and jumps across element interfaces. If the surface form representing these integrals is added with the special marker ``H2D_DG_INNER_EDGE``.
 
 The values of the traces of the shape functions from both sides of an interface may then be obtained at the quadrature points along the interface.
@@ -134,7 +134,7 @@ h-adaptivity, P = 1 uniformly
    :align: center
    :scale: 70% 
    :figclass: align-center
-   :alt: Final solution and mesh.
+   :alt: Final Solution<double> and mesh.
    
 h-adaptivity, P = 2 uniformly
 '''''''''''''''''''''''''''''
@@ -143,7 +143,7 @@ h-adaptivity, P = 2 uniformly
    :align: center
    :scale: 70% 
    :figclass: align-center
-   :alt: Final solution and mesh.
+   :alt: Final Solution<double> and mesh.
    
 hp-adaptivity
 '''''''''''''''''''''''''''''
@@ -152,7 +152,7 @@ hp-adaptivity
    :align: center
    :scale: 70% 
    :figclass: align-center
-   :alt: Final solution and mesh.
+   :alt: Final Solution<double> and mesh.
 
 Discontinuous Galerkin
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -164,7 +164,7 @@ h-adaptivity, P = 0 uniformly
    :align: center
    :scale: 70% 
    :figclass: align-center
-   :alt: Final solution and mesh.
+   :alt: Final Solution<double> and mesh.
    
 h-adaptivity, P = 1 uniformly
 '''''''''''''''''''''''''''''
@@ -173,7 +173,7 @@ h-adaptivity, P = 1 uniformly
    :align: center
    :scale: 70% 
    :figclass: align-center
-   :alt: Final solution and mesh.
+   :alt: Final Solution<double> and mesh.
    
 hp-adaptivity
 '''''''''''''''''''''''''''''
@@ -182,7 +182,7 @@ hp-adaptivity
    :align: center
    :scale: 70% 
    :figclass: align-center
-   :alt: Final solution and mesh.
+   :alt: Final Solution<double> and mesh.
 
 
 Convergence comparisons
@@ -216,7 +216,7 @@ Below we compare the convergence of the various adaptive methods using two metri
     
      \frac{||u_{\mathrm{ex}} - u_h||_{L^2(\Omega)}}{||u_\mathrm{ex}||_{L^2(\Omega)}}
 
-  In order to calculate this quantity, the exact solution has been evaluated at the :math:`(50+51)\times (50+51)` nodal points of the two-dimensional `50`\ :sup:`th`-order Gauss quadrature rule with Kronrod extension and saved together with the corresponding quadrature weights to file `sol_GaussKronrod50.map <http://git.hpfem.org/hermes.git/blob/HEAD:/hermes2d/benchmarks-general/stabilized-advection-reaction/exact/sol_GaussKronrod50.map>`_. There is a class ``SemiAnalyticSolution`` responsible for loading the file and repeatedly calculating the norm, but be warned that since the latter operation involves a call to ``Solution::get_pt_value``, computation of this metric considerably prolongates each adaptation step (particularly when there are many small low-order elements).
+  In order to calculate this quantity, the exact Solution<double> has been evaluated at the :math:`(50+51)\times (50+51)` nodal points of the two-dimensional `50`\ :sup:`th`-order Gauss quadrature rule with Kronrod extension and saved together with the corresponding quadrature weights to file `sol_GaussKronrod50.map <http://git.hpfem.org/hermes.git/blob/HEAD:/hermes2d/benchmarks-general/stabilized-advection-reaction/exact/sol_GaussKronrod50.map>`_. There is a class ``SemiAnalyticSolution`` responsible for loading the file and repeatedly calculating the norm, but be warned that since the latter operation involves a call to ``Solution<double>::get_pt_value``, computation of this metric considerably prolongates each adaptation step (particularly when there are many small low-order elements).
   
   .. figure:: benchmark-stabilized-advection-reaction/conv_ex_dof.png
      :align: center
@@ -246,5 +246,5 @@ References
 
 .. rubric:: Footnotes   
 .. [1] If you do not have Mathematica installed, a limited view is possible by the free `Mathematica player <http://www.wolfram.com/products/player/>`_.
-.. [2] This expresses the fact that the solution may be possibly discontinuous across certain characteristic curves.
+.. [2] This expresses the fact that the Solution<double> may be possibly discontinuous across certain characteristic curves.
 

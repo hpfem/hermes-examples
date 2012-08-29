@@ -43,7 +43,7 @@ via copying the xmesh into ymesh and tmesh.
 Sample results
 ~~~~~~~~~~~~~~
 
-Solution (Von Mises stress):
+Solution<double> (Von Mises stress):
 
 .. figure:: img-hollow-conductor/mises.png
    :align: center
@@ -51,7 +51,7 @@ Solution (Von Mises stress):
    :figclass: align-center
    :alt: Solution.
 
-Solution (temperature):
+Solution<double> (temperature):
 
 .. figure:: img-hollow-conductor/temp.png
    :align: center

@@ -1,7 +1,7 @@
 L-Shape (Elliptic)
 ------------------
 
-This is a standard adaptivity benchmark whose exact solution is smooth but
+This is a standard adaptivity benchmark whose exact Solution<double> is smooth but
 contains singular gradient in a re-entrant corner. 
 
 Model problem
