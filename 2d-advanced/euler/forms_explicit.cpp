@@ -12,14 +12,17 @@ public:
   EulerEquationsWeakFormStabilization(Solution<double>* prev_rho) : WeakForm<double>()
   {
     add_vector_form_surf(new DGVectorFormIndicator);
-    this->vfsurf.back()->ext.push_back(prev_rho);
+    this->vfsurf.back()->setExt(prev_rho);
   }
 
   class DGVectorFormIndicator : public VectorFormSurf<double>
   {
   public:
     DGVectorFormIndicator() 
-      : VectorFormSurf<double>(0, H2D_DG_INNER_EDGE) {}
+      : VectorFormSurf<double>(0)
+    {
+      this->setArea(H2D_DG_INNER_EDGE);
+    }
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
       Geom<double> *e, ExtData<double> *ext) const 
@@ -101,18 +104,12 @@ public:
 
     for(unsigned int vector_form_i = 0;vector_form_i < this->vfvol.size();vector_form_i++) 
     {
-      vfvol.at(vector_form_i)->ext.push_back(prev_density);
-      vfvol.at(vector_form_i)->ext.push_back(prev_density_vel_x);
-      vfvol.at(vector_form_i)->ext.push_back(prev_density_vel_y);
-      vfvol.at(vector_form_i)->ext.push_back(prev_energy);
+      vfvol.at(vector_form_i)->setExt(Hermes::vector<MeshFunction<double>*>(prev_density, prev_density_vel_x, prev_density_vel_y, prev_energy));
     }
 
     for(unsigned int vector_form_i = 0;vector_form_i < this->vfsurf.size();vector_form_i++) 
     {
-      vfsurf.at(vector_form_i)->ext.push_back(prev_density);
-      vfsurf.at(vector_form_i)->ext.push_back(prev_density_vel_x);
-      vfsurf.at(vector_form_i)->ext.push_back(prev_density_vel_y);
-      vfsurf.at(vector_form_i)->ext.push_back(prev_energy);
+      vfsurf.at(vector_form_i)->setExt(Hermes::vector<MeshFunction<double>*>(prev_density, prev_density_vel_x, prev_density_vel_y, prev_energy));
     }
   };
 
@@ -421,7 +418,7 @@ protected:
   {
   public:
     EulerEquationsLinearFormInterface(int i, double kappa) 
-      : VectorFormSurf<double>(i, H2D_DG_INNER_EDGE), element(i), num_flux(new StegerWarmingNumericalFlux(kappa)) {}
+      : VectorFormSurf<double>(i), element(i), num_flux(new StegerWarmingNumericalFlux(kappa)) { setArea(H2D_DG_INNER_EDGE); }
 
     ~EulerEquationsLinearFormInterface()
     {
@@ -475,7 +472,7 @@ protected:
   {
   public:
     EulerEquationsLinearFormSolidWall(int i, std::string marker, double kappa) 
-      : VectorFormSurf<double>(i, marker), element(i), num_flux(new StegerWarmingNumericalFlux(kappa)) {}
+      : VectorFormSurf<double>(i), element(i), num_flux(new StegerWarmingNumericalFlux(kappa)) { setArea(marker); }
 
     ~EulerEquationsLinearFormSolidWall()
     {
@@ -522,7 +519,7 @@ protected:
   {
   public:
     EulerEquationsLinearFormInlet(int i, std::string marker, double kappa) 
-      : VectorFormSurf<double>(i, marker), element(i), num_flux(new StegerWarmingNumericalFlux(kappa)) {}
+      : VectorFormSurf<double>(i), element(i), num_flux(new StegerWarmingNumericalFlux(kappa)) { setArea(marker); }
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, 
       ExtData<double> *ext) const 
@@ -572,8 +569,8 @@ protected:
   class EulerEquationsLinearFormOutlet : public VectorFormSurf<double>
   {
   public:
-    EulerEquationsLinearFormOutlet(int i, std::string marker, double kappa) : VectorFormSurf<double>(i, marker), element(i), num_flux(new StegerWarmingNumericalFlux(kappa)) 
-    {}
+    EulerEquationsLinearFormOutlet(int i, std::string marker, double kappa) : VectorFormSurf<double>(i), element(i), num_flux(new StegerWarmingNumericalFlux(kappa)) 
+    { setArea(marker); }
 
     ~EulerEquationsLinearFormOutlet()
     {
@@ -790,34 +787,22 @@ public:
 
     for(unsigned int vector_form_i = 0;vector_form_i < this->vfvol.size();vector_form_i++) 
     {
-      vfvol.at(vector_form_i)->ext.push_back(prev_density);
-      vfvol.at(vector_form_i)->ext.push_back(prev_density_vel_x);
-      vfvol.at(vector_form_i)->ext.push_back(prev_density_vel_y);
-      vfvol.at(vector_form_i)->ext.push_back(prev_energy);
+      vfvol.at(vector_form_i)->setExt(Hermes::vector<MeshFunction<double>*>(prev_density, prev_density_vel_x, prev_density_vel_y, prev_energy));
     }
 
     for(unsigned int vector_form_i = 0;vector_form_i < this->vfsurf.size();vector_form_i++) 
     {
-      vfsurf.at(vector_form_i)->ext.push_back(prev_density);
-      vfsurf.at(vector_form_i)->ext.push_back(prev_density_vel_x);
-      vfsurf.at(vector_form_i)->ext.push_back(prev_density_vel_y);
-      vfsurf.at(vector_form_i)->ext.push_back(prev_energy);
+      vfsurf.at(vector_form_i)->setExt(Hermes::vector<MeshFunction<double>*>(prev_density, prev_density_vel_x, prev_density_vel_y, prev_energy));
     }
 
     for(unsigned int matrix_form_i = 0;matrix_form_i < this->mfvol.size();matrix_form_i++) 
     {
-      mfvol.at(matrix_form_i)->ext.push_back(prev_density);
-      mfvol.at(matrix_form_i)->ext.push_back(prev_density_vel_x);
-      mfvol.at(matrix_form_i)->ext.push_back(prev_density_vel_y);
-      mfvol.at(matrix_form_i)->ext.push_back(prev_energy);
+      mfvol.at(matrix_form_i)->setExt(Hermes::vector<MeshFunction<double>*>(prev_density, prev_density_vel_x, prev_density_vel_y, prev_energy));
     }
 
     for(unsigned int matrix_form_i = 0;matrix_form_i < this->mfsurf.size();matrix_form_i++) 
     {
-      mfsurf.at(matrix_form_i)->ext.push_back(prev_density);
-      mfsurf.at(matrix_form_i)->ext.push_back(prev_density_vel_x);
-      mfsurf.at(matrix_form_i)->ext.push_back(prev_density_vel_y);
-      mfsurf.at(matrix_form_i)->ext.push_back(prev_energy);
+      mfsurf.at(matrix_form_i)->setExt(Hermes::vector<MeshFunction<double>*>(prev_density, prev_density_vel_x, prev_density_vel_y, prev_energy));
     }
   };
 
@@ -860,18 +845,12 @@ public:
 
     for(unsigned int matrix_form_i = mfvol_size;matrix_form_i < this->mfvol.size();matrix_form_i++) 
     {
-      mfvol.at(matrix_form_i)->ext.push_back(prev_density);
-      mfvol.at(matrix_form_i)->ext.push_back(prev_density_vel_x);
-      mfvol.at(matrix_form_i)->ext.push_back(prev_density_vel_y);
-      mfvol.at(matrix_form_i)->ext.push_back(prev_energy);
+      mfvol.at(matrix_form_i)->setExt(Hermes::vector<MeshFunction<double>*>(prev_density, prev_density_vel_x, prev_density_vel_y, prev_energy));
     }
 
     for(unsigned int matrix_form_i = mfsurf_size;matrix_form_i < this->mfsurf.size();matrix_form_i++) 
     {
-      mfsurf.at(matrix_form_i)->ext.push_back(prev_density);
-      mfsurf.at(matrix_form_i)->ext.push_back(prev_density_vel_x);
-      mfsurf.at(matrix_form_i)->ext.push_back(prev_density_vel_y);
-      mfsurf.at(matrix_form_i)->ext.push_back(prev_energy);
+      mfsurf.at(matrix_form_i)->setExt(Hermes::vector<MeshFunction<double>*>(prev_density, prev_density_vel_x, prev_density_vel_y, prev_energy));
     }
   }
 
@@ -1090,8 +1069,8 @@ protected:
   {
   public:
     EulerEquationsMatrixFormSurfSemiImplicit(int i, int j, double kappa) 
-      : MatrixFormSurf<double>(i, j, H2D_DG_INNER_EDGE), 
-      num_flux(new StegerWarmingNumericalFlux(kappa)) { }
+      : MatrixFormSurf<double>(i, j), 
+      num_flux(new StegerWarmingNumericalFlux(kappa)) { setArea(H2D_DG_INNER_EDGE); }
 
     ~EulerEquationsMatrixFormSurfSemiImplicit() 
     {
@@ -1256,8 +1235,8 @@ protected:
   public:
     EulerEquationsMatrixFormSemiImplicitInletOutlet(int i, int j, 
       std::string marker, double kappa) 
-      : MatrixFormSurf<double>(i, j, marker), 
-      num_flux(new StegerWarmingNumericalFlux(kappa)) { }
+      : MatrixFormSurf<double>(i, j), 
+      num_flux(new StegerWarmingNumericalFlux(kappa)) { setArea(marker); }
 
     ~EulerEquationsMatrixFormSemiImplicitInletOutlet() 
     {
@@ -1474,8 +1453,8 @@ protected:
   {
   public:
     EulerEquationsVectorFormSemiImplicitInletOutlet(int i, std::string marker, double kappa) 
-      : VectorFormSurf<double>(i, marker), 
-      num_flux(new StegerWarmingNumericalFlux(kappa)) { }
+      : VectorFormSurf<double>(i), 
+      num_flux(new StegerWarmingNumericalFlux(kappa)) {setArea(marker); }
 
     ~EulerEquationsVectorFormSemiImplicitInletOutlet() 
     {
@@ -1612,7 +1591,7 @@ protected:
   {
   public:
     EulerEquationsMatrixFormSolidWall(int i, int j, std::string marker, double kappa)
-      : MatrixFormSurf<double>(i, j, marker), kappa(kappa) {}
+      : MatrixFormSurf<double>(i, j), kappa(kappa) {setArea(marker);}
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<double> *ext) const 
     {
@@ -1776,7 +1755,7 @@ protected:
   {
   public:
     EulerEquationsFormStabilizationSurf(int i, int j, double nu_2) 
-      : MatrixFormSurf<double>(i, j, H2D_DG_INNER_EDGE), nu_2(nu_2) { }
+      : MatrixFormSurf<double>(i, j), nu_2(nu_2) { setArea(H2D_DG_INNER_EDGE); }
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
       Func<double> *v, Geom<double> *e, ExtData<double> *ext) const 
@@ -1967,34 +1946,22 @@ public:
 
     for(unsigned int vector_form_i = 0;vector_form_i < this->vfvol.size();vector_form_i++) 
     {
-      vfvol.at(vector_form_i)->ext.push_back(prev_density);
-      vfvol.at(vector_form_i)->ext.push_back(prev_density_vel_x);
-      vfvol.at(vector_form_i)->ext.push_back(prev_density_vel_y);
-      vfvol.at(vector_form_i)->ext.push_back(prev_energy);
+      vfvol.at(vector_form_i)->setExt(Hermes::vector<MeshFunction<double>*>(prev_density, prev_density_vel_x, prev_density_vel_y, prev_energy));
     }
 
     for(unsigned int vector_form_i = 0;vector_form_i < this->vfsurf.size();vector_form_i++) 
     {
-      vfsurf.at(vector_form_i)->ext.push_back(prev_density);
-      vfsurf.at(vector_form_i)->ext.push_back(prev_density_vel_x);
-      vfsurf.at(vector_form_i)->ext.push_back(prev_density_vel_y);
-      vfsurf.at(vector_form_i)->ext.push_back(prev_energy);
+      vfsurf.at(vector_form_i)->setExt(Hermes::vector<MeshFunction<double>*>(prev_density, prev_density_vel_x, prev_density_vel_y, prev_energy));
     }
 
     for(unsigned int matrix_form_i = 0;matrix_form_i < this->mfvol.size();matrix_form_i++) 
     {
-      mfvol.at(matrix_form_i)->ext.push_back(prev_density);
-      mfvol.at(matrix_form_i)->ext.push_back(prev_density_vel_x);
-      mfvol.at(matrix_form_i)->ext.push_back(prev_density_vel_y);
-      mfvol.at(matrix_form_i)->ext.push_back(prev_energy);
+      mfvol.at(matrix_form_i)->setExt(Hermes::vector<MeshFunction<double>*>(prev_density, prev_density_vel_x, prev_density_vel_y, prev_energy));
     }
 
     for(unsigned int matrix_form_i = 0;matrix_form_i < this->mfsurf.size();matrix_form_i++) 
     {
-      mfsurf.at(matrix_form_i)->ext.push_back(prev_density);
-      mfsurf.at(matrix_form_i)->ext.push_back(prev_density_vel_x);
-      mfsurf.at(matrix_form_i)->ext.push_back(prev_density_vel_y);
-      mfsurf.at(matrix_form_i)->ext.push_back(prev_energy);
+      mfsurf.at(matrix_form_i)->setExt(Hermes::vector<MeshFunction<double>*>(prev_density, prev_density_vel_x, prev_density_vel_y, prev_energy));
     }
   };
 
@@ -2037,18 +2004,12 @@ public:
 
     for(unsigned int matrix_form_i = mfvol_size;matrix_form_i < this->mfvol.size();matrix_form_i++) 
     {
-      mfvol.at(matrix_form_i)->ext.push_back(prev_density);
-      mfvol.at(matrix_form_i)->ext.push_back(prev_density_vel_x);
-      mfvol.at(matrix_form_i)->ext.push_back(prev_density_vel_y);
-      mfvol.at(matrix_form_i)->ext.push_back(prev_energy);
+      mfvol.at(matrix_form_i)->setExt(Hermes::vector<MeshFunction<double>*>(prev_density, prev_density_vel_x, prev_density_vel_y, prev_energy));
     }
 
     for(unsigned int matrix_form_i = mfsurf_size;matrix_form_i < this->mfsurf.size();matrix_form_i++) 
     {
-      mfsurf.at(matrix_form_i)->ext.push_back(prev_density);
-      mfsurf.at(matrix_form_i)->ext.push_back(prev_density_vel_x);
-      mfsurf.at(matrix_form_i)->ext.push_back(prev_density_vel_y);
-      mfsurf.at(matrix_form_i)->ext.push_back(prev_energy);
+      mfsurf.at(matrix_form_i)->setExt(Hermes::vector<MeshFunction<double>*>(prev_density, prev_density_vel_x, prev_density_vel_y, prev_energy));
     }
   }
 
@@ -2267,8 +2228,8 @@ protected:
   {
   public:
     EulerEquationsMatrixFormSurfSemiImplicit(int i, int j, double kappa) 
-      : MatrixFormSurf<double>(i, j, H2D_DG_INNER_EDGE), 
-      num_flux(new StegerWarmingNumericalFlux(kappa)) { }
+      : MatrixFormSurf<double>(i, j), 
+      num_flux(new StegerWarmingNumericalFlux(kappa)) { setArea(H2D_DG_INNER_EDGE); }
 
     virtual ~EulerEquationsMatrixFormSurfSemiImplicit() 
     {
@@ -2382,8 +2343,8 @@ protected:
   public:
     EulerEquationsMatrixFormSemiImplicitInletOutlet1(int i, int j, 
       std::string marker, double kappa) 
-      : MatrixFormSurf<double>(i, j, marker), 
-      num_flux(new StegerWarmingNumericalFlux(kappa)) { }
+      : MatrixFormSurf<double>(i, j), 
+      num_flux(new StegerWarmingNumericalFlux(kappa)) { setArea(marker);}
 
     virtual ~EulerEquationsMatrixFormSemiImplicitInletOutlet1() 
     {
@@ -2545,8 +2506,8 @@ protected:
   {
   public:
     EulerEquationsVectorFormSemiImplicitInletOutlet1(int i, std::string marker, double kappa) 
-      : VectorFormSurf<double>(i, marker), 
-      num_flux(new StegerWarmingNumericalFlux(kappa)) { }
+      : VectorFormSurf<double>(i), 
+      num_flux(new StegerWarmingNumericalFlux(kappa)) { setArea(marker);}
 
     ~EulerEquationsVectorFormSemiImplicitInletOutlet1() 
     {
@@ -2662,8 +2623,8 @@ protected:
   public:
     EulerEquationsMatrixFormSemiImplicitInletOutlet2(int i, int j, 
       std::string marker, double kappa) 
-      : MatrixFormSurf<double>(i, j, marker), 
-      num_flux(new StegerWarmingNumericalFlux(kappa)) { }
+      : MatrixFormSurf<double>(i, j), 
+      num_flux(new StegerWarmingNumericalFlux(kappa)) { setArea(marker);}
 
     virtual ~EulerEquationsMatrixFormSemiImplicitInletOutlet2() 
     {
@@ -2825,8 +2786,8 @@ protected:
   {
   public:
     EulerEquationsVectorFormSemiImplicitInletOutlet2(int i, std::string marker, double kappa) 
-      : VectorFormSurf<double>(i, marker), 
-      num_flux(new StegerWarmingNumericalFlux(kappa)) { }
+      : VectorFormSurf<double>(i), 
+      num_flux(new StegerWarmingNumericalFlux(kappa)) { setArea(marker);}
 
     ~EulerEquationsVectorFormSemiImplicitInletOutlet2() 
     {
@@ -2961,7 +2922,7 @@ protected:
   {
   public:
     EulerEquationsMatrixFormSolidWall(int i, int j, std::string marker, double kappa)
-      : MatrixFormSurf<double>(i, j, marker), kappa(kappa) {}
+      : MatrixFormSurf<double>(i, j), kappa(kappa) {setArea(marker);}
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<double> *ext) const 
     {
@@ -3071,7 +3032,7 @@ protected:
   {
   public:
     EulerEquationsFormStabilizationSurf(int i, int j, double nu_2) 
-      : MatrixFormSurf<double>(i, j, H2D_DG_INNER_EDGE), nu_2(nu_2) { }
+      : MatrixFormSurf<double>(i, j), nu_2(nu_2) { setArea(H2D_DG_INNER_EDGE); }
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
       Func<double> *v, Geom<double> *e, ExtData<double> *ext) const 
@@ -3134,28 +3095,16 @@ public:
     add_matrix_form(new EulerEquationsWeakFormExplicit::EulerEquationsBilinearFormTime(4));
 
     add_vector_form(new VectorFormConcentrationAdvectionDiffusion(4, epsilon));
-    vfvol.back()->ext.push_back(prev_density);
-    vfvol.back()->ext.push_back(prev_density_vel_x);
-    vfvol.back()->ext.push_back(prev_density_vel_y);
-    vfvol.back()->ext.push_back(prev_energy);
-    vfvol.back()->ext.push_back(prev_concentration);
+    vfvol.back()->setExt(Hermes::vector<MeshFunction<double>*>(prev_density, prev_density_vel_x, prev_density_vel_y, prev_energy, prev_concentration));
 
     for(unsigned int i = 0;i < natural_bc_concentration_markers.size();i++) 
     {
       add_vector_form_surf(new VectorFormConcentrationNatural(4, natural_bc_concentration_markers[i]));
-      vfsurf.back()->ext.push_back(prev_density);
-      vfsurf.back()->ext.push_back(prev_density_vel_x);
-      vfsurf.back()->ext.push_back(prev_density_vel_y);
-      vfsurf.back()->ext.push_back(prev_energy);
-      vfsurf.back()->ext.push_back(prev_concentration);
+      vfsurf.back()->setExt(Hermes::vector<MeshFunction<double>*>(prev_density, prev_density_vel_x, prev_density_vel_y, prev_energy, prev_concentration));
     }
 
     EulerEquationsWeakFormExplicit::EulerEquationsLinearFormTime* vector_form_time = new EulerEquationsWeakFormExplicit::EulerEquationsLinearFormTime(4);
-    vector_form_time->ext.push_back(prev_density);
-    vector_form_time->ext.push_back(prev_density_vel_x);
-    vector_form_time->ext.push_back(prev_density_vel_y);
-    vector_form_time->ext.push_back(prev_energy);
-    vector_form_time->ext.push_back(prev_concentration);
+    vector_form_time->setExt(Hermes::vector<MeshFunction<double>*>(prev_density, prev_density_vel_x, prev_density_vel_y, prev_energy, prev_concentration));
     add_vector_form(vector_form_time);
   };
 
@@ -3233,7 +3182,7 @@ protected:
   {
   public:
     VectorFormConcentrationNatural(int i, std::string marker) 
-      : VectorFormSurf<double>(i, marker) {}
+      : VectorFormSurf<double>(i) {setArea(marker);}
 
     template<typename Real, typename Scalar>
     Scalar vector_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, 
@@ -3296,26 +3245,16 @@ public:
     add_matrix_form(new EulerEquationsWeakFormSemiImplicit::EulerEquationsBilinearFormTime(4));
 
     add_matrix_form(new MatrixFormConcentrationAdvectionDiffusion(4, 4, epsilon));
-    mfvol.back()->ext.push_back(prev_density);
-    mfvol.back()->ext.push_back(prev_density_vel_x);
-    mfvol.back()->ext.push_back(prev_density_vel_y);
-    mfvol.back()->ext.push_back(prev_energy);
+    mfvol.back()->setExt(Hermes::vector<MeshFunction<double>*>(prev_density, prev_density_vel_x, prev_density_vel_y, prev_energy));
 
     for(unsigned int i = 0;i < natural_bc_concentration_markers.size();i++) 
     {
       add_matrix_form_surf(new MatrixFormConcentrationNatural(4, 4, natural_bc_concentration_markers[i]));
-      mfsurf.back()->ext.push_back(prev_density);
-      mfsurf.back()->ext.push_back(prev_density_vel_x);
-      mfsurf.back()->ext.push_back(prev_density_vel_y);
-      mfsurf.back()->ext.push_back(prev_energy);
+      mfsurf.back()->setExt(Hermes::vector<MeshFunction<double>*>(prev_density, prev_density_vel_x, prev_density_vel_y, prev_energy));
     }
 
     EulerEquationsWeakFormSemiImplicit::EulerEquationsLinearFormTime* vector_form_time = new EulerEquationsWeakFormSemiImplicit::EulerEquationsLinearFormTime(4);
-    vector_form_time->ext.push_back(prev_density);
-    vector_form_time->ext.push_back(prev_density_vel_x);
-    vector_form_time->ext.push_back(prev_density_vel_y);
-    vector_form_time->ext.push_back(prev_energy);
-    vector_form_time->ext.push_back(prev_concentration);
+    vector_form_time->setExt(Hermes::vector<MeshFunction<double>*>(prev_density, prev_density_vel_x, prev_density_vel_y, prev_energy, prev_concentration));
     add_vector_form(vector_form_time);
   };
 
@@ -3392,7 +3331,7 @@ protected:
   {
   public:
     MatrixFormConcentrationNatural(int i, int j, std::string marker) 
-      : MatrixFormSurf<double>(i, j, marker) {}
+      : MatrixFormSurf<double>(i, j) {setArea(marker);}
 
     template<typename Real, typename Scalar>
     Scalar matrix_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, 
