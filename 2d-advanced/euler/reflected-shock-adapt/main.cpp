@@ -233,7 +233,6 @@ int main(int argc, char* argv[])
         space_rho_v_y.copy_orders(&space_rho);
         space_e.copy_orders(&space_rho);
       }
-      dp.delete_cache();
     }
 
     // Adaptivity loop:
