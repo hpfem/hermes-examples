@@ -47,8 +47,8 @@ public:
   class BilinearFormTime: public MatrixFormVol<double>
   {
   public:
-    BilinearFormTime(int i, int j, std::string area, double time_step) : MatrixFormVol<double>(i, j, area), time_step(time_step) {
-        sym = HERMES_SYM;
+    BilinearFormTime(int i, int j, std::string area, double time_step) : MatrixFormVol<double>(i, j), time_step(time_step) {
+      this->setArea(area);
     }
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<double> *ext) const
@@ -76,7 +76,7 @@ public:
   public:
     BilinearFormSymVel(int i, int j, bool Stokes, double Reynolds, double time_step) : MatrixFormVol<double>(i, j), Stokes(Stokes), 
       Reynolds(Reynolds), time_step(time_step) {
-        sym = HERMES_SYM;
+      this->setSymFlag(sym);
     }
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<double> *ext) const{
@@ -108,7 +108,6 @@ public:
   {
   public:
     BilinearFormUnSymVel_0_0(int i, int j, bool Stokes) : MatrixFormVol<double>(i, j), Stokes(Stokes) {
-      sym = HERMES_NONSYM;
     }
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<double> *ext) const{
@@ -147,7 +146,6 @@ public:
   {
   public:
     BilinearFormUnSymVel_0_1(int i, int j, bool Stokes) : MatrixFormVol<double>(i, j), Stokes(Stokes) {
-      sym = HERMES_NONSYM;
     }
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<double> *ext) const{
@@ -182,7 +180,6 @@ public:
   {
   public:
     BilinearFormUnSymVel_1_0(int i, int j, bool Stokes) : MatrixFormVol<double>(i, j), Stokes(Stokes) {
-      sym = HERMES_NONSYM;
     }
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<double> *ext) const{
@@ -217,7 +214,6 @@ public:
   {
   public:
     BilinearFormUnSymVel_1_1(int i, int j, bool Stokes) : MatrixFormVol<double>(i, j), Stokes(Stokes) {
-      sym = HERMES_NONSYM;
     }
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<double> *ext) const{
@@ -256,7 +252,7 @@ public:
   {
   public:
     BilinearFormUnSymXVelPressure(int i, int j) : MatrixFormVol<double>(i, j) {
-      sym = HERMES_ANTISYM;
+      this->setSymFlag(HERMES_ANTISYM);
     }
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<double> *ext) const{
@@ -276,7 +272,7 @@ public:
   {
   public:
     BilinearFormUnSymYVelPressure(int i, int j) : MatrixFormVol<double>(i, j) {
-      sym = HERMES_ANTISYM;
+      this->setSymFlag(HERMES_ANTISYM);
     }
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<double> *ext) const{
@@ -295,7 +291,10 @@ public:
   class CustomJacobianTempAdvection_3_0 : public MatrixFormVol<double>
   {
   public:
-    CustomJacobianTempAdvection_3_0(int i, int j, std::string area) : MatrixFormVol<double>(i, j, area) {}
+    CustomJacobianTempAdvection_3_0(int i, int j, std::string area) : MatrixFormVol<double>(i, j) 
+    {
+      this->setArea(area);
+    }
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<double> *ext) const
     {
@@ -327,7 +326,10 @@ public:
   class CustomJacobianTempAdvection_3_3_simple : public MatrixFormVol<double>
   {
   public:
-    CustomJacobianTempAdvection_3_3_simple(int i, int j, std::string area) : MatrixFormVol<double>(i, j, area) {}
+    CustomJacobianTempAdvection_3_3_simple(int i, int j, std::string area) : MatrixFormVol<double>(i, j) 
+    {
+      this->setArea(area);
+    }
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<double> *ext) const
     {
@@ -361,7 +363,10 @@ public:
   class CustomJacobianTempAdvection_3_1 : public MatrixFormVol<double>
   {
   public:
-    CustomJacobianTempAdvection_3_1(int i, int j, std::string area) : MatrixFormVol<double>(i, j, area) {}
+    CustomJacobianTempAdvection_3_1(int i, int j, std::string area) : MatrixFormVol<double>(i, j) 
+    {
+      this->setArea(area);
+    }
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<double> *ext) const{
       double result = 0;
@@ -392,7 +397,10 @@ public:
   class CustomJacobianTempAdvection_3_3 : public MatrixFormVol<double>
   {
   public:
-    CustomJacobianTempAdvection_3_3(int i, int j, std::string area) : MatrixFormVol<double>(i, j, area) {}
+    CustomJacobianTempAdvection_3_3(int i, int j, std::string area) : MatrixFormVol<double>(i, j) 
+    {
+      this->setArea(area);
+    }
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<double> *ext) const
     {
@@ -426,7 +434,10 @@ public:
   class VectorFormTime: public VectorFormVol<double>
   {
   public:
-    VectorFormTime(int i, std::string area, double time_step) : VectorFormVol<double>(i, area), time_step(time_step) {}
+    VectorFormTime(int i, std::string area, double time_step) : VectorFormVol<double>(i), time_step(time_step) 
+    {
+      this->setArea(area);
+    }
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, ExtData<double> *ext) const
     {
@@ -453,7 +464,10 @@ public:
   class CustomResidualTempAdvection : public VectorFormVol<double>
   {
   public:
-  CustomResidualTempAdvection(int i, std::string area) : VectorFormVol<double>(i, area) {}
+    CustomResidualTempAdvection(int i, std::string area) : VectorFormVol<double>(i) 
+    {
+      this->setArea(area);
+    }
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, ExtData<double> *ext) const
     {
@@ -489,7 +503,10 @@ public:
   class CustomResidualTempAdvection_simple : public VectorFormVol<double>
   {
   public:
-  CustomResidualTempAdvection_simple(int i, std::string area) : VectorFormVol<double>(i, area) {}
+    CustomResidualTempAdvection_simple(int i, std::string area) : VectorFormVol<double>(i) 
+    {
+      this->setArea(area);
+    }
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, ExtData<double> *ext) const
     {
@@ -525,7 +542,8 @@ public:
   class VectorFormNS_0 : public VectorFormVol<double>
   {
   public:
-    VectorFormNS_0(int i, bool Stokes, double Reynolds, double time_step) : VectorFormVol<double>(i), Stokes(Stokes), Reynolds(Reynolds), time_step(time_step) {
+    VectorFormNS_0(int i, bool Stokes, double Reynolds, double time_step) : VectorFormVol<double>(i), Stokes(Stokes), Reynolds(Reynolds), time_step(time_step) 
+    {
     }
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, ExtData<double> *ext) const{
