@@ -185,8 +185,6 @@ public:
   MachNumberFilter(Hermes::vector<MeshFunction<double>*> solutions, double kappa) : SimpleFilter<double>(solutions), kappa(kappa) {};
   ~MachNumberFilter() 
   {
-    for(int i = 0; i < this->num; i++)
-      delete this->sln[i];
   };
 
   MeshFunction<double>* clone()
@@ -210,8 +208,6 @@ public:
   PressureFilter(Hermes::vector<MeshFunction<double>*> solutions, double kappa) : SimpleFilter<double>(solutions), kappa(kappa) {};
   ~PressureFilter() 
   {
-    for(int i = 0; i < this->num; i++)
-      delete this->sln[i];
   };
 
   MeshFunction<double>* clone()
@@ -234,8 +230,6 @@ public:
   EntropyFilter(Hermes::vector<MeshFunction<double>*> solutions, double kappa, double rho_ext, double p_ext) : SimpleFilter<double>(solutions), kappa(kappa), rho_ext(rho_ext), p_ext(p_ext) {};
   ~EntropyFilter() 
   {
-    for(int i = 0; i < this->num; i++)
-      delete this->sln[i];
   };
   MeshFunction<double>* clone()
   {
