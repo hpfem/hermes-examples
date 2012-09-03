@@ -395,9 +395,12 @@ int main(int argc, char* argv[])
     prev_e.copy(&rsln_e);
   }
 
-  pressure_view.close();
-  entropy_production_view.close();
-  Mach_number_view.close();
+  if(HERMES_VISUALIZATION) 
+  {
+    pressure_view.close();
+    entropy_production_view.close();
+    Mach_number_view.close();
+  }
 
   return 0;
 }
