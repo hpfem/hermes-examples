@@ -19,16 +19,26 @@ using namespace Hermes::Hermes2D::RefinementSelectors;
 //
 // The following parameters can be changed:
 
-// Visualization.
+// Frequently changed parameters.
 // Set to "true" to enable Hermes OpenGL visualization. 
 const bool HERMES_VISUALIZATION = true;
+// Maximum polynomial degree used. -1 for unlimited.
+const int MAX_P_ORDER = 0;
+// Time interval length.
+const double T_END = 0.05;
+// Shock capturing.
+bool SHOCK_CAPTURING = true;
+// Stopping criterion for adaptivity.
+double ERR_STOP = 0.95;  
+// Predefined list of element refinement candidates.
+CandList CAND_LIST = H2D_HP_ANISO;                
+
 // Set to "true" to enable VTK output.
 const bool VTK_VISUALIZATION = true;
+
 // Set visual output for every nth step.
 const unsigned int EVERY_NTH_STEP = 1;
 
-// Shock capturing.
-bool SHOCK_CAPTURING = false;
 // Quantitative parameter of the discontinuity detector.
 double DISCONTINUITY_DETECTOR_PARAM = 1.0;
 
@@ -37,12 +47,16 @@ bool REUSE_SOLUTION = false;
 
 // Initial polynomial degree.      
 const int P_INIT = 0;                                             
+
 // Number of initial uniform mesh refinements.  
 const int INIT_REF_NUM = 3;                                            
+
 // CFL value.
 double CFL_NUMBER = 0.1;                         
+
 // Initial time step.
-double time_step = 1E-4;                                
+double time_step = 1E-4;
+
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 const MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
@@ -70,14 +84,6 @@ const double THRESHOLD = 0.5;
 //   than THRESHOLD.
 const int STRATEGY = 1;                           
 
-// Predefined list of element refinement candidates. Possible values are
-// H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
-// H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
-CandList CAND_LIST = H2D_H_ANISO;                
-
-// Maximum polynomial degree used. -1 for unlimited.
-const int MAX_P_ORDER = 0;                       
-
 // Maximum allowed level of hanging nodes:
 // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
 // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
@@ -89,9 +95,6 @@ const int MESH_REGULARITY = -1;
 // This parameter influences the selection of
 // candidates in hp-adaptivity. Default value is 1.0. 
 const double CONV_EXP = 1;                        
-
-// Stopping criterion for adaptivity.
-double ERR_STOP = 0.95;                     
 
 // Adaptivity process stops when the number of degrees of freedom grows over
 // this limit. This is mainly to prevent h-adaptivity to go on forever.
@@ -213,7 +216,7 @@ int main(int argc, char* argv[])
   Hermes::vector<Space<double>*> spaces_to_delete;
       
   // Time stepping loop.
-  for(; t < 6.0; t += time_step)
+  for(; t < T_END; t += time_step)
   {
     CFL.set_number(CFL_NUMBER + (t/4.0) * 1.0);
     Hermes::Mixins::Loggable::Static::info("---- Time step %d, time %3.5f.", iteration++, t);
