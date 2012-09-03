@@ -19,6 +19,18 @@ This document is under continuous development. If you find bugs, typos, dead lin
 and such, please report them to the 
 `Hermes2D mailing list <http://groups.google.com/group/hermes2d/>`_.
 
+Installation
+--------------------
+- installation is very simple and has the following steps:
+
+| 1) clone the repository
+| 2) on Windows (and on other platforms as well if necessary), copy CMake.vars.example to CMake.vars and adjust it.
+| 3) HERMES_DIRECTORY and HERMES_INCLUDE_PATH should point to lib and include directories where you installed HERMES.
+|    typically, these will be "lib" and "include" subdirectories of the directory specified by TARGET_ROOT in your library repository.
+| 4) the DEP_ROOT variable should in most cases point to the same variable in CMake.vars in your library repository.
+| 5) the same for the PTHREAD_ROOT variable
+| 6!!) important step is to set WITH_TRILINOS to the same value as you set it in your library repository. Otherwise, linking issues will occur.
+
 Benchmarks - General
 --------------------
 
