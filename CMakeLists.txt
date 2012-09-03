@@ -61,6 +61,7 @@ project(hermes_examples)
 		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP") 
 	endif(MSVC)
 	
+  include_directories("${PTHREAD_ROOT}/include")
 	find_package(PTHREAD REQUIRED)
 
 	if(WITH_TRILINOS)
