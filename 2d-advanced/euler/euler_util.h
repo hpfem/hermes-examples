@@ -193,6 +193,7 @@ public:
     for(int i = 0; i < this->num; i++)
       slns.push_back(this->sln[i]->clone());
     MachNumberFilter* filter = new MachNumberFilter(slns, this->kappa);
+    filter->setDeleteSolutions();
     return filter;
   }
 
@@ -216,6 +217,7 @@ public:
     for(int i = 0; i < this->num; i++)
       slns.push_back(this->sln[i]->clone());
     PressureFilter* filter = new PressureFilter(slns, this->kappa);
+    filter->setDeleteSolutions();
     return filter;
   }
 protected:
@@ -237,6 +239,7 @@ public:
     for(int i = 0; i < this->num; i++)
       slns.push_back(this->sln[i]->clone());
     EntropyFilter* filter = new EntropyFilter(slns, this->kappa, rho_ext, p_ext);
+    filter->setDeleteSolutions();
     return filter;
   }
 protected:
