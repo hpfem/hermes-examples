@@ -11,17 +11,16 @@ class EulerEquationsWeakFormStabilization : public WeakForm<double>
 public:
   EulerEquationsWeakFormStabilization(Solution<double>* prev_rho) : WeakForm<double>()
   {
-    add_vector_form_surf(new DGVectorFormIndicator);
+    add_vector_form_DG(new DGVectorFormIndicator);
     this->vfsurf.back()->setExt(prev_rho);
   }
 
-  class DGVectorFormIndicator : public VectorFormSurf<double>
+  class DGVectorFormIndicator : public VectorFormDG<double>
   {
   public:
     DGVectorFormIndicator() 
-      : VectorFormSurf<double>(0)
+      : VectorFormDG<double>(0)
     {
-      this->setArea(H2D_DG_INNER_EDGE);
     }
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
@@ -41,7 +40,7 @@ public:
       return v->val[0] * v->val[0] * Ord(6);
     }
 
-    VectorFormSurf<double>* clone() { return new DGVectorFormIndicator; }
+    VectorFormDG<double>* clone() { return new DGVectorFormIndicator; }
   };
 };
 
@@ -72,10 +71,10 @@ public:
       add_vector_form(new EulerEquationsLinearFormEnergy(kappa));
     }
 
-    add_vector_form_surf(new EulerEquationsLinearFormInterface(0, kappa));
-    add_vector_form_surf(new EulerEquationsLinearFormInterface(1, kappa));
-    add_vector_form_surf(new EulerEquationsLinearFormInterface(2, kappa));
-    add_vector_form_surf(new EulerEquationsLinearFormInterface(3, kappa));
+    add_vector_form_DG(new EulerEquationsLinearFormInterface(0, kappa));
+    add_vector_form_DG(new EulerEquationsLinearFormInterface(1, kappa));
+    add_vector_form_DG(new EulerEquationsLinearFormInterface(2, kappa));
+    add_vector_form_DG(new EulerEquationsLinearFormInterface(3, kappa));
 
     add_vector_form_surf(new EulerEquationsLinearFormSolidWall(0, solid_wall_bottom_marker, kappa));
     add_vector_form_surf(new EulerEquationsLinearFormSolidWall(1, solid_wall_bottom_marker, kappa));
@@ -414,11 +413,11 @@ protected:
     int component_i;
   };
 
-  class EulerEquationsLinearFormInterface : public VectorFormSurf<double>
+  class EulerEquationsLinearFormInterface : public VectorFormDG<double>
   {
   public:
     EulerEquationsLinearFormInterface(int i, double kappa) 
-      : VectorFormSurf<double>(i), element(i), num_flux(new StegerWarmingNumericalFlux(kappa)) { setArea(H2D_DG_INNER_EDGE); }
+      : VectorFormDG<double>(i), element(i), num_flux(new StegerWarmingNumericalFlux(kappa)) {}
 
     ~EulerEquationsLinearFormInterface()
     {
@@ -456,7 +455,7 @@ protected:
       return Ord(20);
     }
 
-    VectorFormSurf<double>* clone()
+    VectorFormDG<double>* clone()
     {
       EulerEquationsLinearFormInterface* form = new EulerEquationsLinearFormInterface(this->i, this->num_flux->kappa);
       form->wf = this->wf;
@@ -685,22 +684,22 @@ public:
       add_matrix_form(new EulerEquationsBilinearForm(3, 3));
     }
 
-    add_matrix_form_surf(new EulerEquationsMatrixFormSurfSemiImplicit(0, 0, kappa));
-    add_matrix_form_surf(new EulerEquationsMatrixFormSurfSemiImplicit(1, 0, kappa));
-    add_matrix_form_surf(new EulerEquationsMatrixFormSurfSemiImplicit(2, 0, kappa));
-    add_matrix_form_surf(new EulerEquationsMatrixFormSurfSemiImplicit(3, 0, kappa));
-    add_matrix_form_surf(new EulerEquationsMatrixFormSurfSemiImplicit(0, 1, kappa));
-    add_matrix_form_surf(new EulerEquationsMatrixFormSurfSemiImplicit(1, 1, kappa));
-    add_matrix_form_surf(new EulerEquationsMatrixFormSurfSemiImplicit(2, 1, kappa));
-    add_matrix_form_surf(new EulerEquationsMatrixFormSurfSemiImplicit(3, 1, kappa));
-    add_matrix_form_surf(new EulerEquationsMatrixFormSurfSemiImplicit(0, 2, kappa));
-    add_matrix_form_surf(new EulerEquationsMatrixFormSurfSemiImplicit(1, 2, kappa));
-    add_matrix_form_surf(new EulerEquationsMatrixFormSurfSemiImplicit(2, 2, kappa));
-    add_matrix_form_surf(new EulerEquationsMatrixFormSurfSemiImplicit(3, 2, kappa));
-    add_matrix_form_surf(new EulerEquationsMatrixFormSurfSemiImplicit(0, 3, kappa));
-    add_matrix_form_surf(new EulerEquationsMatrixFormSurfSemiImplicit(1, 3, kappa));
-    add_matrix_form_surf(new EulerEquationsMatrixFormSurfSemiImplicit(2, 3, kappa));
-    add_matrix_form_surf(new EulerEquationsMatrixFormSurfSemiImplicit(3, 3, kappa));
+    add_matrix_form_DG(new EulerEquationsMatrixFormSurfSemiImplicit(0, 0, kappa));
+    add_matrix_form_DG(new EulerEquationsMatrixFormSurfSemiImplicit(1, 0, kappa));
+    add_matrix_form_DG(new EulerEquationsMatrixFormSurfSemiImplicit(2, 0, kappa));
+    add_matrix_form_DG(new EulerEquationsMatrixFormSurfSemiImplicit(3, 0, kappa));
+    add_matrix_form_DG(new EulerEquationsMatrixFormSurfSemiImplicit(0, 1, kappa));
+    add_matrix_form_DG(new EulerEquationsMatrixFormSurfSemiImplicit(1, 1, kappa));
+    add_matrix_form_DG(new EulerEquationsMatrixFormSurfSemiImplicit(2, 1, kappa));
+    add_matrix_form_DG(new EulerEquationsMatrixFormSurfSemiImplicit(3, 1, kappa));
+    add_matrix_form_DG(new EulerEquationsMatrixFormSurfSemiImplicit(0, 2, kappa));
+    add_matrix_form_DG(new EulerEquationsMatrixFormSurfSemiImplicit(1, 2, kappa));
+    add_matrix_form_DG(new EulerEquationsMatrixFormSurfSemiImplicit(2, 2, kappa));
+    add_matrix_form_DG(new EulerEquationsMatrixFormSurfSemiImplicit(3, 2, kappa));
+    add_matrix_form_DG(new EulerEquationsMatrixFormSurfSemiImplicit(0, 3, kappa));
+    add_matrix_form_DG(new EulerEquationsMatrixFormSurfSemiImplicit(1, 3, kappa));
+    add_matrix_form_DG(new EulerEquationsMatrixFormSurfSemiImplicit(2, 3, kappa));
+    add_matrix_form_DG(new EulerEquationsMatrixFormSurfSemiImplicit(3, 3, kappa));
 
     add_matrix_form_surf(new EulerEquationsMatrixFormSolidWall(0, 0, solid_wall_bottom_marker, kappa));
     add_matrix_form_surf(new EulerEquationsMatrixFormSolidWall(1, 0, solid_wall_bottom_marker, kappa));
@@ -786,24 +785,22 @@ public:
     add_vector_form_surf(new EulerEquationsVectorFormSemiImplicitInletOutlet(3, outlet_marker, kappa));
 
     for(unsigned int vector_form_i = 0;vector_form_i < this->vfvol.size();vector_form_i++) 
-    {
       vfvol.at(vector_form_i)->setExt(Hermes::vector<MeshFunction<double>*>(prev_density, prev_density_vel_x, prev_density_vel_y, prev_energy));
-    }
 
     for(unsigned int vector_form_i = 0;vector_form_i < this->vfsurf.size();vector_form_i++) 
-    {
       vfsurf.at(vector_form_i)->setExt(Hermes::vector<MeshFunction<double>*>(prev_density, prev_density_vel_x, prev_density_vel_y, prev_energy));
-    }
+
+    for(unsigned int vector_form_i = 0;vector_form_i < this->vfDG.size();vector_form_i++) 
+      vfDG.at(vector_form_i)->setExt(Hermes::vector<MeshFunction<double>*>(prev_density, prev_density_vel_x, prev_density_vel_y, prev_energy));
 
     for(unsigned int matrix_form_i = 0;matrix_form_i < this->mfvol.size();matrix_form_i++) 
-    {
       mfvol.at(matrix_form_i)->setExt(Hermes::vector<MeshFunction<double>*>(prev_density, prev_density_vel_x, prev_density_vel_y, prev_energy));
-    }
 
     for(unsigned int matrix_form_i = 0;matrix_form_i < this->mfsurf.size();matrix_form_i++) 
-    {
       mfsurf.at(matrix_form_i)->setExt(Hermes::vector<MeshFunction<double>*>(prev_density, prev_density_vel_x, prev_density_vel_y, prev_energy));
-    }
+
+    for(unsigned int matrix_form_i = 0;matrix_form_i < this->mfDG.size();matrix_form_i++) 
+      mfDG.at(matrix_form_i)->setExt(Hermes::vector<MeshFunction<double>*>(prev_density, prev_density_vel_x, prev_density_vel_y, prev_energy));
   };
 
   void set_time_step(double tau) 
@@ -826,22 +823,22 @@ public:
     add_matrix_form(new EulerEquationsFormStabilizationVol(2, nu_1));
     add_matrix_form(new EulerEquationsFormStabilizationVol(3, nu_1));
 
-    add_matrix_form_surf(new EulerEquationsFormStabilizationSurf(0, 0, nu_2));
-    add_matrix_form_surf(new EulerEquationsFormStabilizationSurf(0, 1, nu_2));
-    add_matrix_form_surf(new EulerEquationsFormStabilizationSurf(0, 2, nu_2));
-    add_matrix_form_surf(new EulerEquationsFormStabilizationSurf(0, 3, nu_2));
-    add_matrix_form_surf(new EulerEquationsFormStabilizationSurf(1, 0, nu_2));
-    add_matrix_form_surf(new EulerEquationsFormStabilizationSurf(1, 1, nu_2));
-    add_matrix_form_surf(new EulerEquationsFormStabilizationSurf(1, 2, nu_2));
-    add_matrix_form_surf(new EulerEquationsFormStabilizationSurf(1, 3, nu_2));
-    add_matrix_form_surf(new EulerEquationsFormStabilizationSurf(2, 0, nu_2));
-    add_matrix_form_surf(new EulerEquationsFormStabilizationSurf(2, 1, nu_2));
-    add_matrix_form_surf(new EulerEquationsFormStabilizationSurf(2, 2, nu_2));
-    add_matrix_form_surf(new EulerEquationsFormStabilizationSurf(2, 3, nu_2));
-    add_matrix_form_surf(new EulerEquationsFormStabilizationSurf(3, 0, nu_2));
-    add_matrix_form_surf(new EulerEquationsFormStabilizationSurf(3, 1, nu_2));
-    add_matrix_form_surf(new EulerEquationsFormStabilizationSurf(3, 2, nu_2));
-    add_matrix_form_surf(new EulerEquationsFormStabilizationSurf(3, 3, nu_2));
+    add_matrix_form_DG(new EulerEquationsFormStabilizationSurf(0, 0, nu_2));
+    add_matrix_form_DG(new EulerEquationsFormStabilizationSurf(0, 1, nu_2));
+    add_matrix_form_DG(new EulerEquationsFormStabilizationSurf(0, 2, nu_2));
+    add_matrix_form_DG(new EulerEquationsFormStabilizationSurf(0, 3, nu_2));
+    add_matrix_form_DG(new EulerEquationsFormStabilizationSurf(1, 0, nu_2));
+    add_matrix_form_DG(new EulerEquationsFormStabilizationSurf(1, 1, nu_2));
+    add_matrix_form_DG(new EulerEquationsFormStabilizationSurf(1, 2, nu_2));
+    add_matrix_form_DG(new EulerEquationsFormStabilizationSurf(1, 3, nu_2));
+    add_matrix_form_DG(new EulerEquationsFormStabilizationSurf(2, 0, nu_2));
+    add_matrix_form_DG(new EulerEquationsFormStabilizationSurf(2, 1, nu_2));
+    add_matrix_form_DG(new EulerEquationsFormStabilizationSurf(2, 2, nu_2));
+    add_matrix_form_DG(new EulerEquationsFormStabilizationSurf(2, 3, nu_2));
+    add_matrix_form_DG(new EulerEquationsFormStabilizationSurf(3, 0, nu_2));
+    add_matrix_form_DG(new EulerEquationsFormStabilizationSurf(3, 1, nu_2));
+    add_matrix_form_DG(new EulerEquationsFormStabilizationSurf(3, 2, nu_2));
+    add_matrix_form_DG(new EulerEquationsFormStabilizationSurf(3, 3, nu_2));
 
     for(unsigned int matrix_form_i = mfvol_size;matrix_form_i < this->mfvol.size();matrix_form_i++) 
     {
@@ -1065,12 +1062,12 @@ protected:
     }
   };
 
-  class EulerEquationsMatrixFormSurfSemiImplicit : public MatrixFormSurf<double>
+  class EulerEquationsMatrixFormSurfSemiImplicit : public MatrixFormDG<double>
   {
   public:
     EulerEquationsMatrixFormSurfSemiImplicit(int i, int j, double kappa) 
-      : MatrixFormSurf<double>(i, j), 
-      num_flux(new StegerWarmingNumericalFlux(kappa)) { setArea(H2D_DG_INNER_EDGE); }
+      : MatrixFormDG<double>(i, j), 
+      num_flux(new StegerWarmingNumericalFlux(kappa)) {}
 
     ~EulerEquationsMatrixFormSurfSemiImplicit() 
     {
@@ -1220,7 +1217,7 @@ protected:
       return Ord(24);
     }
 
-    MatrixFormSurf<double>* clone() 
+    MatrixFormDG<double>* clone() 
     { 
       EulerEquationsMatrixFormSurfSemiImplicit* form = new EulerEquationsMatrixFormSurfSemiImplicit(this->i, this->j, this->num_flux->kappa);
       form->wf = this->wf;
@@ -1751,11 +1748,11 @@ protected:
     double nu_1;
   };
 
-  class EulerEquationsFormStabilizationSurf : public MatrixFormSurf<double>
+  class EulerEquationsFormStabilizationSurf : public MatrixFormDG<double>
   {
   public:
     EulerEquationsFormStabilizationSurf(int i, int j, double nu_2) 
-      : MatrixFormSurf<double>(i, j), nu_2(nu_2) { setArea(H2D_DG_INNER_EDGE); }
+      : MatrixFormDG<double>(i, j), nu_2(nu_2) {}
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
       Func<double> *v, Geom<double> *e, ExtData<double> *ext) const 
@@ -1769,7 +1766,7 @@ protected:
       return result;
     }
 
-    MatrixFormSurf<double>* clone() 
+    MatrixFormDG<double>* clone() 
     {
       EulerEquationsFormStabilizationSurf* form = new EulerEquationsFormStabilizationSurf(this->i, this->j, nu_2);
       form->wf = this->wf;
@@ -1843,22 +1840,22 @@ public:
       add_matrix_form(new EulerEquationsBilinearForm(3, 3));
     }
 
-    add_matrix_form_surf(new EulerEquationsMatrixFormSurfSemiImplicit(0, 0, kappa));
-    add_matrix_form_surf(new EulerEquationsMatrixFormSurfSemiImplicit(1, 0, kappa));
-    add_matrix_form_surf(new EulerEquationsMatrixFormSurfSemiImplicit(2, 0, kappa));
-    add_matrix_form_surf(new EulerEquationsMatrixFormSurfSemiImplicit(3, 0, kappa));
-    add_matrix_form_surf(new EulerEquationsMatrixFormSurfSemiImplicit(0, 1, kappa));
-    add_matrix_form_surf(new EulerEquationsMatrixFormSurfSemiImplicit(1, 1, kappa));
-    add_matrix_form_surf(new EulerEquationsMatrixFormSurfSemiImplicit(2, 1, kappa));
-    add_matrix_form_surf(new EulerEquationsMatrixFormSurfSemiImplicit(3, 1, kappa));
-    add_matrix_form_surf(new EulerEquationsMatrixFormSurfSemiImplicit(0, 2, kappa));
-    add_matrix_form_surf(new EulerEquationsMatrixFormSurfSemiImplicit(1, 2, kappa));
-    add_matrix_form_surf(new EulerEquationsMatrixFormSurfSemiImplicit(2, 2, kappa));
-    add_matrix_form_surf(new EulerEquationsMatrixFormSurfSemiImplicit(3, 2, kappa));
-    add_matrix_form_surf(new EulerEquationsMatrixFormSurfSemiImplicit(0, 3, kappa));
-    add_matrix_form_surf(new EulerEquationsMatrixFormSurfSemiImplicit(1, 3, kappa));
-    add_matrix_form_surf(new EulerEquationsMatrixFormSurfSemiImplicit(2, 3, kappa));
-    add_matrix_form_surf(new EulerEquationsMatrixFormSurfSemiImplicit(3, 3, kappa));
+    add_matrix_form_DG(new EulerEquationsMatrixFormSurfSemiImplicit(0, 0, kappa));
+    add_matrix_form_DG(new EulerEquationsMatrixFormSurfSemiImplicit(1, 0, kappa));
+    add_matrix_form_DG(new EulerEquationsMatrixFormSurfSemiImplicit(2, 0, kappa));
+    add_matrix_form_DG(new EulerEquationsMatrixFormSurfSemiImplicit(3, 0, kappa));
+    add_matrix_form_DG(new EulerEquationsMatrixFormSurfSemiImplicit(0, 1, kappa));
+    add_matrix_form_DG(new EulerEquationsMatrixFormSurfSemiImplicit(1, 1, kappa));
+    add_matrix_form_DG(new EulerEquationsMatrixFormSurfSemiImplicit(2, 1, kappa));
+    add_matrix_form_DG(new EulerEquationsMatrixFormSurfSemiImplicit(3, 1, kappa));
+    add_matrix_form_DG(new EulerEquationsMatrixFormSurfSemiImplicit(0, 2, kappa));
+    add_matrix_form_DG(new EulerEquationsMatrixFormSurfSemiImplicit(1, 2, kappa));
+    add_matrix_form_DG(new EulerEquationsMatrixFormSurfSemiImplicit(2, 2, kappa));
+    add_matrix_form_DG(new EulerEquationsMatrixFormSurfSemiImplicit(3, 2, kappa));
+    add_matrix_form_DG(new EulerEquationsMatrixFormSurfSemiImplicit(0, 3, kappa));
+    add_matrix_form_DG(new EulerEquationsMatrixFormSurfSemiImplicit(1, 3, kappa));
+    add_matrix_form_DG(new EulerEquationsMatrixFormSurfSemiImplicit(2, 3, kappa));
+    add_matrix_form_DG(new EulerEquationsMatrixFormSurfSemiImplicit(3, 3, kappa));
 
     add_matrix_form_surf(new EulerEquationsMatrixFormSolidWall(0, 0, wall_marker, kappa));
     add_matrix_form_surf(new EulerEquationsMatrixFormSolidWall(1, 0, wall_marker, kappa));
@@ -1945,24 +1942,22 @@ public:
     add_vector_form_surf(new EulerEquationsVectorFormSemiImplicitInletOutlet1(3, outlet_marker, kappa));
 
     for(unsigned int vector_form_i = 0;vector_form_i < this->vfvol.size();vector_form_i++) 
-    {
       vfvol.at(vector_form_i)->setExt(Hermes::vector<MeshFunction<double>*>(prev_density, prev_density_vel_x, prev_density_vel_y, prev_energy));
-    }
 
     for(unsigned int vector_form_i = 0;vector_form_i < this->vfsurf.size();vector_form_i++) 
-    {
       vfsurf.at(vector_form_i)->setExt(Hermes::vector<MeshFunction<double>*>(prev_density, prev_density_vel_x, prev_density_vel_y, prev_energy));
-    }
+
+    for(unsigned int vector_form_i = 0;vector_form_i < this->vfDG.size();vector_form_i++) 
+      vfDG.at(vector_form_i)->setExt(Hermes::vector<MeshFunction<double>*>(prev_density, prev_density_vel_x, prev_density_vel_y, prev_energy));
 
     for(unsigned int matrix_form_i = 0;matrix_form_i < this->mfvol.size();matrix_form_i++) 
-    {
       mfvol.at(matrix_form_i)->setExt(Hermes::vector<MeshFunction<double>*>(prev_density, prev_density_vel_x, prev_density_vel_y, prev_energy));
-    }
 
     for(unsigned int matrix_form_i = 0;matrix_form_i < this->mfsurf.size();matrix_form_i++) 
-    {
       mfsurf.at(matrix_form_i)->setExt(Hermes::vector<MeshFunction<double>*>(prev_density, prev_density_vel_x, prev_density_vel_y, prev_energy));
-    }
+
+    for(unsigned int matrix_form_i = 0;matrix_form_i < this->mfDG.size();matrix_form_i++) 
+      mfDG.at(matrix_form_i)->setExt(Hermes::vector<MeshFunction<double>*>(prev_density, prev_density_vel_x, prev_density_vel_y, prev_energy));
   };
 
   void set_time_step(double tau) 
@@ -1985,22 +1980,22 @@ public:
     add_matrix_form(new EulerEquationsFormStabilizationVol(2, nu_1));
     add_matrix_form(new EulerEquationsFormStabilizationVol(3, nu_1));
 
-    add_matrix_form_surf(new EulerEquationsFormStabilizationSurf(0, 0, nu_2));
-    add_matrix_form_surf(new EulerEquationsFormStabilizationSurf(0, 1, nu_2));
-    add_matrix_form_surf(new EulerEquationsFormStabilizationSurf(0, 2, nu_2));
-    add_matrix_form_surf(new EulerEquationsFormStabilizationSurf(0, 3, nu_2));
-    add_matrix_form_surf(new EulerEquationsFormStabilizationSurf(1, 0, nu_2));
-    add_matrix_form_surf(new EulerEquationsFormStabilizationSurf(1, 1, nu_2));
-    add_matrix_form_surf(new EulerEquationsFormStabilizationSurf(1, 2, nu_2));
-    add_matrix_form_surf(new EulerEquationsFormStabilizationSurf(1, 3, nu_2));
-    add_matrix_form_surf(new EulerEquationsFormStabilizationSurf(2, 0, nu_2));
-    add_matrix_form_surf(new EulerEquationsFormStabilizationSurf(2, 1, nu_2));
-    add_matrix_form_surf(new EulerEquationsFormStabilizationSurf(2, 2, nu_2));
-    add_matrix_form_surf(new EulerEquationsFormStabilizationSurf(2, 3, nu_2));
-    add_matrix_form_surf(new EulerEquationsFormStabilizationSurf(3, 0, nu_2));
-    add_matrix_form_surf(new EulerEquationsFormStabilizationSurf(3, 1, nu_2));
-    add_matrix_form_surf(new EulerEquationsFormStabilizationSurf(3, 2, nu_2));
-    add_matrix_form_surf(new EulerEquationsFormStabilizationSurf(3, 3, nu_2));
+    add_matrix_form_DG(new EulerEquationsFormStabilizationSurf(0, 0, nu_2));
+    add_matrix_form_DG(new EulerEquationsFormStabilizationSurf(0, 1, nu_2));
+    add_matrix_form_DG(new EulerEquationsFormStabilizationSurf(0, 2, nu_2));
+    add_matrix_form_DG(new EulerEquationsFormStabilizationSurf(0, 3, nu_2));
+    add_matrix_form_DG(new EulerEquationsFormStabilizationSurf(1, 0, nu_2));
+    add_matrix_form_DG(new EulerEquationsFormStabilizationSurf(1, 1, nu_2));
+    add_matrix_form_DG(new EulerEquationsFormStabilizationSurf(1, 2, nu_2));
+    add_matrix_form_DG(new EulerEquationsFormStabilizationSurf(1, 3, nu_2));
+    add_matrix_form_DG(new EulerEquationsFormStabilizationSurf(2, 0, nu_2));
+    add_matrix_form_DG(new EulerEquationsFormStabilizationSurf(2, 1, nu_2));
+    add_matrix_form_DG(new EulerEquationsFormStabilizationSurf(2, 2, nu_2));
+    add_matrix_form_DG(new EulerEquationsFormStabilizationSurf(2, 3, nu_2));
+    add_matrix_form_DG(new EulerEquationsFormStabilizationSurf(3, 0, nu_2));
+    add_matrix_form_DG(new EulerEquationsFormStabilizationSurf(3, 1, nu_2));
+    add_matrix_form_DG(new EulerEquationsFormStabilizationSurf(3, 2, nu_2));
+    add_matrix_form_DG(new EulerEquationsFormStabilizationSurf(3, 3, nu_2));
 
     for(unsigned int matrix_form_i = mfvol_size;matrix_form_i < this->mfvol.size();matrix_form_i++) 
     {
@@ -2224,12 +2219,12 @@ protected:
     }
   };
 
-  class EulerEquationsMatrixFormSurfSemiImplicit : public MatrixFormSurf<double>
+  class EulerEquationsMatrixFormSurfSemiImplicit : public MatrixFormDG<double>
   {
   public:
     EulerEquationsMatrixFormSurfSemiImplicit(int i, int j, double kappa) 
-      : MatrixFormSurf<double>(i, j), 
-      num_flux(new StegerWarmingNumericalFlux(kappa)) { setArea(H2D_DG_INNER_EDGE); }
+      : MatrixFormDG<double>(i, j), 
+      num_flux(new StegerWarmingNumericalFlux(kappa)) {}
 
     virtual ~EulerEquationsMatrixFormSurfSemiImplicit() 
     {
@@ -2329,7 +2324,7 @@ protected:
       return Ord(24);
     }
 
-    MatrixFormSurf<double>* clone()
+    MatrixFormDG<double>* clone()
     {
       EulerEquationsMatrixFormSurfSemiImplicit* form = new EulerEquationsMatrixFormSurfSemiImplicit(this->i, this->j, this->num_flux->kappa);
       form->wf = this->wf;
@@ -3028,11 +3023,11 @@ protected:
     double nu_1;
   };
 
-  class EulerEquationsFormStabilizationSurf : public MatrixFormSurf<double>
+  class EulerEquationsFormStabilizationSurf : public MatrixFormDG<double>
   {
   public:
     EulerEquationsFormStabilizationSurf(int i, int j, double nu_2) 
-      : MatrixFormSurf<double>(i, j), nu_2(nu_2) { setArea(H2D_DG_INNER_EDGE); }
+      : MatrixFormDG<double>(i, j), nu_2(nu_2) {}
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
       Func<double> *v, Geom<double> *e, ExtData<double> *ext) const 
@@ -3052,7 +3047,7 @@ protected:
       return Ord(24);
     }
 
-    MatrixFormSurf<double>* clone() { return new EulerEquationsFormStabilizationSurf(this->i, this->j, this->nu_2); }
+    MatrixFormDG<double>* clone() { return new EulerEquationsFormStabilizationSurf(this->i, this->j, this->nu_2); }
 
     double nu_2;
   };
