@@ -80,7 +80,7 @@ double ERR_STOP = 5.0;
 
 // Adaptivity process stops when the number of degrees of freedom grows over
 // this limit. This is mainly to prevent h-adaptivity to go on forever.
-const int NDOF_STOP = 8000;                   
+const int NDOF_STOP = 12000;                   
 
 // Matrix solver for orthogonal projections: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
@@ -334,6 +334,7 @@ int main(int argc, char* argv[])
           &space_rho_v_y, &space_e)) >= NDOF_STOP) 
         {
           Hermes::Mixins::Loggable::Static::info("Max. number of DOFs exceeded.");
+          REFINEMENT_COUNT++;
           done = true;
         }
         else
