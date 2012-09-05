@@ -44,13 +44,13 @@ const double NU_2 = 0.1;
 bool REUSE_SOLUTION = false;
 
 // Initial polynomial degree.   
-const int P_INIT = 1;                                                      
+const int P_INIT = 0;                                                      
 // Number of initial uniform mesh refinements.          
-const int INIT_REF_NUM = 2;                                          
+const int INIT_REF_NUM = 0;                                          
 // Number of initial localized mesh refinements.   
-const int INIT_REF_NUM_STEP = 0;                                            
+const int INIT_REF_NUM_STEP = 2;                                            
 // CFL value.
-double CFL_NUMBER = 0.1;                                
+double CFL_NUMBER = 0.25;                                
 // Initial time step.
 double time_step = 1E-6;                                
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
@@ -102,6 +102,9 @@ int main(int argc, char* argv[])
   for (int i = 0; i < INIT_REF_NUM; i++) 
     mesh.refine_all_elements(0, true);
 
+  MeshView m;
+  m.show(&mesh);
+
   // Initialize boundary condition types and spaces with default shapesets.
   L2Space<double> space_rho(&mesh, P_INIT);
   L2Space<double> space_rho_v_x(&mesh, P_INIT);
@@ -130,12 +133,6 @@ int main(int argc, char* argv[])
   ScalarView s3("prev_rho_v_y", new WinGeom(0, 400, 600, 300));
   ScalarView s4("prev_e", new WinGeom(700, 400, 600, 300));
 
-  // Set up the solver, matrix, and rhs according to the solver selection.
-  SparseMatrix<double>* matrix = create_matrix<double>();
-  Vector<double>* rhs = create_vector<double>();
-  Vector<double>* rhs_stabilization = create_vector<double>();
-  LinearMatrixSolver<double>* solver = create_linear_solver<double>( matrix, rhs);
-
   // Set up CFL calculation class.
   CFLCalculation CFL(CFL_NUMBER, KAPPA);
 
@@ -157,13 +154,14 @@ int main(int argc, char* argv[])
   }
 
   // Initialize weak formulation.
-  EulerEquationsWeakFormExplicit wf(KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, BDY_SOLID_WALL_BOTTOM, BDY_SOLID_WALL_TOP, 
+  EulerEquationsWeakFormSemiImplicit wf(KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, BDY_SOLID_WALL_BOTTOM, BDY_SOLID_WALL_TOP, 
     BDY_INLET, BDY_OUTLET, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e);
   EulerEquationsWeakFormStabilization wf_stabilization(&prev_rho);
 
   // Initialize the FE problem.
-  DiscreteProblem<double> dp(&wf, Hermes::vector<const Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
+  DiscreteProblemLinear<double> dp(&wf, Hermes::vector<const Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
   DiscreteProblem<double> dp_stabilization(&wf_stabilization, &space_stabilization);
+  LinearSolver<double> solver(&dp);
 
   // If the FE problem is in fact a FV problem.
   if(P_INIT == 0) 
@@ -180,25 +178,25 @@ int main(int argc, char* argv[])
 
     // Assemble the stiffness matrix and rhs.
     Hermes::Mixins::Loggable::Static::info("Assembling the stiffness matrix and right-hand side vector.");
-    dp.assemble(matrix, rhs);
 
     // Solve the matrix problem.
     Hermes::Mixins::Loggable::Static::info("Solving the matrix problem.");
-    if(solver->solve())
+    try
     {
+      solver.solve();
       if(!SHOCK_CAPTURING)
       {
-        Solution<double>::vector_to_solutions(solver->get_sln_vector(), Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
+        Solution<double>::vector_to_solutions(solver.get_sln_vector(), Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
           &space_rho_v_y, &space_e), Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
       }
       else
       {
         FluxLimiter* flux_limiter;
         if(SHOCK_CAPTURING_TYPE == KUZMIN)
-          flux_limiter = new FluxLimiter(FluxLimiter::Kuzmin, solver->get_sln_vector(), Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
+          flux_limiter = new FluxLimiter(FluxLimiter::Kuzmin, solver.get_sln_vector(), Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
           &space_rho_v_y, &space_e), true);
         else
-          flux_limiter = new FluxLimiter(FluxLimiter::Krivodonova, solver->get_sln_vector(), Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
+          flux_limiter = new FluxLimiter(FluxLimiter::Krivodonova, solver.get_sln_vector(), Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
           &space_rho_v_y, &space_e));
 
         if(SHOCK_CAPTURING_TYPE == KUZMIN)
@@ -209,8 +207,10 @@ int main(int argc, char* argv[])
         flux_limiter->get_limited_solutions(Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
       }
     }
-    else
-      throw Hermes::Exceptions::Exception("Matrix solver failed.\n");
+    catch(std::exception& e)
+    {
+      std::cout << e.what();
+    }
 
     CFL.calculate(Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), &mesh, time_step);
 

@@ -11,8 +11,9 @@ class EulerEquationsWeakFormStabilization : public WeakForm<double>
 public:
   EulerEquationsWeakFormStabilization(Solution<double>* prev_rho) : WeakForm<double>()
   {
-    add_vector_form_DG(new DGVectorFormIndicator);
-    this->vfsurf.back()->setExt(prev_rho);
+    DGVectorFormIndicator* form = new DGVectorFormIndicator();
+    form->setExt(prev_rho);
+    add_vector_form_DG(form);
   }
 
   class DGVectorFormIndicator : public VectorFormDG<double>
@@ -102,14 +103,13 @@ public:
     add_vector_form_surf(new EulerEquationsLinearFormOutlet(3, outlet_marker, kappa));
 
     for(unsigned int vector_form_i = 0;vector_form_i < this->vfvol.size();vector_form_i++) 
-    {
       vfvol.at(vector_form_i)->setExt(Hermes::vector<MeshFunction<double>*>(prev_density, prev_density_vel_x, prev_density_vel_y, prev_energy));
-    }
 
     for(unsigned int vector_form_i = 0;vector_form_i < this->vfsurf.size();vector_form_i++) 
-    {
       vfsurf.at(vector_form_i)->setExt(Hermes::vector<MeshFunction<double>*>(prev_density, prev_density_vel_x, prev_density_vel_y, prev_energy));
-    }
+
+    for(unsigned int vector_form_i = 0;vector_form_i < this->vfDG.size();vector_form_i++) 
+      vfDG.at(vector_form_i)->setExt(Hermes::vector<MeshFunction<double>*>(prev_density, prev_density_vel_x, prev_density_vel_y, prev_energy));
   };
 
   void set_time_step(double tau) 

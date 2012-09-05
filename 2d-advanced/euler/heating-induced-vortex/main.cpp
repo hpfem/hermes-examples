@@ -50,7 +50,7 @@ const int P_INIT = 0;
 // Number of initial uniform mesh refinements.    
 const int INIT_REF_NUM = 3;                                                
 // CFL value.
-double CFL_NUMBER = 1.0;                                
+double CFL_NUMBER = 0.5;                                
 // Initial time step.
 double time_step = 1E-4;                                
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,

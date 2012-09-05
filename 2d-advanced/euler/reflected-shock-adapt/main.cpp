@@ -23,9 +23,9 @@ using namespace Hermes::Hermes2D::RefinementSelectors;
 // Set to "true" to enable Hermes OpenGL visualization. 
 const bool HERMES_VISUALIZATION = true;
 // Maximum polynomial degree used. -1 for unlimited.
-const int MAX_P_ORDER = 0;
+const int MAX_P_ORDER = 1;
 // Time interval length.
-const double T_END = 0.05;
+const double T_END = 0.5;
 // Shock capturing.
 bool SHOCK_CAPTURING = true;
 // Stopping criterion for adaptivity.
@@ -181,6 +181,7 @@ int main(int argc, char* argv[])
   ScalarView pressure_view("Pressure", new WinGeom(0, 0, 600, 300));
   ScalarView Mach_number_view("Mach number", new WinGeom(700, 0, 600, 300));
   ScalarView entropy_production_view("Entropy estimate", new WinGeom(0, 400, 600, 300));
+  Orderizer orderizer;
   OrderView space_view("Space", new WinGeom(0, 0, 1500, 700));
 
   // Initialize refinement selector.
@@ -247,7 +248,7 @@ int main(int argc, char* argv[])
       Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d:", as);
 
       // Construct globally refined reference mesh and setup reference space.
-      int order_increase = 0;
+      int order_increase = (CAND_LIST == H2D_HP_ANISO ? 1 : 0);
 
       Hermes::vector<Space<double> *>* ref_spaces = Space<double>::construct_refined_spaces(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
         &space_rho_v_y, &space_e), order_increase);
@@ -370,6 +371,7 @@ int main(int argc, char* argv[])
           Mach_number_view.save_numbered_screenshot("Mach-%u.bmp", iteration - 1, true);
           space_view.show((*ref_spaces)[0]);
           space_view.save_numbered_screenshot("Space-%u.bmp", iteration - 1, true);
+
         }
         // Output solution in VTK format.
         if(VTK_VISUALIZATION) 
@@ -382,6 +384,10 @@ int main(int argc, char* argv[])
           //lin.save_solution_vtk(&pressure, filename, "Pressure", false);
           sprintf(filename, "Mach number-%i.vtk", iteration - 1);
           lin.save_solution_vtk(&Mach_number, filename, "MachNumber", false);
+          sprintf(filename, "Mesh-%i.vtk", iteration - 1);
+          orderizer.save_mesh_vtk((*ref_spaces)[0], filename);
+          sprintf(filename, "Space-%i.vtk", iteration - 1);
+          orderizer.save_orders_vtk((*ref_spaces)[0], filename);
         }
       }
 

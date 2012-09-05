@@ -51,7 +51,7 @@ const int P_INIT = 1;
 // Number of initial uniform mesh refinements.    
 const int INIT_REF_NUM = 2;                                                
 // CFL value.
-double CFL_NUMBER = 1.0;                                
+double CFL_NUMBER = 0.25;                                
 // Initial time step.
 double time_step_n = 1E-6;                                
 // Initial time step.
@@ -72,7 +72,7 @@ const double V1_EXT = 1.25;
 // Inlet y-velocity (dimensionless).
 const double V2_EXT = 0.0;        
 // Kappa.
-const double KAPPA = 1.4;         
+const double KAPPA = 1.4;
 
 // Boundary markers.
 const std::string BDY_INLET = "1";
