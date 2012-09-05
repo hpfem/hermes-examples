@@ -80,7 +80,7 @@ double ERR_STOP = 5.0;
 
 // Adaptivity process stops when the number of degrees of freedom grows over
 // this limit. This is mainly to prevent h-adaptivity to go on forever.
-const int NDOF_STOP = 7000;                   
+const int NDOF_STOP = 8000;                   
 
 // Matrix solver for orthogonal projections: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
@@ -135,7 +135,6 @@ int main(int argc, char* argv[])
   L2Space<double>space_rho_v_y(&mesh, P_INIT);
   L2Space<double>space_e(&mesh, P_INIT);
   int ndof = Space<double>::get_num_dofs(Hermes::vector<const Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
-  Hermes::Mixins::Loggable::Static::info("ndof: %d", ndof);
 
   // Initialize solutions, set initial conditions.
   ConstantSolution<double> sln_rho(&mesh, RHO_EXT);
@@ -188,7 +187,7 @@ int main(int argc, char* argv[])
   }
 
   // Time stepping loop.
-  for(; t < 4.5; t += time_step)
+  for(; t < 14.5; t += time_step)
   {
     if(t > 0.3)
       ERR_STOP = 2.5;
@@ -281,6 +280,8 @@ int main(int argc, char* argv[])
       {
         solver->solve();
 
+        Hermes::Mixins::Loggable::Static::info("Solved.");
+
         if(!SHOCK_CAPTURING)
           Solution<double>::vector_to_solutions(solver->get_sln_vector(), ref_spaces_const, 
           Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e));
@@ -293,6 +294,8 @@ int main(int argc, char* argv[])
 
           flux_limiter.limit_according_to_detector(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
             &space_rho_v_y, &space_e));
+
+          Hermes::Mixins::Loggable::Static::info("Solved.");
 
           flux_limiter.get_limited_solutions(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e));
         }
@@ -326,12 +329,15 @@ int main(int argc, char* argv[])
         done = true;
       else
       {
-        Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
         if (Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
           &space_rho_v_y, &space_e)) >= NDOF_STOP) 
+        {
+          Hermes::Mixins::Loggable::Static::info("Max. number of DOFs exceeded.");
           done = true;
+        }
         else
         {
+          Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
           REFINEMENT_COUNT++;
           done = adaptivity->adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&selector, &selector, &selector, &selector), 
             THRESHOLD, STRATEGY, MESH_REGULARITY);
@@ -393,11 +399,6 @@ int main(int argc, char* argv[])
     prev_rho_v_x.copy(&rsln_rho_v_x);
     prev_rho_v_y.copy(&rsln_rho_v_y);
     prev_e.copy(&rsln_e);
-
-    delete rsln_rho.get_mesh();
-    delete rsln_rho_v_x.get_mesh();
-    delete rsln_rho_v_y.get_mesh();
-    delete rsln_e.get_mesh();
   }
 
   pressure_view.close();
