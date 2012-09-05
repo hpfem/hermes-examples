@@ -296,6 +296,7 @@ int main(int argc, char* argv[])
 
           flux_limiter.get_limited_solutions(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e));
         }
+      }
       catch(std::exception& e)
       {
         std::cout << e.what();
