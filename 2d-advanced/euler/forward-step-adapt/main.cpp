@@ -32,7 +32,7 @@ bool SHOCK_CAPTURING = true;
 double DISCONTINUITY_DETECTOR_PARAM = 1.0;
 
 // For saving/loading of solution.
-bool REUSE_SOLUTION = false;
+bool REUSE_SOLUTION = true;
 
 // Initial polynomial degree.     
 const int P_INIT = 0;                                              
@@ -57,15 +57,7 @@ int REFINEMENT_COUNT = 0;
 // This is a quantitative parameter of the adapt(...) function and
 // it has different meanings for various adaptive strategies (see below).
 const double THRESHOLD = 0.3;                     
-
 // Adaptive strategy:
-// STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
-//   error is processed. If more elements have similar errors, refine
-//   all to keep the mesh symmetric.
-// STRATEGY = 1 ... refine all elements whose error is larger
-//   than THRESHOLD times maximum element error.
-// STRATEGY = 2 ... refine all elements whose error is larger
-//   than THRESHOLD.
 const int STRATEGY = 1;                           
 
 // Predefined list of element refinement candidates. Possible values are
@@ -77,11 +69,6 @@ CandList CAND_LIST = H2D_HP_ANISO;
 const int MAX_P_ORDER = 1;                       
 
 // Maximum allowed level of hanging nodes:
-// MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
-// MESH_REGULARITY = 1 ... at most one-level hanging nodes,
-// MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
-// Note that regular meshes are not supported, this is due to
-// their notoriously bad performance.
 const int MESH_REGULARITY = -1;                   
 
 // This parameter influences the selection of
@@ -196,7 +183,7 @@ int main(int argc, char* argv[])
       &mesh, &mesh));
     continuity.get_last_record()->load_time_step_length(time_step);
     t = continuity.get_last_record()->get_time() + time_step;
-    iteration = (continuity.get_num() - 1) * EVERY_NTH_STEP + 1;
+    iteration = (continuity.get_num()) * EVERY_NTH_STEP + 1;
     loaded_now = true;
   }
 
@@ -263,17 +250,9 @@ int main(int argc, char* argv[])
         if(iteration > std::max((int)(continuity.get_num() * EVERY_NTH_STEP + 2), 1) && as > 1)
         {
           delete rsln_rho.get_mesh();
-          
-          
           delete rsln_rho_v_x.get_mesh();
-          
-          
           delete rsln_rho_v_y.get_mesh();
-          
-          
           delete rsln_e.get_mesh();
-          
-          
         }
       }
 
@@ -298,7 +277,10 @@ int main(int argc, char* argv[])
 
       // Solve the matrix problem.
       Hermes::Mixins::Loggable::Static::info("Solving the matrix problem.");
-      if(solver->solve())
+      try
+      {
+        solver->solve();
+
         if(!SHOCK_CAPTURING)
           Solution<double>::vector_to_solutions(solver->get_sln_vector(), ref_spaces_const, 
           Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e));
@@ -314,12 +296,14 @@ int main(int argc, char* argv[])
 
           flux_limiter.get_limited_solutions(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e));
         }
-      else
-        throw Hermes::Exceptions::Exception("Matrix solver failed.\n");
+      catch(std::exception& e)
+      {
+        std::cout << e.what();
+      }
 
       // Project the fine mesh solution onto the coarse mesh.
       Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
-      ogProjection.project_global(Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
+      OGProjection<double> ogProjection; ogProjection.project_global(Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
         &space_rho_v_y, &space_e), Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), 
         Hermes::vector<Solution<double>*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y, &sln_e), 
         Hermes::vector<ProjNormType>(HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM)); 
@@ -386,6 +370,13 @@ int main(int argc, char* argv[])
           sprintf(filename, "Entropy-%i.vtk", iteration - 1);
           lin.save_solution_vtk(&entropy, filename, "Entropy", false);
         }
+
+        // Save the progress.
+        if(iteration > 1)
+        {
+          continuity.add_record(t, Hermes::vector<Mesh*>(&mesh, &mesh, &mesh, &mesh), Hermes::vector<Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e), 
+            Hermes::vector<Solution<double> *>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), time_step);
+        }
       }
 
       // Clean up.
@@ -403,17 +394,9 @@ int main(int argc, char* argv[])
     prev_e.copy(&rsln_e);
 
     delete rsln_rho.get_mesh();
-    
-    
     delete rsln_rho_v_x.get_mesh();
-    
-    
     delete rsln_rho_v_y.get_mesh();
-    
-    
     delete rsln_e.get_mesh();
-    
-    
   }
 
   pressure_view.close();
