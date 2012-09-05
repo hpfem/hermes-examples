@@ -147,20 +147,21 @@ int main(int argc, char* argv[])
   ConstantSolution<double> prev_rho_v_y(&mesh, RHO_EXT * V2_EXT);
   ConstantSolution<double> prev_e(&mesh, QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA));
 
-  Solution<double> rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e;
+  ConstantSolution<double> rsln_rho(&mesh, RHO_EXT);
+  ConstantSolution<double> rsln_rho_v_x(&mesh, RHO_EXT * V1_EXT);
+  ConstantSolution<double> rsln_rho_v_y(&mesh, RHO_EXT * V2_EXT);
+  ConstantSolution<double> rsln_e(&mesh, QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA));
 
   // Initialize weak formulation.
   EulerEquationsWeakFormSemiImplicit wf(KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, BDY_SOLID_WALL_BOTTOM, BDY_SOLID_WALL_TOP, 
     BDY_INLET, BDY_OUTLET, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e);
 
   // Filters for visualization of Mach number, pressure and entropy.
-  MachNumberFilter Mach_number(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA);
-  PressureFilter pressure(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA);
-  EntropyFilter entropy(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA, RHO_EXT, P_EXT);
+  MachNumberFilter Mach_number(Hermes::vector<MeshFunction<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), KAPPA);
+  PressureFilter pressure(Hermes::vector<MeshFunction<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), KAPPA);
 
   ScalarView pressure_view("Pressure", new WinGeom(0, 0, 600, 300));
   ScalarView Mach_number_view("Mach number", new WinGeom(700, 0, 600, 300));
-  ScalarView entropy_production_view("Entropy estimate", new WinGeom(0, 400, 600, 300));
 
   // Initialize refinement selector.
   L2ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, MAX_P_ORDER);
@@ -319,7 +320,7 @@ int main(int argc, char* argv[])
       double err_est_rel_total = adaptivity->calc_err_est(Hermes::vector<Solution<double>*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y, &sln_e),
         Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e)) * 100;
 
-      CFL.calculate(Hermes::vector<Solution<double> *>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), (*ref_spaces)[0]->get_mesh(), time_step);
+      CFL.calculate_semi_implicit(Hermes::vector<Solution<double> *>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), (*ref_spaces)[0]->get_mesh(), time_step);
 
       // Report results.
       Hermes::Mixins::Loggable::Static::info("err_est_rel: %g%%", err_est_rel_total);
@@ -355,9 +356,7 @@ int main(int argc, char* argv[])
         {        
           Mach_number.reinit();
           pressure.reinit();
-          entropy.reinit();
           pressure_view.show(&pressure);
-          entropy_production_view.show(&entropy);
           Mach_number_view.show(&Mach_number);
           pressure_view.save_numbered_screenshot("Pressure-%u.bmp", iteration - 1, true);
           Mach_number_view.save_numbered_screenshot("Mach-%u.bmp", iteration - 1, true);
@@ -367,15 +366,17 @@ int main(int argc, char* argv[])
         {
           pressure.reinit();
           Mach_number.reinit();
-          entropy.reinit();
           Linearizer lin;
+          Orderizer ord;
           char filename[40];
-          sprintf(filename, "Pressure-%i.vtk", iteration - 1);
+          sprintf(filename, "Pressure-%i.vtk", iteration);
           lin.save_solution_vtk(&pressure, filename, "Pressure", false);
-          sprintf(filename, "Mach number-%i.vtk", iteration - 1);
+          sprintf(filename, "Mach number-%i.vtk", iteration);
           lin.save_solution_vtk(&Mach_number, filename, "MachNumber", false);
-          sprintf(filename, "Entropy-%i.vtk", iteration - 1);
-          lin.save_solution_vtk(&entropy, filename, "Entropy", false);
+          sprintf(filename, "Space-%i.vtk", iteration);
+          ord.save_orders_vtk((*ref_spaces)[0], filename);
+          sprintf(filename, "Mesh-%i.vtk", iteration);
+          ord.save_mesh_vtk((*ref_spaces)[0], filename);
         }
 
         // Save the progress.
@@ -402,7 +403,6 @@ int main(int argc, char* argv[])
   }
 
   pressure_view.close();
-  entropy_production_view.close();
   Mach_number_view.close();
 
   return 0;
