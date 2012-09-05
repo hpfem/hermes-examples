@@ -999,11 +999,9 @@ void FluxLimiter::limit_according_to_detector(Hermes::vector<Space<double> *> co
   std::set<int> discontinuous_elements = this->detector->get_discontinuous_element_ids();
 
   // First adjust the solution_vector.
-  Hermes::Mixins::Loggable::Static::info("1st order discontinuous elements.");
   for(unsigned int space_i = 0; space_i < spaces.size(); space_i++)
     for(std::set<int>::iterator it = discontinuous_elements.begin(); it != discontinuous_elements.end(); it++) 
     {
-      std::cout << '\t' << (*it) << std::endl;
       Element* e = spaces[space_i]->get_mesh()->get_element(*it);
       AsmList<double> al;
       spaces[space_i]->get_element_assembly_list(spaces[space_i]->get_mesh()->get_element(*it), &al);
@@ -1058,11 +1056,9 @@ void FluxLimiter::limit_second_orders_according_to_detector(Hermes::vector<Space
     throw Hermes::Exceptions::Exception("limit_second_orders_according_to_detector() is to be used only with Kuzmin's vertex based detector.");
 
   // First adjust the solution_vector.
-  Hermes::Mixins::Loggable::Static::info("2nd order discontinuous elements.");
   for(unsigned int space_i = 0; space_i < spaces.size(); space_i++)
-    for(std::set<int>::iterator it = discontinuous_elements.begin(); it != discontinuous_elements.end(); it++)
+    for(std::set<int>::iterator it = discontinuous_elements.begin(); it != discontinuous_elements.end(); it++) 
     {
-      std::cout << '\t' << (*it) << std::endl;
       Element* e = spaces[space_i]->get_mesh()->get_element(*it);
       AsmList<double> al;
       spaces[space_i]->get_element_assembly_list(spaces[space_i]->get_mesh()->get_element(*it), &al);
