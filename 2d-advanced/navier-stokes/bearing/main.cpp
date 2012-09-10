@@ -157,9 +157,6 @@ int main(int argc, char* argv[])
   // Initialize weak formulation.
   WeakForm<double>* wf = new WeakFormNSNewton(STOKES, RE, TAU, &xvel_prev_time, &yvel_prev_time);
 
-  // Initialize the FE problem.
-  DiscreteProblem<double> dp(wf, spaces_const);
-
   // Initialize views.
   VectorView vview("velocity [m/s]", new WinGeom(0, 0, 600, 500));
   ScalarView pview("pressure [Pa]", new WinGeom(610, 0, 600, 500));
@@ -169,13 +166,17 @@ int main(int argc, char* argv[])
   pview.fix_scale_width(80);
   pview.show_mesh(true);
 
-  Hermes::Hermes2D::NewtonSolver<double> newton(&dp);
-
   // Time-stepping loop:
   char title[100];
   int num_time_steps = T_FINAL / TAU;
   for (int ts = 1; ts <= num_time_steps; ts++)
   {
+    
+    // Initialize the FE problem.
+    DiscreteProblem<double> dp(wf, spaces_const);
+
+    Hermes::Hermes2D::NewtonSolver<double> newton(&dp);
+
     current_time += TAU;
     Hermes::Mixins::Loggable::Static::info("---- Time step %d, time = %g:", ts, current_time);
 

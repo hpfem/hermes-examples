@@ -141,6 +141,7 @@ int main(int argc, char* argv[])
   wf = new WeakFormNSNewton(STOKES, RE, TAU, &xvel_prev_time, &yvel_prev_time);
 
   // Initialize the FE problem.
+  DiscreteProblem<double> dp(wf, spaces_const);
 
   // Initialize views.
   VectorView vview("velocity [m/s]", new WinGeom(0, 0, 750, 240));
@@ -150,12 +151,10 @@ int main(int argc, char* argv[])
   //pview.set_min_max_range(-0.9, 1.0);
   pview.fix_scale_width(80);
   pview.show_mesh(true);
-    DiscreteProblem<double> dp(wf, spaces_const);
 
   // Time-stepping loop:
   char title[100];
   int num_time_steps = T_FINAL / TAU;
-    Hermes::Hermes2D::NewtonSolver<double> newton(&dp);
   for (int ts = 1; ts <= num_time_steps; ts++)
   {
     current_time += TAU;
@@ -168,6 +167,7 @@ int main(int argc, char* argv[])
     }
 
     // Perform Newton's iteration.
+    Hermes::Hermes2D::NewtonSolver<double> newton(&dp);
     Hermes::Mixins::Loggable::Static::info("Solving nonlinear problem:");
     newton.set_newton_max_iter(NEWTON_MAX_ITER);
     newton.set_newton_tol(NEWTON_TOL);

@@ -189,6 +189,7 @@ int main(int argc, char* argv[])
       runge_kutta.setTimeStep(time_step);
       runge_kutta.set_newton_max_iter(NEWTON_MAX_ITER);
       runge_kutta.set_newton_tol(NEWTON_TOL);
+      runge_kutta.set_verbose_output(true);
       runge_kutta.rk_time_step_newton(slns_time_prev, slns_time_new);
     }
     catch(Exceptions::Exception& e)
