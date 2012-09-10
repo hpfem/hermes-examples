@@ -425,7 +425,7 @@ int main(int argc, char* argv[])
         bc_essential.set_current_time(current_time);
 
         DiscreteProblemLinear<double> dp(wf, ref_space);
-        PicardSolver<double> picard(&dp, &sln_prev_iter);
+        PicardSolver<double> picard(&dp);
         picard.set_verbose_output(verbose);
         picard.set_picard_max_iter(PICARD_MAX_ITER);
         picard.set_picard_tol(PICARD_TOL);
@@ -433,6 +433,7 @@ int main(int argc, char* argv[])
         {
           try
           {
+            picard.setPreviousSolution(&sln_prev_iter);
             picard.solve();
             Solution<double>::vector_to_solution(picard.get_sln_vector(), ref_space, &ref_sln);
             if(ts > 1)

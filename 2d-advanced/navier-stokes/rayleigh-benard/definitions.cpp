@@ -59,18 +59,18 @@ public:
     /* Residual - volumetric */
     // First velocity equation.
     VectorFormNS_0* F_0 = new VectorFormNS_0(0, Pr, time_step);
-    F_0->ext.push_back(x_vel_previous_time);
+    F_0->setExt(x_vel_previous_time);
     add_vector_form(F_0);
     // Second velocity equation.
     VectorFormNS_1* F_1 = new VectorFormNS_1(1, Pr, Ra, time_step);
-    F_1->ext.push_back(y_vel_previous_time);
+    F_1->setExt(y_vel_previous_time);
     add_vector_form(F_1);
     // Continuity equation.
     VectorFormNS_2* F_2 = new VectorFormNS_2(2);
     add_vector_form(F_2);
     // Temperature equation.
     VectorFormNS_3* F_3 = new VectorFormNS_3(3, time_step);
-    F_3->ext.push_back(temp_previous_time);
+    F_3->setExt(temp_previous_time);
     add_vector_form(F_3);
     add_vector_form_surf(new DefaultVectorFormSurf<double>(3, bdy_top, new Hermes2DFunction<double>(-alpha_air * temp_ext)));
     add_vector_form_surf(new CustomResidualSurfConst(3, bdy_top, alpha_air));
@@ -79,7 +79,7 @@ public:
   class BilinearFormNonsymVel_0_0 : public MatrixFormVol<double>
   {
   public:
-    BilinearFormNonsymVel_0_0(int i, int j) : MatrixFormVol<double>(i, j, HERMES_ANY, HERMES_NONSYM) {
+    BilinearFormNonsymVel_0_0(int i, int j) : MatrixFormVol<double>(i, j) {
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
@@ -110,7 +110,7 @@ public:
   class BilinearFormNonsymVel_0_1 : public MatrixFormVol<double>
   {
   public:
-    BilinearFormNonsymVel_0_1(int i, int j) : MatrixFormVol<double>(i, j, HERMES_ANY, HERMES_NONSYM) {
+    BilinearFormNonsymVel_0_1(int i, int j) : MatrixFormVol<double>(i, j) {
       
     }
 
@@ -139,7 +139,7 @@ public:
   class BilinearFormNonsymVel_1_0 : public MatrixFormVol<double>
   {
   public:
-    BilinearFormNonsymVel_1_0(int i, int j) : MatrixFormVol<double>(i, j, HERMES_ANY, HERMES_NONSYM) {
+    BilinearFormNonsymVel_1_0(int i, int j) : MatrixFormVol<double>(i, j) {
       
     }
 
@@ -165,7 +165,7 @@ public:
   class BilinearFormNonsymVel_1_1 : public MatrixFormVol<double>
   {
   public:
-    BilinearFormNonsymVel_1_1(int i, int j) : MatrixFormVol<double>(i, j, HERMES_ANY, HERMES_NONSYM) {
+    BilinearFormNonsymVel_1_1(int i, int j) : MatrixFormVol<double>(i, j) {
       
     }
 
@@ -197,8 +197,8 @@ public:
   {
   public:
     // The antisym flag is used here to generate a term in the continuity equation.
-    BilinearFormNonsymXVelPressure(int i, int j) : MatrixFormVol<double>(i, j, HERMES_ANY, HERMES_ANTISYM) {
-      
+    BilinearFormNonsymXVelPressure(int i, int j) : MatrixFormVol<double>(i, j) {
+      this->setSymFlag(HERMES_ANTISYM);
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
@@ -216,8 +216,8 @@ public:
   {
   public:
     // The antisym flag is used here to generate a term in the continuity equation.
-    BilinearFormNonsymYVelPressure(int i, int j) : MatrixFormVol<double>(i, j, HERMES_ANY, HERMES_ANTISYM) {
-      
+    BilinearFormNonsymYVelPressure(int i, int j) : MatrixFormVol<double>(i, j) {
+      this->setSymFlag(HERMES_ANTISYM);
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
@@ -403,7 +403,7 @@ public:
   class BilinearFormNonsymTemp_3_0 : public MatrixFormVol<double>
   {
   public:
-    BilinearFormNonsymTemp_3_0(int i, int j) : MatrixFormVol<double>(i, j, HERMES_ANY, HERMES_NONSYM) {
+    BilinearFormNonsymTemp_3_0(int i, int j) : MatrixFormVol<double>(i, j) {
       
     }
 
@@ -430,7 +430,7 @@ public:
   class BilinearFormNonsymTemp_3_1 : public MatrixFormVol<double>
   {
   public:
-    BilinearFormNonsymTemp_3_1(int i, int j) : MatrixFormVol<double>(i, j, HERMES_ANY, HERMES_NONSYM) {
+    BilinearFormNonsymTemp_3_1(int i, int j) : MatrixFormVol<double>(i, j) {
       
     }
 
@@ -457,7 +457,7 @@ public:
   class BilinearFormNonsymTemp_3_3 : public MatrixFormVol<double>
   {
   public:
-    BilinearFormNonsymTemp_3_3(int i, int j) : MatrixFormVol<double>(i, j, HERMES_ANY, HERMES_NONSYM) {
+    BilinearFormNonsymTemp_3_3(int i, int j) : MatrixFormVol<double>(i, j) {
       
     }
 
@@ -493,7 +493,7 @@ public:
            : VectorFormSurf<double>(i), coeff(coeff), gt(gt) { }
     CustomResidualSurfConst(int i, std::string area, double coeff = 1.0,
                              GeomType gt = HERMES_PLANAR)
-           : VectorFormSurf<double>(i, area), coeff(coeff), gt(gt) { }
+                             : VectorFormSurf<double>(i), coeff(coeff), gt(gt) { this->setArea(area); }
 
     template<typename Real, typename Scalar>
     Scalar vector_form_surf(int n, double *wt, Func<Scalar> *u_ext[],

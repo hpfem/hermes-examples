@@ -26,7 +26,7 @@ int get_num_of_neg(MeshFunction<double> *sln);
 class H1AxisymProjectionJacobian : public MatrixFormVol<double>
 {
 public:
-  H1AxisymProjectionJacobian(int i) : MatrixFormVol<double>(i, i, HERMES_ANY, HERMES_SYM) {};
+  H1AxisymProjectionJacobian(int i) : MatrixFormVol<double>(i, i) {this->setSymFlag(HERMES_SYM);};
 
   double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
                 Geom<double> *e, ExtData<double> *ext) const

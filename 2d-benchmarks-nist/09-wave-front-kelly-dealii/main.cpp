@@ -275,10 +275,6 @@ int main(int argc, char* argv[])
       e.printMsg();
       throw Hermes::Exceptions::Exception("Newton's iteration failed.");
     };
-
-    setup_time += newton.get_setup_time();
-    assemble_time += newton.get_assemble_time();
-    solve_time += newton.get_solve_time();
      
     // Start counting time for adaptation.
     wall_clock.tick();  

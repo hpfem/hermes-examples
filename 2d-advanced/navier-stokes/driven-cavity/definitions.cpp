@@ -31,11 +31,11 @@ WeakFormNSNewton::WeakFormNSNewton(bool Stokes, double Reynolds, double time_ste
   /* Residual - volumetric */
   // First velocity equation.
   VectorFormNS_0* F_0 = new VectorFormNS_0(0, Stokes, Reynolds, time_step);
-  F_0->ext.push_back(x_vel_previous_time);
+  F_0->setExt(x_vel_previous_time);
   add_vector_form(F_0);
   // Second velocity equation.
   VectorFormNS_1* F_1 = new VectorFormNS_1(1, Stokes, Reynolds, time_step);
-  F_1->ext.push_back(y_vel_previous_time);
+  F_1->setExt(y_vel_previous_time);
   add_vector_form(F_1);
   // Continuity equation.
   VectorFormNS_2* F_2 = new VectorFormNS_2(2);

@@ -12,7 +12,7 @@ class CustomWeakForm : public WeakForm<double>
   class Jacobian : public MatrixFormVol<double>
   {
   public:
-    Jacobian() : MatrixFormVol<double>(0, 0, Hermes::HERMES_ANY, HERMES_SYM) {};
+    Jacobian() : MatrixFormVol<double>(0, 0) { this->setSymFlag(HERMES_SYM); };
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u,
                         Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;

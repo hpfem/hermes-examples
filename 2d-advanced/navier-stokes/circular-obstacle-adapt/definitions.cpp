@@ -11,10 +11,10 @@ WeakFormNSSimpleLinearization::WeakFormNSSimpleLinearization(bool Stokes, double
   add_matrix_form(sym_form_1);
 
   BilinearFormNonsymVel* nonsym_vel_form_0 = new BilinearFormNonsymVel(0, 0, Stokes);
-  nonsym_vel_form_0->ext = Hermes::vector<MeshFunction<double>*>(x_vel_previous_time, y_vel_previous_time);
+  nonsym_vel_form_0->setExt(Hermes::vector<MeshFunction<double>*>(x_vel_previous_time, y_vel_previous_time));
   add_matrix_form(nonsym_vel_form_0);
   BilinearFormNonsymVel* nonsym_vel_form_1 = new BilinearFormNonsymVel(1, 1, Stokes);
-  nonsym_vel_form_1->ext = Hermes::vector<MeshFunction<double>*>(x_vel_previous_time, y_vel_previous_time);
+  nonsym_vel_form_1->setExt(Hermes::vector<MeshFunction<double>*>(x_vel_previous_time, y_vel_previous_time));
   add_matrix_form(nonsym_vel_form_1);
 
   BilinearFormNonsymXVelPressure* nonsym_velx_pressure_form = new BilinearFormNonsymXVelPressure(0, 2);
@@ -28,20 +28,20 @@ WeakFormNSSimpleLinearization::WeakFormNSSimpleLinearization(bool Stokes, double
   Hermes::vector<MeshFunction<double>*> ext_vel_x;
   ext_vel_x.push_back(x_vel_previous_time);
 
-  vector_vel_form_x->ext = ext_vel_x;
+  vector_vel_form_x->setExt(ext_vel_x);
 
   VectorFormVolVel* vector_vel_form_y = new VectorFormVolVel(1, Stokes, time_step);
 
   Hermes::vector<MeshFunction<double>*> ext_vel_y;
   ext_vel_y.push_back(y_vel_previous_time);
   
-  vector_vel_form_y->ext = ext_vel_y;
+  vector_vel_form_y->setExt(ext_vel_y);
 }
 
 WeakFormNSSimpleLinearization::BilinearFormSymVel::BilinearFormSymVel(int i, int j, bool Stokes, double Reynolds, double time_step) 
-                             : MatrixFormVol<double>(i, j, HERMES_ANY, HERMES_SYM), Stokes(Stokes), Reynolds(Reynolds), time_step(time_step) 
+                             : MatrixFormVol<double>(i, j), Stokes(Stokes), Reynolds(Reynolds), time_step(time_step) 
 {
-  
+  this->setSymFlag(HERMES_SYM); 
 }
 
 double WeakFormNSSimpleLinearization::BilinearFormSymVel::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
@@ -63,7 +63,7 @@ Ord WeakFormNSSimpleLinearization::BilinearFormSymVel::ord(int n, double *wt, Fu
 }
 
 WeakFormNSSimpleLinearization::BilinearFormNonsymVel::BilinearFormNonsymVel(int i, int j, bool Stokes) 
-                             : MatrixFormVol<double>(i, j, HERMES_ANY, HERMES_NONSYM), Stokes(Stokes) 
+                             : MatrixFormVol<double>(i, j), Stokes(Stokes) 
 {
   
 }
@@ -93,9 +93,9 @@ Ord WeakFormNSSimpleLinearization::BilinearFormNonsymVel::ord(int n, double *wt,
 }
 
 WeakFormNSSimpleLinearization::BilinearFormNonsymXVelPressure::BilinearFormNonsymXVelPressure(int i, int j) 
-                             : MatrixFormVol<double>(i, j, HERMES_ANY, HERMES_ANTISYM) 
+                             : MatrixFormVol<double>(i, j) 
 {
-  
+  this->setSymFlag(HERMES_ANTISYM);
 }
 
 double WeakFormNSSimpleLinearization::BilinearFormNonsymXVelPressure::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
@@ -111,9 +111,9 @@ Ord WeakFormNSSimpleLinearization::BilinearFormNonsymXVelPressure::ord(int n, do
 }
 
 WeakFormNSSimpleLinearization::BilinearFormNonsymYVelPressure::BilinearFormNonsymYVelPressure(int i, int j) 
-                             : MatrixFormVol<double>(i, j, HERMES_ANY, HERMES_ANTISYM) 
+                             : MatrixFormVol<double>(i, j) 
 {
-  
+  this->setSymFlag(HERMES_ANTISYM);
 }
 
 double WeakFormNSSimpleLinearization::BilinearFormNonsymYVelPressure::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
@@ -180,19 +180,19 @@ WeakFormNSNewton::WeakFormNSNewton(bool Stokes, double Reynolds, double time_ste
   add_matrix_form(nonsym_vely_pressure_form);
 
   VectorFormNS_0* F_0 = new VectorFormNS_0(0, Stokes, Reynolds, time_step);
-  F_0->ext = Hermes::vector<MeshFunction<double>*>(x_vel_previous_time, y_vel_previous_time);
+  F_0->setExt(Hermes::vector<MeshFunction<double>*>(x_vel_previous_time, y_vel_previous_time));
   add_vector_form(F_0);
   VectorFormNS_1* F_1 = new VectorFormNS_1(1, Stokes, Reynolds, time_step);
-  F_1->ext = Hermes::vector<MeshFunction<double>*>(x_vel_previous_time, y_vel_previous_time);
+  F_1->setExt(Hermes::vector<MeshFunction<double>*>(x_vel_previous_time, y_vel_previous_time));
   add_vector_form(F_1);
   VectorFormNS_2* F_2 = new VectorFormNS_2(2);
   add_vector_form(F_2);
 }
 
 WeakFormNSNewton::BilinearFormSymVel::BilinearFormSymVel(int i, int j, bool Stokes, double Reynolds, double time_step) 
-                : MatrixFormVol<double>(i, j, HERMES_ANY, HERMES_SYM), Stokes(Stokes), Reynolds(Reynolds), time_step(time_step) 
+                : MatrixFormVol<double>(i, j), Stokes(Stokes), Reynolds(Reynolds), time_step(time_step) 
 {
-  
+  this->setSymFlag(HERMES_SYM); 
 }
 
 double WeakFormNSNewton::BilinearFormSymVel::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
@@ -214,7 +214,7 @@ Ord WeakFormNSNewton::BilinearFormSymVel::ord(int n, double *wt, Func<Ord> *u_ex
 }
 
 WeakFormNSNewton::BilinearFormNonsymVel_0_0::BilinearFormNonsymVel_0_0(int i, int j, bool Stokes) 
-                : MatrixFormVol<double>(i, j, HERMES_ANY, HERMES_NONSYM), Stokes(Stokes) 
+                : MatrixFormVol<double>(i, j), Stokes(Stokes) 
 {
   
 }
@@ -248,7 +248,7 @@ Ord WeakFormNSNewton::BilinearFormNonsymVel_0_0::ord(int n, double *wt, Func<Ord
 }
 
 WeakFormNSNewton::BilinearFormNonsymVel_0_1::BilinearFormNonsymVel_0_1(int i, int j, bool Stokes) 
-                : MatrixFormVol<double>(i, j, HERMES_ANY, HERMES_NONSYM), Stokes(Stokes) 
+                : MatrixFormVol<double>(i, j), Stokes(Stokes) 
 {
   
 }
@@ -278,7 +278,7 @@ Ord WeakFormNSNewton::BilinearFormNonsymVel_0_1::ord(int n, double *wt, Func<Ord
 }
 
 WeakFormNSNewton::BilinearFormNonsymVel_1_0::BilinearFormNonsymVel_1_0(int i, int j, bool Stokes) 
-                : MatrixFormVol<double>(i, j, HERMES_ANY, HERMES_NONSYM), Stokes(Stokes) 
+                : MatrixFormVol<double>(i, j), Stokes(Stokes) 
 {
   
 }
@@ -308,7 +308,7 @@ Ord WeakFormNSNewton::BilinearFormNonsymVel_1_0::ord(int n, double *wt, Func<Ord
 }
 
 WeakFormNSNewton::BilinearFormNonsymVel_1_1::BilinearFormNonsymVel_1_1(int i, int j, bool Stokes) 
-                : MatrixFormVol<double>(i, j, HERMES_ANY, HERMES_NONSYM), Stokes(Stokes) 
+                : MatrixFormVol<double>(i, j), Stokes(Stokes) 
 {
   
 }
@@ -342,9 +342,9 @@ Ord WeakFormNSNewton::BilinearFormNonsymVel_1_1::ord(int n, double *wt, Func<Ord
 }
 
 WeakFormNSNewton::BilinearFormNonsymXVelPressure::BilinearFormNonsymXVelPressure(int i, int j) 
-                : MatrixFormVol<double>(i, j, HERMES_ANY, HERMES_ANTISYM) 
+                : MatrixFormVol<double>(i, j) 
 {
-  
+  this->setSymFlag(HERMES_ANTISYM);
 }
 
 double WeakFormNSNewton::BilinearFormNonsymXVelPressure::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
@@ -361,9 +361,9 @@ Ord WeakFormNSNewton::BilinearFormNonsymXVelPressure::ord(int n, double *wt, Fun
 
 
 WeakFormNSNewton::BilinearFormNonsymYVelPressure::BilinearFormNonsymYVelPressure(int i, int j) 
-                : MatrixFormVol<double>(i, j, HERMES_ANY, HERMES_ANTISYM) 
+                : MatrixFormVol<double>(i, j) 
 {
-  
+  this->setSymFlag(HERMES_ANTISYM);
 }
 
 double WeakFormNSNewton::BilinearFormNonsymYVelPressure::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 

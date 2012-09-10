@@ -35,7 +35,7 @@ private:
   class MatrixFormVolWave_0_1 : public MatrixFormVol<double>
   {
   public:
-    MatrixFormVolWave_0_1() : MatrixFormVol<double>(0, 1, HERMES_ANY, HERMES_NONSYM) {};
+    MatrixFormVolWave_0_1() : MatrixFormVol<double>(0, 1) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
                          Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
@@ -50,7 +50,7 @@ private:
   {
   public:
     MatrixFormVolWave_1_0(double c_squared) 
-      : MatrixFormVol<double>(1, 0, HERMES_ANY, HERMES_NONSYM), c_squared(c_squared) {};
+      : MatrixFormVol<double>(1, 0), c_squared(c_squared) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
                          Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;

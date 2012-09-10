@@ -109,7 +109,7 @@ int main(int argc, char* argv[])
   DiscreteProblemLinear<double> dp(&wf, &space);
 
   // Initialize the Picard solver.
-  PicardSolver<double> picard(&dp, &h_iter_prev);
+  PicardSolver<double> picard(&dp);
   picard.set_verbose_output(true);
 
   // Time stepping:
@@ -126,6 +126,7 @@ int main(int argc, char* argv[])
 
     try
     {
+      picard.setPreviousSolution(&h_iter_prev);
       picard.solve();
     }
     catch(std::exception& e)

@@ -11,7 +11,7 @@ class CustomWeakForm : public WeakForm<double>
   class Jacobian : public MatrixFormVol<double>
   {
   public:
-    Jacobian() : MatrixFormVol<double>(0, 0, Hermes::HERMES_ANY, HERMES_SYM) {};
+    Jacobian() : MatrixFormVol<double>(0, 0) { this->setSymFlag(HERMES_SYM);};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u,
                         Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
@@ -131,7 +131,7 @@ private:
 class InterfaceErrorForm : public KellyTypeAdapt<double>::ErrorEstimatorForm
 {
 public:
-  InterfaceErrorForm() : KellyTypeAdapt<double>::ErrorEstimatorForm(0, Hermes::H2D_DG_INNER_EDGE) {};
+  InterfaceErrorForm() : KellyTypeAdapt<double>::ErrorEstimatorForm(0) { this->setAsInterface(); };
 
   template<typename Real, typename Scalar>
   Real interface_estimator(int n, double *wt, 

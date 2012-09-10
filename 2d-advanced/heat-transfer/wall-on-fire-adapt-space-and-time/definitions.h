@@ -69,8 +69,8 @@ private:
   public:
     CustomFormResidualSurfFire(int i, std::string area, double alpha_fire, double rho,
                                double heatcap, double* current_time_ptr)
-          : VectorFormSurf<double>(i, area), alpha_fire(alpha_fire), rho(rho),
-                            heatcap(heatcap), current_time_ptr(current_time_ptr) {};
+          : VectorFormSurf<double>(i), alpha_fire(alpha_fire), rho(rho),
+          heatcap(heatcap), current_time_ptr(current_time_ptr) { this->setArea(area); };
 
     template<typename Real, typename Scalar>
     Scalar vector_form_surf(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v,

@@ -78,7 +78,7 @@ private:
   {
   public:
   MatrixFormVolMD_0_0(double eps_q, double tau) 
-      : MatrixFormVol<double>(0, 0, HERMES_ANY, HERMES_NONSYM), eps_q(eps_q), tau(tau) {};
+      : MatrixFormVol<double>(0, 0), eps_q(eps_q), tau(tau) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
         Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
@@ -94,7 +94,7 @@ private:
   class MatrixFormVolMD_0_1 : public MatrixFormVol<double>
   {
   public:
-  MatrixFormVolMD_0_1(double eps_0, double eps_inf) : MatrixFormVol<double>(0, 1, HERMES_ANY, HERMES_NONSYM), eps_0(eps_0), eps_inf(eps_inf) {};
+  MatrixFormVolMD_0_1(double eps_0, double eps_inf) : MatrixFormVol<double>(0, 1), eps_0(eps_0), eps_inf(eps_inf) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
         Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
@@ -110,7 +110,7 @@ private:
   class MatrixFormVolMD_0_2 : public MatrixFormVol<double>
   {
   public:
-  MatrixFormVolMD_0_2(double eps_0, double eps_inf, double tau) : MatrixFormVol<double>(0, 2, HERMES_ANY, HERMES_NONSYM), eps_0(eps_0), eps_inf(eps_inf), tau(tau) {};
+  MatrixFormVolMD_0_2(double eps_0, double eps_inf, double tau) : MatrixFormVol<double>(0, 2), eps_0(eps_0), eps_inf(eps_inf), tau(tau) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
         Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
@@ -126,7 +126,7 @@ private:
   class MatrixFormVolMD_1_0 : public MatrixFormVol<double>
   {
   public:
-  MatrixFormVolMD_1_0(double mu_0) : MatrixFormVol<double>(1, 0, HERMES_ANY, HERMES_NONSYM), mu_0(mu_0) {};
+  MatrixFormVolMD_1_0(double mu_0) : MatrixFormVol<double>(1, 0), mu_0(mu_0) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
         Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
@@ -142,7 +142,7 @@ private:
   class MatrixFormVolMD_2_0 : public MatrixFormVol<double>
   {
   public:
-  MatrixFormVolMD_2_0(double eps_0, double eps_inf, double eps_q, double tau) : MatrixFormVol<double>(2, 0, HERMES_ANY, HERMES_NONSYM), eps_0(eps_0), eps_inf(eps_inf), eps_q(eps_q), tau(tau) {};
+  MatrixFormVolMD_2_0(double eps_0, double eps_inf, double eps_q, double tau) : MatrixFormVol<double>(2, 0), eps_0(eps_0), eps_inf(eps_inf), eps_q(eps_q), tau(tau) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
         Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
@@ -158,7 +158,7 @@ private:
   class MatrixFormVolMD_2_2 : public MatrixFormVol<double>
   {
   public:
-  MatrixFormVolMD_2_2(double tau) : MatrixFormVol<double>(2, 2, HERMES_ANY, HERMES_NONSYM), tau(tau) {};
+  MatrixFormVolMD_2_2(double tau) : MatrixFormVol<double>(2, 2), tau(tau) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
         Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;

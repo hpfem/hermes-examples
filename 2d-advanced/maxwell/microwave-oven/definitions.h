@@ -15,8 +15,8 @@ class CustomMatrixForm : public MatrixFormVol<std::complex<double> >
 {
 public:
   CustomMatrixForm(int i, int j, double e_0, double mu_0, double mu_r, double kappa, double omega, double J, bool align_mesh) 
-        : MatrixFormVol<std::complex<double> >(i, j, HERMES_ANY, HERMES_SYM), e_0(e_0), mu_0(mu_0), 
-          mu_r(mu_r), kappa(kappa), omega(omega), J(J), align_mesh(align_mesh) {};
+        : MatrixFormVol<std::complex<double> >(i, j), e_0(e_0), mu_0(mu_0), 
+        mu_r(mu_r), kappa(kappa), omega(omega), J(J), align_mesh(align_mesh) { this->setSymFlag(HERMES_SYM);};
 
   template<typename Real, typename Scalar>
   Scalar matrix_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u,
@@ -92,7 +92,7 @@ class CustomVectorFormSurf : public VectorFormSurf<std::complex<double> >
 {
 public:
   CustomVectorFormSurf(double omega, double J, std::string bnd) 
-        : VectorFormSurf<std::complex<double> >(0, bnd), omega(omega), J(J) {};
+    : VectorFormSurf<std::complex<double> >(0), omega(omega), J(J) { this->setArea(bnd);};
 
   template<typename Scalar, typename Real>
   Scalar vector_form_surf(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, 

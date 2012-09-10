@@ -18,7 +18,7 @@ public:
   {
   public:
     BilinearFormSymVel(int i, int j, bool Stokes, double Reynolds, double time_step) 
-            : MatrixFormVol<double>(i, j, HERMES_ANY, HERMES_SYM), Stokes(Stokes), Reynolds(Reynolds), time_step(time_step) {};
+            : MatrixFormVol<double>(i, j), Stokes(Stokes), Reynolds(Reynolds), time_step(time_step) { this->setSymFlag(HERMES_SYM); };
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
                          Geom<double> *e, ExtData<double> *ext) const;
@@ -37,7 +37,7 @@ public:
   {
   public:
     BilinearFormNonsymVel(int i, int j, bool Stokes) 
-            : MatrixFormVol<double>(i, j, HERMES_ANY, HERMES_NONSYM), Stokes(Stokes) {};
+            : MatrixFormVol<double>(i, j), Stokes(Stokes) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
                          Geom<double> *e, ExtData<double> *ext) const;
@@ -53,7 +53,7 @@ public:
   class BilinearFormNonsymXVelPressure : public MatrixFormVol<double>
   {
   public:
-    BilinearFormNonsymXVelPressure(int i, int j) : MatrixFormVol<double>(i, j, HERMES_ANY, HERMES_ANTISYM) {};
+    BilinearFormNonsymXVelPressure(int i, int j) : MatrixFormVol<double>(i, j) { this->setSymFlag(HERMES_ANTISYM);};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
                          Geom<double> *e, ExtData<double> *ext) const;
@@ -67,7 +67,7 @@ public:
   class BilinearFormNonsymYVelPressure : public MatrixFormVol<double>
   {
   public:
-    BilinearFormNonsymYVelPressure(int i, int j) : MatrixFormVol<double>(i, j, HERMES_ANY, HERMES_ANTISYM) {};
+    BilinearFormNonsymYVelPressure(int i, int j) : MatrixFormVol<double>(i, j) { this->setSymFlag(HERMES_ANTISYM);};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
                          Geom<double> *e, ExtData<double> *ext) const;
@@ -113,8 +113,8 @@ public:
   {
   public:
     BilinearFormSymVel(int i, int j, bool Stokes, double Reynolds, double time_step) 
-            : MatrixFormVol<double>(i, j, HERMES_ANY, HERMES_SYM), Stokes(Stokes), 
-                        Reynolds(Reynolds), time_step(time_step) {};
+            : MatrixFormVol<double>(i, j), Stokes(Stokes), 
+                        Reynolds(Reynolds), time_step(time_step) { this->setSymFlag(HERMES_SYM); };
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
                          Geom<double> *e, ExtData<double> *ext) const;
@@ -133,7 +133,7 @@ public:
   {
   public:
     BilinearFormNonsymVel_0_0(int i, int j, bool Stokes) 
-            : MatrixFormVol<double>(i, j, HERMES_ANY, HERMES_NONSYM), Stokes(Stokes) {};
+            : MatrixFormVol<double>(i, j), Stokes(Stokes) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
                          Geom<double> *e, ExtData<double> *ext) const;
@@ -150,7 +150,7 @@ public:
   {
   public:
     BilinearFormNonsymVel_0_1(int i, int j, bool Stokes) 
-            : MatrixFormVol<double>(i, j, HERMES_ANY, HERMES_NONSYM), Stokes(Stokes) {};
+            : MatrixFormVol<double>(i, j), Stokes(Stokes) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
                          Geom<double> *e, ExtData<double> *ext) const;
@@ -167,7 +167,7 @@ public:
   {
   public:
     BilinearFormNonsymVel_1_0(int i, int j, bool Stokes) 
-            : MatrixFormVol<double>(i, j, HERMES_ANY, HERMES_NONSYM), Stokes(Stokes) {};
+            : MatrixFormVol<double>(i, j), Stokes(Stokes) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
                          Geom<double> *e, ExtData<double> *ext) const;
@@ -184,7 +184,7 @@ public:
   {
   public:
     BilinearFormNonsymVel_1_1(int i, int j, bool Stokes) 
-            : MatrixFormVol<double>(i, j, HERMES_ANY, HERMES_NONSYM), Stokes(Stokes) {};
+            : MatrixFormVol<double>(i, j), Stokes(Stokes) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
                          Geom<double> *e, ExtData<double> *ext) const;
@@ -200,7 +200,7 @@ public:
   class BilinearFormNonsymXVelPressure : public MatrixFormVol<double>
   {
   public:
-    BilinearFormNonsymXVelPressure(int i, int j) : MatrixFormVol<double>(i, j, HERMES_ANY, HERMES_ANTISYM) {};
+    BilinearFormNonsymXVelPressure(int i, int j) : MatrixFormVol<double>(i, j) {this->setSymFlag(HERMES_ANTISYM);};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
                          Geom<double> *e, ExtData<double> *ext) const;
@@ -213,7 +213,7 @@ public:
   class BilinearFormNonsymYVelPressure : public MatrixFormVol<double>
   {
   public:
-    BilinearFormNonsymYVelPressure(int i, int j) : MatrixFormVol<double>(i, j, HERMES_ANY, HERMES_ANTISYM) {};
+    BilinearFormNonsymYVelPressure(int i, int j) : MatrixFormVol<double>(i, j) {this->setSymFlag(HERMES_ANTISYM);};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
                          Geom<double> *e, ExtData<double> *ext) const;

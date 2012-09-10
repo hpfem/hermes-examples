@@ -52,7 +52,7 @@ class CustomMatrixFormSurf : public MatrixFormSurf<double>
 {
 public:
   CustomMatrixFormSurf(int i, int j, std::string marker) 
-      : MatrixFormSurf<double>(i, j, marker) {};
+    : MatrixFormSurf<double>(i, j) { this->setArea(marker); };
 
   template<typename Real, typename Scalar>
   Scalar matrix_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, 
@@ -72,7 +72,7 @@ class CustomVectorFormSurf : public VectorFormSurf<double>
 {
 public:
   CustomVectorFormSurf(int i, std::string marker) 
-      : VectorFormSurf<double>(i, marker) {};
+      : VectorFormSurf<double>(i) { this->setArea(marker); };
 
   template<typename Real, typename Scalar>
   Scalar vector_form(int n, double *wt, Func<Scalar> *u_ext[], 

@@ -73,11 +73,11 @@ public:
   WeakFormRichardsNewtonEuler(ConstitutiveRelationsGenuchtenWithLayer* relations, double tau, Solution<double>* prev_time_sln, Mesh* mesh) 
                : WeakForm<double>(1), mesh(mesh) {
     JacobianFormNewtonEuler* jac_form = new JacobianFormNewtonEuler(0, 0, relations, tau);
-    jac_form->ext.push_back(prev_time_sln);
+    jac_form->setExt(prev_time_sln);
     add_matrix_form(jac_form);
 
     ResidualFormNewtonEuler* res_form = new ResidualFormNewtonEuler(0, relations, tau);
-    res_form->ext.push_back(prev_time_sln);
+    res_form->setExt(prev_time_sln);
     add_vector_form(res_form);
   }
 
@@ -86,7 +86,7 @@ private:
   {
   public:
     JacobianFormNewtonEuler(int i, int j, ConstitutiveRelationsGenuchtenWithLayer* relations, double tau) 
-      : MatrixFormVol<double>(i, j, HERMES_ANY, HERMES_NONSYM), tau(tau), relations(relations) { }
+      : MatrixFormVol<double>(i, j), tau(tau), relations(relations) { }
 
     template<typename Real, typename Scalar>
     Scalar matrix_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, 
@@ -191,11 +191,11 @@ class WeakFormRichardsNewtonCrankNicolson : public WeakForm<double>
 public:
   WeakFormRichardsNewtonCrankNicolson(ConstitutiveRelationsGenuchtenWithLayer* relations, double tau, Solution<double>* prev_time_sln, Mesh* mesh) : WeakForm<double>(1), mesh(mesh) {
     JacobianFormNewtonCrankNicolson* jac_form = new JacobianFormNewtonCrankNicolson(0, 0, relations, tau);
-    jac_form->ext.push_back(prev_time_sln);
+    jac_form->setExt(prev_time_sln);
     add_matrix_form(jac_form);
 
     ResidualFormNewtonCrankNicolson* res_form = new ResidualFormNewtonCrankNicolson(0, relations, tau);
-    res_form->ext.push_back(prev_time_sln);
+    res_form->setExt(prev_time_sln);
     add_vector_form(res_form);
   }
 
@@ -204,7 +204,7 @@ private:
   {
   public:
     JacobianFormNewtonCrankNicolson(int i, int j, ConstitutiveRelationsGenuchtenWithLayer* relations, double tau) 
-      : MatrixFormVol<double>(i, j, HERMES_ANY, HERMES_NONSYM), tau(tau), relations(relations) { }
+      : MatrixFormVol<double>(i, j), tau(tau), relations(relations) { }
 
     template<typename Real, typename Scalar>
     Scalar matrix_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, 
@@ -305,12 +305,12 @@ class WeakFormRichardsPicardEuler : public WeakForm<double>
 public:
   WeakFormRichardsPicardEuler(ConstitutiveRelationsGenuchtenWithLayer* relations, double tau, Solution<double>* prev_picard_sln, Solution<double>* prev_time_sln, Mesh* mesh) : WeakForm<double>(1), mesh(mesh) {
     JacobianFormPicardEuler* jac_form = new JacobianFormPicardEuler(0, 0, relations, tau);
-    jac_form->ext.push_back(prev_picard_sln);
+    jac_form->setExt(prev_picard_sln);
     add_matrix_form(jac_form);
 
     ResidualFormPicardEuler* res_form = new ResidualFormPicardEuler(0, relations, tau);
-    res_form->ext.push_back(prev_picard_sln);
-    res_form->ext.push_back(prev_time_sln);
+    res_form->setExt(prev_picard_sln);
+    res_form->setExt(prev_time_sln);
     add_vector_form(res_form);
   }
 
@@ -319,7 +319,7 @@ private:
   {
   public:
     JacobianFormPicardEuler(int i, int j, ConstitutiveRelationsGenuchtenWithLayer* relations, double tau) 
-      : MatrixFormVol<double>(i, j, HERMES_ANY, HERMES_NONSYM), tau(tau), relations(relations) { }
+      : MatrixFormVol<double>(i, j), tau(tau), relations(relations) { }
 
     template<typename Real, typename Scalar>
     Scalar matrix_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, 

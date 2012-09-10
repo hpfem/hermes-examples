@@ -57,8 +57,9 @@ Ord CustomFunction::value(Ord x, Ord y) const
 CustomVectorFormVol::CustomVectorFormVol(int i, std::string area,
 					 Hermes::Hermes2DFunction<double>* coeff,
   GeomType gt)
-  : VectorFormVol<double>(i, area), coeff(coeff), gt(gt)
+  : VectorFormVol<double>(i), coeff(coeff), gt(gt)
 {
+  this->setArea(area);
   // If coeff is HERMES_ONE, initialize it to be constant 1.0.
   if (coeff == HERMES_ONE) this->coeff = new Hermes::Hermes2DFunction<double>(1.0);
 }
@@ -66,8 +67,9 @@ CustomVectorFormVol::CustomVectorFormVol(int i, std::string area,
 CustomVectorFormVol::CustomVectorFormVol(int i, Hermes::vector<std::string> areas,
 					 Hermes::Hermes2DFunction<double>* coeff,
   GeomType gt)
-  : VectorFormVol<double>(i, areas), coeff(coeff), gt(gt)
+  : VectorFormVol<double>(i), coeff(coeff), gt(gt)
 {
+  this->setAreas(areas);
   // If coeff is HERMES_ONE, initialize it to be constant 1.0.
   if (coeff == HERMES_ONE) this->coeff = new Hermes::Hermes2DFunction<double>(1.0);
 }

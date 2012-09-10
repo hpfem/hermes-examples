@@ -104,7 +104,7 @@ class CustomResidual1 : public VectorFormVol<double>
 {
 public:
   CustomResidual1(double d_u, double sigma, CustomRightHandSide1* g1)
-    : VectorFormVol<double>(0, Hermes::HERMES_ANY), d_u(d_u), sigma(sigma), g1(g1) {};
+    : VectorFormVol<double>(0), d_u(d_u), sigma(sigma), g1(g1) {};
 
   virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v,
                        Geom<double> *e, ExtData<double> *ext) const;
@@ -124,7 +124,7 @@ class CustomResidual2 : public VectorFormVol<double>
 {
 public:
   CustomResidual2(double d_v, CustomRightHandSide2* g2)
-    : VectorFormVol<double>(1, Hermes::HERMES_ANY), d_v(d_v), g2(g2) {};
+    : VectorFormVol<double>(1), d_v(d_v), g2(g2) {};
 
   virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v,
                        Geom<double> *e, ExtData<double> *ext) const;
