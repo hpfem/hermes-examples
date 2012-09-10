@@ -245,6 +245,7 @@ int main(int argc, char* argv[])
 
       OGProjection<double> ogProjection; ogProjection.project_global(ref_space, &sln_prev_time, 
                                    &sln_prev_time);
+      delete ref_sln.get_mesh();
       
       // Runge-Kutta step on the fine mesh.
       Hermes::Mixins::Loggable::Static::info("Runge-Kutta time step on fine mesh (t = %g s, tau = %g s, stages: %d).", 
@@ -372,7 +373,6 @@ int main(int argc, char* argv[])
 
     // Copy last reference solution into sln_prev_time.
     sln_prev_time.copy(&ref_sln);
-    delete ref_sln.get_mesh();
 
     // Increase current time and counter of time steps.
     current_time += time_step;
