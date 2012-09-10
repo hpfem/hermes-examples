@@ -203,6 +203,9 @@ int main(int argc, char* argv[])
   // Graph for time step history.
   SimpleGraph time_step_graph;
   if (ADAPTIVE_TIME_STEP_ON) Hermes::Mixins::Loggable::Static::info("Time step history will be saved to file time_step_history.dat.");
+  
+  // Class for projections.
+  OGProjection<double> ogProjection;
 
   // Time stepping loop:
   int ts = 1;
@@ -243,10 +246,21 @@ int main(int argc, char* argv[])
       // Initialize Runge-Kutta time stepping on the reference mesh.
       RungeKutta<double> runge_kutta(&wf, ref_space, &bt);
 
-      OGProjection<double> ogProjection; ogProjection.project_global(ref_space, &sln_prev_time, 
+      try
+      {
+        ogProjection.project_global(ref_space, &sln_prev_time, 
                                    &sln_prev_time);
-      delete ref_sln.get_mesh();
-      
+        delete sln_prev_time.get_mesh();
+      }
+      catch(Exceptions::Exception& e)
+      {
+        std::cout << e.what() << std::endl;
+        Hermes::Mixins::Loggable::Static::error("Projection failed.");
+        delete ref_space->get_mesh();
+        delete ref_space;
+        return -1;
+      }
+
       // Runge-Kutta step on the fine mesh.
       Hermes::Mixins::Loggable::Static::info("Runge-Kutta time step on fine mesh (t = %g s, tau = %g s, stages: %d).", 
            current_time, time_step, bt.get_size());
@@ -263,8 +277,11 @@ int main(int argc, char* argv[])
       }
       catch(Exceptions::Exception& e)
       {
-        e.printMsg();
-        throw Hermes::Exceptions::Exception("Runge-Kutta time step failed");
+        std::cout << e.what() << std::endl;
+        Hermes::Mixins::Loggable::Static::error("Runge-Kutta time step failed");
+        delete ref_space->get_mesh();
+        delete ref_space;
+        return -1;
       }
 
       /* If ADAPTIVE_TIME_STEP_ON == true, estimate temporal error. 
