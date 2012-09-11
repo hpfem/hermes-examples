@@ -262,6 +262,9 @@ int main(int argc, char* argv[])
       OGProjection<double> ogProjection; ogProjection.project_global(ref_spaces_const, Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), 
           Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), Hermes::vector<Hermes::Hermes2D::ProjNormType>());
     
+      Linearizer linTemp;
+      linTemp.save_solution_vtk(&prev_rho_v_x, "projection", "projection");
+
       if(iteration > std::max((int)(continuity.get_num() * EVERY_NTH_STEP + 1), 1))
       {
         delete rsln_rho.get_mesh();
