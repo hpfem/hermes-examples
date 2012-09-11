@@ -158,7 +158,8 @@ public:
   };
   /// Constructor.
   FluxLimiter(LimitingType type, double* solution_vector, Hermes::vector<const Space<double> *> spaces, bool Kuzmin_limit_all_orders_independently = false);
-
+  FluxLimiter(FluxLimiter::LimitingType type, Hermes::vector<Solution<double>*> solutions, Hermes::vector<const Space<double>*> spaces, bool Kuzmin_limit_all_orders_independently = false);
+  
   /// Destructor.
    ~FluxLimiter();
 

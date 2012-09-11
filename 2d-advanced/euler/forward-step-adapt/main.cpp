@@ -262,6 +262,15 @@ int main(int argc, char* argv[])
       OGProjection<double> ogProjection; ogProjection.project_global(ref_spaces_const, Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), 
           Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), Hermes::vector<Hermes::Hermes2D::ProjNormType>());
     
+      FluxLimiter flux_limiterProjection(FluxLimiter::Kuzmin, Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), ref_spaces_const, true);
+
+      flux_limiterProjection.limit_second_orders_according_to_detector();
+
+      flux_limiterProjection.limit_according_to_detector();
+
+      flux_limiterProjection.get_limited_solutions(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
+
+
       Linearizer linTemp;
       linTemp.save_solution_vtk(&prev_rho_v_x, "projection", "projection");
 
@@ -321,8 +330,6 @@ int main(int argc, char* argv[])
 
           flux_limiter.limit_according_to_detector(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
             &space_rho_v_y, &space_e));
-
-          Hermes::Mixins::Loggable::Static::info("Solved.");
 
           flux_limiter.get_limited_solutions(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e));
         }

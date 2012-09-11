@@ -981,6 +981,24 @@ FluxLimiter::FluxLimiter(FluxLimiter::LimitingType type, double* solution_vector
   }
 };
 
+FluxLimiter::FluxLimiter(FluxLimiter::LimitingType type, Hermes::vector<Solution<double>*> solutions, Hermes::vector<const Space<double>*> spaces, bool Kuzmin_limit_all_orders_independently) : spaces(spaces)
+{
+  this->limited_solutions = solutions;
+  this->solution_vector = new double[Space<double>::get_num_dofs(spaces)];
+  OGProjection<double> ogProj;
+  ogProj.project_global(this->spaces, this->limited_solutions, this->solution_vector);
+
+  switch(type)
+  {
+    case Krivodonova:
+      this->detector = new KrivodonovaDiscontinuityDetector(spaces, limited_solutions);
+      break;
+    case Kuzmin:
+      this->detector = new KuzminDiscontinuityDetector(spaces, limited_solutions, Kuzmin_limit_all_orders_independently);
+      break;
+  }
+};
+
 FluxLimiter::~FluxLimiter()
 {
   delete detector;
