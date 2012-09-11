@@ -1017,6 +1017,7 @@ void FluxLimiter::limit_according_to_detector(Hermes::vector<Space<double> *> co
   std::set<int> discontinuous_elements = this->detector->get_discontinuous_element_ids();
 
   // First adjust the solution_vector.
+  int running_dofs = 0;
   for(unsigned int space_i = 0; space_i < spaces.size(); space_i++)
     for(std::set<int>::iterator it = discontinuous_elements.begin(); it != discontinuous_elements.end(); it++) 
     {
@@ -1025,7 +1026,8 @@ void FluxLimiter::limit_according_to_detector(Hermes::vector<Space<double> *> co
       spaces[space_i]->get_element_assembly_list(spaces[space_i]->get_mesh()->get_element(*it), &al);
       for(unsigned int shape_i = 0; shape_i < al.get_cnt(); shape_i++)
         if(H2D_GET_H_ORDER(spaces[space_i]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) > 0 || H2D_GET_V_ORDER(spaces[space_i]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) > 0)
-          solution_vector[al.get_dof()[shape_i]] = 0.0;
+         solution_vector[running_dofs + al.get_dof()[shape_i]] = 0.0;
+      running_dofs += spaces[space_i]->get_num_dofs();
     }
 
     // Now adjust the solutions.
@@ -1074,6 +1076,7 @@ void FluxLimiter::limit_second_orders_according_to_detector(Hermes::vector<Space
     throw Hermes::Exceptions::Exception("limit_second_orders_according_to_detector() is to be used only with Kuzmin's vertex based detector.");
 
   // First adjust the solution_vector.
+  int running_dofs = 0;
   for(unsigned int space_i = 0; space_i < spaces.size(); space_i++)
     for(std::set<int>::iterator it = discontinuous_elements.begin(); it != discontinuous_elements.end(); it++) 
     {
@@ -1082,7 +1085,8 @@ void FluxLimiter::limit_second_orders_according_to_detector(Hermes::vector<Space
       spaces[space_i]->get_element_assembly_list(spaces[space_i]->get_mesh()->get_element(*it), &al);
       for(unsigned int shape_i = 0; shape_i < al.get_cnt(); shape_i++)
         if(H2D_GET_H_ORDER(spaces[space_i]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) > 1 || H2D_GET_V_ORDER(spaces[space_i]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) > 1)
-          solution_vector[al.get_dof()[shape_i]] = 0.0;
+          solution_vector[running_dofs + al.get_dof()[shape_i]] = 0.0;
+      running_dofs += spaces[space_i]->get_num_dofs();
     }
 
     // Now adjust the solutions.
