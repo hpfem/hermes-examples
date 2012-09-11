@@ -261,18 +261,6 @@ int main(int argc, char* argv[])
 
       OGProjection<double> ogProjection; ogProjection.project_global(ref_spaces_const, Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), 
           Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), Hermes::vector<Hermes::Hermes2D::ProjNormType>());
-    
-      FluxLimiter flux_limiterProjection(FluxLimiter::Kuzmin, Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), ref_spaces_const, true);
-
-      flux_limiterProjection.limit_second_orders_according_to_detector();
-
-      flux_limiterProjection.limit_according_to_detector();
-
-      flux_limiterProjection.get_limited_solutions(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
-
-
-      Linearizer linTemp;
-      linTemp.save_solution_vtk(&prev_rho_v_x, "projection", "projection");
 
       if(iteration > std::max((int)(continuity.get_num() * EVERY_NTH_STEP + 1), 1))
       {
@@ -398,13 +386,12 @@ int main(int argc, char* argv[])
         // Output solution in VTK format.
         if(VTK_VISUALIZATION)
         {
-          pressure.reinit();
           Mach_number.reinit();
           Linearizer lin;
           Orderizer ord;
           char filename[40];
-          sprintf(filename, "Pressure-%i.vtk", iteration);
-          lin.save_solution_vtk(&pressure, filename, "Pressure", false);
+          sprintf(filename, "Density-%i.vtk", iteration);
+          lin.save_solution_vtk(&rsln_rho, filename, "Density", false);
           sprintf(filename, "Mach number-%i.vtk", iteration);
           lin.save_solution_vtk(&Mach_number, filename, "MachNumber", false);
           sprintf(filename, "Space-%i.vtk", iteration);
