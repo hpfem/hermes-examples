@@ -52,7 +52,7 @@ const int UNREF_FREQ = 5;
 // Number of mesh refinements between two unrefinements.
 // The mesh is not unrefined unless there has been a refinement since
 // last unrefinement.
-int REFINEMENT_COUNT = 0;
+int REFINEMENT_COUNT = 1;
 
 // This is a quantitative parameter of the adapt(...) function and
 // it has different meanings for various adaptive strategies (see below).
@@ -194,21 +194,7 @@ int main(int argc, char* argv[])
       ERR_STOP = 2.5;
 
     CFL.set_number(CFL_NUMBER + (t/4.5) * 1.0);
-    Hermes::Mixins::Loggable::Static::info("---- Time step %d, time %3.5f.", iteration++, t);
-
-    // Periodic global derefinements.
-    if (iteration > 1 && iteration % UNREF_FREQ == 0 && REFINEMENT_COUNT > 0) 
-    {
-      Hermes::Mixins::Loggable::Static::info("Global mesh derefinement.");
-      REFINEMENT_COUNT = 0;
-
-      space_rho.unrefine_all_mesh_elements(true);
-
-      space_rho.adjust_element_order(-1, P_INIT);
-      space_rho_v_x.copy_orders(&space_rho);
-      space_rho_v_y.copy_orders(&space_rho);
-      space_e.copy_orders(&space_rho);
-    }
+    Hermes::Mixins::Loggable::Static::info("---- Time step %d, time %3.5f.", iteration, t);
 
     // Adaptivity loop:
     int as = 1; 
@@ -218,11 +204,26 @@ int main(int argc, char* argv[])
     {
       Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d:", as);
 
-      // Construct globally refined reference mesh and setup reference space.
-      int order_increase = 1;
+      Hermes::vector<Space<double> *>* ref_spacesNoDerefinement;
+      
+      // Periodic global derefinements.
+      if (as == 1 && (iteration > 1 && iteration % UNREF_FREQ == 0 && REFINEMENT_COUNT > 0))
+      {
+        Hermes::Mixins::Loggable::Static::info("Global mesh derefinement.");
+
+        ref_spacesNoDerefinement = Space<double>::construct_refined_spaces(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
+        &space_rho_v_y, &space_e), 1);
+
+        space_rho.unrefine_all_mesh_elements(true);
+
+        space_rho.adjust_element_order(-1, P_INIT);
+        space_rho_v_x.copy_orders(&space_rho);
+        space_rho_v_y.copy_orders(&space_rho);
+        space_e.copy_orders(&space_rho);
+      }
 
       Hermes::vector<Space<double> *>* ref_spaces = Space<double>::construct_refined_spaces(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-        &space_rho_v_y, &space_e), order_increase);
+        &space_rho_v_y, &space_e), 1);
       Hermes::vector<const Space<double> *> ref_spaces_const((*ref_spaces)[0], (*ref_spaces)[1], 
         (*ref_spaces)[2], (*ref_spaces)[3]);
 
@@ -240,20 +241,42 @@ int main(int argc, char* argv[])
       {
         loaded_now = false;
 
-        continuity.get_last_record()->load_solutions(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), 
-          Hermes::vector<Space<double> *>((*ref_spaces)[0], (*ref_spaces)[1], (*ref_spaces)[2], (*ref_spaces)[3]));
-      }
-      else
-      {
-        OGProjection<double> ogProjection; ogProjection.project_global(ref_spaces_const, Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), 
-            Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), Hermes::vector<Hermes::Hermes2D::ProjNormType>());
-        if(iteration > std::max((int)(continuity.get_num() * EVERY_NTH_STEP + 1), 1))
+        if (as == 1 && (iteration > 1 && iteration % UNREF_FREQ == 0 && REFINEMENT_COUNT > 0))
         {
-          delete rsln_rho.get_mesh();
-          delete rsln_rho_v_x.get_mesh();
-          delete rsln_rho_v_y.get_mesh();
-          delete rsln_e.get_mesh();
+          continuity.get_last_record()->load_solutions(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), 
+            Hermes::vector<Space<double> *>((*ref_spacesNoDerefinement)[0], (*ref_spacesNoDerefinement)[1], (*ref_spacesNoDerefinement)[2], (*ref_spacesNoDerefinement)[3]));
+          
+          OGProjection<double> ogProjection;
+
+          Hermes::vector<const Space<double> * > ref_spacesNoDerefinement_const((*ref_spacesNoDerefinement)[0], (*ref_spacesNoDerefinement)[1], 
+          (*ref_spacesNoDerefinement)[2], (*ref_spacesNoDerefinement)[3]);
+
+          ogProjection.project_global(ref_spacesNoDerefinement_const, Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), 
+              Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), Hermes::vector<Hermes::Hermes2D::ProjNormType>());
         }
+        else
+          continuity.get_last_record()->load_solutions(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), 
+            Hermes::vector<Space<double> *>((*ref_spaces)[0], (*ref_spaces)[1], (*ref_spaces)[2], (*ref_spaces)[3]));
+      }
+
+      OGProjection<double> ogProjection; ogProjection.project_global(ref_spaces_const, Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), 
+          Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), Hermes::vector<Hermes::Hermes2D::ProjNormType>());
+    
+      if(iteration > std::max((int)(continuity.get_num() * EVERY_NTH_STEP + 1), 1))
+      {
+        delete rsln_rho.get_mesh();
+        delete rsln_rho_v_x.get_mesh();
+        delete rsln_rho_v_y.get_mesh();
+        delete rsln_e.get_mesh();
+      }
+      if (as == 1 && (iteration > 1 && iteration % UNREF_FREQ == 0 && REFINEMENT_COUNT > 0))
+      {
+        for(int i = 0; i < 4; i++)
+        {
+          delete (*ref_spacesNoDerefinement)[i]->get_mesh();
+          delete (*ref_spacesNoDerefinement)[i];
+        }
+        REFINEMENT_COUNT = 0;
       }
 
       // Report NDOFs.
@@ -308,7 +331,7 @@ int main(int argc, char* argv[])
 
       // Project the fine mesh solution onto the coarse mesh.
       Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
-      OGProjection<double> ogProjection; ogProjection.project_global(Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
+      ogProjection.project_global(Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
         &space_rho_v_y, &space_e), Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), 
         Hermes::vector<Solution<double>*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y, &sln_e), 
         Hermes::vector<ProjNormType>(HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM)); 
@@ -395,6 +418,8 @@ int main(int argc, char* argv[])
       delete adaptivity;
     }
     while (done == false);
+
+    iteration++;
 
     // Copy the solutions into the previous time level ones.
     prev_rho.copy(&rsln_rho);
