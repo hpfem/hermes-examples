@@ -52,7 +52,7 @@ const int UNREF_FREQ = 5;
 // Number of mesh refinements between two unrefinements.
 // The mesh is not unrefined unless there has been a refinement since
 // last unrefinement.
-int REFINEMENT_COUNT = 1;
+int REFINEMENT_COUNT = 0;
 
 // This is a quantitative parameter of the adapt(...) function and
 // it has different meanings for various adaptive strategies (see below).
@@ -214,9 +214,9 @@ int main(int argc, char* argv[])
         ref_spacesNoDerefinement = Space<double>::construct_refined_spaces(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
         &space_rho_v_y, &space_e), 1);
 
-        space_rho.unrefine_all_mesh_elements(true);
+        //space_rho.unrefine_all_mesh_elements(true);
 
-        //space_rho.adjust_element_order(-1, P_INIT);
+        space_rho.adjust_element_order(-1, P_INIT);
         space_rho_v_x.copy_orders(&space_rho);
         space_rho_v_y.copy_orders(&space_rho);
         space_e.copy_orders(&space_rho);
