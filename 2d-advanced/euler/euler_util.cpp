@@ -1080,10 +1080,10 @@ void FluxLimiter::get_limited_solutions(Hermes::vector<Solution<double>*> soluti
 int FluxLimiter::limit_according_to_detector(Hermes::vector<Space<double> *> coarse_spaces_to_limit)
 {
   std::set<int> discontinuous_elements = this->detector->get_discontinuous_element_ids();
-  std::set<std::pair<int, double>> oscillatory_element_idsRho = this->detector->get_oscillatory_element_idsRho();
-  std::set<std::pair<int, double>> oscillatory_element_idsRhoVX = this->detector->get_oscillatory_element_idsRhoVX();
-  std::set<std::pair<int, double>> oscillatory_element_idsRhoVY = this->detector->get_oscillatory_element_idsRhoVY();
-  std::set<std::pair<int, double>> oscillatory_element_idsRhoE = this->detector->get_oscillatory_element_idsRhoE();
+  std::set<std::pair<int, double> > oscillatory_element_idsRho = this->detector->get_oscillatory_element_idsRho();
+  std::set<std::pair<int, double> > oscillatory_element_idsRhoVX = this->detector->get_oscillatory_element_idsRhoVX();
+  std::set<std::pair<int, double> > oscillatory_element_idsRhoVY = this->detector->get_oscillatory_element_idsRhoVY();
+  std::set<std::pair<int, double> > oscillatory_element_idsRhoE = this->detector->get_oscillatory_element_idsRhoE();
   
   // First adjust the solution_vector.
   int running_dofs = 0;
@@ -1104,7 +1104,7 @@ int FluxLimiter::limit_according_to_detector(Hermes::vector<Space<double> *> coa
   {
     unsigned int space_i = 0;
     running_dofs = 0;
-    for(std::set<std::pair<int, double>>::iterator it = oscillatory_element_idsRho.begin(); it != oscillatory_element_idsRho.end(); it++) 
+    for(std::set<std::pair<int, double> >::iterator it = oscillatory_element_idsRho.begin(); it != oscillatory_element_idsRho.end(); it++) 
     {
       Element* e = spaces[space_i]->get_mesh()->get_element(it->first);
       AsmList<double> al;
@@ -1117,7 +1117,7 @@ int FluxLimiter::limit_according_to_detector(Hermes::vector<Space<double> *> coa
     }
     running_dofs += spaces[space_i]->get_num_dofs();
     space_i = 1;
-    for(std::set<std::pair<int, double>>::iterator it = oscillatory_element_idsRhoVX.begin(); it != oscillatory_element_idsRhoVX.end(); it++) 
+    for(std::set<std::pair<int, double> >::iterator it = oscillatory_element_idsRhoVX.begin(); it != oscillatory_element_idsRhoVX.end(); it++) 
     {
       Element* e = spaces[space_i]->get_mesh()->get_element(it->first);
       AsmList<double> al;
@@ -1130,7 +1130,7 @@ int FluxLimiter::limit_according_to_detector(Hermes::vector<Space<double> *> coa
     }
     running_dofs += spaces[space_i]->get_num_dofs();
     space_i = 2;
-    for(std::set<std::pair<int, double>>::iterator it = oscillatory_element_idsRhoVY.begin(); it != oscillatory_element_idsRhoVY.end(); it++) 
+    for(std::set<std::pair<int, double> >::iterator it = oscillatory_element_idsRhoVY.begin(); it != oscillatory_element_idsRhoVY.end(); it++) 
     {
       Element* e = spaces[space_i]->get_mesh()->get_element(it->first);
       AsmList<double> al;
@@ -1143,7 +1143,7 @@ int FluxLimiter::limit_according_to_detector(Hermes::vector<Space<double> *> coa
     }
     running_dofs += spaces[space_i]->get_num_dofs();
     space_i = 3;
-    for(std::set<std::pair<int, double>>::iterator it = oscillatory_element_idsRhoE.begin(); it != oscillatory_element_idsRhoE.end(); it++) 
+    for(std::set<std::pair<int, double> >::iterator it = oscillatory_element_idsRhoE.begin(); it != oscillatory_element_idsRhoE.end(); it++) 
     {
       Element* e = spaces[space_i]->get_mesh()->get_element(it->first);
       AsmList<double> al;

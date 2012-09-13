@@ -65,20 +65,20 @@ public:
 
   /// Return a reference to the inner structures.
   virtual std::set<int>& get_discontinuous_element_ids() = 0;
-  std::set<std::pair<int, double>>& get_oscillatory_element_idsRho() { return this->oscillatory_element_idsRho; }
-  std::set<std::pair<int, double>>& get_oscillatory_element_idsRhoVX() { return this->oscillatory_element_idsRhoVX; }
-  std::set<std::pair<int, double>>& get_oscillatory_element_idsRhoVY() { return this->oscillatory_element_idsRhoVY; }
-  std::set<std::pair<int, double>>& get_oscillatory_element_idsRhoE() { return this->oscillatory_element_idsRhoE; }
+  std::set<std::pair<int, double> >& get_oscillatory_element_idsRho() { return this->oscillatory_element_idsRho; }
+  std::set<std::pair<int, double> >& get_oscillatory_element_idsRhoVX() { return this->oscillatory_element_idsRhoVX; }
+  std::set<std::pair<int, double> >& get_oscillatory_element_idsRhoVY() { return this->oscillatory_element_idsRhoVY; }
+  std::set<std::pair<int, double> >& get_oscillatory_element_idsRhoE() { return this->oscillatory_element_idsRhoE; }
 
 protected:
   /// Members.
   Hermes::vector<const Space<double> *> spaces;
   Hermes::vector<Solution<double> *> solutions;
   std::set<int> discontinuous_element_ids;
-  std::set<std::pair<int, double>> oscillatory_element_idsRho;
-  std::set<std::pair<int, double>> oscillatory_element_idsRhoVX;
-  std::set<std::pair<int, double>> oscillatory_element_idsRhoVY;
-  std::set<std::pair<int, double>> oscillatory_element_idsRhoE;
+  std::set<std::pair<int, double> > oscillatory_element_idsRho;
+  std::set<std::pair<int, double> > oscillatory_element_idsRhoVX;
+  std::set<std::pair<int, double> > oscillatory_element_idsRhoVY;
+  std::set<std::pair<int, double> > oscillatory_element_idsRhoE;
   Mesh* mesh;
 };
 
