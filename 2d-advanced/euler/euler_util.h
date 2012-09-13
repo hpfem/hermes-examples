@@ -65,12 +65,20 @@ public:
 
   /// Return a reference to the inner structures.
   virtual std::set<int>& get_discontinuous_element_ids() = 0;
+  std::set<std::pair<int, double>>& get_oscillatory_element_idsRho() { return this->oscillatory_element_idsRho; }
+  std::set<std::pair<int, double>>& get_oscillatory_element_idsRhoVX() { return this->oscillatory_element_idsRhoVX; }
+  std::set<std::pair<int, double>>& get_oscillatory_element_idsRhoVY() { return this->oscillatory_element_idsRhoVY; }
+  std::set<std::pair<int, double>>& get_oscillatory_element_idsRhoE() { return this->oscillatory_element_idsRhoE; }
 
 protected:
   /// Members.
   Hermes::vector<const Space<double> *> spaces;
   Hermes::vector<Solution<double> *> solutions;
   std::set<int> discontinuous_element_ids;
+  std::set<std::pair<int, double>> oscillatory_element_idsRho;
+  std::set<std::pair<int, double>> oscillatory_element_idsRhoVX;
+  std::set<std::pair<int, double>> oscillatory_element_idsRhoVY;
+  std::set<std::pair<int, double>> oscillatory_element_idsRhoE;
   Mesh* mesh;
 };
 
@@ -165,12 +173,13 @@ public:
 
   /// Do the limiting.
   /// With the possibility to also limit the spaces from which the spaces in the constructors are refined.
-  virtual void limit_according_to_detector(Hermes::vector<Space<double> *> coarse_spaces_to_limit = Hermes::vector<Space<double> *>());
+  virtual int limit_according_to_detector(Hermes::vector<Space<double> *> coarse_spaces_to_limit = Hermes::vector<Space<double> *>());
   
   /// For Kuzmin's detector.
   virtual void limit_second_orders_according_to_detector(Hermes::vector<Space<double> *> coarse_spaces_to_limit = Hermes::vector<Space<double> *>());
   
   void get_limited_solutions(Hermes::vector<Solution<double>*> solutions_to_limit);
+  bool limitOscillations;
 protected:
   /// Members.
   double* solution_vector;

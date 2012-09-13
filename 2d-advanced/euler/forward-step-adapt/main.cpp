@@ -163,6 +163,11 @@ int main(int argc, char* argv[])
   ScalarView pressure_view("Pressure", new WinGeom(0, 0, 600, 300));
   ScalarView Mach_number_view("Mach number", new WinGeom(700, 0, 600, 300));
 
+  ScalarView s1("Rho", new WinGeom(0, 0, 700, 400));
+  ScalarView s2("RhoVX", new WinGeom(700, 0, 700, 400));
+  ScalarView s3("RhoVY", new WinGeom(0, 400, 700, 400));
+  ScalarView s4("RhoE", new WinGeom(700, 400, 700, 400));
+
   // Initialize refinement selector.
   L2ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, MAX_P_ORDER);
   selector.set_error_weights(1.0, 1.0, 1.0);
@@ -214,7 +219,7 @@ int main(int argc, char* argv[])
         ref_spacesNoDerefinement = Space<double>::construct_refined_spaces(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
         &space_rho_v_y, &space_e), 1);
 
-        //space_rho.unrefine_all_mesh_elements(true);
+        space_rho.unrefine_all_mesh_elements(true);
 
         space_rho.adjust_element_order(-1, P_INIT);
         space_rho_v_x.copy_orders(&space_rho);
@@ -257,10 +262,32 @@ int main(int argc, char* argv[])
         else
           continuity.get_last_record()->load_solutions(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), 
             Hermes::vector<Space<double> *>((*ref_spaces)[0], (*ref_spaces)[1], (*ref_spaces)[2], (*ref_spaces)[3]));
+
+        FluxLimiter flux_limiterProjection(FluxLimiter::Kuzmin, Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), ref_spaces_const, true);
+
+        int limited = flux_limiterProjection.limit_according_to_detector();
+        int counter = 0;
+        Hermes::Mixins::Loggable::Static::info("Limited in %d-th step: %d.", ++counter, limited);
+        while(limited > 10)
+        {
+          limited = flux_limiterProjection.limit_according_to_detector();
+          Hermes::Mixins::Loggable::Static::info("Limited in %d-th step: %d.", ++counter, limited);
+        }
+        flux_limiterProjection.get_limited_solutions(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
+      }
+
+      if(HERMES_VISUALIZATION)
+      {
+        s1.show(&prev_rho);
+        s2.show(&prev_rho_v_x);
+        s3.show(&prev_rho_v_y);
+        s4.show(&prev_e);
+
+        s4.wait_for_close();
       }
 
       OGProjection<double> ogProjection; ogProjection.project_global(ref_spaces_const, Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), 
-          Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), Hermes::vector<Hermes::Hermes2D::ProjNormType>());
+        Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), Hermes::vector<Hermes::Hermes2D::ProjNormType>());
 
       if(iteration > std::max((int)(continuity.get_num() * EVERY_NTH_STEP + 1), 1))
       {

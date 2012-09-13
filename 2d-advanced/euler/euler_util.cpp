@@ -523,7 +523,11 @@ KuzminDiscontinuityDetector::~KuzminDiscontinuityDetector()
 std::set<int>& KuzminDiscontinuityDetector::get_discontinuous_element_ids()
 {
   Element* e;
-
+  discontinuous_element_ids.clear();
+  oscillatory_element_idsRho.clear();
+  oscillatory_element_idsRhoVX.clear();
+  oscillatory_element_idsRhoVY.clear();
+  oscillatory_element_idsRhoE.clear();
   for_all_active_elements(e, mesh)
   {
     if(!limit_all_orders_independently)
@@ -556,12 +560,69 @@ std::set<int>& KuzminDiscontinuityDetector::get_discontinuous_element_ids()
 
     // measure.
     for(unsigned int i = 0; i < 4; i++)
+    {
       if(1.0 > alpha_i_first_order[i])
       {
         // check for sanity.
         if(std::abs(u_c[i]) > 1E-12 && (std::abs(u_dx_c[i]) > 1E-12 || std::abs(u_dy_c[i]) > 1E-12))
           discontinuous_element_ids.insert(e->id);
       }
+      if(std::abs(u_c[i]) < 1e-3)
+        continue;
+      bool bnd = false;
+      for(unsigned int j = 0; j < 4; j++)
+        if(e->en[j]->bnd)
+          bnd = true;
+      if(bnd)
+        continue;
+      double high_limit = -std::numeric_limits<double>::infinity();
+      double low_limit = std::numeric_limits<double>::infinity();
+      for(unsigned int j = 0; j < 4; j++)
+      {
+        if(u_i_max_first_order[i][j] > high_limit)
+          high_limit = u_i_max_first_order[i][j];
+        if(u_i_min_first_order[i][j] < low_limit)
+          low_limit = u_i_min_first_order[i][j];
+      }
+      if(u_c[i] > high_limit && std::abs(u_c[i] - high_limit) > 1e-3)
+      {
+        high_limit = (u_i_max_first_order[i][0] + u_i_max_first_order[i][1] + u_i_max_first_order[i][2] + u_i_max_first_order[i][3]) / 4.0;
+        switch(i)
+        {
+        case 0:
+          oscillatory_element_idsRho.insert(std::make_pair<int, double>(e->id, high_limit));
+          break;
+        case 1:
+          oscillatory_element_idsRhoVX.insert(std::make_pair<int, double>(e->id, high_limit));
+          break;
+        case 2:
+          oscillatory_element_idsRhoVY.insert(std::make_pair<int, double>(e->id, high_limit));
+          break;
+        case 3:
+          oscillatory_element_idsRhoE.insert(std::make_pair<int, double>(e->id, high_limit));
+          break;
+        }
+      }
+      if(u_c[i] < low_limit && std::abs(u_c[i] - low_limit) > 1e-3)
+      {
+        low_limit = (u_i_min_first_order[i][0] + u_i_min_first_order[i][1] + u_i_min_first_order[i][2] + u_i_min_first_order[i][3]) / 4.0;
+        switch(i)
+        {
+        case 0:
+          oscillatory_element_idsRho.insert(std::make_pair<int, double>(e->id, low_limit));
+          break;
+        case 1:
+          oscillatory_element_idsRhoVX.insert(std::make_pair<int, double>(e->id, low_limit));
+          break;
+        case 2:
+          oscillatory_element_idsRhoVY.insert(std::make_pair<int, double>(e->id, low_limit));
+          break;
+        case 3:
+          oscillatory_element_idsRhoE.insert(std::make_pair<int, double>(e->id, low_limit));
+          break;
+        }
+      }
+    }
   }
 
   return discontinuous_element_ids;
@@ -964,7 +1025,7 @@ void KuzminDiscontinuityDetector::find_alpha_i_second_order_real(Hermes::Hermes2
 }
 
 
-FluxLimiter::FluxLimiter(FluxLimiter::LimitingType type, double* solution_vector, Hermes::vector<const Space<double>*> spaces, bool Kuzmin_limit_all_orders_independently) : solution_vector(solution_vector), spaces(spaces)
+FluxLimiter::FluxLimiter(FluxLimiter::LimitingType type, double* solution_vector, Hermes::vector<const Space<double>*> spaces, bool Kuzmin_limit_all_orders_independently) : solution_vector(solution_vector), spaces(spaces), limitOscillations(false)
 {
   for(unsigned int sol_i = 0; sol_i < spaces.size(); sol_i++)
     limited_solutions.push_back(new Hermes::Hermes2D::Solution<double>(spaces[sol_i]->get_mesh()));
@@ -981,12 +1042,16 @@ FluxLimiter::FluxLimiter(FluxLimiter::LimitingType type, double* solution_vector
   }
 };
 
-FluxLimiter::FluxLimiter(FluxLimiter::LimitingType type, Hermes::vector<Solution<double>*> solutions, Hermes::vector<const Space<double>*> spaces, bool Kuzmin_limit_all_orders_independently) : spaces(spaces)
+FluxLimiter::FluxLimiter(FluxLimiter::LimitingType type, Hermes::vector<Solution<double>*> solutions, Hermes::vector<const Space<double>*> spaces, bool Kuzmin_limit_all_orders_independently) : spaces(spaces), limitOscillations(false)
 {
-  this->limited_solutions = solutions;
+  for(unsigned int sol_i = 0; sol_i < spaces.size(); sol_i++)
+    limited_solutions.push_back(new Hermes::Hermes2D::Solution<double>(spaces[sol_i]->get_mesh()));
+
   this->solution_vector = new double[Space<double>::get_num_dofs(spaces)];
   OGProjection<double> ogProj;
-  ogProj.project_global(this->spaces, this->limited_solutions, this->solution_vector);
+
+  ogProj.project_global(this->spaces, solutions, this->solution_vector);
+  Solution<double>::vector_to_solutions(solution_vector, spaces, limited_solutions);
 
   switch(type)
   {
@@ -1012,10 +1077,14 @@ void FluxLimiter::get_limited_solutions(Hermes::vector<Solution<double>*> soluti
     solutions_to_limit[i]->copy(this->limited_solutions[i]);
 }
 
-void FluxLimiter::limit_according_to_detector(Hermes::vector<Space<double> *> coarse_spaces_to_limit)
+int FluxLimiter::limit_according_to_detector(Hermes::vector<Space<double> *> coarse_spaces_to_limit)
 {
   std::set<int> discontinuous_elements = this->detector->get_discontinuous_element_ids();
-
+  std::set<std::pair<int, double>> oscillatory_element_idsRho = this->detector->get_oscillatory_element_idsRho();
+  std::set<std::pair<int, double>> oscillatory_element_idsRhoVX = this->detector->get_oscillatory_element_idsRhoVX();
+  std::set<std::pair<int, double>> oscillatory_element_idsRhoVY = this->detector->get_oscillatory_element_idsRhoVY();
+  std::set<std::pair<int, double>> oscillatory_element_idsRhoE = this->detector->get_oscillatory_element_idsRhoE();
+  
   // First adjust the solution_vector.
   int running_dofs = 0;
   for(unsigned int space_i = 0; space_i < spaces.size(); space_i++)
@@ -1029,44 +1098,102 @@ void FluxLimiter::limit_according_to_detector(Hermes::vector<Space<double> *> co
         if(H2D_GET_H_ORDER(spaces[space_i]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) > 0 || H2D_GET_V_ORDER(spaces[space_i]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) > 0)
          solution_vector[running_dofs + al.get_dof()[shape_i]] = 0.0;
     }
-    //running_dofs += spaces[space_i]->get_num_dofs();
+    running_dofs += spaces[space_i]->get_num_dofs();
+  }
+  if(limitOscillations)
+  {
+    unsigned int space_i = 0;
+    running_dofs = 0;
+    for(std::set<std::pair<int, double>>::iterator it = oscillatory_element_idsRho.begin(); it != oscillatory_element_idsRho.end(); it++) 
+    {
+      Element* e = spaces[space_i]->get_mesh()->get_element(it->first);
+      AsmList<double> al;
+      spaces[space_i]->get_element_assembly_list(spaces[space_i]->get_mesh()->get_element(it->first), &al);
+      for(unsigned int shape_i = 0; shape_i < al.get_cnt(); shape_i++)
+        if(H2D_GET_H_ORDER(spaces[space_i]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) > 0 || H2D_GET_V_ORDER(spaces[space_i]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) > 0)
+          solution_vector[running_dofs + al.get_dof()[shape_i]] = 0.0;
+        else if(H2D_GET_H_ORDER(spaces[space_i]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) == 0 || H2D_GET_V_ORDER(spaces[space_i]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) == 0)
+          solution_vector[running_dofs + al.get_dof()[shape_i]] = it->second;
+    }
+    running_dofs += spaces[space_i]->get_num_dofs();
+    space_i = 1;
+    for(std::set<std::pair<int, double>>::iterator it = oscillatory_element_idsRhoVX.begin(); it != oscillatory_element_idsRhoVX.end(); it++) 
+    {
+      Element* e = spaces[space_i]->get_mesh()->get_element(it->first);
+      AsmList<double> al;
+      spaces[space_i]->get_element_assembly_list(spaces[space_i]->get_mesh()->get_element(it->first), &al);
+      for(unsigned int shape_i = 0; shape_i < al.get_cnt(); shape_i++)
+        if(H2D_GET_H_ORDER(spaces[space_i]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) > 0 || H2D_GET_V_ORDER(spaces[space_i]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) > 0)
+          solution_vector[running_dofs + al.get_dof()[shape_i]] = 0.0;
+        else if(H2D_GET_H_ORDER(spaces[space_i]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) == 0 || H2D_GET_V_ORDER(spaces[space_i]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) == 0)
+          solution_vector[running_dofs + al.get_dof()[shape_i]] = it->second;
+    }
+    running_dofs += spaces[space_i]->get_num_dofs();
+    space_i = 2;
+    for(std::set<std::pair<int, double>>::iterator it = oscillatory_element_idsRhoVY.begin(); it != oscillatory_element_idsRhoVY.end(); it++) 
+    {
+      Element* e = spaces[space_i]->get_mesh()->get_element(it->first);
+      AsmList<double> al;
+      spaces[space_i]->get_element_assembly_list(spaces[space_i]->get_mesh()->get_element(it->first), &al);
+      for(unsigned int shape_i = 0; shape_i < al.get_cnt(); shape_i++)
+        if(H2D_GET_H_ORDER(spaces[space_i]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) > 0 || H2D_GET_V_ORDER(spaces[space_i]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) > 0)
+          solution_vector[running_dofs + al.get_dof()[shape_i]] = 0.0;
+        else if(H2D_GET_H_ORDER(spaces[space_i]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) == 0 || H2D_GET_V_ORDER(spaces[space_i]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) == 0)
+          solution_vector[running_dofs + al.get_dof()[shape_i]] = it->second;
+    }
+    running_dofs += spaces[space_i]->get_num_dofs();
+    space_i = 3;
+    for(std::set<std::pair<int, double>>::iterator it = oscillatory_element_idsRhoE.begin(); it != oscillatory_element_idsRhoE.end(); it++) 
+    {
+      Element* e = spaces[space_i]->get_mesh()->get_element(it->first);
+      AsmList<double> al;
+      spaces[space_i]->get_element_assembly_list(spaces[space_i]->get_mesh()->get_element(it->first), &al);
+      for(unsigned int shape_i = 0; shape_i < al.get_cnt(); shape_i++)
+        if(H2D_GET_H_ORDER(spaces[space_i]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) > 0 || H2D_GET_V_ORDER(spaces[space_i]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) > 0)
+          solution_vector[running_dofs + al.get_dof()[shape_i]] = 0.0;
+        else if(H2D_GET_H_ORDER(spaces[space_i]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) == 0 || H2D_GET_V_ORDER(spaces[space_i]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) == 0)
+          solution_vector[running_dofs + al.get_dof()[shape_i]] = it->second;
+    }
   }
 
-    // Now adjust the solutions.
-    Solution<double>::vector_to_solutions(solution_vector, spaces, limited_solutions);
+  // Now adjust the solutions.
+  Solution<double>::vector_to_solutions(solution_vector, spaces, limited_solutions);
 
-    if(coarse_spaces_to_limit != Hermes::vector<Space<double>*>()) {
-      // Now set the element order to zero.
-      Element* e;
+  if(coarse_spaces_to_limit != Hermes::vector<Space<double>*>()) 
+  {
+    // Now set the element order to zero.
+    Element* e;
 
-      for_all_elements(e, spaces[0]->get_mesh())
-        e->visited = false;
+    for_all_elements(e, spaces[0]->get_mesh())
+      e->visited = false;
 
-      for(std::set<int>::iterator it = discontinuous_elements.begin(); it != discontinuous_elements.end(); it++) 
-      {
-        e = spaces[0]->get_mesh()->get_element(*it);
-        AsmList<double> al;
-        spaces[0]->get_element_assembly_list(e, &al);
-        for(unsigned int shape_i = 0; shape_i < al.get_cnt(); shape_i++) {
-          if(H2D_GET_H_ORDER(spaces[0]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) > 0 || H2D_GET_V_ORDER(spaces[0]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) > 0) {
-            spaces[0]->get_mesh()->get_element(*it)->visited = true;
-            bool all_sons_visited = true;
-            for(unsigned int son_i = 0; son_i < 4; son_i++)
-              if(!spaces[0]->get_mesh()->get_element(*it)->parent->sons[son_i]->visited)
-              {
-                all_sons_visited = false;
-                break;
-              }
-              if(all_sons_visited)
-                for(unsigned int space_i = 0; space_i < spaces.size(); space_i++) 
-                  coarse_spaces_to_limit[space_i]->set_element_order_internal(spaces[space_i]->get_mesh()->get_element(*it)->parent->id, 0);
-          }
+    for(std::set<int>::iterator it = discontinuous_elements.begin(); it != discontinuous_elements.end(); it++) 
+    {
+      e = spaces[0]->get_mesh()->get_element(*it);
+      AsmList<double> al;
+      spaces[0]->get_element_assembly_list(e, &al);
+      for(unsigned int shape_i = 0; shape_i < al.get_cnt(); shape_i++) {
+        if(H2D_GET_H_ORDER(spaces[0]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) > 0 || H2D_GET_V_ORDER(spaces[0]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) > 0) {
+          spaces[0]->get_mesh()->get_element(*it)->visited = true;
+          bool all_sons_visited = true;
+          for(unsigned int son_i = 0; son_i < 4; son_i++)
+            if(!spaces[0]->get_mesh()->get_element(*it)->parent->sons[son_i]->visited)
+            {
+              all_sons_visited = false;
+              break;
+            }
+            if(all_sons_visited)
+              for(unsigned int space_i = 0; space_i < spaces.size(); space_i++) 
+                coarse_spaces_to_limit[space_i]->set_element_order_internal(spaces[space_i]->get_mesh()->get_element(*it)->parent->id, 0);
         }
       }
-
-      for(int i = 0; i < coarse_spaces_to_limit.size(); i++)
-        coarse_spaces_to_limit.at(i)->assign_dofs();
     }
+
+    for(int i = 0; i < coarse_spaces_to_limit.size(); i++)
+      coarse_spaces_to_limit.at(i)->assign_dofs();
+  }
+
+  return discontinuous_elements.size() + oscillatory_element_idsRho.size() + oscillatory_element_idsRhoVX.size() + oscillatory_element_idsRhoVY.size() + oscillatory_element_idsRhoE.size();
 };
 
 void FluxLimiter::limit_second_orders_according_to_detector(Hermes::vector<Space<double> *> coarse_spaces_to_limit)
@@ -1090,7 +1217,7 @@ void FluxLimiter::limit_second_orders_according_to_detector(Hermes::vector<Space
         if(H2D_GET_H_ORDER(spaces[space_i]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) > 1 || H2D_GET_V_ORDER(spaces[space_i]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) > 1)
           solution_vector[running_dofs + al.get_dof()[shape_i]] = 0.0;
     }
-    //running_dofs += spaces[space_i]->get_num_dofs();
+    running_dofs += spaces[space_i]->get_num_dofs();
   }
     // Now adjust the solutions.
     Solution<double>::vector_to_solutions(solution_vector, spaces, limited_solutions);
