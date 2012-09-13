@@ -265,6 +265,7 @@ int main(int argc, char* argv[])
 
         FluxLimiter flux_limiterProjection(FluxLimiter::Kuzmin, Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), ref_spaces_const, true);
 
+        flux_limiterProjection.limitOscillations = true;
         int limited = flux_limiterProjection.limit_according_to_detector();
         int counter = 0;
         Hermes::Mixins::Loggable::Static::info("Limited in %d-th step: %d.", ++counter, limited);
