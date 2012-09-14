@@ -323,10 +323,8 @@ int main(int argc, char* argv[])
           flux_limiter.limit_second_orders_according_to_detector(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
             &space_rho_v_y, &space_e));
 
-          flux_limiter.limit_according_to_detector(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
+          int limited = flux_limiter.limit_according_to_detector(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
             &space_rho_v_y, &space_e));
-
-          int limited = flux_limiter.limit_according_to_detector();
           int counter = 0;
           Hermes::Mixins::Loggable::Static::info("Limited in %d-th step: %d.", ++counter, limited);
           while(limited > 10)
