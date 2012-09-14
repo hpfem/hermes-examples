@@ -586,7 +586,7 @@ std::set<int>& KuzminDiscontinuityDetector::get_discontinuous_element_ids()
       }
       if(u_c[i] > high_limit && std::abs(u_c[i] - high_limit) > 1e-3)
       {
-        high_limit = (u_i_max_first_order[i][0] + u_i_max_first_order[i][1] + u_i_max_first_order[i][2] + u_i_max_first_order[i][3]) / 4.0;
+        high_limit = (u_i_max_first_order[i][0] + u_i_max_first_order[i][1] + u_i_max_first_order[i][2] + u_i_max_first_order[i][3] + u_i_min_first_order[i][0] + u_i_min_first_order[i][1] + u_i_min_first_order[i][2] + u_i_min_first_order[i][3]) / 8.0;
         switch(i)
         {
         case 0:
@@ -605,7 +605,7 @@ std::set<int>& KuzminDiscontinuityDetector::get_discontinuous_element_ids()
       }
       if(u_c[i] < low_limit && std::abs(u_c[i] - low_limit) > 1e-3)
       {
-        low_limit = (u_i_min_first_order[i][0] + u_i_min_first_order[i][1] + u_i_min_first_order[i][2] + u_i_min_first_order[i][3]) / 4.0;
+        low_limit = (u_i_max_first_order[i][0] + u_i_max_first_order[i][1] + u_i_max_first_order[i][2] + u_i_max_first_order[i][3] + u_i_min_first_order[i][0] + u_i_min_first_order[i][1] + u_i_min_first_order[i][2] + u_i_min_first_order[i][3]) / 8.0;
         switch(i)
         {
         case 0:
@@ -1098,7 +1098,7 @@ int FluxLimiter::limit_according_to_detector(Hermes::vector<Space<double> *> coa
         if(H2D_GET_H_ORDER(spaces[space_i]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) > 0 || H2D_GET_V_ORDER(spaces[space_i]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) > 0)
          solution_vector[running_dofs + al.get_dof()[shape_i]] = 0.0;
     }
-    running_dofs += spaces[space_i]->get_num_dofs();
+    //running_dofs += spaces[space_i]->get_num_dofs();
   }
   if(limitOscillations)
   {
@@ -1217,7 +1217,7 @@ void FluxLimiter::limit_second_orders_according_to_detector(Hermes::vector<Space
         if(H2D_GET_H_ORDER(spaces[space_i]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) > 1 || H2D_GET_V_ORDER(spaces[space_i]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) > 1)
           solution_vector[running_dofs + al.get_dof()[shape_i]] = 0.0;
     }
-    running_dofs += spaces[space_i]->get_num_dofs();
+    //running_dofs += spaces[space_i]->get_num_dofs();
   }
     // Now adjust the solutions.
     Solution<double>::vector_to_solutions(solution_vector, spaces, limited_solutions);

@@ -262,29 +262,6 @@ int main(int argc, char* argv[])
         else
           continuity.get_last_record()->load_solutions(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), 
             Hermes::vector<Space<double> *>((*ref_spaces)[0], (*ref_spaces)[1], (*ref_spaces)[2], (*ref_spaces)[3]));
-
-        FluxLimiter flux_limiterProjection(FluxLimiter::Kuzmin, Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), ref_spaces_const, true);
-
-        flux_limiterProjection.limitOscillations = true;
-        int limited = flux_limiterProjection.limit_according_to_detector();
-        int counter = 0;
-        Hermes::Mixins::Loggable::Static::info("Limited in %d-th step: %d.", ++counter, limited);
-        while(limited > 10)
-        {
-          limited = flux_limiterProjection.limit_according_to_detector();
-          Hermes::Mixins::Loggable::Static::info("Limited in %d-th step: %d.", ++counter, limited);
-        }
-        flux_limiterProjection.get_limited_solutions(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
-      }
-
-      if(HERMES_VISUALIZATION)
-      {
-        s1.show(&prev_rho);
-        s2.show(&prev_rho_v_x);
-        s3.show(&prev_rho_v_y);
-        s4.show(&prev_e);
-
-        s4.wait_for_close();
       }
 
       OGProjection<double> ogProjection; ogProjection.project_global(ref_spaces_const, Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), 
@@ -341,11 +318,22 @@ int main(int argc, char* argv[])
         {      
           FluxLimiter flux_limiter(FluxLimiter::Kuzmin, solver->get_sln_vector(), ref_spaces_const, true);
 
+          flux_limiter.limitOscillations = true;
+
           flux_limiter.limit_second_orders_according_to_detector(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
             &space_rho_v_y, &space_e));
 
           flux_limiter.limit_according_to_detector(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
             &space_rho_v_y, &space_e));
+
+          int limited = flux_limiter.limit_according_to_detector();
+          int counter = 0;
+          Hermes::Mixins::Loggable::Static::info("Limited in %d-th step: %d.", ++counter, limited);
+          while(limited > 10)
+          {
+            limited = flux_limiter.limit_according_to_detector();
+            Hermes::Mixins::Loggable::Static::info("Limited in %d-th step: %d.", ++counter, limited);
+          }
 
           flux_limiter.get_limited_solutions(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e));
         }
