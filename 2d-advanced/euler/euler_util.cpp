@@ -1098,7 +1098,8 @@ int FluxLimiter::limit_according_to_detector(Hermes::vector<Space<double> *> coa
         if(H2D_GET_H_ORDER(spaces[space_i]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) > 0 || H2D_GET_V_ORDER(spaces[space_i]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) > 0)
          solution_vector[running_dofs + al.get_dof()[shape_i]] = 0.0;
     }
-    //running_dofs += spaces[space_i]->get_num_dofs();
+    if(this->limitOscillations)
+      running_dofs += spaces[space_i]->get_num_dofs();
   }
   if(limitOscillations)
   {
