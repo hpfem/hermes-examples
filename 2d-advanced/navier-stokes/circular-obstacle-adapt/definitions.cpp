@@ -11,10 +11,10 @@ WeakFormNSSimpleLinearization::WeakFormNSSimpleLinearization(bool Stokes, double
   add_matrix_form(sym_form_1);
 
   BilinearFormNonsymVel* nonsym_vel_form_0 = new BilinearFormNonsymVel(0, 0, Stokes);
-  nonsym_vel_form_0->setExt(Hermes::vector<MeshFunction<double>*>(x_vel_previous_time, y_vel_previous_time));
+  nonsym_vel_form_0->set_ext(Hermes::vector<MeshFunction<double>*>(x_vel_previous_time, y_vel_previous_time));
   add_matrix_form(nonsym_vel_form_0);
   BilinearFormNonsymVel* nonsym_vel_form_1 = new BilinearFormNonsymVel(1, 1, Stokes);
-  nonsym_vel_form_1->setExt(Hermes::vector<MeshFunction<double>*>(x_vel_previous_time, y_vel_previous_time));
+  nonsym_vel_form_1->set_ext(Hermes::vector<MeshFunction<double>*>(x_vel_previous_time, y_vel_previous_time));
   add_matrix_form(nonsym_vel_form_1);
 
   BilinearFormNonsymXVelPressure* nonsym_velx_pressure_form = new BilinearFormNonsymXVelPressure(0, 2);
@@ -28,14 +28,14 @@ WeakFormNSSimpleLinearization::WeakFormNSSimpleLinearization(bool Stokes, double
   Hermes::vector<MeshFunction<double>*> ext_vel_x;
   ext_vel_x.push_back(x_vel_previous_time);
 
-  vector_vel_form_x->setExt(ext_vel_x);
+  vector_vel_form_x->set_ext(ext_vel_x);
 
   VectorFormVolVel* vector_vel_form_y = new VectorFormVolVel(1, Stokes, time_step);
 
   Hermes::vector<MeshFunction<double>*> ext_vel_y;
   ext_vel_y.push_back(y_vel_previous_time);
   
-  vector_vel_form_y->setExt(ext_vel_y);
+  vector_vel_form_y->set_ext(ext_vel_y);
 }
 
 WeakFormNSSimpleLinearization::BilinearFormSymVel::BilinearFormSymVel(int i, int j, bool Stokes, double Reynolds, double time_step) 
@@ -180,10 +180,10 @@ WeakFormNSNewton::WeakFormNSNewton(bool Stokes, double Reynolds, double time_ste
   add_matrix_form(nonsym_vely_pressure_form);
 
   VectorFormNS_0* F_0 = new VectorFormNS_0(0, Stokes, Reynolds, time_step);
-  F_0->setExt(Hermes::vector<MeshFunction<double>*>(x_vel_previous_time, y_vel_previous_time));
+  F_0->set_ext(Hermes::vector<MeshFunction<double>*>(x_vel_previous_time, y_vel_previous_time));
   add_vector_form(F_0);
   VectorFormNS_1* F_1 = new VectorFormNS_1(1, Stokes, Reynolds, time_step);
-  F_1->setExt(Hermes::vector<MeshFunction<double>*>(x_vel_previous_time, y_vel_previous_time));
+  F_1->set_ext(Hermes::vector<MeshFunction<double>*>(x_vel_previous_time, y_vel_previous_time));
   add_vector_form(F_1);
   VectorFormNS_2* F_2 = new VectorFormNS_2(2);
   add_vector_form(F_2);

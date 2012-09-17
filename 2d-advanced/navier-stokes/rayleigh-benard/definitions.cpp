@@ -59,18 +59,18 @@ public:
     /* Residual - volumetric */
     // First velocity equation.
     VectorFormNS_0* F_0 = new VectorFormNS_0(0, Pr, time_step);
-    F_0->setExt(x_vel_previous_time);
+    F_0->set_ext(x_vel_previous_time);
     add_vector_form(F_0);
     // Second velocity equation.
     VectorFormNS_1* F_1 = new VectorFormNS_1(1, Pr, Ra, time_step);
-    F_1->setExt(y_vel_previous_time);
+    F_1->set_ext(y_vel_previous_time);
     add_vector_form(F_1);
     // Continuity equation.
     VectorFormNS_2* F_2 = new VectorFormNS_2(2);
     add_vector_form(F_2);
     // Temperature equation.
     VectorFormNS_3* F_3 = new VectorFormNS_3(3, time_step);
-    F_3->setExt(temp_previous_time);
+    F_3->set_ext(temp_previous_time);
     add_vector_form(F_3);
     add_vector_form_surf(new DefaultVectorFormSurf<double>(3, bdy_top, new Hermes2DFunction<double>(-alpha_air * temp_ext)));
     add_vector_form_surf(new CustomResidualSurfConst(3, bdy_top, alpha_air));
@@ -493,7 +493,7 @@ public:
            : VectorFormSurf<double>(i), coeff(coeff), gt(gt) { }
     CustomResidualSurfConst(int i, std::string area, double coeff = 1.0,
                              GeomType gt = HERMES_PLANAR)
-                             : VectorFormSurf<double>(i), coeff(coeff), gt(gt) { this->setArea(area); }
+                             : VectorFormSurf<double>(i), coeff(coeff), gt(gt) { this->set_area(area); }
 
     template<typename Real, typename Scalar>
     Scalar vector_form_surf(int n, double *wt, Func<Scalar> *u_ext[],

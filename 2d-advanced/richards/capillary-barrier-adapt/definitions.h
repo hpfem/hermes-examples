@@ -73,11 +73,11 @@ public:
   WeakFormRichardsNewtonEuler(ConstitutiveRelationsGenuchtenWithLayer* relations, double tau, Solution<double>* prev_time_sln, Mesh* mesh) 
                : WeakForm<double>(1), mesh(mesh) {
     JacobianFormNewtonEuler* jac_form = new JacobianFormNewtonEuler(0, 0, relations, tau);
-    jac_form->setExt(prev_time_sln);
+    jac_form->set_ext(prev_time_sln);
     add_matrix_form(jac_form);
 
     ResidualFormNewtonEuler* res_form = new ResidualFormNewtonEuler(0, relations, tau);
-    res_form->setExt(prev_time_sln);
+    res_form->set_ext(prev_time_sln);
     add_vector_form(res_form);
   }
 
@@ -191,11 +191,11 @@ class WeakFormRichardsNewtonCrankNicolson : public WeakForm<double>
 public:
   WeakFormRichardsNewtonCrankNicolson(ConstitutiveRelationsGenuchtenWithLayer* relations, double tau, Solution<double>* prev_time_sln, Mesh* mesh) : WeakForm<double>(1), mesh(mesh) {
     JacobianFormNewtonCrankNicolson* jac_form = new JacobianFormNewtonCrankNicolson(0, 0, relations, tau);
-    jac_form->setExt(prev_time_sln);
+    jac_form->set_ext(prev_time_sln);
     add_matrix_form(jac_form);
 
     ResidualFormNewtonCrankNicolson* res_form = new ResidualFormNewtonCrankNicolson(0, relations, tau);
-    res_form->setExt(prev_time_sln);
+    res_form->set_ext(prev_time_sln);
     add_vector_form(res_form);
   }
 
@@ -305,12 +305,12 @@ class WeakFormRichardsPicardEuler : public WeakForm<double>
 public:
   WeakFormRichardsPicardEuler(ConstitutiveRelationsGenuchtenWithLayer* relations, double tau, Solution<double>* prev_picard_sln, Solution<double>* prev_time_sln, Mesh* mesh) : WeakForm<double>(1), mesh(mesh) {
     JacobianFormPicardEuler* jac_form = new JacobianFormPicardEuler(0, 0, relations, tau);
-    jac_form->setExt(prev_picard_sln);
+    jac_form->set_ext(prev_picard_sln);
     add_matrix_form(jac_form);
 
     ResidualFormPicardEuler* res_form = new ResidualFormPicardEuler(0, relations, tau);
-    res_form->setExt(prev_picard_sln);
-    res_form->setExt(prev_time_sln);
+    res_form->set_ext(prev_picard_sln);
+    res_form->set_ext(prev_time_sln);
     add_vector_form(res_form);
   }
 

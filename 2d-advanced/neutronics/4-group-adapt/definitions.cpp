@@ -150,7 +150,7 @@ int power_iteration(const MaterialPropertyMaps& matprop,
     }
     catch(Hermes::Exceptions::Exception e)
     {
-      e.printMsg();
+      e.print_msg();
       throw Hermes::Exceptions::Exception("Newton's iteration failed.");
     };
 

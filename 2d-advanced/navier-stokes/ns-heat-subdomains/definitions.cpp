@@ -63,7 +63,7 @@ CustomWeakFormHeatAndFlow::CustomWeakFormHeatAndFlow(bool Stokes, double Reynold
     if (simple_temp_advection)     
     {
       CustomJacobianTempAdvection_3_3_simple* cjta_3_3_simple = new CustomJacobianTempAdvection_3_3_simple(3, 3, "Fluid");
-      cjta_3_3_simple->setExt(ext);
+      cjta_3_3_simple->set_ext(ext);
       add_matrix_form(cjta_3_3_simple);
     }
     else 
@@ -75,10 +75,10 @@ CustomWeakFormHeatAndFlow::CustomWeakFormHeatAndFlow(bool Stokes, double Reynold
 
     // Residual - flow part. 
     VectorFormNS_0* F_0 = new VectorFormNS_0(0, Stokes, Reynolds, time_step);
-    F_0->setExt(ext);
+    F_0->set_ext(ext);
     add_vector_form(F_0);
     VectorFormNS_1* F_1 = new VectorFormNS_1(1, Stokes, Reynolds, time_step);
-    F_1->setExt(ext);
+    F_1->set_ext(ext);
     add_vector_form(F_1);
     VectorFormNS_2* F_2 = new VectorFormNS_2(2);
     add_vector_form(F_2);
@@ -86,10 +86,10 @@ CustomWeakFormHeatAndFlow::CustomWeakFormHeatAndFlow(bool Stokes, double Reynold
     // Residual - temperature part.
     // Contribution from implicit Euler method.
     VectorFormTime *vft = new VectorFormTime(3, "Fluid", time_step);
-    vft->setExt(T_prev_time);
+    vft->set_ext(T_prev_time);
     add_vector_form(vft);
     vft = new VectorFormTime(3, "Graphite", time_step);
-    vft->setExt(T_prev_time);
+    vft->set_ext(T_prev_time);
     add_vector_form(vft);
     // Contribution from temperature diffusion.
     add_vector_form(new WeakFormsH1::DefaultResidualDiffusion<double>(3, "Fluid", new Hermes1DFunction<double>(thermal_conductivity_fluid/(rho_fluid * specific_heat_fluid))));
@@ -100,7 +100,7 @@ CustomWeakFormHeatAndFlow::CustomWeakFormHeatAndFlow(bool Stokes, double Reynold
     if (simple_temp_advection)     
     {
       CustomResidualTempAdvection_simple* crta_simple = new CustomResidualTempAdvection_simple(3, "Fluid");
-      crta_simple->setExt(ext);
+      crta_simple->set_ext(ext);
       add_vector_form(crta_simple);
     }
     else add_vector_form(new CustomResidualTempAdvection(3, "Fluid"));

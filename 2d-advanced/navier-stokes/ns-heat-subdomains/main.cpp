@@ -226,7 +226,7 @@ int main(int argc, char* argv[])
     }
     catch(Hermes::Exceptions::Exception e)
     {
-      e.printMsg();
+      e.print_msg();
     };
     {
       Hermes::vector<Solution<double> *> tmp(&xvel_prev_time, &yvel_prev_time, &p_prev_time, &temperature_prev_time);

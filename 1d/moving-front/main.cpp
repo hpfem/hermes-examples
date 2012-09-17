@@ -208,15 +208,15 @@ int main(int argc, char* argv[])
       
       try
       {
-        runge_kutta.setTime(current_time);
-        runge_kutta.setTimeStep(time_step);
+        runge_kutta.set_time(current_time);
+        runge_kutta.set_time_step(time_step);
         runge_kutta.set_newton_max_iter(NEWTON_MAX_ITER);
         runge_kutta.set_newton_tol(NEWTON_TOL);
         runge_kutta.rk_time_step_newton(&sln_time_prev, &sln_time_new);
       }
       catch(Exceptions::Exception& e)
       {
-        e.printMsg();
+        e.print_msg();
         throw Hermes::Exceptions::Exception("Runge-Kutta time step failed");
       }
 

@@ -259,8 +259,8 @@ int main(int argc, char* argv[])
          current_time, time_step, bt.get_size());
     try
     {
-      runge_kutta.setTime(current_time);
-      runge_kutta.setTimeStep(time_step);
+      runge_kutta.set_time(current_time);
+      runge_kutta.set_time_step(time_step);
       runge_kutta.set_newton_max_iter(NEWTON_MAX_ITER);
       runge_kutta.set_newton_tol(NEWTON_TOL);
       runge_kutta.rk_time_step_newton(&h_time_prev, 

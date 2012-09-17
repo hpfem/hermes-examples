@@ -287,7 +287,7 @@ int main (int argc, char* argv[]) {
   }
   catch(Hermes::Exceptions::Exception e)
   {
-    e.printMsg();
+    e.print_msg();
     throw Hermes::Exceptions::Exception("Newton's iteration failed.");
   };
 
@@ -375,7 +375,7 @@ int main (int argc, char* argv[]) {
       }
       catch(Hermes::Exceptions::Exception e)
       {
-        e.printMsg();
+        e.print_msg();
         throw Hermes::Exceptions::Exception("Newton's iteration failed.");
       };
 

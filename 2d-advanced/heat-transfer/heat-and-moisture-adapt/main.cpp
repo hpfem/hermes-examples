@@ -247,8 +247,8 @@ int main(int argc, char* argv[])
            current_time, time_step, bt.get_size());
       try
       {
-        runge_kutta.setTime(current_time);
-        runge_kutta.setTimeStep(time_step);
+        runge_kutta.set_time(current_time);
+        runge_kutta.set_time_step(time_step);
         runge_kutta.set_newton_max_iter(NEWTON_MAX_ITER);
         runge_kutta.set_newton_tol(NEWTON_TOL);
         runge_kutta.rk_time_step_newton(Hermes::vector<Solution<double> *>(&T_time_prev, &w_time_prev), 
@@ -256,7 +256,7 @@ int main(int argc, char* argv[])
       }
       catch(Exceptions::Exception& e)
       {
-        e.printMsg();
+        e.print_msg();
         throw Hermes::Exceptions::Exception("Runge-Kutta time step failed");
       }
 

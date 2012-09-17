@@ -134,8 +134,6 @@ const std::string BDY_INLET_LEFT = "4";
 
 int main(int argc, char* argv[])
 {
-  Hermes::Hermes2D::Hermes2DApi.setParamValue(Hermes::Hermes2D::numThreads, 8);
-
   // Load the mesh.
   Mesh mesh;
   MeshReaderH2D mloader;

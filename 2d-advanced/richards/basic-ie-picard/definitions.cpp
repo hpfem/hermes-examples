@@ -26,12 +26,12 @@ CustomWeakFormRichardsIEPicard::CustomWeakFormRichardsIEPicard(double time_step,
 {
   // Jacobian.
   CustomJacobian* matrix_form = new CustomJacobian(0, 0, time_step);
-  matrix_form->setExt(Hermes::vector<MeshFunction<double>*>(h_time_prev, h_iter_prev));
+  matrix_form->set_ext(Hermes::vector<MeshFunction<double>*>(h_time_prev, h_iter_prev));
   add_matrix_form(matrix_form);
 
   // Residual.
   CustomResidual* vector_form = new CustomResidual(0, time_step);
-  vector_form->setExt(Hermes::vector<MeshFunction<double>*>(h_time_prev, h_iter_prev));
+  vector_form->set_ext(Hermes::vector<MeshFunction<double>*>(h_time_prev, h_iter_prev));
   add_vector_form(vector_form);
 }
 

@@ -92,7 +92,7 @@ class CustomVectorFormSurf : public VectorFormSurf<std::complex<double> >
 {
 public:
   CustomVectorFormSurf(double omega, double J, std::string bnd) 
-    : VectorFormSurf<std::complex<double> >(0), omega(omega), J(J) { this->setArea(bnd);};
+    : VectorFormSurf<std::complex<double> >(0), omega(omega), J(J) { this->set_area(bnd);};
 
   template<typename Scalar, typename Real>
   Scalar vector_form_surf(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, 

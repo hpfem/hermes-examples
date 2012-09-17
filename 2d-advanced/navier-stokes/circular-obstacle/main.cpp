@@ -177,7 +177,7 @@ int main(int argc, char* argv[])
     }
     catch(Hermes::Exceptions::Exception e)
     {
-      e.printMsg();
+      e.print_msg();
     };
 
     // Update previous time level solutions.

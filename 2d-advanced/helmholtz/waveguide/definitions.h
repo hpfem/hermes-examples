@@ -132,7 +132,7 @@ private:
         double beta;
     public:
         MatrixFormSurfHelmholtz_real_imag(int i, int j, std::string area, double beta)
-              : MatrixFormSurf<double>(i, j), beta(beta){ this->setArea(area); };
+              : MatrixFormSurf<double>(i, j), beta(beta){ this->set_area(area); };
 
         template<typename Real, typename Scalar>
         Scalar matrix_form_surf(int n, double *wt, Func<Real> *u_ext[], Func<Real> *u, Func<Real> *v, 
@@ -153,7 +153,7 @@ private:
         double beta;
     public:
         MatrixFormSurfHelmholtz_imag_real(int i, int j, std::string area, double beta)
-              : MatrixFormSurf<double>(i, j), beta(beta){ this->setArea(area); };
+              : MatrixFormSurf<double>(i, j), beta(beta){ this->set_area(area); };
 
         template<typename Real, typename Scalar>
         Scalar matrix_form_surf(int n, double *wt, Func<Real> *u_ext[], Func<Real> *u, Func<Real> *v, 
@@ -224,7 +224,7 @@ private:
         double beta;
     public:
         VectorFormSurfHelmholtz_real(int i, std::string area, double beta)
-              : VectorFormSurf<double>(i), beta(beta) { this->setArea(area); };
+              : VectorFormSurf<double>(i), beta(beta) { this->set_area(area); };
 
         template<typename Real, typename Scalar>
         Scalar vector_form_surf(int n, double *wt, Func<Real> *u_ext[], Func<Real> *v, 
@@ -245,7 +245,7 @@ private:
         double beta;
     public:
         VectorFormSurfHelmholtz_imag(int i, std::string area, double beta)
-              : VectorFormSurf<double>(i), beta(beta) { this->setArea(area); };
+              : VectorFormSurf<double>(i), beta(beta) { this->set_area(area); };
 
         template<typename Real, typename Scalar>
         Scalar vector_form_surf(int n, double *wt, Func<Real> *u_ext[], Func<Real> *v, 

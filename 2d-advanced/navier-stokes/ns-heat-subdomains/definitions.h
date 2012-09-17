@@ -48,7 +48,7 @@ public:
   {
   public:
     BilinearFormTime(int i, int j, std::string area, double time_step) : MatrixFormVol<double>(i, j), time_step(time_step) {
-      this->setArea(area);
+      this->set_area(area);
     }
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<double> *ext) const
@@ -293,7 +293,7 @@ public:
   public:
     CustomJacobianTempAdvection_3_0(int i, int j, std::string area) : MatrixFormVol<double>(i, j) 
     {
-      this->setArea(area);
+      this->set_area(area);
     }
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<double> *ext) const
@@ -328,7 +328,7 @@ public:
   public:
     CustomJacobianTempAdvection_3_3_simple(int i, int j, std::string area) : MatrixFormVol<double>(i, j) 
     {
-      this->setArea(area);
+      this->set_area(area);
     }
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<double> *ext) const
@@ -365,7 +365,7 @@ public:
   public:
     CustomJacobianTempAdvection_3_1(int i, int j, std::string area) : MatrixFormVol<double>(i, j) 
     {
-      this->setArea(area);
+      this->set_area(area);
     }
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<double> *ext) const{
@@ -399,7 +399,7 @@ public:
   public:
     CustomJacobianTempAdvection_3_3(int i, int j, std::string area) : MatrixFormVol<double>(i, j) 
     {
-      this->setArea(area);
+      this->set_area(area);
     }
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<double> *ext) const
@@ -436,7 +436,7 @@ public:
   public:
     VectorFormTime(int i, std::string area, double time_step) : VectorFormVol<double>(i), time_step(time_step) 
     {
-      this->setArea(area);
+      this->set_area(area);
     }
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, ExtData<double> *ext) const
@@ -466,7 +466,7 @@ public:
   public:
     CustomResidualTempAdvection(int i, std::string area) : VectorFormVol<double>(i) 
     {
-      this->setArea(area);
+      this->set_area(area);
     }
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, ExtData<double> *ext) const
@@ -505,7 +505,7 @@ public:
   public:
     CustomResidualTempAdvection_simple(int i, std::string area) : VectorFormVol<double>(i) 
     {
-      this->setArea(area);
+      this->set_area(area);
     }
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, ExtData<double> *ext) const

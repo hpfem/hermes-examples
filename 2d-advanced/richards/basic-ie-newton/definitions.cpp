@@ -26,12 +26,12 @@ CustomWeakFormRichardsIE::CustomWeakFormRichardsIE(double time_step, Solution<do
 {
   // Jacobian volumetric part.
   CustomJacobianFormVol* jac_form_vol = new CustomJacobianFormVol(0, 0, time_step);
-  jac_form_vol->setExt(h_time_prev);
+  jac_form_vol->set_ext(h_time_prev);
   add_matrix_form(jac_form_vol);
 
   // Residual - volumetric.
   CustomResidualFormVol* res_form_vol = new CustomResidualFormVol(0, time_step);
-  res_form_vol->setExt(h_time_prev);
+  res_form_vol->set_ext(h_time_prev);
   add_vector_form(res_form_vol);
 }
 

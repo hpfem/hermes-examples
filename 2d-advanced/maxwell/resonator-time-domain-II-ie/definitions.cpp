@@ -10,10 +10,10 @@ CustomWeakFormWaveIE::CustomWeakFormWaveIE(double tau, double c_squared, Solutio
 
   // Residual.
   VectorFormVolWave_0* vector_form_0 = new VectorFormVolWave_0(tau);
-  vector_form_0->setExt(E_prev_sln);
+  vector_form_0->set_ext(E_prev_sln);
   add_vector_form(vector_form_0);
   VectorFormVolWave_1* vector_form_1 = new VectorFormVolWave_1(tau, c_squared);
-  vector_form_1->setExt(F_prev_sln);
+  vector_form_1->set_ext(F_prev_sln);
   add_vector_form(vector_form_1);
 }
 
