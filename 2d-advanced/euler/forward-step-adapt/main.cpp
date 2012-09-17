@@ -247,22 +247,28 @@ int main(int argc, char* argv[])
 
         continuity.get_last_record()->load_solutions(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e),
             Hermes::vector<Space<double> *>((*ref_spaces)[0], (*ref_spaces)[1], (*ref_spaces)[2], (*ref_spaces)[3]));
-
-        FluxLimiter flux_limiterLoading(FluxLimiter::Kuzmin, Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), ref_spaces_const, true);
-
-        flux_limiterLoading.limitOscillations = true;
-
-        int limited = flux_limiterLoading.limit_according_to_detector();
-        int counter = 0;
-        Hermes::Mixins::Loggable::Static::info("Limited in %d-th step: %d.", ++counter, limited);
-        while(limited > 10)
-        {
-          limited = flux_limiterLoading.limit_according_to_detector();
-          Hermes::Mixins::Loggable::Static::info("Limited in %d-th step: %d.", ++counter, limited);
-        }
-
-        flux_limiterLoading.get_limited_solutions(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
       }
+      else
+      {
+        OGProjection<double> ogProjection;
+        ogProjection.project_global(ref_spaces_const, Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), 
+        Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), Hermes::vector<Hermes::Hermes2D::ProjNormType>());
+      }
+
+      FluxLimiter flux_limiterLoading(FluxLimiter::Kuzmin, Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), ref_spaces_const, true);
+
+      flux_limiterLoading.limitOscillations = true;
+
+      int limited = flux_limiterLoading.limit_according_to_detector();
+      int counter = 0;
+      Hermes::Mixins::Loggable::Static::info("Limited in %d-th step: %d.", ++counter, limited);
+      while(limited > 10)
+      {
+        limited = flux_limiterLoading.limit_according_to_detector();
+        Hermes::Mixins::Loggable::Static::info("Limited in %d-th step: %d.", ++counter, limited);
+      }
+
+      flux_limiterLoading.get_limited_solutions(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
 
       if(iteration > std::max((int)(continuity.get_num() * EVERY_NTH_STEP + 1), 1))
       {
