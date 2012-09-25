@@ -1243,9 +1243,9 @@ void NumericalFlux::riemann_solver(double result[4], double w_L[4], double w_R[4
     }
 }
 
-// calculates the iget_num_surf()ed flux, for testing purposes
+// calculates the iget_nvert()ed flux, for testing purposes
 // it should return the same thing as riemann_solver(), only with minus sign
-void NumericalFlux::riemann_solver_iget_num_surf()(double result[4], double w_L[4], double w_R[4])
+void NumericalFlux::riemann_solver_iget_nvert()(double result[4], double w_L[4], double w_R[4])
 {
     double m[4][4];
     double _w_L[4];

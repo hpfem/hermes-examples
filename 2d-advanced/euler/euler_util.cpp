@@ -106,7 +106,7 @@ AsmList<double> al;
   double edge_length_max_lambda = 0.0;
 
   solutions[0]->set_active_element(e);
-  for(unsigned int edge_i = 0; edge_i < e->get_num_surf(); edge_i++) {
+  for(unsigned int edge_i = 0; edge_i < e->get_nvert(); edge_i++) {
     // Initialization.
     SurfPos surf_pos;
     surf_pos.marker = e->marker;
@@ -117,7 +117,7 @@ AsmList<double> al;
     int np = solutions[1]->get_quad_2d()->get_num_points(eo, e->get_mode());
 
     // Calculation of the edge length.
-    double edge_length = std::sqrt(std::pow(e->vn[(edge_i + 1) % e->get_num_surf()]->x - e->vn[edge_i]->x, 2) + std::pow(e->vn[(edge_i + 1) % e->get_num_surf()]->y - e->vn[edge_i]->y, 2));
+    double edge_length = std::sqrt(std::pow(e->vn[(edge_i + 1) % e->get_nvert()]->x - e->vn[edge_i]->x, 2) + std::pow(e->vn[(edge_i + 1) % e->get_nvert()]->y - e->vn[edge_i]->y, 2));
 
     // Calculation of the maximum eigenvalue of the matrix P.
     double max_eigen_value = 0.0;
@@ -213,9 +213,9 @@ AsmList<double> al;
 
 double ADEStabilityCalculation::approximate_inscribed_circle_radius(Element * e)
 {
-  double h = std::sqrt(std::pow(e->vn[(0 + 1) % e->get_num_surf()]->x - e->vn[0]->x, 2) + std::pow(e->vn[(0 + 1) % e->get_num_surf()]->y - e->vn[0]->y, 2));
-  for(int edge_i = 0; edge_i < e->get_num_surf(); edge_i++) {
-    double edge_length = std::sqrt(std::pow(e->vn[(edge_i + 1) % e->get_num_surf()]->x - e->vn[edge_i]->x, 2) + std::pow(e->vn[(edge_i + 1) % e->get_num_surf()]->y - e->vn[edge_i]->y, 2));
+  double h = std::sqrt(std::pow(e->vn[(0 + 1) % e->get_nvert()]->x - e->vn[0]->x, 2) + std::pow(e->vn[(0 + 1) % e->get_nvert()]->y - e->vn[0]->y, 2));
+  for(int edge_i = 0; edge_i < e->get_nvert(); edge_i++) {
+    double edge_length = std::sqrt(std::pow(e->vn[(edge_i + 1) % e->get_nvert()]->x - e->vn[edge_i]->x, 2) + std::pow(e->vn[(edge_i + 1) % e->get_nvert()]->y - e->vn[edge_i]->y, 2));
     if(edge_length < h)
       h = edge_length;
   }
@@ -246,9 +246,9 @@ KrivodonovaDiscontinuityDetector::~KrivodonovaDiscontinuityDetector()
 
 double KrivodonovaDiscontinuityDetector::calculate_h(Element* e, int polynomial_order)
 {
-  double h = std::sqrt(std::pow(e->vn[(0 + 1) % e->get_num_surf()]->x - e->vn[0]->x, 2) + std::pow(e->vn[(0 + 1) % e->get_num_surf()]->y - e->vn[0]->y, 2));
-  for(int edge_i = 0; edge_i < e->get_num_surf(); edge_i++) {
-    double edge_length = std::sqrt(std::pow(e->vn[(edge_i + 1) % e->get_num_surf()]->x - e->vn[edge_i]->x, 2) + std::pow(e->vn[(edge_i + 1) % e->get_num_surf()]->y - e->vn[edge_i]->y, 2));
+  double h = std::sqrt(std::pow(e->vn[(0 + 1) % e->get_nvert()]->x - e->vn[0]->x, 2) + std::pow(e->vn[(0 + 1) % e->get_nvert()]->y - e->vn[0]->y, 2));
+  for(int edge_i = 0; edge_i < e->get_nvert(); edge_i++) {
+    double edge_length = std::sqrt(std::pow(e->vn[(edge_i + 1) % e->get_nvert()]->x - e->vn[edge_i]->x, 2) + std::pow(e->vn[(edge_i + 1) % e->get_nvert()]->y - e->vn[edge_i]->y, 2));
     if(edge_length < h)
       h = edge_length;
   }
@@ -269,13 +269,13 @@ std::set<int>& KrivodonovaDiscontinuityDetector::get_discontinuous_element_ids(d
   for_all_active_elements(e, mesh)
   {
     bool element_inserted = false;
-    for(int edge_i = 0; edge_i < e->get_num_surf() && !element_inserted; edge_i++)
+    for(int edge_i = 0; edge_i < e->get_nvert() && !element_inserted; edge_i++)
       if(calculate_relative_flow_direction(e, edge_i) < 0 && !e->en[edge_i]->bnd)
       {
         double jumps[4];
         calculate_jumps(e, edge_i, jumps);
         double diameter_indicator = calculate_h(e, spaces[0]->get_element_order(e->id));
-        double edge_length = std::sqrt(std::pow(e->vn[(edge_i + 1) % e->get_num_surf()]->x - e->vn[edge_i]->x, 2) + std::pow(e->vn[(edge_i + 1) % e->get_num_surf()]->y - e->vn[edge_i]->y, 2));
+        double edge_length = std::sqrt(std::pow(e->vn[(edge_i + 1) % e->get_nvert()]->x - e->vn[edge_i]->x, 2) + std::pow(e->vn[(edge_i + 1) % e->get_nvert()]->y - e->vn[edge_i]->y, 2));
         double norms[4];
         calculate_norms(e, edge_i, norms);
 
@@ -533,7 +533,7 @@ std::set<int>& KuzminDiscontinuityDetector::get_discontinuous_element_ids()
     if(!limit_all_orders_independently)
       if(this->second_order_discontinuous_element_ids.find(e->id) == this->second_order_discontinuous_element_ids.end())
         continue;
-    if(e->get_num_surf() == 3)
+    if(e->get_nvert() == 3)
       throw Hermes::Exceptions::Exception("So far this limiter is implemented just for quads.");
     double u_c[4], u_dx_c[4], u_dy_c[4];
     find_centroid_values(e, u_c);
@@ -634,7 +634,7 @@ std::set<int>& KuzminDiscontinuityDetector::get_second_order_discontinuous_eleme
 
   for_all_active_elements(e, mesh)
   {
-    if(e->get_num_surf() == 3)
+    if(e->get_nvert() == 3)
       throw Hermes::Exceptions::Exception("So far this limiter is implemented just for quads.");
     double u_dx_c[4], u_dy_c[4], u_dxx_c[4], u_dxy_c[4], u_dyy_c[4];
     find_centroid_derivatives(e, u_dx_c, u_dy_c);
@@ -682,7 +682,7 @@ void KuzminDiscontinuityDetector::find_centroid_values(Hermes::Hermes2D::Element
 {
   double c_x, c_y;
   double c_ref_x, c_ref_y;
-  if(e->get_num_surf() == 3)
+  if(e->get_nvert() == 3)
   {
       c_x = (0.33333333333333333) * (e->vn[0]->x + e->vn[1]->x + e->vn[2]->x);
       c_y = (0.33333333333333333) * (e->vn[0]->y + e->vn[1]->y + e->vn[2]->y);
@@ -705,7 +705,7 @@ void KuzminDiscontinuityDetector::find_centroid_derivatives(Hermes::Hermes2D::El
 {
   double c_x, c_y;
   double c_ref_x, c_ref_y;
-  if(e->get_num_surf() == 3)
+  if(e->get_nvert() == 3)
   {
       c_x = (0.33333333333333333) * (e->vn[0]->x + e->vn[1]->x + e->vn[2]->x);
       c_y = (0.33333333333333333) * (e->vn[0]->y + e->vn[1]->y + e->vn[2]->y);
@@ -729,7 +729,7 @@ void KuzminDiscontinuityDetector::find_second_centroid_derivatives(Hermes::Herme
 {
   double c_x, c_y;
   double c_ref_x, c_ref_y;
-  if(e->get_num_surf() == 3)
+  if(e->get_nvert() == 3)
   {
       c_x = (0.33333333333333333) * (e->vn[0]->x + e->vn[1]->x + e->vn[2]->x);
       c_y = (0.33333333333333333) * (e->vn[0]->y + e->vn[1]->y + e->vn[2]->y);
@@ -755,7 +755,7 @@ void KuzminDiscontinuityDetector::find_vertex_values(Hermes::Hermes2D::Element* 
   double c_ref_x, c_ref_y;
   for(unsigned int i = 0; i < this->solutions.size(); i++)
   {
-    for(unsigned int j = 0; j < e->get_num_surf(); j++)
+    for(unsigned int j = 0; j < e->get_nvert(); j++)
     {
       solutions[i]->get_refmap()->set_active_element(e);
       solutions[i]->get_refmap()->untransform(e, e->vn[j]->x, e->vn[j]->y, c_ref_x, c_ref_y);
@@ -769,7 +769,7 @@ void KuzminDiscontinuityDetector::find_vertex_derivatives(Hermes::Hermes2D::Elem
   double c_ref_x, c_ref_y;
   for(unsigned int i = 0; i < this->solutions.size(); i++)
   {
-    for(unsigned int j = 0; j < e->get_num_surf(); j++)
+    for(unsigned int j = 0; j < e->get_nvert(); j++)
     {
       solutions[i]->get_refmap()->set_active_element(e);
       solutions[i]->get_refmap()->untransform(e, e->vn[j]->x, e->vn[j]->y, c_ref_x, c_ref_y);
@@ -781,7 +781,7 @@ void KuzminDiscontinuityDetector::find_vertex_derivatives(Hermes::Hermes2D::Elem
 
 void KuzminDiscontinuityDetector::find_u_i_min_max_first_order(Hermes::Hermes2D::Element* e, double u_i_min[4][4], double u_i_max[4][4])
 {
-  for(unsigned int j = 0; j < e->get_num_surf(); j++)
+  for(unsigned int j = 0; j < e->get_nvert(); j++)
   {
     Hermes::Hermes2D::NeighborSearch<double> ns(e, mesh);
     if(e->en[j]->bnd)
@@ -803,19 +803,19 @@ void KuzminDiscontinuityDetector::find_u_i_min_max_first_order(Hermes::Hermes2D:
     ns.set_active_segment(ns.get_num_neighbors() - 1);
     find_centroid_values(ns.get_neighb_el(), u_c);
     for(unsigned int min_i = 0; min_i < 4; min_i++)
-      if(u_i_min[min_i][(j + 1) % e->get_num_surf()] > u_c[min_i])
-        u_i_min[min_i][(j + 1) % e->get_num_surf()] = u_c[min_i];
+      if(u_i_min[min_i][(j + 1) % e->get_nvert()] > u_c[min_i])
+        u_i_min[min_i][(j + 1) % e->get_nvert()] = u_c[min_i];
     for(unsigned int max_i = 0; max_i < 4; max_i++)
-      if(u_i_max[max_i][(j + 1) % e->get_num_surf()] < u_c[max_i])
-        u_i_max[max_i][(j + 1) % e->get_num_surf()] = u_c[max_i];
+      if(u_i_max[max_i][(j + 1) % e->get_nvert()] < u_c[max_i])
+        u_i_max[max_i][(j + 1) % e->get_nvert()] = u_c[max_i];
 
     // Now the hard part, neighbors' neighbors.
     /// \todo This is where it fails for triangles, where it is much more complicated to look for elements sharing a vertex.
     ns.set_active_segment(0);
     Hermes::Hermes2D::NeighborSearch<double> ns_1(ns.get_neighb_el(), mesh);
-    if(ns.get_neighb_el()->en[(ns.get_neighbor_edge().local_num_of_edge + 1) % ns.get_neighb_el()->get_num_surf()]->bnd)
+    if(ns.get_neighb_el()->en[(ns.get_neighbor_edge().local_num_of_edge + 1) % ns.get_neighb_el()->get_nvert()]->bnd)
       continue;
-    ns_1.set_active_edge((ns.get_neighbor_edge().local_num_of_edge + 1) % ns.get_neighb_el()->get_num_surf());
+    ns_1.set_active_edge((ns.get_neighbor_edge().local_num_of_edge + 1) % ns.get_neighb_el()->get_nvert());
     ns_1.set_active_segment(0);
     find_centroid_values(ns_1.get_neighb_el(), u_c);
     for(unsigned int min_i = 0; min_i < 4; min_i++)
@@ -859,7 +859,7 @@ void KuzminDiscontinuityDetector::find_alpha_i_first_order(double u_i_min[4][4],
 void KuzminDiscontinuityDetector::find_alpha_i_first_order_real(Hermes::Hermes2D::Element* e, double u_i[4][4], double u_c[4], double u_dx_c[4], double u_dy_c[4], double alpha_i_real[4])
 {
   double c_x, c_y;
-  if(e->get_num_surf() == 3)
+  if(e->get_nvert() == 3)
   {
       c_x = (1/3) * (e->vn[0]->x + e->vn[1]->x + e->vn[2]->x);
       c_y = (1/3) * (e->vn[0]->y + e->vn[1]->y + e->vn[2]->y);
@@ -872,14 +872,14 @@ void KuzminDiscontinuityDetector::find_alpha_i_first_order_real(Hermes::Hermes2D
 
   alpha_i_real[0] = alpha_i_real[1] = alpha_i_real[2] = alpha_i_real[3] = -std::numeric_limits<double>::infinity();
   for(unsigned int sol_i = 0; sol_i < this->solutions.size(); sol_i++)
-    for(unsigned int vertex_i = 0; vertex_i < e->get_num_surf(); vertex_i++)
+    for(unsigned int vertex_i = 0; vertex_i < e->get_nvert(); vertex_i++)
       if( (u_i[sol_i][vertex_i] - u_c[sol_i]) / (u_dx_c[sol_i] * (e->vn[vertex_i]->x - c_x) + u_dy_c[sol_i] * (e->vn[vertex_i]->y - c_y)) > alpha_i_real[sol_i])
         alpha_i_real[sol_i] = (u_i[sol_i][vertex_i] - u_c[sol_i]) / (u_dx_c[sol_i] * (e->vn[vertex_i]->x - c_x) + u_dy_c[sol_i] * (e->vn[vertex_i]->y - c_y));
 }
 
 void KuzminDiscontinuityDetector::find_u_i_min_max_second_order(Hermes::Hermes2D::Element* e, double u_d_i_min[4][4][2], double u_d_i_max[4][4][2])
 {
-  for(unsigned int j = 0; j < e->get_num_surf(); j++)
+  for(unsigned int j = 0; j < e->get_nvert(); j++)
   {
     Hermes::Hermes2D::NeighborSearch<double> ns(e, mesh);
     if(e->en[j]->bnd)
@@ -910,26 +910,26 @@ void KuzminDiscontinuityDetector::find_u_i_min_max_second_order(Hermes::Hermes2D
     find_centroid_derivatives(ns.get_neighb_el(), u_dx_c, u_dy_c);
     for(unsigned int min_i = 0; min_i < 4; min_i++)
     {
-      if(u_d_i_min[min_i][(j + 1) % e->get_num_surf()][0] > u_dx_c[min_i])
-        u_d_i_min[min_i][(j + 1) % e->get_num_surf()][0] = u_dx_c[min_i];
-      if(u_d_i_min[min_i][(j + 1) % e->get_num_surf()][1] > u_dy_c[min_i])
-        u_d_i_min[min_i][(j + 1) % e->get_num_surf()][1] = u_dy_c[min_i];
+      if(u_d_i_min[min_i][(j + 1) % e->get_nvert()][0] > u_dx_c[min_i])
+        u_d_i_min[min_i][(j + 1) % e->get_nvert()][0] = u_dx_c[min_i];
+      if(u_d_i_min[min_i][(j + 1) % e->get_nvert()][1] > u_dy_c[min_i])
+        u_d_i_min[min_i][(j + 1) % e->get_nvert()][1] = u_dy_c[min_i];
     }
     for(unsigned int max_i = 0; max_i < 4; max_i++)
     {
-      if(u_d_i_max[max_i][(j + 1) % e->get_num_surf()][0] < u_dx_c[max_i])
-        u_d_i_max[max_i][(j + 1) % e->get_num_surf()][0] = u_dx_c[max_i];
-      if(u_d_i_max[max_i][(j + 1) % e->get_num_surf()][1] < u_dy_c[max_i])
-        u_d_i_max[max_i][(j + 1) % e->get_num_surf()][1] = u_dy_c[max_i];
+      if(u_d_i_max[max_i][(j + 1) % e->get_nvert()][0] < u_dx_c[max_i])
+        u_d_i_max[max_i][(j + 1) % e->get_nvert()][0] = u_dx_c[max_i];
+      if(u_d_i_max[max_i][(j + 1) % e->get_nvert()][1] < u_dy_c[max_i])
+        u_d_i_max[max_i][(j + 1) % e->get_nvert()][1] = u_dy_c[max_i];
     }
 
     // Now the hard part, neighbors' neighbors.
     /// \todo This is where it fails for triangles, where it is much more complicated to look for elements sharing a vertex.
     ns.set_active_segment(0);
     Hermes::Hermes2D::NeighborSearch<double> ns_1(ns.get_neighb_el(), mesh);
-    if(ns.get_neighb_el()->en[(ns.get_neighbor_edge().local_num_of_edge + 1) % ns.get_neighb_el()->get_num_surf()]->bnd)
+    if(ns.get_neighb_el()->en[(ns.get_neighbor_edge().local_num_of_edge + 1) % ns.get_neighb_el()->get_nvert()]->bnd)
       continue;
-    ns_1.set_active_edge((ns.get_neighbor_edge().local_num_of_edge + 1) % ns.get_neighb_el()->get_num_surf());
+    ns_1.set_active_edge((ns.get_neighbor_edge().local_num_of_edge + 1) % ns.get_neighb_el()->get_nvert());
     ns_1.set_active_segment(0);
     find_centroid_derivatives(ns_1.get_neighb_el(), u_dx_c, u_dy_c);
     for(unsigned int min_i = 0; min_i < 4; min_i++)
@@ -1000,7 +1000,7 @@ void KuzminDiscontinuityDetector::find_alpha_i_second_order(double u_d_i_min[4][
 void KuzminDiscontinuityDetector::find_alpha_i_second_order_real(Hermes::Hermes2D::Element* e, double u_i[4][4][2], double u_dx_c[4], double u_dy_c[4], double u_dxx_c[4], double u_dxy_c[4], double u_dyy_c[4], double alpha_i_real[4])
 {
   double c_x, c_y;
-  if(e->get_num_surf() == 3)
+  if(e->get_nvert() == 3)
   {
       c_x = (1/3) * (e->vn[0]->x + e->vn[1]->x + e->vn[2]->x);
       c_y = (1/3) * (e->vn[0]->y + e->vn[1]->y + e->vn[2]->y);
@@ -1013,7 +1013,7 @@ void KuzminDiscontinuityDetector::find_alpha_i_second_order_real(Hermes::Hermes2
 
   alpha_i_real[0] = alpha_i_real[1] = alpha_i_real[2] = alpha_i_real[3] = -std::numeric_limits<double>::infinity();
   for(unsigned int sol_i = 0; sol_i < this->solutions.size(); sol_i++)
-    for(unsigned int vertex_i = 0; vertex_i < e->get_num_surf(); vertex_i++)
+    for(unsigned int vertex_i = 0; vertex_i < e->get_nvert(); vertex_i++)
     {
       // dxx + dxy.
       if( (u_i[sol_i][vertex_i][0] - u_dx_c[sol_i]) / (u_dxx_c[sol_i] * (e->vn[vertex_i]->x - c_x) + u_dxy_c[sol_i] * (e->vn[vertex_i]->y - c_y)) > alpha_i_real[sol_i])

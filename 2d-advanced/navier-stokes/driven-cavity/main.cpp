@@ -70,7 +70,7 @@ double integrate_over_wall(MeshFunction<double>* meshfn, int marker)
 
   for_all_active_elements(e, mesh)
   {
-    for(int edge = 0; edge < e->get_num_surf(); edge++)
+    for(int edge = 0; edge < e->get_nvert(); edge++)
     {
       if ((e->en[edge]->bnd) && (e->en[edge]->marker == marker))
       {
