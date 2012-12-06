@@ -14,10 +14,10 @@ class CustomWeakForm : public WeakForm<double>
     Jacobian() : MatrixFormVol<double>(0, 0) { this->setSymFlag(HERMES_SYM);};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u,
-                        Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
+                        Func<double> *v, Geom<double> *e, Func<double>* *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v,
-                    Geom<Ord> *e, ExtData<Ord> *ext) const;
+                    Geom<Ord> *e, Func<Ord>* *ext) const;
     virtual MatrixFormVol<double>* clone() { return new Jacobian(); }
   };
   
@@ -28,10 +28,10 @@ class CustomWeakForm : public WeakForm<double>
     Residual(const Hermes::Hermes2DFunction<double>* rhs) : VectorFormVol<double>(0), rhs(rhs) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
-                         Geom<double> *e, ExtData<double> *ext) const;
+                         Geom<double> *e, Func<double>* *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v,
-                    Geom<Ord> *e, ExtData<Ord> *ext) const;
+                    Geom<Ord> *e, Func<Ord>* *ext) const;
    virtual VectorFormVol<double>* clone() { return new Residual(rhs); }
   };
   
@@ -89,14 +89,14 @@ public:
 
   virtual double value(int n, double *wt, Func<double> *u_ext[],
                        Func<double> *u, Func<double> *v, Geom<double> *e,
-                       ExtData<double> *ext) const
+                       Func<double>* *ext) const
   {
     return this->form->value(n, wt, u_ext, u, v, e, ext);
   }
 
   virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[],
                   Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e,
-                  ExtData<Ord> *ext) const
+                  Func<Ord>* *ext) const
   {
     return this->form->ord(n, wt, u_ext, u, v, e, ext);
   }
@@ -117,10 +117,10 @@ public:
 
   double value(int n, double *wt, 
                Func<double> *u_ext[], Func<double> *u, 
-               Geom<double> *e, ExtData<double> *ext) const;
+               Geom<double> *e, Func<double>* *ext) const;
 
   Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, 
-          Geom<Ord> *e, ExtData<Ord> *ext) const;
+          Geom<Ord> *e, Func<Ord>* *ext) const;
 
 private:
   CustomRightHandSide* rhs;
@@ -136,7 +136,7 @@ public:
   template<typename Real, typename Scalar>
   Real interface_estimator(int n, double *wt, 
                            Func<Scalar> *u_ext[], Func<Scalar> *u, 
-                           Geom<Real> *e, ExtData<Scalar> *ext) const
+                           Geom<Real> *e, Func<Scalar>* *ext) const
   {
     Scalar result = Scalar(0);
     for (int i = 0; i < n; i++)
@@ -147,14 +147,14 @@ public:
 
   virtual double value(int n, double *wt, Func<double> *u_ext[],
                        Func<double> *u, Geom<double> *e,
-                       ExtData<double> *ext) const
+                       Func<double>* *ext) const
   {
     return interface_estimator<double, double>(n, wt, u_ext, u, e, ext);
   }
 
   virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[],
                   Func<Ord> *u, Geom<Ord> *e,
-                  ExtData<Ord> *ext) const
+                  Func<Ord>* *ext) const
   {
     return interface_estimator<Ord, Ord>(n, wt, u_ext, u, e, ext);
   }

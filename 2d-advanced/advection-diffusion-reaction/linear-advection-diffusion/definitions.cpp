@@ -8,7 +8,7 @@ WeakFormLinearAdvectionDiffusion::WeakFormLinearAdvectionDiffusion(bool stabiliz
 
 template<typename Real, typename Scalar>
 Scalar WeakFormLinearAdvectionDiffusion::MatrixFormVolAdvectionDiffusion::matrix_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, 
-                                                                                      Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const 
+                                                                                      Func<Real> *v, Geom<Real> *e, Func<Scalar>* *ext) const 
 {
   Scalar result = Scalar(0);
   Real h_e = Real(e->diam);
@@ -47,13 +47,13 @@ MatrixFormVol<double>* WeakFormLinearAdvectionDiffusion::MatrixFormVolAdvectionD
 }
 
 double WeakFormLinearAdvectionDiffusion::MatrixFormVolAdvectionDiffusion::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
-                                                                                Func<double> *v, Geom<double> *e, ExtData<double> *ext) const 
+                                                                                Func<double> *v, Geom<double> *e, Func<double>* *ext) const 
 {
   return matrix_form<double, double>(n, wt, u_ext, u, v, e, ext);
 }
 
 Ord WeakFormLinearAdvectionDiffusion::MatrixFormVolAdvectionDiffusion::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
-                                                                           Geom<Ord> *e, ExtData<Ord> *ext) const 
+                                                                           Geom<Ord> *e, Func<Ord>* *ext) const 
 {
   return matrix_form<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
 }

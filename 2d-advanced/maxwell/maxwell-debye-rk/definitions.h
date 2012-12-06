@@ -81,10 +81,10 @@ private:
       : MatrixFormVol<double>(0, 0), eps_q(eps_q), tau(tau) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
-        Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
+        Func<double> *v, Geom<double> *e, Func<double>* *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
-        Geom<Ord> *e, ExtData<Ord> *ext) const;
+        Geom<Ord> *e, Func<Ord>* *ext) const;
 
     virtual MatrixFormVol<double>* clone();
 
@@ -97,10 +97,10 @@ private:
   MatrixFormVolMD_0_1(double eps_0, double eps_inf) : MatrixFormVol<double>(0, 1), eps_0(eps_0), eps_inf(eps_inf) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
-        Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
+        Func<double> *v, Geom<double> *e, Func<double>* *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
-        Geom<Ord> *e, ExtData<Ord> *ext) const;
+        Geom<Ord> *e, Func<Ord>* *ext) const;
 
     virtual MatrixFormVol<double>* clone();
 
@@ -113,10 +113,10 @@ private:
   MatrixFormVolMD_0_2(double eps_0, double eps_inf, double tau) : MatrixFormVol<double>(0, 2), eps_0(eps_0), eps_inf(eps_inf), tau(tau) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
-        Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
+        Func<double> *v, Geom<double> *e, Func<double>* *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
-        Geom<Ord> *e, ExtData<Ord> *ext) const;
+        Geom<Ord> *e, Func<Ord>* *ext) const;
 
     virtual MatrixFormVol<double>* clone();
 
@@ -129,10 +129,10 @@ private:
   MatrixFormVolMD_1_0(double mu_0) : MatrixFormVol<double>(1, 0), mu_0(mu_0) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
-        Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
+        Func<double> *v, Geom<double> *e, Func<double>* *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
-        Geom<Ord> *e, ExtData<Ord> *ext) const;
+        Geom<Ord> *e, Func<Ord>* *ext) const;
 
     virtual MatrixFormVol<double>* clone();
 
@@ -145,10 +145,10 @@ private:
   MatrixFormVolMD_2_0(double eps_0, double eps_inf, double eps_q, double tau) : MatrixFormVol<double>(2, 0), eps_0(eps_0), eps_inf(eps_inf), eps_q(eps_q), tau(tau) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
-        Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
+        Func<double> *v, Geom<double> *e, Func<double>* *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
-        Geom<Ord> *e, ExtData<Ord> *ext) const;
+        Geom<Ord> *e, Func<Ord>* *ext) const;
 
     virtual MatrixFormVol<double>* clone();
 
@@ -161,10 +161,10 @@ private:
   MatrixFormVolMD_2_2(double tau) : MatrixFormVol<double>(2, 2), tau(tau) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
-        Func<double> *v, Geom<double> *e, ExtData<double> *ext) const;
+        Func<double> *v, Geom<double> *e, Func<double>* *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
-        Geom<Ord> *e, ExtData<Ord> *ext) const;
+        Geom<Ord> *e, Func<Ord>* *ext) const;
 
     virtual MatrixFormVol<double>* clone();
 
@@ -177,10 +177,10 @@ private:
   VectorFormVolMD_0(double eps_0, double eps_inf, double eps_q, double tau) : VectorFormVol<double>(0), eps_0(eps_0), eps_inf(eps_inf), eps_q(eps_q), tau(tau) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
-        Geom<double> *e, ExtData<double> *ext) const;
+        Geom<double> *e, Func<double>* *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
-        ExtData<Ord> *ext) const;
+        Func<Ord>* *ext) const;
 
     virtual VectorFormVol<double>* clone();
 
@@ -193,10 +193,10 @@ private:
   VectorFormVolMD_1(double mu_0) : VectorFormVol<double>(1), mu_0(mu_0) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
-        Geom<double> *e, ExtData<double> *ext) const;
+        Geom<double> *e, Func<double>* *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
-        ExtData<Ord> *ext) const;
+        Func<Ord>* *ext) const;
 
     virtual VectorFormVol<double>* clone();
 
@@ -209,10 +209,10 @@ private:
   VectorFormVolMD_2(double eps_0, double eps_inf, double eps_q, double tau) : VectorFormVol<double>(2), eps_0(eps_0), eps_inf(eps_inf), eps_q(eps_q), tau(tau) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
-        Geom<double> *e, ExtData<double> *ext) const;
+        Geom<double> *e, Func<double>* *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
-        ExtData<Ord> *ext) const;
+        Func<Ord>* *ext) const;
 
     virtual VectorFormVol<double>* clone();
 

@@ -36,11 +36,11 @@ CustomWeakFormRichardsIE::CustomWeakFormRichardsIE(double time_step, Solution<do
 }
 
 double CustomWeakFormRichardsIE::CustomJacobianFormVol::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
-                                                              Func<double> *v, Geom<double> *e, ExtData<double> *ext) const 
+                                                              Func<double> *v, Geom<double> *e, Func<double>* *ext) const 
 {
   double result = 0;
   Func<double>* h_prev_newton = u_ext[0];
-  Func<double>* h_prev_time = ext->fn[0];
+  Func<double>* h_prev_time = ext[0];
   for (int i = 0; i < n; i++)
   {
     double h_val_i = h_prev_newton->val[i] - H_OFFSET;
@@ -57,7 +57,7 @@ double CustomWeakFormRichardsIE::CustomJacobianFormVol::value(int n, double *wt,
 }
 
 Ord CustomWeakFormRichardsIE::CustomJacobianFormVol::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, 
-                                                         Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const 
+                                                         Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const 
 {
   return Ord(10);
 }
@@ -68,11 +68,11 @@ MatrixFormVol<double>* CustomWeakFormRichardsIE::CustomJacobianFormVol::clone()
 }
 
 double CustomWeakFormRichardsIE::CustomResidualFormVol::value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e,
-                                                              ExtData<double> *ext) const 
+                                                              Func<double>* *ext) const 
 {
   double result = 0;
   Func<double>* h_prev_newton = u_ext[0];
-  Func<double>* h_prev_time = ext->fn[0];
+  Func<double>* h_prev_time = ext[0];
   for (int i = 0; i < n; i++)
   {
     double h_val_i = h_prev_newton->val[i] - H_OFFSET;
@@ -84,7 +84,7 @@ double CustomWeakFormRichardsIE::CustomResidualFormVol::value(int n, double *wt,
   return result;
 }
 
-Ord CustomWeakFormRichardsIE::CustomResidualFormVol::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const 
+Ord CustomWeakFormRichardsIE::CustomResidualFormVol::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const 
 {
   return Ord(10);
 }

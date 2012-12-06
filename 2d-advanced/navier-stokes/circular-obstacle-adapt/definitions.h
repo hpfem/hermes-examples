@@ -19,10 +19,10 @@ public:
     BilinearFormSymVel(int i, int j, bool Stokes, double Reynolds, double time_step);
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
-                         Geom<double> *e, ExtData<double> *ext) const;
+                         Geom<double> *e, Func<double>* *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
-                    Geom<Ord> *e, ExtData<Ord> *ext);
+                    Geom<Ord> *e, Func<Ord>* *ext);
 
   protected:
     bool Stokes;
@@ -36,10 +36,10 @@ public:
     BilinearFormNonsymVel(int i, int j, bool Stokes);
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
-                         Geom<double> *e, ExtData<double> *ext) const;
+                         Geom<double> *e, Func<double>* *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, 
-                    ExtData<Ord> *ext) const;
+                    Func<Ord>* *ext) const;
 
   protected:
     bool Stokes;
@@ -52,10 +52,10 @@ public:
     BilinearFormNonsymXVelPressure(int i, int j);
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
-                         Geom<double> *e, ExtData<double> *ext) const;
+                         Geom<double> *e, Func<double>* *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, 
-                    ExtData<Ord> *ext) const;
+                    Func<Ord>* *ext) const;
   };
 
   class BilinearFormNonsymYVelPressure : public MatrixFormVol<double>
@@ -64,10 +64,10 @@ public:
     BilinearFormNonsymYVelPressure(int i, int j);
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
-                         Geom<double> *e, ExtData<double> *ext) const;
+                         Geom<double> *e, Func<double>* *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, 
-                    ExtData<Ord> *ext) const;
+                    Func<Ord>* *ext) const;
   };
 
   class VectorFormVolVel : public VectorFormVol<double>
@@ -76,9 +76,9 @@ public:
     VectorFormVolVel(int i, bool Stokes, double time_step);
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, 
-                         ExtData<double> *ext) const;
+                         Func<double>* *ext) const;
 
-    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const;
+    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const;
 
   protected:
     bool Stokes;
@@ -105,10 +105,10 @@ public:
     BilinearFormSymVel(int i, int j, bool Stokes, double Reynolds, double time_step);
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
-                         Geom<double> *e, ExtData<double> *ext) const;
+                         Geom<double> *e, Func<double>* *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, 
-                    ExtData<Ord> *ext) const;
+                    Func<Ord>* *ext) const;
     MatrixFormVol<double>* clone()
     {
       return new BilinearFormSymVel(this->i, this->j, this->Stokes, this->Reynolds, this->time_step);
@@ -125,10 +125,10 @@ public:
     BilinearFormNonsymVel_0_0(int i, int j, bool Stokes);
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
-                         Geom<double> *e, ExtData<double> *ext) const;
+                         Geom<double> *e, Func<double>* *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, 
-                    ExtData<Ord> *ext) const;
+                    Func<Ord>* *ext) const;
     MatrixFormVol<double>* clone()
     {
       return new BilinearFormNonsymVel_0_0(this->i, this->j, this->Stokes);
@@ -144,10 +144,10 @@ public:
     BilinearFormNonsymVel_0_1(int i, int j, bool Stokes);
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
-                         Geom<double> *e, ExtData<double> *ext) const;
+                         Geom<double> *e, Func<double>* *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, 
-                    ExtData<Ord> *ext) const;
+                    Func<Ord>* *ext) const;
     MatrixFormVol<double>* clone()
     {
       return new BilinearFormNonsymVel_0_1(this->i, this->j, this->Stokes);
@@ -162,10 +162,10 @@ public:
     BilinearFormNonsymVel_1_0(int i, int j, bool Stokes);
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
-                         Geom<double> *e, ExtData<double> *ext) const;
+                         Geom<double> *e, Func<double>* *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, 
-                    ExtData<Ord> *ext) const;
+                    Func<Ord>* *ext) const;
     MatrixFormVol<double>* clone()
     {
       return new BilinearFormNonsymVel_1_0(this->i, this->j, this->Stokes);
@@ -180,10 +180,10 @@ public:
     BilinearFormNonsymVel_1_1(int i, int j, bool Stokes);
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
-                         Geom<double> *e, ExtData<double> *ext) const;
+                         Geom<double> *e, Func<double>* *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, 
-                    ExtData<Ord> *ext) const;
+                    Func<Ord>* *ext) const;
     MatrixFormVol<double>* clone()
     {
       return new BilinearFormNonsymVel_1_1(this->i, this->j, this->Stokes);
@@ -198,10 +198,10 @@ public:
     BilinearFormNonsymXVelPressure(int i, int j);
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
-                         Geom<double> *e, ExtData<double> *ext) const;
+                         Geom<double> *e, Func<double>* *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, 
-                    ExtData<Ord> *ext) const;
+                    Func<Ord>* *ext) const;
     MatrixFormVol<double>* clone()
     {
       return new BilinearFormNonsymXVelPressure(this->i, this->j);
@@ -214,10 +214,10 @@ public:
     BilinearFormNonsymYVelPressure(int i, int j);
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
-                         Geom<double> *e, ExtData<double> *ext) const;
+                         Geom<double> *e, Func<double>* *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, 
-                    ExtData<Ord> *ext) const;
+                    Func<Ord>* *ext) const;
     MatrixFormVol<double>* clone()
     {
       return new BilinearFormNonsymYVelPressure(this->i, this->j);
@@ -230,9 +230,9 @@ public:
     VectorFormNS_0(int i, bool Stokes, double Reynolds, double time_step);
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, 
-                         ExtData<double> *ext) const;
+                         Func<double>* *ext) const;
 
-    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const;
+    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const;
 
     VectorFormVol<double>* clone()
     {
@@ -250,9 +250,9 @@ public:
     VectorFormNS_1(int i, bool Stokes, double Reynolds, double time_step);
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, 
-                         ExtData<double> *ext) const;
+                         Func<double>* *ext) const;
 
-    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const;
+    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const;
 
     VectorFormVol<double>* clone()
     {
@@ -270,9 +270,9 @@ public:
     VectorFormNS_2(int i);
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, 
-                         ExtData<double> *ext) const;
+                         Func<double>* *ext) const;
 
-    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const;
+    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const;
 
     VectorFormVol<double>* clone()
     {

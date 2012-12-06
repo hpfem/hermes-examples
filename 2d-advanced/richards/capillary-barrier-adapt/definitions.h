@@ -90,11 +90,11 @@ private:
 
     template<typename Real, typename Scalar>
     Scalar matrix_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, 
-                       Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const {
+                       Func<Real> *v, Geom<Real> *e, Func<Scalar>* *ext) const {
                          std::string elem_marker = static_cast<WeakFormRichardsNewtonEuler*>(wf)->mesh->get_element_markers_conversion().get_user_marker(e->elem_marker).marker;
       double result = 0;
       Func<double>* h_prev_newton = u_ext[0];
-      Func<double>* h_prev_time = ext->fn[0];
+      Func<double>* h_prev_time = ext[0];
 
       for (int i = 0; i < n; i++)
         result += wt[i] * (
@@ -117,12 +117,12 @@ private:
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
-                 Func<double> *v, Geom<double> *e, ExtData<double> *ext) const {
+                 Func<double> *v, Geom<double> *e, Func<double>* *ext) const {
       return matrix_form<double, double>(n, wt, u_ext, u, v, e, ext);
     }
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, 
-            Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const {
+            Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const {
       return Ord(30);
     }
 
@@ -145,11 +145,11 @@ private:
                : VectorFormVol<double>(i), tau(tau), relations(relations) { }
 
     template<typename Real, typename Scalar>
-    Scalar vector_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const {
+    Scalar vector_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, Func<Scalar>* *ext) const {
       std::string elem_marker = static_cast<WeakFormRichardsNewtonEuler*>(wf)->mesh->get_element_markers_conversion().get_user_marker(e->elem_marker).marker;
       double result = 0;
       Func<double>* h_prev_newton = u_ext[0];
-      Func<double>* h_prev_time = ext->fn[0];
+      Func<double>* h_prev_time = ext[0];
       for (int i = 0; i < n; i++) {
         result += wt[i] * (
 		           relations->C(h_prev_newton->val[i], atoi(elem_marker.c_str())) 
@@ -162,11 +162,11 @@ private:
       return result;
     }
 
-    virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, ExtData<double> *ext) const {
+    virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, Func<double>* *ext) const {
       return vector_form<double, double>(n, wt, u_ext, v, e, ext);
     }
 
-    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const {
+    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const {
       return Ord(30);
     }
     
@@ -208,11 +208,11 @@ private:
 
     template<typename Real, typename Scalar>
     Scalar matrix_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, 
-                       Geom<Real> *e, ExtData<Scalar> *ext) const {
+                       Geom<Real> *e, Func<Scalar>* *ext) const {
       std::string elem_marker = static_cast<WeakFormRichardsNewtonCrankNicolson*>(wf)->mesh->get_element_markers_conversion().get_user_marker(e->elem_marker).marker;
       double result = 0;
       Func<double>* h_prev_newton = u_ext[0];
-      Func<double>* h_prev_time = ext->fn[0];
+      Func<double>* h_prev_time = ext[0];
       for (int i = 0; i < n; i++)
         result += wt[i] * 0.5 * ( // implicit Euler part:
 		             relations->C(h_prev_newton->val[i], atoi(elem_marker.c_str())) * u->val[i] * v->val[i] / tau
@@ -230,7 +230,7 @@ private:
       return result;
     }
 
-    virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<double> *ext) const {
+    virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, Func<double>* *ext) const {
       return matrix_form<double, double>(n, wt, u_ext, u, v, e, ext);
     }
     
@@ -241,7 +241,7 @@ private:
       return form;
     }
 
-    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const {
+    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const {
       return Ord(30);
     }
 
@@ -256,11 +256,11 @@ private:
     ResidualFormNewtonCrankNicolson(int i, ConstitutiveRelationsGenuchtenWithLayer* relations, double tau) : VectorFormVol<double>(i), tau(tau), relations(relations) { }
 
     template<typename Real, typename Scalar>
-    Scalar vector_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const {
+    Scalar vector_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, Func<Scalar>* *ext) const {
       double result = 0;
       std::string elem_marker = static_cast<WeakFormRichardsNewtonCrankNicolson*>(wf)->mesh->get_element_markers_conversion().get_user_marker(e->elem_marker).marker;
       Func<double>* h_prev_newton = u_ext[0];
-      Func<double>* h_prev_time = ext->fn[0];
+      Func<double>* h_prev_time = ext[0];
       for (int i = 0; i < n; i++) {
         result += wt[i] * 0.5 * ( // implicit Euler part
 		           relations->C(h_prev_newton->val[i], atoi(elem_marker.c_str())) * (h_prev_newton->val[i] - h_prev_time->val[i]) * v->val[i] / tau
@@ -276,11 +276,11 @@ private:
       return result;
     }
 
-    virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, ExtData<double> *ext) const {
+    virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, Func<double>* *ext) const {
       return vector_form<double, double>(n, wt, u_ext, v, e, ext);
     }
 
-    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const {
+    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const {
       return Ord(30);
     }
     
@@ -323,10 +323,10 @@ private:
 
     template<typename Real, typename Scalar>
     Scalar matrix_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, 
-                       Geom<Real> *e, ExtData<Scalar> *ext) const {
+                       Geom<Real> *e, Func<Scalar>* *ext) const {
       std::string elem_marker = static_cast<WeakFormRichardsPicardEuler*>(wf)->mesh->get_element_markers_conversion().get_user_marker(e->elem_marker).marker;
       double result = 0;
-      Func<double>* h_prev_picard = ext->fn[0];
+      Func<double>* h_prev_picard = ext[0];
 
       for (int i = 0; i < n; i++) {
         result += wt[i] * (  relations->C(h_prev_picard->val[i], atoi(elem_marker.c_str())) * u->val[i] * v->val[i] / tau
@@ -336,7 +336,7 @@ private:
       return result;
     }
 
-    virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, ExtData<double> *ext) const {
+    virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, Func<double>* *ext) const {
       return matrix_form<double, double>(n, wt, u_ext, u, v, e, ext);
     }
     
@@ -347,7 +347,7 @@ private:
       return form;
     }
 
-    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const {
+    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const {
       return Ord(30);
     }
 
@@ -362,17 +362,17 @@ private:
     ResidualFormPicardEuler(int i, ConstitutiveRelationsGenuchtenWithLayer* relations, double tau) : VectorFormVol<double>(i), tau(tau), relations(relations) { }
 
     template<typename Real, typename Scalar>
-    Scalar vector_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const {
+    Scalar vector_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, Geom<Real> *e, Func<Scalar>* *ext) const {
       std::string elem_marker = static_cast<WeakFormRichardsPicardEuler*>(wf)->mesh->get_element_markers_conversion().get_user_marker(e->elem_marker).marker;
       double result = 0;
-      Func<double>* h_prev_picard = ext->fn[0];
-      Func<double>* h_prev_time = ext->fn[1];
+      Func<double>* h_prev_picard = ext[0];
+      Func<double>* h_prev_time = ext[1];
       for (int i = 0; i < n; i++) 
         result += wt[i] * relations->C(h_prev_picard->val[i], atoi(elem_marker.c_str())) * h_prev_time->val[i] * v->val[i] / tau;
       return result;
     }
 
-    virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, ExtData<double> *ext) const {
+    virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, Func<double>* *ext) const {
       return vector_form<double, double>(n, wt, u_ext, v, e, ext);
     }
     
@@ -383,7 +383,7 @@ private:
       return form;
     }
 
-    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const {
+    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const {
       return Ord(30);
     }
     

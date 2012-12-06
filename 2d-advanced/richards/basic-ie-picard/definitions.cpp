@@ -36,12 +36,12 @@ CustomWeakFormRichardsIEPicard::CustomWeakFormRichardsIEPicard(double time_step,
 }
 
 double CustomWeakFormRichardsIEPicard::CustomJacobian::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
-                                                             Func<double> *v, Geom<double> *e, ExtData<double> *ext) const 
+                                                             Func<double> *v, Geom<double> *e, Func<double>* *ext) const 
 {
   double result = 0;
   Func<double>* h_prev_newton = u_ext[0];
-  Func<double>* h_prev_time = ext->fn[0];
-  Func<double>* h_prev_picard = ext->fn[1];
+  Func<double>* h_prev_time = ext[0];
+  Func<double>* h_prev_picard = ext[1];
   for (int i = 0; i < n; i++)
   {
     double h_prev_newton_i = h_prev_newton->val[i] - H_OFFSET;
@@ -56,7 +56,7 @@ double CustomWeakFormRichardsIEPicard::CustomJacobian::value(int n, double *wt, 
 }
 
 Ord CustomWeakFormRichardsIEPicard::CustomJacobian::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, 
-                                                        Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const 
+                                                        Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const 
 {
   return Ord(10);
 }
@@ -67,12 +67,12 @@ MatrixFormVol<double>* CustomWeakFormRichardsIEPicard::CustomJacobian::clone()
 }
 
 double CustomWeakFormRichardsIEPicard::CustomResidual::value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e,
-                                                             ExtData<double> *ext) const 
+                                                             Func<double>* *ext) const 
 {
   double result = 0;
   Func<double>* h_prev_newton = u_ext[0];
-  Func<double>* h_prev_time = ext->fn[0];
-  Func<double>* h_prev_picard = ext->fn[1];
+  Func<double>* h_prev_time = ext[0];
+  Func<double>* h_prev_picard = ext[1];
   for (int i = 0; i < n; i++)
   {
     double h_prev_newton_i = h_prev_newton->val[i] - H_OFFSET;
@@ -87,7 +87,7 @@ double CustomWeakFormRichardsIEPicard::CustomResidual::value(int n, double *wt, 
 }
 
 Ord CustomWeakFormRichardsIEPicard::CustomResidual::ord(int n, double *wt, Func<Ord> *u_ext[], 
-                                                               Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const 
+                                                               Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const 
 {
   return Ord(10);
 }

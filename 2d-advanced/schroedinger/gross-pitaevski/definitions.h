@@ -41,13 +41,13 @@ private:
 
     template<typename Real, typename Scalar>
     Scalar matrix_form_rk(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u,
-                          Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const;
+                          Func<Real> *v, Geom<Real> *e, Func<Scalar>* *ext) const;
 
     virtual std::complex<double>  value(int n, double *wt, Func<std::complex<double> > *u_ext[], Func<double> *u, 
-                         Func<double> *v, Geom<double> *e, ExtData<std::complex<double> > *ext) const;
+                         Func<double> *v, Geom<double> *e, Func<std::complex<double> > **ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, 
-                    Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const;
+                    Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const;
 
     virtual MatrixFormVol<std::complex<double> >* clone();
 
@@ -64,13 +64,13 @@ private:
 
     template<typename Real, typename Scalar>
     Scalar vector_form_rk(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v,
-                            Geom<Real> *e, ExtData<Scalar> *ext) const;
+                            Geom<Real> *e, Func<Scalar>* *ext) const;
 
     virtual std::complex<double>  value(int n, double *wt, Func<std::complex<double> > *u_ext[], Func<double> *v, Geom<double> *e,
-                         ExtData<std::complex<double> > *ext) const;
+                         Func<std::complex<double> > **ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
-                    ExtData<Ord> *ext) const;
+                    Func<Ord>* *ext) const;
 
     virtual VectorFormVol<std::complex<double> >* clone();
 

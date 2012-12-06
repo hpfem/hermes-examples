@@ -24,7 +24,7 @@ private:
 
     template<typename Real, typename Scalar>
     Real matrix_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u,
-                       Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const {
+                       Func<Real> *v, Geom<Real> *e, Func<Scalar>* *ext) const {
       Real result = Real(0);
       Func<Scalar>* prev_newton;
       switch(i * 10 + j) {
@@ -64,12 +64,12 @@ private:
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u,
-                 Func<double> *v, Geom<double> *e, ExtData<double> *ext) const {
+                 Func<double> *v, Geom<double> *e, Func<double>* *ext) const {
       return matrix_form<double, double>(n, wt, u_ext, u, v, e, ext);
     }
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v,
-            Geom<Ord> *e, ExtData<Ord> *ext) const {
+            Geom<Ord> *e, Func<Ord>* *ext) const {
       return matrix_form<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
     }
 
@@ -92,7 +92,7 @@ private:
 
         template<typename Real, typename Scalar>
         Real vector_form(int n, double *wt, Func<Scalar> *u_ext[],
-                            Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const {
+                            Func<Real> *v, Geom<Real> *e, Func<Scalar>* *ext) const {
           Real result = Real(0);
           Func<Scalar>* C_prev_time;
           Func<Scalar>* phi_prev_time;
@@ -100,8 +100,8 @@ private:
           Func<Scalar>* phi_prev_newton;
           switch(i) {
             case 0:
-              C_prev_time = ext->fn[0];
-              phi_prev_time = ext->fn[1];
+              C_prev_time = ext[0];
+              phi_prev_time = ext[1];
               C_prev_newton = u_ext[0];
               phi_prev_newton = u_ext[1];
               for (int i = 0; i < n; i++) {
@@ -128,12 +128,12 @@ private:
         }
 
         virtual double value(int n, double *wt, Func<double> *u_ext[],
-                     Func<double> *v, Geom<double> *e, ExtData<double> *ext) const {
+                     Func<double> *v, Geom<double> *e, Func<double>* *ext) const {
           return vector_form<double, double>(n, wt, u_ext, v, e, ext);
         }
 
         virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v,
-                Geom<Ord> *e, ExtData<Ord> *ext) const {
+                Geom<Ord> *e, Func<Ord>* *ext) const {
           return vector_form<Ord, Ord>(n, wt, u_ext, v, e, ext);
         }
         
@@ -176,7 +176,7 @@ private:
 
     template<typename Real, typename Scalar>
     Real matrix_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u,
-                       Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const {
+                       Func<Real> *v, Geom<Real> *e, Func<Scalar>* *ext) const {
       Real result = Real(0);
       Func<Scalar>* prev_newton;
       switch(i * 10 + j) {
@@ -216,12 +216,12 @@ private:
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u,
-                 Func<double> *v, Geom<double> *e, ExtData<double> *ext) const {
+                 Func<double> *v, Geom<double> *e, Func<double>* *ext) const {
       return matrix_form<double, double>(n, wt, u_ext, u, v, e, ext);
     }
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v,
-            Geom<Ord> *e, ExtData<Ord> *ext) const {
+            Geom<Ord> *e, Func<Ord>* *ext) const {
       return matrix_form<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
     }
     
@@ -247,7 +247,7 @@ private:
 
       template<typename Real, typename Scalar>
       Real vector_form(int n, double *wt, Func<Scalar> *u_ext[],
-                          Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const {
+                          Func<Real> *v, Geom<Real> *e, Func<Scalar>* *ext) const {
         Real result = Real(0);
         Func<Scalar>* C_prev_time;
         Func<Scalar>* phi_prev_time;
@@ -257,8 +257,8 @@ private:
         Func<Scalar>* u2_prev_newton;
         switch(i) {
           case 0:
-            C_prev_time = ext->fn[0];
-            phi_prev_time = ext->fn[1];
+            C_prev_time = ext[0];
+            phi_prev_time = ext[1];
             C_prev_newton = u_ext[0];
             phi_prev_newton = u_ext[1];
             for (int i = 0; i < n; i++) {
@@ -285,12 +285,12 @@ private:
       }
 
       virtual double value(int n, double *wt, Func<double> *u_ext[],
-                   Func<double> *v, Geom<double> *e, ExtData<double> *ext) const {
+                   Func<double> *v, Geom<double> *e, Func<double>* *ext) const {
         return vector_form<double, double>(n, wt, u_ext, v, e, ext);
       }
 
       virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v,
-              Geom<Ord> *e, ExtData<Ord> *ext) const {
+              Geom<Ord> *e, Func<Ord>* *ext) const {
         return vector_form<Ord, Ord>(n, wt, u_ext, v, e, ext);
       }
       
@@ -335,7 +335,7 @@ private:
 
     template<typename Real, typename Scalar>
     Real matrix_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u,
-                       Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const {
+                       Func<Real> *v, Geom<Real> *e, Func<Scalar>* *ext) const {
       Real result = Real(0);
 	    Func<Scalar>* prev_newton;
       switch(i * 10 + j) {
@@ -374,12 +374,12 @@ private:
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u,
-                 Func<double> *v, Geom<double> *e, ExtData<double> *ext) const {
+                 Func<double> *v, Geom<double> *e, Func<double>* *ext) const {
       return matrix_form<double, double>(n, wt, u_ext, u, v, e, ext);
     }
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
-            Geom<Ord> *e, ExtData<Ord> *ext) const {
+            Geom<Ord> *e, Func<Ord>* *ext) const {
       return matrix_form<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
     }
     
@@ -405,7 +405,7 @@ private:
 
     template<typename Real, typename Scalar>
     Real vector_form(int n, double *wt, Func<Scalar> *u_ext[],
-                        Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const {
+                        Func<Real> *v, Geom<Real> *e, Func<Scalar>* *ext) const {
       Real result = Real(0);
       Func<Scalar>* C_prev_time;
 	    Func<Scalar>* C_prev_newton;
@@ -414,7 +414,7 @@ private:
       Func<Scalar>* u2_prev_newton;
       switch(i) {
         case 0:
-	        C_prev_time = ext->fn[0];
+	        C_prev_time = ext[0];
 	        C_prev_newton = u_ext[0];
 	        phi_prev_newton = u_ext[1];
 	        for (int i = 0; i < n; i++) {
@@ -439,12 +439,12 @@ private:
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[],
-                 Func<double> *v, Geom<double> *e, ExtData<double> *ext) const {
+                 Func<double> *v, Geom<double> *e, Func<double>* *ext) const {
       return vector_form<double, double>(n, wt, u_ext, v, e, ext);
     }
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, 
-            Geom<Ord> *e, ExtData<Ord> *ext) const {
+            Geom<Ord> *e, Func<Ord>* *ext) const {
       return vector_form<Ord, Ord>(n, wt, u_ext, v, e, ext);
     }
     

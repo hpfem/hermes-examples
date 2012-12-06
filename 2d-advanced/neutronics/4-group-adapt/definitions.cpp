@@ -18,7 +18,7 @@ CustomWeakForm::CustomWeakForm(const MaterialPropertyMaps& matprop,
 
 double ErrorForm::value(int n, double *wt, Func<double> *u_ext[],
                         Func<double> *u, Func<double> *v, Geom<double> *e,
-                        ExtData<double> *ext) const
+                        Func<double>* *ext) const
 {
   switch (projNormType)
   {
@@ -34,7 +34,7 @@ double ErrorForm::value(int n, double *wt, Func<double> *u_ext[],
 
 Ord ErrorForm::ord(int n, double *wt, Func<Ord> *u_ext[],
                    Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e,
-                   ExtData<Ord> *ext) const
+                   Func<Ord>* *ext) const
 {
   switch (projNormType)
   {

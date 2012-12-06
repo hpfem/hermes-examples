@@ -29,13 +29,13 @@ public:
   H1AxisymProjectionJacobian(int i) : MatrixFormVol<double>(i, i) {this->setSymFlag(HERMES_SYM);};
 
   double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
-                Geom<double> *e, ExtData<double> *ext) const
+                Geom<double> *e, Func<double>* *ext) const
   {
     return h1_axisym_projection_biform<double, double>(n, wt, u_ext, u, v, e, ext);
   }
 
   Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v,
-          Geom<Ord> *e, ExtData<Ord> *ext) const
+          Geom<Ord> *e, Func<Ord>* *ext) const
   {
     return h1_axisym_projection_biform<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
   }
@@ -44,7 +44,7 @@ private:
   
   template<typename Real, typename Scalar>
   static Scalar h1_axisym_projection_biform(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u,
-                                            Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+                                            Func<Real> *v, Geom<Real> *e, Func<Scalar>* *ext)
   {
     Scalar result = (Scalar)0;
     for (int i = 0; i < n; i++)
@@ -63,13 +63,13 @@ public:
   }
 
   double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v,
-                Geom<double> *e, ExtData<double> *ext) const
+                Geom<double> *e, Func<double>* *ext) const
   {
     return h1_axisym_projection_liform<double, double>(n, wt, u_ext, v, e, ext);
   }
 
   Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v,
-          Geom<Ord> *e, ExtData<Ord> *ext) const
+          Geom<Ord> *e, Func<Ord>* *ext) const
   {
     return h1_axisym_projection_liform<Ord, Ord>(n, wt, u_ext, v, e, ext);
   }
@@ -77,14 +77,14 @@ public:
 private:
   template<typename Real, typename Scalar>
   Scalar h1_axisym_projection_liform(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v,
-                                     Geom<Real> *e, ExtData<Scalar> *ext) const
+                                     Geom<Real> *e, Func<Scalar>* *ext) const
   {
     
     Scalar result = (Scalar)0;
     for (int i = 0; i < n; i++)
-      result += wt[i] * e->x[i] * ( (u_ext[this->i]->val[i] - ext->fn[0]->val[i]) * v->val[i] 
-                                  + (u_ext[this->i]->dx[i]  - ext->fn[0]->dx[i])  * v->dx[i] 
-                                  + (u_ext[this->i]->dy[i]  - ext->fn[0]->dy[i])  * v->dy[i]  );
+      result += wt[i] * e->x[i] * ( (u_ext[this->i]->val[i] - ext[0]->val[i]) * v->val[i] 
+                                  + (u_ext[this->i]->dx[i]  - ext[0]->dx[i])  * v->dx[i] 
+                                  + (u_ext[this->i]->dy[i]  - ext[0]->dy[i])  * v->dy[i]  );
     return result;
   }
 };
@@ -98,17 +98,17 @@ public:
   /// Error bilinear form.
   virtual double value(int n, double *wt, Func<double> *u_ext[],
                         Func<double> *u, Func<double> *v, Geom<double> *e,
-                        ExtData<double> *ext) const;
+                        Func<double>* *ext) const;
 
   /// Error bilinear form to estimate order of a function.
   virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[],
                   Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e,
-                  ExtData<Ord> *ext) const;
+                  Func<Ord>* *ext) const;
 
 private:
   template<typename Real, typename Scalar>
   static Scalar l2_error_form_axisym(int n, double *wt, Func<Scalar> *u_ext[], Func<Scalar> *u,
-                                     Func<Scalar> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+                                     Func<Scalar> *v, Geom<Real> *e, Func<Scalar>* *ext)
   {
     Scalar result = (Scalar)0;
     for (int i = 0; i < n; i++)
@@ -118,7 +118,7 @@ private:
 
   template<typename Real, typename Scalar>
   static Scalar h1_error_form_axisym(int n, double *wt, Func<Scalar> *u_ext[], Func<Scalar> *u,
-                                     Func<Scalar> *v, Geom<Real> *e, ExtData<Scalar> *ext)
+                                     Func<Scalar> *v, Geom<Real> *e, Func<Scalar>* *ext)
   {
     Scalar result = (Scalar)0;
     for (int i = 0; i < n; i++)

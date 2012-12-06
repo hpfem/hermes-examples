@@ -92,13 +92,13 @@ CustomWeakFormMD::CustomWeakFormMD(double omega, double k_x, double k_y, double 
 
 // **************
 double CustomWeakFormMD::MatrixFormVolMD_0_0::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
-    Func<double> *v, Geom<double> *e, ExtData<double> *ext) const 
+    Func<double> *v, Geom<double> *e, Func<double>* *ext) const 
 {
   return -(eps_q - 1)/tau * int_e_f<double, double>(n, wt, u, v);
 }
 
 Ord CustomWeakFormMD::MatrixFormVolMD_0_0::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
-     Geom<Ord> *e, ExtData<Ord> *ext) const 
+     Geom<Ord> *e, Func<Ord>* *ext) const 
 {
   return -(eps_q - 1)/tau * int_e_f<Ord, Ord>(n, wt, u, v);
 }
@@ -110,7 +110,7 @@ MatrixFormVol<double>* CustomWeakFormMD::MatrixFormVolMD_0_0::clone()
 
 // **************
 double CustomWeakFormMD::MatrixFormVolMD_0_1::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
-    Func<double> *v, Geom<double> *e, ExtData<double> *ext) const 
+    Func<double> *v, Geom<double> *e, Func<double>* *ext) const 
 {
   double result = 0;
   // int \curl u \dot v
@@ -122,7 +122,7 @@ double CustomWeakFormMD::MatrixFormVolMD_0_1::value(int n, double *wt, Func<doub
 }
 
 Ord CustomWeakFormMD::MatrixFormVolMD_0_1::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
-                                                   Geom<Ord> *e, ExtData<Ord> *ext) const 
+                                                   Geom<Ord> *e, Func<Ord>* *ext) const 
 {
   Ord result = Ord(0);
   for (int i=0; i < n; i++)
@@ -139,13 +139,13 @@ MatrixFormVol<double>* CustomWeakFormMD::MatrixFormVolMD_0_1::clone()
 
 // **************
 double CustomWeakFormMD::MatrixFormVolMD_0_2::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
-    Func<double> *v, Geom<double> *e, ExtData<double> *ext) const 
+    Func<double> *v, Geom<double> *e, Func<double>* *ext) const 
 {
   return (1.0 / eps_0 / eps_inf / tau) * int_e_f<double, double>(n, wt, u, v);
 }
 
 Ord CustomWeakFormMD::MatrixFormVolMD_0_2::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
-    Geom<Ord> *e, ExtData<Ord> *ext) const 
+    Geom<Ord> *e, Func<Ord>* *ext) const 
 {
   return (1.0 / eps_0 / eps_inf / tau) * int_e_f<Ord, Ord>(n, wt, u, v);
 }
@@ -157,7 +157,7 @@ MatrixFormVol<double>* CustomWeakFormMD::MatrixFormVolMD_0_2::clone()
 
 // **************
 double CustomWeakFormMD::MatrixFormVolMD_1_0::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
-    Func<double> *v, Geom<double> *e, ExtData<double> *ext) const 
+    Func<double> *v, Geom<double> *e, Func<double>* *ext) const 
 {
   double result = 0;
   // int \curl u \dot v
@@ -169,7 +169,7 @@ double CustomWeakFormMD::MatrixFormVolMD_1_0::value(int n, double *wt, Func<doub
 }
 
 Ord CustomWeakFormMD::MatrixFormVolMD_1_0::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
-    Geom<Ord> *e, ExtData<Ord> *ext) const 
+    Geom<Ord> *e, Func<Ord>* *ext) const 
 {
   Ord result = Ord(0);
   // int \curl u \dot v
@@ -187,13 +187,13 @@ MatrixFormVol<double>* CustomWeakFormMD::MatrixFormVolMD_1_0::clone()
 
 // **************
 double CustomWeakFormMD::MatrixFormVolMD_2_0::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
-    Func<double> *v, Geom<double> *e, ExtData<double> *ext) const 
+    Func<double> *v, Geom<double> *e, Func<double>* *ext) const 
 {
   return (eps_q - 1)*eps_0*eps_inf/tau * int_e_f<double, double>(n, wt, u, v);
 }
 
 Ord CustomWeakFormMD::MatrixFormVolMD_2_0::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
-     Geom<Ord> *e, ExtData<Ord> *ext) const 
+     Geom<Ord> *e, Func<Ord>* *ext) const 
 {
   return (eps_q - 1)*eps_0*eps_inf/tau * int_e_f<Ord, Ord>(n, wt, u, v);
 }
@@ -205,13 +205,13 @@ MatrixFormVol<double>* CustomWeakFormMD::MatrixFormVolMD_2_0::clone()
 
 // **************
 double CustomWeakFormMD::MatrixFormVolMD_2_2::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
-    Func<double> *v, Geom<double> *e, ExtData<double> *ext) const 
+    Func<double> *v, Geom<double> *e, Func<double>* *ext) const 
 {
   return (-1.0 / tau) * int_e_f<double, double>(n, wt, u, v);
 }
 
 Ord CustomWeakFormMD::MatrixFormVolMD_2_2::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
-    Geom<Ord> *e, ExtData<Ord> *ext) const 
+    Geom<Ord> *e, Func<Ord>* *ext) const 
 {
   return (-1.0 / tau) * int_e_f<Ord, Ord>(n, wt, u, v);
 }
@@ -223,7 +223,7 @@ MatrixFormVol<double>* CustomWeakFormMD::MatrixFormVolMD_2_2::clone()
 
 // **************
 double CustomWeakFormMD::VectorFormVolMD_0::value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
-    Geom<double> *e, ExtData<double> *ext) const 
+    Geom<double> *e, Func<double>* *ext) const 
 {
   Func<double>* E_prev_newton = u_ext[0];
   Func<double>* H_prev_newton = u_ext[1];
@@ -240,7 +240,7 @@ double CustomWeakFormMD::VectorFormVolMD_0::value(int n, double *wt, Func<double
 }
 
 Ord CustomWeakFormMD::VectorFormVolMD_0::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
-                                                 ExtData<Ord> *ext) const 
+                                                 Func<Ord>* *ext) const 
 {
   Func<Ord>* E_prev_newton = u_ext[0];
   Func<Ord>* H_prev_newton = u_ext[1];
@@ -263,7 +263,7 @@ VectorFormVol<double>* CustomWeakFormMD::VectorFormVolMD_0::clone()
 
 // **************
 double CustomWeakFormMD::VectorFormVolMD_1::value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
-    Geom<double> *e, ExtData<double> *ext) const 
+    Geom<double> *e, Func<double>* *ext) const 
 {
   Func<double>* E_prev_newton = u_ext[0];
   double int_curl_E_v = 0;
@@ -275,7 +275,7 @@ double CustomWeakFormMD::VectorFormVolMD_1::value(int n, double *wt, Func<double
 }
 
 Ord CustomWeakFormMD::VectorFormVolMD_1::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
-                                                 ExtData<Ord> *ext) const 
+                                                 Func<Ord>* *ext) const 
 {
   Func<Ord>* E_prev_newton = u_ext[0];
   Ord int_curl_E_v = Ord(0);
@@ -293,7 +293,7 @@ VectorFormVol<double>* CustomWeakFormMD::VectorFormVolMD_1::clone()
 
 // **************
 double CustomWeakFormMD::VectorFormVolMD_2::value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
-    Geom<double> *e, ExtData<double> *ext) const 
+    Geom<double> *e, Func<double>* *ext) const 
 {
   Func<double>* E_prev_newton = u_ext[0];
   Func<double>* P_prev_newton = u_ext[2];
@@ -302,7 +302,7 @@ double CustomWeakFormMD::VectorFormVolMD_2::value(int n, double *wt, Func<double
 }
 
 Ord CustomWeakFormMD::VectorFormVolMD_2::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
-                                                 ExtData<Ord> *ext) const 
+                                                 Func<Ord>* *ext) const 
 {
   Func<Ord>* E_prev_newton = u_ext[0];
   Func<Ord>* P_prev_newton = u_ext[2];

@@ -20,13 +20,13 @@ public:
 
   template<typename Real, typename Scalar>
   Scalar matrix_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u,
-                     Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const;
+                     Func<Real> *v, Geom<Real> *e, Func<Scalar>* *ext) const;
 
   virtual std::complex<double>  value(int n, double *wt, Func<std::complex<double> > *u_ext[], Func<double> *u, 
-                       Func<double> *v, Geom<double> *e, ExtData<std::complex<double> > *ext) const;
+                       Func<double> *v, Geom<double> *e, Func<std::complex<double> > **ext) const;
 
   virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, 
-                  Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const;
+                  Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const;
 
   // Gamma as a function of x, y.
   double gamma(int marker, double x, double y) const;
@@ -59,13 +59,13 @@ public:
 
   template<typename Real, typename Scalar>
   Scalar vector_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v,
-                     Geom<Real> *e, ExtData<Scalar> *ext) const;
+                     Geom<Real> *e, Func<Scalar>* *ext) const;
 
   virtual std::complex<double>  value(int n, double *wt, Func<std::complex<double> > *u_ext[], Func<double> *v, Geom<double> *e,
-                       ExtData<std::complex<double> > *ext) const;
+                       Func<std::complex<double> > **ext) const;
 
   virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
-                  ExtData<Ord> *ext) const;
+                  Func<Ord>* *ext) const;
 
   virtual VectorFormVol<std::complex<double> >* clone();
 
@@ -96,13 +96,13 @@ public:
 
   template<typename Scalar, typename Real>
   Scalar vector_form_surf(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, 
-                          Geom<Real> *e, ExtData<Scalar> *ext) const;
+                          Geom<Real> *e, Func<Scalar>* *ext) const;
 
   virtual std::complex<double>  value(int n, double *wt, Func<std::complex<double> > *u_ext[], 
-                       Func<double> *v, Geom<double> *e, ExtData<std::complex<double> > *ext) const;
+                       Func<double> *v, Geom<double> *e, Func<std::complex<double> > **ext) const;
 
   virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, 
-                  Geom<Ord> *e, ExtData<Ord> *ext) const;
+                  Geom<Ord> *e, Func<Ord>* *ext) const;
 
   virtual VectorFormSurf<std::complex<double> >* clone() { return new CustomVectorFormSurf(omega, J, this->areas[0]); }
   double omega, J;
@@ -131,19 +131,19 @@ public:
 
   template<typename Real, typename Scalar>
   Scalar hcurl_form_kappa(int n, double *wt, Func<Scalar> *u_ext[], Func<Scalar> *u, 
-      Func<Scalar> *v, Geom<Real> *e, ExtData<Scalar> *ext) const
+      Func<Scalar> *v, Geom<Real> *e, Func<Scalar>* *ext) const
   {
     return int_curl_e_curl_f<Scalar, Scalar>(n, wt, u, v) + kappa_squared * int_e_f<Scalar, Scalar>(n, wt, u, v);
   }
 
   virtual std::complex<double> value(int n, double *wt, Func<std::complex<double> > *u_ext[], Func<std::complex<double> > *u, 
-      Func<std::complex<double> > *v, Geom<double> *e, ExtData<std::complex<double> > *ext) const
+      Func<std::complex<double> > *v, Geom<double> *e, Func<std::complex<double> > **ext) const
   {
     return hcurl_form_kappa<double, std::complex<double> >(n, wt, u_ext, u, v, e, ext);
   }
 
   virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, 
-      Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const
+      Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const
   {
     return hcurl_form_kappa<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
   }

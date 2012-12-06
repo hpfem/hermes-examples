@@ -34,7 +34,7 @@ CustomWeakFormRichardsRK::CustomWeakFormRichardsRK(ConstitutiveRelations* consti
 }
 
 double CustomWeakFormRichardsRK::CustomJacobianFormVol::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
-                                                              Func<double> *v, Geom<double> *e, ExtData<double> *ext) const 
+                                                              Func<double> *v, Geom<double> *e, Func<double>* *ext) const 
 {
   double result = 0;
   Func<double>* h_prev_newton = u_ext[0];
@@ -67,7 +67,7 @@ double CustomWeakFormRichardsRK::CustomJacobianFormVol::value(int n, double *wt,
 }
 
 Ord CustomWeakFormRichardsRK::CustomJacobianFormVol::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, 
-                                                         Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const 
+                                                         Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const 
 {
   return Ord(10);
 }
@@ -78,7 +78,7 @@ MatrixFormVol<double>* CustomWeakFormRichardsRK::CustomJacobianFormVol::clone()
 }
 
 double CustomWeakFormRichardsRK::CustomResidualFormVol::value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e,
-                                                              ExtData<double> *ext) const 
+                                                              Func<double>* *ext) const 
 {
   double result = 0;
   Func<double>* h_prev_newton = u_ext[0];
@@ -98,7 +98,7 @@ double CustomWeakFormRichardsRK::CustomResidualFormVol::value(int n, double *wt,
   return result;
 }
 
-Ord CustomWeakFormRichardsRK::CustomResidualFormVol::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const 
+Ord CustomWeakFormRichardsRK::CustomResidualFormVol::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const 
 {
   return Ord(10);
 }

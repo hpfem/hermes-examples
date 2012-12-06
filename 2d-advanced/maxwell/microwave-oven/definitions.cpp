@@ -2,7 +2,7 @@
 
 template<typename Real, typename Scalar>
 Scalar CustomMatrixForm::matrix_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u,
-                                     Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const 
+                                     Func<Real> *v, Geom<Real> *e, Func<Scalar>* *ext) const 
 {
   std::complex<double> ikappa = std::complex<double>(0.0, kappa);
   Scalar result1 = Scalar(0);
@@ -18,13 +18,13 @@ Scalar CustomMatrixForm::matrix_form(int n, double *wt, Func<Scalar> *u_ext[], F
 }
 
 std::complex<double> CustomMatrixForm::value(int n, double *wt, Func<std::complex<double> > *u_ext[], Func<double> *u, 
-                               Func<double> *v, Geom<double> *e, ExtData<std::complex<double> > *ext) const 
+                               Func<double> *v, Geom<double> *e, Func<std::complex<double> > **ext) const 
 {
   return matrix_form<double, std::complex<double> >(n, wt, u_ext, u, v, e, ext);
 }
 
 Ord CustomMatrixForm::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
-                          Geom<Ord> *e, ExtData<Ord> *ext) const 
+                          Geom<Ord> *e, Func<Ord>* *ext) const 
 {
   return matrix_form<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
 }
@@ -82,7 +82,7 @@ bool CustomMatrixForm::in_load(double x, double y) const
 
 template<typename Real, typename Scalar>
 Scalar CustomResidualForm::vector_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v,
-                                       Geom<Real> *e, ExtData<Scalar> *ext) const 
+                                       Geom<Real> *e, Func<Scalar>* *ext) const 
 {
   std::complex<double> ikappa = std::complex<double>(0.0, kappa);
   Scalar result1 = Scalar(0);
@@ -100,13 +100,13 @@ Scalar CustomResidualForm::vector_form(int n, double *wt, Func<Scalar> *u_ext[],
 }
 
 std::complex<double> CustomResidualForm::value(int n, double *wt, Func<std::complex<double> > *u_ext[], Func<double> *v, 
-                                 Geom<double> *e, ExtData<std::complex<double> > *ext) const 
+                                 Geom<double> *e, Func<std::complex<double> > **ext) const 
 {
   return vector_form<double, std::complex<double> >(n, wt, u_ext, v, e, ext);
 }
 
 Ord CustomResidualForm::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, 
-                            Geom<Ord> *e, ExtData<Ord> *ext) const 
+                            Geom<Ord> *e, Func<Ord>* *ext) const 
 {
   return vector_form<Ord, Ord>(n, wt, u_ext, v, e, ext);
 }
@@ -163,20 +163,20 @@ bool CustomResidualForm::in_load(double x, double y) const
 
 template<typename Scalar, typename Real>
 Scalar CustomVectorFormSurf::vector_form_surf(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, 
-                                              Geom<Real> *e, ExtData<Scalar> *ext) const 
+                                              Geom<Real> *e, Func<Scalar>* *ext) const 
 {
   std::complex<double> ii = std::complex<double>(0.0, 1.0);
   return ii * omega * J * int_v1<Real, Scalar>(n, wt, v); // just second component of v, since J = (0, J)
 }
 
 std::complex<double> CustomVectorFormSurf::value(int n, double *wt, Func<std::complex<double> > *u_ext[], 
-                                   Func<double> *v, Geom<double> *e, ExtData<std::complex<double> > *ext) const 
+                                   Func<double> *v, Geom<double> *e, Func<std::complex<double> > **ext) const 
 {
   return vector_form_surf<std::complex<double> , double>(n, wt, u_ext, v, e, ext);
 }
 
 Ord CustomVectorFormSurf::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, 
-                              Geom<Ord> *e, ExtData<Ord> *ext) const 
+                              Geom<Ord> *e, Func<Ord>* *ext) const 
 {
   return vector_form_surf<Ord, Ord>(n, wt, u_ext, v, e, ext);
 }

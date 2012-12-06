@@ -23,7 +23,7 @@ MeshFunction<double>* CustomExactSolution::clone()
 
 
 double CustomJacobian::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u,
-                             Func<double> *v, Geom<double> *e, ExtData<double> *ext) const 
+                             Func<double> *v, Geom<double> *e, Func<double>* *ext) const 
 {
   double result = 0;
   for (int i = 0; i < n; i++)
@@ -32,7 +32,7 @@ double CustomJacobian::value(int n, double *wt, Func<double> *u_ext[], Func<doub
 }
 
 Ord CustomJacobian::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v,
-                        Geom<Ord> *e, ExtData<Ord> *ext) const 
+                        Geom<Ord> *e, Func<Ord>* *ext) const 
 {
   return Ord(20);
 }
@@ -43,7 +43,7 @@ MatrixFormVol<double>* CustomJacobian::clone()
 }
 
 double CustomResidual::value(int n, double *wt, Func<double> *u_ext[],
-                             Func<double> *v, Geom<double> *e, ExtData<double> *ext) const 
+                             Func<double> *v, Geom<double> *e, Func<double>* *ext) const 
 {
   double result = 0;
   for (int i = 0; i < n; i++)
@@ -52,7 +52,7 @@ double CustomResidual::value(int n, double *wt, Func<double> *u_ext[],
 }
 
 Ord CustomResidual::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v,
-                        Geom<Ord> *e, ExtData<Ord> *ext) const 
+                        Geom<Ord> *e, Func<Ord>* *ext) const 
 {
   return Ord(20);
 }

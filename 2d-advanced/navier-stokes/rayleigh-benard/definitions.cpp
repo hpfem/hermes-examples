@@ -83,7 +83,7 @@ public:
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
-                         Geom<double> *e, ExtData<double> *ext) const {
+                         Geom<double> *e, Func<double>* *ext) const {
       double result = 0;
       Func<double>* xvel_prev_newton = u_ext[0];
       Func<double>* yvel_prev_newton = u_ext[1];
@@ -94,7 +94,7 @@ public:
     }
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e,
-                    ExtData<Ord> *ext) const {
+                    Func<Ord>* *ext) const {
     Ord result = Ord(0);
       Func<Ord>* xvel_prev_newton = u_ext[0];
       Func<Ord>* yvel_prev_newton = u_ext[1];
@@ -115,7 +115,7 @@ public:
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
-                         Geom<double> *e, ExtData<double> *ext) const {
+                         Geom<double> *e, Func<double>* *ext) const {
       double result = 0;
       Func<double>* xvel_prev_newton = u_ext[0];
       for (int i = 0; i < n; i++)
@@ -125,7 +125,7 @@ public:
     }
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e,
-                    ExtData<Ord> *ext) const {
+                    Func<Ord>* *ext) const {
       Ord result = Ord(0);
 
       Func<Ord>* xvel_prev_newton = u_ext[0];
@@ -144,7 +144,7 @@ public:
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
-                         Geom<double> *e, ExtData<double> *ext) const {
+                         Geom<double> *e, Func<double>* *ext) const {
       double result = 0;
       Func<double>* yvel_prev_newton = u_ext[1];
       for (int i = 0; i < n; i++)
@@ -153,7 +153,7 @@ public:
     }
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e,
-                    ExtData<Ord> *ext) const {
+                    Func<Ord>* *ext) const {
       Ord result = Ord(0);
       Func<Ord>* yvel_prev_newton = u_ext[1];
       for (int i = 0; i < n; i++)
@@ -170,7 +170,7 @@ public:
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
-                         Geom<double> *e, ExtData<double> *ext) const {
+                         Geom<double> *e, Func<double>* *ext) const {
       double result = 0;
       Func<double>* xvel_prev_newton = u_ext[0];
       Func<double>* yvel_prev_newton = u_ext[1];
@@ -181,7 +181,7 @@ public:
     }
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e,
-                    ExtData<Ord> *ext) const {
+                    Func<Ord>* *ext) const {
       Ord result = Ord(0);
       Func<Ord>* xvel_prev_newton = u_ext[0];
       Func<Ord>* yvel_prev_newton = u_ext[1];
@@ -202,12 +202,12 @@ public:
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
-                         Geom<double> *e, ExtData<double> *ext) const {
+                         Geom<double> *e, Func<double>* *ext) const {
       return - int_u_dvdx<double, double>(n, wt, u, v);
     }
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e,
-                    ExtData<Ord> *ext) const {
+                    Func<Ord>* *ext) const {
       return - int_u_dvdx<Ord, Ord>(n, wt, u, v);
     }
     virtual MatrixFormVol<double>* clone() { return new BilinearFormNonsymXVelPressure(i, j); }
@@ -221,12 +221,12 @@ public:
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
-                         Geom<double> *e, ExtData<double> *ext) const {
+                         Geom<double> *e, Func<double>* *ext) const {
       return - int_u_dvdy<double, double>(n, wt, u, v);
     }
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e,
-                    ExtData<Ord> *ext) const {
+                    Func<Ord>* *ext) const {
       return - int_u_dvdy<Ord, Ord>(n, wt, u, v);
     }
     virtual MatrixFormVol<double>* clone() { return new BilinearFormNonsymYVelPressure(i, j); }
@@ -240,9 +240,9 @@ public:
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e,
-                         ExtData<double> *ext) const {
+                         Func<double>* *ext) const {
       double result = 0;
-      Func<double>* xvel_prev_time = ext->fn[0];
+      Func<double>* xvel_prev_time = ext[0];
       Func<double>* xvel_prev_newton = u_ext[0];
       Func<double>* yvel_prev_newton = u_ext[1];
       Func<double>* p_prev_newton = u_ext[2];
@@ -256,9 +256,9 @@ public:
       return result;
     }
 
-    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const {
+    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const {
       Ord result = Ord(0);
-      Func<Ord>* xvel_prev_time = ext->fn[0];
+      Func<Ord>* xvel_prev_time = ext[0];
       Func<Ord>* xvel_prev_newton = u_ext[0];
       Func<Ord>* yvel_prev_newton = u_ext[1];
       Func<Ord>* p_prev_newton = u_ext[2];
@@ -285,9 +285,9 @@ public:
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e,
-                         ExtData<double> *ext) const {
+                         Func<double>* *ext) const {
       double result = 0;
-      Func<double>* yvel_prev_time = ext->fn[0];
+      Func<double>* yvel_prev_time = ext[0];
       Func<double>* xvel_prev_newton = u_ext[0];
       Func<double>* yvel_prev_newton = u_ext[1];
       Func<double>* p_prev_newton = u_ext[2];
@@ -303,9 +303,9 @@ public:
       return result;
     }
 
-    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const {
+    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const {
       Ord result = Ord(0);
-      Func<Ord>* yvel_prev_time = ext->fn[0];
+      Func<Ord>* yvel_prev_time = ext[0];
       Func<Ord>* xvel_prev_newton = u_ext[0];
       Func<Ord>* yvel_prev_newton = u_ext[1];
       Func<Ord>* p_prev_newton = u_ext[2];
@@ -333,7 +333,7 @@ public:
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e,
-                         ExtData<double> *ext) const {
+                         Func<double>* *ext) const {
       double result = 0;
       Func<double>* xvel_prev_newton = u_ext[0];
       Func<double>* yvel_prev_newton = u_ext[1];
@@ -343,7 +343,7 @@ public:
       return result;
     }
 
-    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const {
+    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const {
       Ord result = Ord(0);
       Func<Ord>* xvel_prev_newton = u_ext[0];
       Func<Ord>* yvel_prev_newton = u_ext[1];
@@ -363,9 +363,9 @@ public:
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e,
-                         ExtData<double> *ext) const {
+                         Func<double>* *ext) const {
       double result = 0;
-      Func<double>* temp_prev_time = ext->fn[0];
+      Func<double>* temp_prev_time = ext[0];
       Func<double>* xvel_prev_newton = u_ext[0];
       Func<double>* yvel_prev_newton = u_ext[1];
       Func<double>* temp_prev_newton = u_ext[3];
@@ -379,9 +379,9 @@ public:
       return result;
     }
 
-    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const {
+    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const {
       Ord result = Ord(0);
-      Func<Ord>* temp_prev_time = ext->fn[0];
+      Func<Ord>* temp_prev_time = ext[0];
       Func<Ord>* xvel_prev_newton = u_ext[0];
       Func<Ord>* yvel_prev_newton = u_ext[1];
       Func<Ord>* temp_prev_newton = u_ext[3];
@@ -408,7 +408,7 @@ public:
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
-                         Geom<double> *e, ExtData<double> *ext) const {
+                         Geom<double> *e, Func<double>* *ext) const {
       double result = 0;
       Func<double>* temp_prev_newton = u_ext[3];
       for (int i = 0; i < n; i++)
@@ -417,7 +417,7 @@ public:
     }
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e,
-                    ExtData<Ord> *ext) const {
+                    Func<Ord>* *ext) const {
       Ord result = Ord(0);
       Func<Ord>* temp_prev_newton = u_ext[3];
       for (int i = 0; i < n; i++)
@@ -435,7 +435,7 @@ public:
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
-                         Geom<double> *e, ExtData<double> *ext) const {
+                         Geom<double> *e, Func<double>* *ext) const {
       double result = 0;
       Func<double>* temp_prev_newton = u_ext[3];
       for (int i = 0; i < n; i++)
@@ -444,7 +444,7 @@ public:
     }
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e,
-                    ExtData<Ord> *ext) const {
+                    Func<Ord>* *ext) const {
       Ord result = Ord(0);
       Func<Ord>* temp_prev_newton = u_ext[3];
       for (int i = 0; i < n; i++)
@@ -462,7 +462,7 @@ public:
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
-                         Geom<double> *e, ExtData<double> *ext) const {
+                         Geom<double> *e, Func<double>* *ext) const {
       double result = 0;
       Func<double>* xvel_prev_newton = u_ext[0];
       Func<double>* yvel_prev_newton = u_ext[1];
@@ -473,7 +473,7 @@ public:
     }
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e,
-                    ExtData<Ord> *ext) const {
+                    Func<Ord>* *ext) const {
       Ord result = Ord(0);
       Func<Ord>* xvel_prev_newton = u_ext[0];
       Func<Ord>* yvel_prev_newton = u_ext[1];
@@ -497,7 +497,7 @@ public:
 
     template<typename Real, typename Scalar>
     Scalar vector_form_surf(int n, double *wt, Func<Scalar> *u_ext[],
-                            Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const {
+                            Func<Real> *v, Geom<Real> *e, Func<Scalar>* *ext) const {
       Scalar result = Scalar(0);
       for (int i = 0; i < n; i++) {
         result += wt[i] * u_ext[3]->val[i] * v->val[i];
@@ -506,12 +506,12 @@ public:
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v,
-                         Geom<double> *e, ExtData<double> *ext) const {
+                         Geom<double> *e, Func<double>* *ext) const {
       return vector_form_surf<double, double>(n, wt, u_ext, v, e, ext);
     }
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v,
-                    Geom<Ord> *e, ExtData<Ord> *ext) const {
+                    Geom<Ord> *e, Func<Ord>* *ext) const {
       return vector_form_surf<Ord, Ord>(n, wt, u_ext, v, e, ext);
     }
 

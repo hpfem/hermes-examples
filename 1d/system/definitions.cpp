@@ -140,7 +140,7 @@ ExactSolutionFitzHughNagumo2::~ExactSolutionFitzHughNagumo2()
 }
 
 double CustomResidual1::value(int n, double *wt, Func<double> *u_ext[], Func<double> *v,
-                              Geom<double> *e, ExtData<double> *ext) const
+                              Geom<double> *e, Func<double>* *ext) const
 {
    double result = 0;
    for (int i = 0; i < n; i++) 
@@ -156,7 +156,7 @@ double CustomResidual1::value(int n, double *wt, Func<double> *u_ext[], Func<dou
 }
 
 Hermes::Ord CustomResidual1::ord(int n, double *wt, Func<Hermes::Ord> *u_ext[], Func<Hermes::Ord> *v,
-                         Geom<Hermes::Ord> *e, ExtData<Hermes::Ord> *ext) const 
+                         Geom<Hermes::Ord> *e, Func<Hermes::Ord>* *ext) const 
 {
    Hermes::Ord result = Hermes::Ord(0);
    for (int i = 0; i < n; i++) 
@@ -177,7 +177,7 @@ VectorFormVol<double>* CustomResidual1::clone()
 }
 
 double CustomResidual2::value(int n, double *wt, Func<double> *u_ext[], Func<double> *v,
-                              Geom<double> *e, ExtData<double> *ext) const
+                              Geom<double> *e, Func<double>* *ext) const
 {
    double result = 0;
    for (int i = 0; i < n; i++) 
@@ -193,7 +193,7 @@ double CustomResidual2::value(int n, double *wt, Func<double> *u_ext[], Func<dou
   }
 
 Hermes::Ord CustomResidual2::ord(int n, double *wt, Func<Hermes::Ord> *u_ext[], Func<Hermes::Ord> *v,
-                                 Geom<Hermes::Ord> *e, ExtData<Hermes::Ord> *ext) const 
+                                 Geom<Hermes::Ord> *e, Func<Hermes::Ord>* *ext) const 
 {
    Hermes::Ord result = Hermes::Ord(0);
    for (int i = 0; i < n; i++) 

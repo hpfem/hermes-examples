@@ -39,7 +39,7 @@ CustomWeakFormWave::CustomWeakFormWave(double c_squared) : WeakForm<double>(2)
 
 template<typename Real, typename Scalar>
 Scalar CustomWeakFormWave::MatrixFormVolWave_0_1::matrix_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, 
-                                                              Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const 
+                                                              Func<Real> *v, Geom<Real> *e, Func<Scalar>* *ext) const 
 {
   Scalar result = Scalar(0);
   for (int i=0; i < n; i++) 
@@ -50,13 +50,13 @@ Scalar CustomWeakFormWave::MatrixFormVolWave_0_1::matrix_form(int n, double *wt,
 }
 
 double CustomWeakFormWave::MatrixFormVolWave_0_1::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
-                                                        Func<double> *v, Geom<double> *e, ExtData<double> *ext) const 
+                                                        Func<double> *v, Geom<double> *e, Func<double>* *ext) const 
 {
   return matrix_form<double, double>(n, wt, u_ext, u, v, e, ext);
 }
 
 Ord CustomWeakFormWave::MatrixFormVolWave_0_1::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
-                                                   Geom<Ord> *e, ExtData<Ord> *ext) const 
+                                                   Geom<Ord> *e, Func<Ord>* *ext) const 
 {
   return matrix_form<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
 }
@@ -68,7 +68,7 @@ MatrixFormVol<double>* CustomWeakFormWave::MatrixFormVolWave_0_1::clone()
 
 template<typename Real, typename Scalar>
 Scalar CustomWeakFormWave::MatrixFormVolWave_1_0::matrix_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, 
-                                                              Func<Real> *v, Geom<Real> *e, ExtData<Scalar> *ext) const 
+                                                              Func<Real> *v, Geom<Real> *e, Func<Scalar>* *ext) const 
 {
   Scalar result = Scalar(0);
   for (int i=0; i < n; i++) 
@@ -79,13 +79,13 @@ Scalar CustomWeakFormWave::MatrixFormVolWave_1_0::matrix_form(int n, double *wt,
 }
 
 double CustomWeakFormWave::MatrixFormVolWave_1_0::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
-                                                        Func<double> *v, Geom<double> *e, ExtData<double> *ext) const 
+                                                        Func<double> *v, Geom<double> *e, Func<double>* *ext) const 
 {
   return matrix_form<double, double>(n, wt, u_ext, u, v, e, ext);
 }
 
 Ord CustomWeakFormWave::MatrixFormVolWave_1_0::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
-                                                   Geom<Ord> *e, ExtData<Ord> *ext) const 
+                                                   Geom<Ord> *e, Func<Ord>* *ext) const 
 {
   return matrix_form<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
 }
@@ -97,7 +97,7 @@ MatrixFormVol<double>* CustomWeakFormWave::MatrixFormVolWave_1_0::clone()
 
 template<typename Real, typename Scalar>
 Scalar CustomWeakFormWave::VectorFormVolWave_0::vector_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, 
-                                                            Geom<Real> *e, ExtData<Scalar> *ext) const 
+                                                            Geom<Real> *e, Func<Scalar>* *ext) const 
 {
   Scalar result = Scalar(0);
   Func<Scalar>* sln_prev = u_ext[1];
@@ -110,13 +110,13 @@ Scalar CustomWeakFormWave::VectorFormVolWave_0::vector_form(int n, double *wt, F
 }
 
 double CustomWeakFormWave::VectorFormVolWave_0::value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
-                                                      Geom<double> *e, ExtData<double> *ext) const 
+                                                      Geom<double> *e, Func<double>* *ext) const 
 {
   return vector_form<double, double>(n, wt, u_ext, v, e, ext);
 }
 
 Ord CustomWeakFormWave::VectorFormVolWave_0::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
-                                                 ExtData<Ord> *ext) const 
+                                                 Func<Ord>* *ext) const 
 {
   return vector_form<Ord, Ord>(n, wt, u_ext, v, e, ext);
 }
@@ -128,7 +128,7 @@ VectorFormVol<double>* CustomWeakFormWave::VectorFormVolWave_0::clone()
 
 template<typename Real, typename Scalar>
 Scalar CustomWeakFormWave::VectorFormVolWave_1::vector_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, 
-                                                            Geom<Real> *e, ExtData<Scalar> *ext) const 
+                                                            Geom<Real> *e, Func<Scalar>* *ext) const 
 {
   Scalar result = Scalar(0);
   Func<Scalar>* sln_prev = u_ext[0];
@@ -141,12 +141,12 @@ Scalar CustomWeakFormWave::VectorFormVolWave_1::vector_form(int n, double *wt, F
 }
 
 double CustomWeakFormWave::VectorFormVolWave_1::value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
-                                                      Geom<double> *e, ExtData<double> *ext) const 
+                                                      Geom<double> *e, Func<double>* *ext) const 
 {
   return vector_form<double, double>(n, wt, u_ext, v, e, ext);
 }
 
-Ord CustomWeakFormWave::VectorFormVolWave_1::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const 
+Ord CustomWeakFormWave::VectorFormVolWave_1::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const 
 {
   return vector_form<Ord, Ord>(n, wt, u_ext, v, e, ext);
 }

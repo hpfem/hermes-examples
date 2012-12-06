@@ -43,19 +43,19 @@ public:
 
   template<typename Real, typename Scalar>
   Scalar laplace_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Scalar> *u, 
-      Func<Scalar> *v, Geom<Real> *e, ExtData<Scalar> *ext) const
+      Func<Scalar> *v, Geom<Real> *e, Func<Scalar>* *ext) const
   {
     return d / c * int_grad_u_grad_v<Scalar, Scalar>(n, wt, u, v);
   }
 
   virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
-      Func<double> *v, Geom<double> *e, ExtData<double> *ext) const
+      Func<double> *v, Geom<double> *e, Func<double>* *ext) const
   {
     return laplace_form<double, double>(n, wt, u_ext, u, v, e, ext);
   }
 
   virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, 
-      Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const
+      Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const
   {
     return laplace_form<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
   }

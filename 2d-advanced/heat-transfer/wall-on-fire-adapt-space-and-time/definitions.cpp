@@ -51,7 +51,7 @@ CustomWeakFormHeatRK::CustomWeakFormHeatRK(std::string bdy_fire, std::string bdy
 }
 
 double CustomWeakFormHeatRK::CustomJacobianVol::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
-                                                      Geom<double> *e, ExtData<double> *ext) const 
+                                                      Geom<double> *e, Func<double>* *ext) const 
 {
   double result = 0.;
   for (int i = 0; i < n; i++) 
@@ -63,7 +63,7 @@ double CustomWeakFormHeatRK::CustomJacobianVol::value(int n, double *wt, Func<do
 }
 
 Ord CustomWeakFormHeatRK::CustomJacobianVol::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
-                                                 Geom<Ord> *e, ExtData<Ord> *ext) const 
+                                                 Geom<Ord> *e, Func<Ord>* *ext) const 
 {
   return (u->dx[0] * v->dx[0] + u->dy[0] * v->dy[0]) * Ord(5);
 }
@@ -75,7 +75,7 @@ MatrixFormVol<double>* CustomWeakFormHeatRK::CustomJacobianVol::clone()
 
 
 double CustomWeakFormHeatRK::CustomFormResidualVol::value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
-                                                          Geom<double> *e, ExtData<double> *ext) const 
+                                                          Geom<double> *e, Func<double>* *ext) const 
 {
   Func<double>* u_prev_newton = u_ext[0];
   double result = 0.;
@@ -89,7 +89,7 @@ double CustomWeakFormHeatRK::CustomFormResidualVol::value(int n, double *wt, Fun
 }
 
 Ord CustomWeakFormHeatRK::CustomFormResidualVol::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, 
-                                                     Geom<Ord> *e, ExtData<Ord> *ext) const 
+                                                     Geom<Ord> *e, Func<Ord>* *ext) const 
 {
   Func<Ord>* u_prev_newton = u_ext[0];
   // Return the polynomial order of the gradient increased by five to account for lambda(x, y).
@@ -104,7 +104,7 @@ VectorFormVol<double>* CustomWeakFormHeatRK::CustomFormResidualVol::clone()
 
 template<typename Real, typename Scalar>
 Scalar CustomWeakFormHeatRK::CustomFormResidualSurfFire::vector_form_surf(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v,
-                                                                          Geom<Real> *e, ExtData<Scalar> *ext) const 
+                                                                          Geom<Real> *e, Func<Scalar>* *ext) const 
 {
   Func<Scalar>* sln_prev = u_ext[0];
 
@@ -118,13 +118,13 @@ Scalar CustomWeakFormHeatRK::CustomFormResidualSurfFire::vector_form_surf(int n,
 }
 
 double CustomWeakFormHeatRK::CustomFormResidualSurfFire::value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
-                                                               Geom<double> *e, ExtData<double> *ext) const 
+                                                               Geom<double> *e, Func<double>* *ext) const 
 {
     return vector_form_surf<double, double>(n, wt, u_ext, v, e, ext);
 }
 
 Ord CustomWeakFormHeatRK::CustomFormResidualSurfFire::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, 
-                                                          Geom<Ord> *e, ExtData<Ord> *ext) const 
+                                                          Geom<Ord> *e, Func<Ord>* *ext) const 
 {
   // Return the polynomial order of the test function 'v' plus three for T_fire_x(x)
   return v->val[0] * Ord(3);

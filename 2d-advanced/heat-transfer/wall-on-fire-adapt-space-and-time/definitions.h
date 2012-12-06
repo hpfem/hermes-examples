@@ -35,9 +35,9 @@ private:
           : MatrixFormVol<double>(i, j), rho(rho), heatcap(heatcap) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e,
-                         ExtData<double> *ext) const;
+                         Func<double>* *ext) const;
 
-    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const;
+    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const;
 
     // This is needed for the rk_time_step_newton() method.
     virtual MatrixFormVol<double>* clone();
@@ -53,9 +53,9 @@ private:
           : VectorFormVol<double>(i), rho(rho), heatcap(heatcap) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e,
-                         ExtData<double> *ext) const;
+                         Func<double>* *ext) const;
 
-    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const;
+    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const;
 
     // Needed for the rk_time_step_newton() method.
     virtual VectorFormVol<double>* clone();
@@ -74,12 +74,12 @@ private:
 
     template<typename Real, typename Scalar>
     Scalar vector_form_surf(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v,
-                            Geom<Real> *e, ExtData<Scalar> *ext) const;
+                            Geom<Real> *e, Func<Scalar>* *ext) const;
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e,
-                         ExtData<double> *ext) const;
+                         Func<double>* *ext) const;
 
-    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, ExtData<Ord> *ext) const;
+    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const;
 
     // Needed for the rk_time_step_newton() method.
     virtual VectorFormSurf<double>* clone();
