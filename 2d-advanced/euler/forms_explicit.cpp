@@ -636,18 +636,18 @@ public:
     std::string solid_wall_bottom_marker, std::string solid_wall_top_marker, std::string inlet_marker, std::string outlet_marker, 
     Solution<double>* prev_density, Solution<double>* prev_density_vel_x, Solution<double>* prev_density_vel_y, Solution<double>* prev_energy, bool fvm_only = false, int num_of_equations = 4) :
   WeakForm<double>(num_of_equations), rho_ext(rho_ext), v1_ext(v1_ext), v2_ext(v2_ext), pressure_ext(pressure_ext), 
-    energy_ext(QuantityCalculator::calc_energy(rho_ext, rho_ext * v1_ext, rho_ext * v2_ext, pressure_ext, kappa)), euler_fluxes(new EulerFluxes(kappa)), centralElemId(-1), neighbElemId(-1), uTrn(-1), vTrn(-1), iSurf(-1)
+    energy_ext(QuantityCalculator::calc_energy(rho_ext, rho_ext * v1_ext, rho_ext * v2_ext, pressure_ext, kappa)), euler_fluxes(new EulerFluxes(kappa))
   {
-    P_plus_cache = new double**[Hermes::Hermes2D::Hermes2DApi.get_param_value(Hermes::Hermes2D::numThreads)];
-    for(int i = 0; i < Hermes::Hermes2D::Hermes2DApi.get_param_value(Hermes::Hermes2D::numThreads); i++)
+    P_plus_cache = new double**[Hermes::Hermes2D::Hermes2DApi.get_integral_param_value(Hermes::Hermes2D::numThreads)];
+    for(int i = 0; i < Hermes::Hermes2D::Hermes2DApi.get_integral_param_value(Hermes::Hermes2D::numThreads); i++)
     {
       P_plus_cache[i] = new double*[13];
       for(int j = 0; j < 13; j++)
         P_plus_cache[i][j] = new double[16];
     }
 
-    P_minus_cache = new double**[Hermes::Hermes2D::Hermes2DApi.get_param_value(Hermes::Hermes2D::numThreads)];
-    for(int i = 0; i < Hermes::Hermes2D::Hermes2DApi.get_param_value(Hermes::Hermes2D::numThreads); i++)
+    P_minus_cache = new double**[Hermes::Hermes2D::Hermes2DApi.get_integral_param_value(Hermes::Hermes2D::numThreads)];
+    for(int i = 0; i < Hermes::Hermes2D::Hermes2DApi.get_integral_param_value(Hermes::Hermes2D::numThreads); i++)
     {
       P_minus_cache[i] = new double*[13];
       for(int j = 0; j < 13; j++)
@@ -1079,49 +1079,40 @@ protected:
     {
       double w[4];
       double result = 0.;
-      if(!(u->sub_idx == static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->uTrn && 
-          v->sub_idx == static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->vTrn && 
-          e->id == static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->centralElemId && 
-          static_cast<InterfaceGeom<double>*>(e)->get_neighbor_id() == static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->neighbElemId))
-        for (int point_i = 0; point_i < n; point_i++) 
+      for (int point_i = 0; point_i < n; point_i++) 
+      {
         {
-          {
-            w[0] = ext[0]->get_val_central(point_i);
-            w[1] = ext[1]->get_val_central(point_i);
-            w[2] = ext[2]->get_val_central(point_i);
-            w[3] = ext[3]->get_val_central(point_i);
+          w[0] = ext[0]->get_val_central(point_i);
+          w[1] = ext[1]->get_val_central(point_i);
+          w[2] = ext[2]->get_val_central(point_i);
+          w[3] = ext[3]->get_val_central(point_i);
 
-            double e_1_1[4] = {1, 0, 0, 0};
-            double e_2_1[4] = {0, 1, 0, 0};
-            double e_3_1[4] = {0, 0, 1, 0};
-            double e_4_1[4] = {0, 0, 0, 1};
+          double e_1_1[4] = {1, 0, 0, 0};
+          double e_2_1[4] = {0, 1, 0, 0};
+          double e_3_1[4] = {0, 0, 1, 0};
+          double e_4_1[4] = {0, 0, 0, 1};
 
-            num_flux->P_plus(static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->P_plus_cache[omp_get_thread_num()][point_i], w, e_1_1, e->nx[point_i], e->ny[point_i]);
-            num_flux->P_plus(static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->P_plus_cache[omp_get_thread_num()][point_i] + 4, w, e_2_1, e->nx[point_i], e->ny[point_i]);
-            num_flux->P_plus(static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->P_plus_cache[omp_get_thread_num()][point_i] + 8, w, e_3_1, e->nx[point_i], e->ny[point_i]);
-            num_flux->P_plus(static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->P_plus_cache[omp_get_thread_num()][point_i] + 12, w, e_4_1, e->nx[point_i], e->ny[point_i]);
+          num_flux->P_plus(static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->P_plus_cache[omp_get_thread_num()][point_i], w, e_1_1, e->nx[point_i], e->ny[point_i]);
+          num_flux->P_plus(static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->P_plus_cache[omp_get_thread_num()][point_i] + 4, w, e_2_1, e->nx[point_i], e->ny[point_i]);
+          num_flux->P_plus(static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->P_plus_cache[omp_get_thread_num()][point_i] + 8, w, e_3_1, e->nx[point_i], e->ny[point_i]);
+          num_flux->P_plus(static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->P_plus_cache[omp_get_thread_num()][point_i] + 12, w, e_4_1, e->nx[point_i], e->ny[point_i]);
 
-            w[0] = ext[0]->get_val_neighbor(point_i);
-            w[1] = ext[1]->get_val_neighbor(point_i);
-            w[2] = ext[2]->get_val_neighbor(point_i);
-            w[3] = ext[3]->get_val_neighbor(point_i);
+          w[0] = ext[0]->get_val_neighbor(point_i);
+          w[1] = ext[1]->get_val_neighbor(point_i);
+          w[2] = ext[2]->get_val_neighbor(point_i);
+          w[3] = ext[3]->get_val_neighbor(point_i);
 
-            double e_1_2[4] = {1, 0, 0, 0};
-            double e_2_2[4] = {0, 1, 0, 0};
-            double e_3_2[4] = {0, 0, 1, 0};
-            double e_4_2[4] = {0, 0, 0, 1};
+          double e_1_2[4] = {1, 0, 0, 0};
+          double e_2_2[4] = {0, 1, 0, 0};
+          double e_3_2[4] = {0, 0, 1, 0};
+          double e_4_2[4] = {0, 0, 0, 1};
 
-            num_flux->P_minus(static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->P_minus_cache[omp_get_thread_num()][point_i], w, e_1_2, e->nx[point_i], e->ny[point_i]);
-            num_flux->P_minus(static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->P_minus_cache[omp_get_thread_num()][point_i] + 4, w, e_2_2, e->nx[point_i], e->ny[point_i]);
-            num_flux->P_minus(static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->P_minus_cache[omp_get_thread_num()][point_i] + 8, w, e_3_2, e->nx[point_i], e->ny[point_i]);
-            num_flux->P_minus(static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->P_minus_cache[omp_get_thread_num()][point_i] + 12, w, e_4_2, e->nx[point_i], e->ny[point_i]);
-
-            static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->uTrn = u->sub_idx;
-            static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->vTrn = v->sub_idx;
-            static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->centralElemId = e->id;
-            static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->neighbElemId = static_cast<InterfaceGeom<double>*>(e)->get_neighbor_id();
-          }
+          num_flux->P_minus(static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->P_minus_cache[omp_get_thread_num()][point_i], w, e_1_2, e->nx[point_i], e->ny[point_i]);
+          num_flux->P_minus(static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->P_minus_cache[omp_get_thread_num()][point_i] + 4, w, e_2_2, e->nx[point_i], e->ny[point_i]);
+          num_flux->P_minus(static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->P_minus_cache[omp_get_thread_num()][point_i] + 8, w, e_3_2, e->nx[point_i], e->ny[point_i]);
+          num_flux->P_minus(static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->P_minus_cache[omp_get_thread_num()][point_i] + 12, w, e_4_2, e->nx[point_i], e->ny[point_i]);
         }
+      }
       for (int point_i = 0; point_i < n; point_i++) 
       {
         if(i == 0 && j == 0)
@@ -1245,100 +1236,92 @@ protected:
     {
       double result = 0.;
 
-      if(!(u->sub_idx == static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->uTrn && 
-          v->sub_idx == static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->vTrn && 
-          e->id == static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->centralElemId && e->isurf == static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->iSurf))
-        for (int point_i = 0; point_i < n; point_i++) 
+      for (int point_i = 0; point_i < n; point_i++) 
+      {
+        double w_B[4], w_L[4], eigenvalues[4], alpha[4], q_ji_star[4], beta[4], q_ji[4], w_ji[4];
+
+        // Inner state.
+        w_L[0] = ext[0]->val[point_i];
+        w_L[1] = ext[1]->val[point_i];
+        w_L[2] = ext[2]->val[point_i];
+        w_L[3] = ext[3]->val[point_i];
+
+        // Transformation of the inner state to the local coordinates.
+        num_flux->Q(num_flux->get_q(), w_L, e->nx[point_i], e->ny[point_i]);
+
+        // Initialize the matrices.
+        double T[4][4];
+        double T_inv[4][4];
+        for(unsigned int ai = 0; ai < 4; ai++) 
         {
-          double w_B[4], w_L[4], eigenvalues[4], alpha[4], q_ji_star[4], beta[4], q_ji[4], w_ji[4];
-
-          // Inner state.
-          w_L[0] = ext[0]->val[point_i];
-          w_L[1] = ext[1]->val[point_i];
-          w_L[2] = ext[2]->val[point_i];
-          w_L[3] = ext[3]->val[point_i];
-
-          // Transformation of the inner state to the local coordinates.
-          num_flux->Q(num_flux->get_q(), w_L, e->nx[point_i], e->ny[point_i]);
-
-          // Initialize the matrices.
-          double T[4][4];
-          double T_inv[4][4];
-          for(unsigned int ai = 0; ai < 4; ai++) 
+          for(unsigned int aj = 0; aj < 4; aj++) 
           {
-            for(unsigned int aj = 0; aj < 4; aj++) 
-            {
-              T[ai][aj] = 0.0;
-              T_inv[ai][aj] = 0.0;
-            }
-            alpha[ai] = 0;
-            beta[ai] = 0;
-            q_ji[ai] = 0;
-            w_ji[ai] = 0;
-            eigenvalues[ai] = 0;
+            T[ai][aj] = 0.0;
+            T_inv[ai][aj] = 0.0;
           }
-
-          // Calculate Lambda^-.
-          num_flux->Lambda(eigenvalues);
-          num_flux->T_1(T);
-          num_flux->T_2(T);
-          num_flux->T_3(T);
-          num_flux->T_4(T);
-          num_flux->T_inv_1(T_inv);
-          num_flux->T_inv_2(T_inv);
-          num_flux->T_inv_3(T_inv);
-          num_flux->T_inv_4(T_inv);
-
-          // "Prescribed" boundary state.
-          w_B[0] = static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->rho_ext;
-          w_B[1] = static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->rho_ext 
-            * static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->v1_ext;
-          w_B[2] = static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->rho_ext 
-            * static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->v2_ext;
-          w_B[3] = static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->energy_ext;
-
-          num_flux->Q(q_ji_star, w_B, e->nx[point_i], e->ny[point_i]);
-
-          for(unsigned int ai = 0; ai < 4; ai++)
-            for(unsigned int aj = 0; aj < 4; aj++)
-              alpha[ai] += T_inv[ai][aj] * num_flux->get_q()[aj];
-
-          for(unsigned int bi = 0; bi < 4; bi++)
-            for(unsigned int bj = 0; bj < 4; bj++)
-              beta[bi] += T_inv[bi][bj] * q_ji_star[bj];
-
-          for(unsigned int si = 0; si< 4; si++)
-            for(unsigned int sj = 0; sj < 4; sj++)
-              if(eigenvalues[sj] < 0)
-                q_ji[si] += beta[sj] * T[si][sj];
-              else
-                q_ji[si] += alpha[sj] * T[si][sj];
-
-          num_flux->Q_inv(w_ji, q_ji, e->nx[point_i], e->ny[point_i]);
-
-          double P_minus[4];
-
-          double w_temp[4];
-          w_temp[0] = (w_ji[0] + w_L[0]) / 2;
-          w_temp[1] = (w_ji[1] + w_L[1]) / 2;
-          w_temp[2] = (w_ji[2] + w_L[2]) / 2;
-          w_temp[3] = (w_ji[3] + w_L[3]) / 2;
-
-          double e_1[4] = {1, 0, 0, 0};
-          double e_2[4] = {0, 1, 0, 0};
-          double e_3[4] = {0, 0, 1, 0};
-          double e_4[4] = {0, 0, 0, 1};
-
-          num_flux->P_plus(static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->P_plus_cache[omp_get_thread_num()][point_i], w_temp, e_1, e->nx[point_i], e->ny[point_i]);
-          num_flux->P_plus(static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->P_plus_cache[omp_get_thread_num()][point_i] + 4, w_temp, e_2, e->nx[point_i], e->ny[point_i]);
-          num_flux->P_plus(static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->P_plus_cache[omp_get_thread_num()][point_i] + 8, w_temp, e_3, e->nx[point_i], e->ny[point_i]);
-          num_flux->P_plus(static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->P_plus_cache[omp_get_thread_num()][point_i] + 12, w_temp, e_4, e->nx[point_i], e->ny[point_i]);
-
-          static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->uTrn = u->sub_idx;
-          static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->vTrn = v->sub_idx;
-          static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->centralElemId = e->id;
-          static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->iSurf = e->isurf;
+          alpha[ai] = 0;
+          beta[ai] = 0;
+          q_ji[ai] = 0;
+          w_ji[ai] = 0;
+          eigenvalues[ai] = 0;
         }
+
+        // Calculate Lambda^-.
+        num_flux->Lambda(eigenvalues);
+        num_flux->T_1(T);
+        num_flux->T_2(T);
+        num_flux->T_3(T);
+        num_flux->T_4(T);
+        num_flux->T_inv_1(T_inv);
+        num_flux->T_inv_2(T_inv);
+        num_flux->T_inv_3(T_inv);
+        num_flux->T_inv_4(T_inv);
+
+        // "Prescribed" boundary state.
+        w_B[0] = static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->rho_ext;
+        w_B[1] = static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->rho_ext 
+          * static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->v1_ext;
+        w_B[2] = static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->rho_ext 
+          * static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->v2_ext;
+        w_B[3] = static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->energy_ext;
+
+        num_flux->Q(q_ji_star, w_B, e->nx[point_i], e->ny[point_i]);
+
+        for(unsigned int ai = 0; ai < 4; ai++)
+          for(unsigned int aj = 0; aj < 4; aj++)
+            alpha[ai] += T_inv[ai][aj] * num_flux->get_q()[aj];
+
+        for(unsigned int bi = 0; bi < 4; bi++)
+          for(unsigned int bj = 0; bj < 4; bj++)
+            beta[bi] += T_inv[bi][bj] * q_ji_star[bj];
+
+        for(unsigned int si = 0; si< 4; si++)
+          for(unsigned int sj = 0; sj < 4; sj++)
+            if(eigenvalues[sj] < 0)
+              q_ji[si] += beta[sj] * T[si][sj];
+            else
+              q_ji[si] += alpha[sj] * T[si][sj];
+
+        num_flux->Q_inv(w_ji, q_ji, e->nx[point_i], e->ny[point_i]);
+
+        double P_minus[4];
+
+        double w_temp[4];
+        w_temp[0] = (w_ji[0] + w_L[0]) / 2;
+        w_temp[1] = (w_ji[1] + w_L[1]) / 2;
+        w_temp[2] = (w_ji[2] + w_L[2]) / 2;
+        w_temp[3] = (w_ji[3] + w_L[3]) / 2;
+
+        double e_1[4] = {1, 0, 0, 0};
+        double e_2[4] = {0, 1, 0, 0};
+        double e_3[4] = {0, 0, 1, 0};
+        double e_4[4] = {0, 0, 0, 1};
+
+        num_flux->P_plus(static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->P_plus_cache[omp_get_thread_num()][point_i], w_temp, e_1, e->nx[point_i], e->ny[point_i]);
+        num_flux->P_plus(static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->P_plus_cache[omp_get_thread_num()][point_i] + 4, w_temp, e_2, e->nx[point_i], e->ny[point_i]);
+        num_flux->P_plus(static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->P_plus_cache[omp_get_thread_num()][point_i] + 8, w_temp, e_3, e->nx[point_i], e->ny[point_i]);
+        num_flux->P_plus(static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->P_plus_cache[omp_get_thread_num()][point_i] + 12, w_temp, e_4, e->nx[point_i], e->ny[point_i]);
+      }
 
       for (int point_i = 0; point_i < n; point_i++) 
       {
@@ -1789,11 +1772,6 @@ protected:
   // Cache for numerical flux.
   double*** P_plus_cache;
   double*** P_minus_cache;
-  int centralElemId;
-  int neighbElemId;
-  uint64_t uTrn;
-  uint64_t vTrn;
-  int iSurf;
 };
 
 class EulerEquationsWeakFormSemiImplicitTwoInflows : public WeakForm<double>

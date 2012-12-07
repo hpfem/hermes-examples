@@ -32,7 +32,7 @@ void FilterVectorPotential::filter_fn(int n, Hermes::vector<double*> values, dou
   }
 }
 
-MeshFunction<double>* FilterVectorPotential::clone()
+MeshFunction<double>* FilterVectorPotential::clone() const 
 {
   Hermes::vector<MeshFunction<double>*> fns;
   Hermes::vector<int> items;
@@ -54,12 +54,12 @@ FilterFluxDensity::FilterFluxDensity(Hermes::vector<MeshFunction<double>*> solut
 {
 }
 
-double FilterFluxDensity::get_pt_value(double x, double y, int item) 
+Func<double>* FilterFluxDensity::get_pt_value(double x, double y) 
 {
   throw Hermes::Exceptions::Exception("Not implemented yet"); return 0;
 }
 
-MeshFunction<double>* FilterFluxDensity::clone()
+MeshFunction<double>* FilterFluxDensity::clone() const 
 {
   Hermes::vector<MeshFunction<double>*> fns;
   for(int i = 0; i < this->num; i++)

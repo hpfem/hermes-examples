@@ -23,7 +23,7 @@ public:
   virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v,
       Geom<Ord> *e, Func<Ord>* *ext) const;
 
-  MatrixFormVol<double>* clone();
+  MatrixFormVol<double>* clone() const;
 
   Mesh* mesh;
 };
@@ -43,7 +43,7 @@ public:
   virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, 
       Geom<Ord> *e, Func<Ord>* *ext) const;
 
-  VectorFormVol<double>* clone();
+  VectorFormVol<double>* clone() const;
 
   Mesh* mesh;
 };
@@ -64,7 +64,7 @@ public:
   virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
       Geom<Ord> *e, Func<Ord>* *ext) const;
 
-  MatrixFormSurf<double>* clone();
+  MatrixFormSurf<double>* clone() const;
 
 };
 
@@ -84,7 +84,7 @@ public:
   virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, 
       Geom<Ord> *e, Func<Ord>* *ext) const;
 
-  VectorFormSurf<double>* clone();
+  VectorFormSurf<double>* clone() const;
 };
 
 class CustomWeakFormPoisson : public WeakForm<double>

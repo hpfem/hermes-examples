@@ -24,7 +24,7 @@ Ord CustomInitialConditionTemperature::ord(Ord x, Ord y) const
   return Ord(1);
 }
 
-MeshFunction<double>* CustomInitialConditionTemperature::clone()
+MeshFunction<double>* CustomInitialConditionTemperature::clone() const 
 {
   return new CustomInitialConditionTemperature(*this);
 }

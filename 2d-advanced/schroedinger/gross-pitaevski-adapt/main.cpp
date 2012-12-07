@@ -236,7 +236,11 @@ int main(int argc, char* argv[])
     double err_est;
     do {
       // Construct globally refined reference mesh and setup reference space.
-      Space<std::complex<double> >* ref_space = Space<std::complex<double> >::construct_refined_space(&space);
+      Mesh::ReferenceMeshCreator refMeshCreator(&mesh);
+      Mesh* ref_mesh = refMeshCreator.create_ref_mesh();
+
+      Space<std::complex<double> >::ReferenceSpaceCreator refSpaceCreator(&space, ref_mesh);
+      Space<std::complex<double> >* ref_space = refSpaceCreator.create_ref_space();
 
       // Initialize discrete problem on reference mesh.
       DiscreteProblem<std::complex<double> >* ref_dp = new DiscreteProblem<std::complex<double> >(&wf, ref_space);

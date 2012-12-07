@@ -16,7 +16,7 @@ Ord CustomInitialConditionWave::ord(Ord x, Ord y) const
   return Ord(10);
 }
   
-MeshFunction<double>* CustomInitialConditionWave::clone()
+MeshFunction<double>* CustomInitialConditionWave::clone() const 
 {
   return new CustomInitialConditionWave(this->mesh);
 }
@@ -57,7 +57,7 @@ Ord CustomWeakFormWave::VectorFormVolWave_0::ord(int n, double *wt, Func<Ord> *u
   return vector_form<Ord, Ord>(n, wt, u_ext, v, e, ext);
 }
 
-VectorFormVol<double>* CustomWeakFormWave::VectorFormVolWave_0::clone() 
+VectorFormVol<double>* CustomWeakFormWave::VectorFormVolWave_0::clone() const 
 {
   return new VectorFormVolWave_0(*this);
 }
@@ -86,7 +86,7 @@ Ord CustomWeakFormWave::VectorFormVolWave_1::ord(int n, double *wt, Func<Ord> *u
   return vector_form<Ord, Ord>(n, wt, u_ext, v, e, ext);
 }
 
-VectorFormVol<double>* CustomWeakFormWave::VectorFormVolWave_1::clone() 
+VectorFormVol<double>* CustomWeakFormWave::VectorFormVolWave_1::clone() const 
 {
   return new VectorFormVolWave_1(*this);
 }

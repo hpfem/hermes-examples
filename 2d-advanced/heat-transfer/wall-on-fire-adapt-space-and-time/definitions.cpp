@@ -68,7 +68,7 @@ Ord CustomWeakFormHeatRK::CustomJacobianVol::ord(int n, double *wt, Func<Ord> *u
   return (u->dx[0] * v->dx[0] + u->dy[0] * v->dy[0]) * Ord(5);
 }
 
-MatrixFormVol<double>* CustomWeakFormHeatRK::CustomJacobianVol::clone() 
+MatrixFormVol<double>* CustomWeakFormHeatRK::CustomJacobianVol::clone() const 
 {
   return new CustomJacobianVol(*this);
 }
@@ -96,7 +96,7 @@ Ord CustomWeakFormHeatRK::CustomFormResidualVol::ord(int n, double *wt, Func<Ord
   return (u_prev_newton->dx[0] * v->dx[0] + u_prev_newton->dy[0] * v->dy[0]) * Ord(5);
 }
 
-VectorFormVol<double>* CustomWeakFormHeatRK::CustomFormResidualVol::clone() 
+VectorFormVol<double>* CustomWeakFormHeatRK::CustomFormResidualVol::clone() const 
 {
   return new CustomFormResidualVol(*this);
 }
@@ -130,7 +130,7 @@ Ord CustomWeakFormHeatRK::CustomFormResidualSurfFire::ord(int n, double *wt, Fun
   return v->val[0] * Ord(3);
 }
 
-VectorFormSurf<double>* CustomWeakFormHeatRK::CustomFormResidualSurfFire::clone() 
+VectorFormSurf<double>* CustomWeakFormHeatRK::CustomFormResidualSurfFire::clone() const 
 {
   return new CustomFormResidualSurfFire(*this);
 }

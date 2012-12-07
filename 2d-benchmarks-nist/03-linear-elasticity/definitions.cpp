@@ -460,7 +460,7 @@ Ord CustomWeakFormElasticityNIST::CustomMatrixFormVolElasticityNIST_0_0::ord(int
   return matrix_form<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
 }
 
-MatrixFormVol<double>* CustomWeakFormElasticityNIST::CustomMatrixFormVolElasticityNIST_0_0::clone()
+MatrixFormVol<double>* CustomWeakFormElasticityNIST::CustomMatrixFormVolElasticityNIST_0_0::clone() const 
 {
   return new CustomMatrixFormVolElasticityNIST_0_0(*this);
 }
@@ -487,7 +487,7 @@ Ord CustomWeakFormElasticityNIST::CustomMatrixFormVolElasticityNIST_0_1::ord(int
   return matrix_form<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
 }
 
-MatrixFormVol<double>* CustomWeakFormElasticityNIST::CustomMatrixFormVolElasticityNIST_0_1::clone()
+MatrixFormVol<double>* CustomWeakFormElasticityNIST::CustomMatrixFormVolElasticityNIST_0_1::clone() const 
 {
   return new CustomMatrixFormVolElasticityNIST_0_1(*this);
 }
@@ -514,7 +514,7 @@ Ord CustomWeakFormElasticityNIST::CustomMatrixFormVolElasticityNIST_1_1::ord(int
   return matrix_form<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
 }
 
-MatrixFormVol<double>* CustomWeakFormElasticityNIST::CustomMatrixFormVolElasticityNIST_1_1::clone()
+MatrixFormVol<double>* CustomWeakFormElasticityNIST::CustomMatrixFormVolElasticityNIST_1_1::clone() const 
 {
   return new CustomMatrixFormVolElasticityNIST_1_1(*this);
 }
@@ -547,7 +547,7 @@ Ord CustomWeakFormElasticityNIST::CustomVectorFormVolElasticityNIST_0::ord(int n
   return vector_form<Ord, Ord>(n, wt, u_ext, v, e, ext);
 }
 
-VectorFormVol<double>* CustomWeakFormElasticityNIST::CustomVectorFormVolElasticityNIST_0::clone()
+VectorFormVol<double>* CustomWeakFormElasticityNIST::CustomVectorFormVolElasticityNIST_0::clone() const 
 {
   return new CustomVectorFormVolElasticityNIST_0(*this);
 }
@@ -580,7 +580,7 @@ Ord CustomWeakFormElasticityNIST::CustomVectorFormVolElasticityNIST_1::ord(int n
   return vector_form<Ord, Ord>(n, wt, u_ext, v, e, ext);
 }
 
-VectorFormVol<double>* CustomWeakFormElasticityNIST::CustomVectorFormVolElasticityNIST_1::clone()
+VectorFormVol<double>* CustomWeakFormElasticityNIST::CustomVectorFormVolElasticityNIST_1::clone() const 
 {
   return new CustomVectorFormVolElasticityNIST_1(*this);
 }

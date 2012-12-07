@@ -56,7 +56,7 @@ Ord WeakFormNSSimpleLinearization::BilinearFormSymVel::ord(int n, double *wt, Fu
   return result;
 }
 
-MatrixFormVol<double>* WeakFormNSSimpleLinearization::BilinearFormSymVel::clone()
+MatrixFormVol<double>* WeakFormNSSimpleLinearization::BilinearFormSymVel::clone() const 
 {
   return new BilinearFormSymVel(*this);
 }
@@ -87,7 +87,7 @@ Ord WeakFormNSSimpleLinearization::BilinearFormNonsymVel::ord(int n, double *wt,
   return result;
 }
 
-MatrixFormVol<double>* WeakFormNSSimpleLinearization::BilinearFormNonsymVel::clone()
+MatrixFormVol<double>* WeakFormNSSimpleLinearization::BilinearFormNonsymVel::clone() const 
 {
   return new BilinearFormNonsymVel(*this);
 }
@@ -104,7 +104,7 @@ Ord WeakFormNSSimpleLinearization::BilinearFormNonsymXVelPressure::ord(int n, do
   return - int_u_dvdx<Ord, Ord>(n, wt, u, v);
 }
 
-MatrixFormVol<double>* WeakFormNSSimpleLinearization::BilinearFormNonsymXVelPressure::clone()
+MatrixFormVol<double>* WeakFormNSSimpleLinearization::BilinearFormNonsymXVelPressure::clone() const 
 {
   return new BilinearFormNonsymXVelPressure(*this);
 }
@@ -121,7 +121,7 @@ Ord WeakFormNSSimpleLinearization::BilinearFormNonsymYVelPressure::ord(int n, do
   return - int_u_dvdy<Ord, Ord>(n, wt, u, v);
 }
 
-MatrixFormVol<double>* WeakFormNSSimpleLinearization::BilinearFormNonsymYVelPressure::clone()
+MatrixFormVol<double>* WeakFormNSSimpleLinearization::BilinearFormNonsymYVelPressure::clone() const 
 {
   return new BilinearFormNonsymYVelPressure(*this);
 }
@@ -149,7 +149,7 @@ Ord WeakFormNSSimpleLinearization::VectorFormVolVel::ord(int n, double *wt, Func
   return result;
 }
 
-VectorFormVol<double>* WeakFormNSSimpleLinearization::VectorFormVolVel::clone()
+VectorFormVol<double>* WeakFormNSSimpleLinearization::VectorFormVolVel::clone() const 
 {
   return new VectorFormVolVel(*this);
 }
@@ -213,7 +213,7 @@ Ord WeakFormNSNewton::BilinearFormSymVel::ord(int n, double *wt, Func<Ord> *u_ex
   return result;
 }
 
-MatrixFormVol<double>* WeakFormNSNewton::BilinearFormSymVel::clone()
+MatrixFormVol<double>* WeakFormNSNewton::BilinearFormSymVel::clone() const 
 {
   return new BilinearFormSymVel(*this);
 }
@@ -248,7 +248,7 @@ Ord WeakFormNSNewton::BilinearFormNonsymVel_0_0::ord(int n, double *wt, Func<Ord
   return result;
 }
 
-MatrixFormVol<double>* WeakFormNSNewton::BilinearFormNonsymVel_0_0::clone()
+MatrixFormVol<double>* WeakFormNSNewton::BilinearFormNonsymVel_0_0::clone() const 
 {
   return new BilinearFormNonsymVel_0_0(*this);
 }
@@ -279,7 +279,7 @@ Ord WeakFormNSNewton::BilinearFormNonsymVel_0_1::ord(int n, double *wt, Func<Ord
   return result;
 }
 
-MatrixFormVol<double>* WeakFormNSNewton::BilinearFormNonsymVel_0_1::clone()
+MatrixFormVol<double>* WeakFormNSNewton::BilinearFormNonsymVel_0_1::clone() const 
 {
   return new BilinearFormNonsymVel_0_1(*this);
 }
@@ -310,7 +310,7 @@ Ord WeakFormNSNewton::BilinearFormNonsymVel_1_0::ord(int n, double *wt, Func<Ord
   return result;
 }
 
-MatrixFormVol<double>* WeakFormNSNewton::BilinearFormNonsymVel_1_0::clone()
+MatrixFormVol<double>* WeakFormNSNewton::BilinearFormNonsymVel_1_0::clone() const 
 {
   return new BilinearFormNonsymVel_1_0(*this);
 }
@@ -347,7 +347,7 @@ Ord WeakFormNSNewton::BilinearFormNonsymVel_1_1::ord(int n, double *wt, Func<Ord
   return result;
 }
 
-MatrixFormVol<double>* WeakFormNSNewton::BilinearFormNonsymVel_1_1::clone()
+MatrixFormVol<double>* WeakFormNSNewton::BilinearFormNonsymVel_1_1::clone() const 
 {
   return new BilinearFormNonsymVel_1_1(*this);
 }
@@ -364,7 +364,7 @@ Ord WeakFormNSNewton::BilinearFormNonsymXVelPressure::ord(int n, double *wt, Fun
   return - int_u_dvdx<Ord, Ord>(n, wt, u, v);
 }
 
-MatrixFormVol<double>* WeakFormNSNewton::BilinearFormNonsymXVelPressure::clone()
+MatrixFormVol<double>* WeakFormNSNewton::BilinearFormNonsymXVelPressure::clone() const 
 {
   return new BilinearFormNonsymXVelPressure(*this);
 }
@@ -381,7 +381,7 @@ Ord WeakFormNSNewton::BilinearFormNonsymYVelPressure::ord(int n, double *wt, Fun
   return - int_u_dvdy<Ord, Ord>(n, wt, u, v);
 }
 
-MatrixFormVol<double>* WeakFormNSNewton::BilinearFormNonsymYVelPressure::clone()
+MatrixFormVol<double>* WeakFormNSNewton::BilinearFormNonsymYVelPressure::clone() const 
 {
   return new BilinearFormNonsymYVelPressure(*this);
 }
@@ -423,7 +423,7 @@ Ord WeakFormNSNewton::VectorFormNS_0::ord(int n, double *wt, Func<Ord> *u_ext[],
   return result;
 }
 
-VectorFormVol<double>* WeakFormNSNewton::VectorFormNS_0::clone()
+VectorFormVol<double>* WeakFormNSNewton::VectorFormNS_0::clone() const 
 {
   return new VectorFormNS_0(*this);
 }
@@ -465,7 +465,7 @@ Ord WeakFormNSNewton::VectorFormNS_1::ord(int n, double *wt, Func<Ord> *u_ext[],
   return result;
 }
 
-VectorFormVol<double>* WeakFormNSNewton::VectorFormNS_1::clone()
+VectorFormVol<double>* WeakFormNSNewton::VectorFormNS_1::clone() const 
 {
   return new VectorFormNS_1(*this);
 }
@@ -493,7 +493,7 @@ Ord WeakFormNSNewton::VectorFormNS_2::ord(int n, double *wt, Func<Ord> *u_ext[],
   return result;
 }
 
-VectorFormVol<double>* WeakFormNSNewton::VectorFormNS_2::clone()
+VectorFormVol<double>* WeakFormNSNewton::VectorFormNS_2::clone() const 
 {
   return new VectorFormNS_2(*this);
 }

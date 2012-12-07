@@ -17,7 +17,7 @@ Ord CustomInitialCondition::ord(Ord x, Ord y) const
   return exp(-20*(x*x + y*y));
 }
 
-MeshFunction<std::complex<double> >* CustomInitialCondition::clone() 
+MeshFunction<std::complex<double> >* CustomInitialCondition::clone() const 
 {
   return new CustomInitialCondition(this->mesh);
 }
@@ -59,7 +59,7 @@ Ord CustomWeakFormGPRK::CustomFormMatrixFormVol::ord(int n, double *wt, Func<Ord
   return matrix_form_rk<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
 }
 
-MatrixFormVol<std::complex<double> >* CustomWeakFormGPRK::CustomFormMatrixFormVol::clone() 
+MatrixFormVol<std::complex<double> >* CustomWeakFormGPRK::CustomFormMatrixFormVol::clone() const 
 {
   return new CustomFormMatrixFormVol(*this);
 }
@@ -92,7 +92,7 @@ Ord CustomWeakFormGPRK::CustomFormVectorFormVol::ord(int n, double *wt, Func<Ord
   return vector_form_rk<Ord, Ord>(n, wt, u_ext, v, e, ext);
 }
 
-VectorFormVol<std::complex<double> >* CustomWeakFormGPRK::CustomFormVectorFormVol::clone() 
+VectorFormVol<std::complex<double> >* CustomWeakFormGPRK::CustomFormVectorFormVol::clone() const 
 {
   return new CustomFormVectorFormVol(*this);
 }

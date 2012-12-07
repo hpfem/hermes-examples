@@ -126,7 +126,6 @@ int main(int argc, char* argv[])
 
     try
     {
-      picard.setPreviousSolution(&h_iter_prev);
       picard.solve();
     }
     catch(std::exception& e)

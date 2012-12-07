@@ -269,7 +269,8 @@ int main(int argc, char* argv[])
       ref_mesh->refine_all_elements();
       
       int order_increase = 1;
-      ref_spaces_const.push_back(spaces[g]->dup(ref_mesh, order_increase));
+      Space<double>::ReferenceSpaceCreator refSpaceCreator(spaces[g], ref_mesh);
+      ref_spaces_const.push_back(refSpaceCreator.create_ref_space());
     }
 
 #ifdef WITH_PETSC    

@@ -117,7 +117,11 @@ int main(int argc, char* argv[])
     cpu_time.tick();
 
     // Construct globally refined reference mesh and setup reference space.
-    Space<double>* ref_space = Space<double>::construct_refined_space(&space, 1);
+    Mesh::ReferenceMeshCreator refMeshCreator(&mesh);
+    Mesh* ref_mesh = refMeshCreator.create_ref_mesh();
+
+    Space<double>::ReferenceSpaceCreator refSpaceCreator(&space, ref_mesh);
+    Space<double>* ref_space = refSpaceCreator.create_ref_space();
     int ndof_ref = ref_space->get_num_dofs();
 
     Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d (%d DOF):", as, ndof_ref);

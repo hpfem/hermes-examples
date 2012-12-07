@@ -112,8 +112,14 @@ ExactSolutionFitzHughNagumo1::~ExactSolutionFitzHughNagumo1()
   delete cef1;
 }
 
+MeshFunction<double>* ExactSolutionFitzHughNagumo1::clone() const
+{
+  return new ExactSolutionFitzHughNagumo1(this->mesh);
+}
+
+
 ExactSolutionFitzHughNagumo2::ExactSolutionFitzHughNagumo2(const Mesh* mesh, double K)
-     : ExactSolutionScalar<double>(mesh) 
+     : ExactSolutionScalar<double>(mesh), K(K)
 {
   cef2 = new CustomExactFunction2(K);
 }
@@ -137,6 +143,11 @@ Hermes::Ord ExactSolutionFitzHughNagumo2::ord(Hermes::Ord x, Hermes::Ord y) cons
 ExactSolutionFitzHughNagumo2::~ExactSolutionFitzHughNagumo2() 
 {
   delete cef2;
+}
+
+MeshFunction<double>* ExactSolutionFitzHughNagumo2::clone() const
+{
+  return new ExactSolutionFitzHughNagumo2(this->mesh, K);
 }
 
 double CustomResidual1::value(int n, double *wt, Func<double> *u_ext[], Func<double> *v,
@@ -171,7 +182,7 @@ Hermes::Ord CustomResidual1::ord(int n, double *wt, Func<Hermes::Ord> *u_ext[], 
    return result;
 }
 
-VectorFormVol<double>* CustomResidual1::clone() 
+VectorFormVol<double>* CustomResidual1::clone() const
 {
   return new CustomResidual1(*this);
 }
@@ -208,7 +219,7 @@ Hermes::Ord CustomResidual2::ord(int n, double *wt, Func<Hermes::Ord> *u_ext[], 
   return result;
 } 
 
-VectorFormVol<double>* CustomResidual2::clone() 
+VectorFormVol<double>* CustomResidual2::clone() const
 {
   return new CustomResidual2(*this);
 }

@@ -232,9 +232,20 @@ int main(int argc, char* argv[])
       Hermes::Mixins::Loggable::Static::info("Time step %d, adaptivity step %d:", ts, as);
 
       // Construct globally refined reference mesh and setup reference space.
-      Hermes::vector<Space<double> *>* ref_spaces 
-          = Space<double>::construct_refined_spaces(Hermes::vector<Space<double> *>(&T_space, &w_space));
-      Hermes::vector<const Space<double> *> ref_spaces_const((*ref_spaces)[0], (*ref_spaces)[1]);
+      Mesh::ReferenceMeshCreator refMeshCreatorU(&T_mesh);
+      Mesh* ref_T_mesh = refMeshCreatorU.create_ref_mesh();
+
+      Space<double>::ReferenceSpaceCreator refSpaceCreatorT(&T_space, ref_T_mesh);
+      Space<double>* ref_T_space = refSpaceCreatorT.create_ref_space();
+
+      Mesh::ReferenceMeshCreator refMeshCreatorW(&w_mesh);
+      Mesh* ref_w_mesh = refMeshCreatorW.create_ref_mesh();
+
+      Space<double>::ReferenceSpaceCreator refSpaceCreatorW(&w_space, ref_w_mesh);
+      Space<double>* ref_w_space = refSpaceCreatorW.create_ref_space();
+
+      Hermes::vector<Space<double>*> ref_spaces(ref_T_space, ref_w_space);
+      Hermes::vector<const Space<double>*> ref_spaces_const(ref_T_space, ref_w_space);
 
       // Initialize discrete problem on reference meshes.
       DiscreteProblem<double> dp(&wf, ref_spaces_const);
@@ -309,7 +320,8 @@ int main(int argc, char* argv[])
       delete adaptivity;
       if(!done)
       {
-        delete ref_spaces;
+        delete ref_T_space;
+        delete ref_w_space;
         delete T_time_new.get_mesh();
         delete w_time_new.get_mesh();
       }

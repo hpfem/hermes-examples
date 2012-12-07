@@ -80,6 +80,7 @@ public:
   ~ExactSolutionFitzHughNagumo1();
 
   CustomExactFunction1* cef1;
+  virtual MeshFunction<double>* clone() const;
 };
 
 class ExactSolutionFitzHughNagumo2 : public ExactSolutionScalar<double>
@@ -96,6 +97,9 @@ public:
   ~ExactSolutionFitzHughNagumo2();
 
   CustomExactFunction2* cef2;
+  virtual MeshFunction<double>* clone() const;
+
+  double K;
 };
 
 /* Weak forms */
@@ -112,7 +116,7 @@ public:
   virtual Hermes::Ord ord(int n, double *wt, Func<Hermes::Ord> *u_ext[], Func<Hermes::Ord> *v,
                   Geom<Hermes::Ord> *e, Func<Hermes::Ord>* *ext) const;
 
-  virtual VectorFormVol<double>* clone();
+  virtual VectorFormVol<double>* clone() const;
 
 private:
   double d_u;
@@ -132,7 +136,7 @@ public:
   virtual Hermes::Ord ord(int n, double *wt, Func<Hermes::Ord> *u_ext[], Func<Hermes::Ord> *v,
                   Geom<Hermes::Ord> *e, Func<Hermes::Ord>* *ext) const;
   
-  virtual VectorFormVol<double>* clone();
+  virtual VectorFormVol<double>* clone() const;
   
 private:
   double d_v;

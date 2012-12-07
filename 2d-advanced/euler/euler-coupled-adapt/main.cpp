@@ -274,10 +274,12 @@ int main(int argc, char* argv[])
         REFINEMENT_COUNT_FLOW = 0;
         space_rho.unrefine_all_mesh_elements();
         if(CAND_LIST_FLOW == H2D_HP_ANISO)
+        {
           space_rho.adjust_element_order(-1, P_INIT_FLOW);
-        space_rho_v_x.copy_orders(&space_rho);
-        space_rho_v_y.copy_orders(&space_rho);
-        space_e.copy_orders(&space_rho);
+          space_rho_v_x.adjust_element_order(-1, P_INIT_FLOW);
+          space_rho_v_y.adjust_element_order(-1, P_INIT_FLOW);
+          space_e.adjust_element_order(-1, P_INIT_FLOW);
+        }
       }
       if(REFINEMENT_COUNT_CONCENTRATION > 0) 
       {
@@ -298,23 +300,37 @@ int main(int argc, char* argv[])
       int order_increase = 0;
       if(CAND_LIST_FLOW == H2D_HP_ANISO)
         order_increase = 1;
-      Hermes::vector<Space<double> *>* ref_spaces = Space<double>::construct_refined_spaces(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-        &space_rho_v_y, &space_e, &space_c), order_increase);
+
+      Mesh::ReferenceMeshCreator refMeshCreatorFlow(&mesh_flow);
+      Mesh* ref_mesh_flow = refMeshCreatorFlow.create_ref_mesh();
+      Mesh::ReferenceMeshCreator refMeshCreatorConcentration(&mesh_concentration);
+      Mesh* ref_mesh_concentration = refMeshCreatorConcentration.create_ref_mesh();
+
+      Space<double>::ReferenceSpaceCreator refSpaceCreatorRho(&space_rho, &mesh_flow);
+      Space<double>* ref_space_rho = refSpaceCreatorRho.create_ref_space();
+      Space<double>::ReferenceSpaceCreator refSpaceCreatorRhoVx(&space_rho_v_x, &mesh_flow);
+      Space<double>* ref_space_rho_v_x = refSpaceCreatorRhoVx.create_ref_space();
+      Space<double>::ReferenceSpaceCreator refSpaceCreatorRhoVy(&space_rho_v_y, &mesh_flow);
+      Space<double>* ref_space_rho_v_y = refSpaceCreatorRhoVy.create_ref_space();
+      Space<double>::ReferenceSpaceCreator refSpaceCreatorE(&space_e, &mesh_flow);
+      Space<double>* ref_space_e = refSpaceCreatorE.create_ref_space();
+      Space<double>::ReferenceSpaceCreator refSpaceCreatorConcentration(&space_c, &mesh_concentration);
+      Space<double>* ref_space_c = refSpaceCreatorConcentration.create_ref_space();
 
       char filename[40];
       sprintf(filename, "Flow-mesh-%i-%i.xml", iteration - 1, as - 1);
-      mloader.save(filename, (*ref_spaces)[0]->get_mesh());
+      mloader.save(filename, ref_space_rho->get_mesh());
       sprintf(filename, "Concentration-mesh-%i-%i.xml", iteration - 1, as - 1);
-      mloader.save(filename, (*ref_spaces)[4]->get_mesh());
+      mloader.save(filename, ref_space_c->get_mesh());
 
-      Space<double>* ref_space_stabilization = (*ref_spaces)[0]->dup((*ref_spaces)[0]->get_mesh());
+      Space<double>* ref_space_stabilization = refSpaceCreatorRho.create_ref_space();
       ref_space_stabilization->set_uniform_order(0);
 
       if(CAND_LIST_FLOW != H2D_HP_ANISO)
-        (*ref_spaces)[4]->adjust_element_order(+1, P_INIT_CONCENTRATION);
+        ref_space_c->adjust_element_order(+1, P_INIT_CONCENTRATION);
 
-      Hermes::vector<const Space<double> *> ref_spaces_const((*ref_spaces)[0], (*ref_spaces)[1], 
-        (*ref_spaces)[2], (*ref_spaces)[3], (*ref_spaces)[4]);
+      Hermes::vector<const Space<double> *> ref_spaces_const(ref_space_rho, ref_space_rho_v_x, 
+        ref_space_rho_v_y, ref_space_e, ref_space_c);
 
       // Project the previous time level solution onto the new fine mesh.
       Hermes::Mixins::Loggable::Static::info("Projecting the previous time level solution onto the new fine mesh.");
@@ -342,10 +358,10 @@ int main(int argc, char* argv[])
         Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
         &space_rho_v_y, &space_e, &space_c)), Space<double>::get_num_dofs(ref_spaces_const));
 
-      // Very imporant, set the meshes for the flow as the same.
-      (*ref_spaces)[1]->get_mesh()->set_seq((*ref_spaces)[0]->get_mesh()->get_seq());
-      (*ref_spaces)[2]->get_mesh()->set_seq((*ref_spaces)[0]->get_mesh()->get_seq());
-      (*ref_spaces)[3]->get_mesh()->set_seq((*ref_spaces)[0]->get_mesh()->get_seq());
+      // Very important, set the meshes for the flow as the same.
+      ref_space_rho_v_x->get_mesh()->set_seq(ref_space_rho->get_mesh()->get_seq());
+      ref_space_rho_v_y->get_mesh()->set_seq(ref_space_rho->get_mesh()->get_seq());
+      ref_space_e->get_mesh()->set_seq(ref_space_rho->get_mesh()->get_seq());
 
       // Set up the solver, matrix, and rhs according to the solver selection.
       SparseMatrix<double>* matrix = create_matrix<double>();
@@ -400,7 +416,7 @@ int main(int argc, char* argv[])
         }
         else
         {
-          Hermes::vector<const Space<double>*> flow_spaces((*ref_spaces)[0], (*ref_spaces)[1], (*ref_spaces)[2], (*ref_spaces)[3]);
+          Hermes::vector<const Space<double>*> flow_spaces(ref_space_rho, ref_space_rho_v_x, ref_space_rho_v_y, ref_space_e);
 
           double* flow_solution_vector = new double[Space<double>::get_num_dofs(flow_spaces)];
 
@@ -511,31 +527,6 @@ int main(int argc, char* argv[])
           as++;
       }
 
-      // Save orders.
-      if((iteration - 1) % EVERY_NTH_STEP == 0 && done)
-      {
-        if(HERMES_VISUALIZATION)
-        {
-          Hermes::vector<Space<double> *>* ref_spaces_local = Space<double>::construct_refined_spaces(Hermes::vector<Space<double> *>(&space_rho, &space_c), 0);
-          order_view_flow.show((*ref_spaces_local)[0]);
-          order_view_conc.show((*ref_spaces_local)[1]);
-          order_view_flow.save_numbered_screenshot("FlowMesh%i.bmp", (int)(iteration / 5), true);
-          order_view_conc.save_numbered_screenshot("ConcentrationMesh%i.bmp", (int)(iteration / 5), true);
-          for(unsigned int i = 0; i < ref_spaces_local->size(); i++) {
-            delete (*ref_spaces_local)[i]->get_mesh();
-            delete (*ref_spaces_local)[i];
-          }
-        }
-        if(VTK_VISUALIZATION)
-        {
-          Orderizer ord;
-          char filename[40];
-          sprintf(filename, "Flow-mesh-%i.vtk", iteration - 1);
-          ord.save_orders_vtk((*ref_spaces)[0], filename);
-          sprintf(filename, "Concentration-mesh-%i.vtk", iteration - 1);
-          ord.save_orders_vtk((*ref_spaces)[4], filename);
-        }
-      }
       // Clean up.
       delete solver;
       delete matrix;

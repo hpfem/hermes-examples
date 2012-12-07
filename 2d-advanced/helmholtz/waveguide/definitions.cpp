@@ -55,7 +55,7 @@ Ord WeakFormHelmholtz::MatrixFormHelmholtzEquation_real_real::ord(int n, double 
   return matrix_form<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
 }
 
-MatrixFormVol<double>* WeakFormHelmholtz::MatrixFormHelmholtzEquation_real_real::clone()
+MatrixFormVol<double>* WeakFormHelmholtz::MatrixFormHelmholtzEquation_real_real::clone() const 
 {
   return new WeakFormHelmholtz::MatrixFormHelmholtzEquation_real_real(*this);
 }
@@ -79,7 +79,7 @@ Ord WeakFormHelmholtz::MatrixFormHelmholtzEquation_real_imag::ord(int n, double 
   return matrix_form<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
 }
 
-MatrixFormVol<double>* WeakFormHelmholtz::MatrixFormHelmholtzEquation_real_imag::clone()
+MatrixFormVol<double>* WeakFormHelmholtz::MatrixFormHelmholtzEquation_real_imag::clone() const 
 {
   return new WeakFormHelmholtz::MatrixFormHelmholtzEquation_real_imag(*this);
 }
@@ -103,7 +103,7 @@ Ord WeakFormHelmholtz::MatrixFormHelmholtzEquation_imag_real::ord(int n, double 
   return matrix_form<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
 }
 
-MatrixFormVol<double>* WeakFormHelmholtz::MatrixFormHelmholtzEquation_imag_real::clone()
+MatrixFormVol<double>* WeakFormHelmholtz::MatrixFormHelmholtzEquation_imag_real::clone() const 
 {
   return new WeakFormHelmholtz::MatrixFormHelmholtzEquation_imag_real(*this);
 }
@@ -127,7 +127,7 @@ Ord WeakFormHelmholtz::MatrixFormHelmholtzEquation_imag_imag::ord(int n, double 
   return matrix_form<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
 }
 
-MatrixFormVol<double>* WeakFormHelmholtz::MatrixFormHelmholtzEquation_imag_imag::clone()
+MatrixFormVol<double>* WeakFormHelmholtz::MatrixFormHelmholtzEquation_imag_imag::clone() const 
 {
   return new WeakFormHelmholtz::MatrixFormHelmholtzEquation_imag_imag(*this);
 }
@@ -151,7 +151,7 @@ Ord WeakFormHelmholtz::MatrixFormSurfHelmholtz_real_imag::ord(int n, double *wt,
   return matrix_form_surf<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
 }
 
-MatrixFormSurf<double>* WeakFormHelmholtz::MatrixFormSurfHelmholtz_real_imag::clone()
+MatrixFormSurf<double>* WeakFormHelmholtz::MatrixFormSurfHelmholtz_real_imag::clone() const 
 {
   return new WeakFormHelmholtz::MatrixFormSurfHelmholtz_real_imag(*this);
 }
@@ -175,7 +175,7 @@ Ord WeakFormHelmholtz::MatrixFormSurfHelmholtz_imag_real::ord(int n, double *wt,
   return matrix_form_surf<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
 }
 
-MatrixFormSurf<double>* WeakFormHelmholtz::MatrixFormSurfHelmholtz_imag_real::clone()
+MatrixFormSurf<double>* WeakFormHelmholtz::MatrixFormSurfHelmholtz_imag_real::clone() const 
 {
   return new WeakFormHelmholtz::MatrixFormSurfHelmholtz_imag_real(*this);
 }
@@ -203,7 +203,7 @@ Ord WeakFormHelmholtz::VectorFormHelmholtzEquation_real::ord(int n, double *wt, 
   return vector_form<Ord, Ord>(n, wt, u_ext, v, e, ext);
 }
 
-VectorFormVol<double>* WeakFormHelmholtz::VectorFormHelmholtzEquation_real::clone()
+VectorFormVol<double>* WeakFormHelmholtz::VectorFormHelmholtzEquation_real::clone() const 
 {
   return new WeakFormHelmholtz::VectorFormHelmholtzEquation_real(*this);
 }
@@ -229,7 +229,7 @@ Ord WeakFormHelmholtz::VectorFormHelmholtzEquation_imag::ord(int n, double *wt, 
   return vector_form<Ord, Ord>(n, wt, u_ext, v, e, ext);
 }
  
-VectorFormVol<double>* WeakFormHelmholtz::VectorFormHelmholtzEquation_imag::clone()
+VectorFormVol<double>* WeakFormHelmholtz::VectorFormHelmholtzEquation_imag::clone() const 
 {
   return new WeakFormHelmholtz::VectorFormHelmholtzEquation_imag(*this);
 }
@@ -255,7 +255,7 @@ Ord WeakFormHelmholtz::VectorFormSurfHelmholtz_real::ord(int n, double *wt, Func
   return vector_form_surf<Ord, Ord>(n, wt, u_ext, v, e, ext);
 }
   
-VectorFormSurf<double>* WeakFormHelmholtz::VectorFormSurfHelmholtz_real::clone()
+VectorFormSurf<double>* WeakFormHelmholtz::VectorFormSurfHelmholtz_real::clone() const 
 {
   return new WeakFormHelmholtz::VectorFormSurfHelmholtz_real(*this);
 }
@@ -279,7 +279,7 @@ Ord WeakFormHelmholtz::VectorFormSurfHelmholtz_imag::ord(int n, double *wt, Func
   return vector_form_surf<Ord, Ord>(n, wt, u_ext, v, e, ext);
 }
   
-VectorFormSurf<double>* WeakFormHelmholtz::VectorFormSurfHelmholtz_imag::clone()
+VectorFormSurf<double>* WeakFormHelmholtz::VectorFormSurfHelmholtz_imag::clone() const 
 {
   return new WeakFormHelmholtz::VectorFormSurfHelmholtz_imag(*this);
 }

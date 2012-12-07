@@ -19,7 +19,7 @@ public:
 
   virtual Ord ord(Ord x, Ord y) const;
 
-  virtual MeshFunction<std::complex<double> >* clone();
+  virtual MeshFunction<std::complex<double> >* clone() const;
 };
 
 
@@ -48,7 +48,7 @@ private:
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, 
                     Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const;
 
-    virtual MatrixFormVol<std::complex<double> >* clone();
+    virtual MatrixFormVol<std::complex<double> >* clone() const;
 
     // Members.
     double h, m, g, omega;
@@ -71,7 +71,7 @@ private:
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
                     Func<Ord>* *ext) const;
 
-    virtual VectorFormVol<std::complex<double> >* clone();
+    virtual VectorFormVol<std::complex<double> >* clone() const;
 
     // Members.
     double h, m, g, omega;

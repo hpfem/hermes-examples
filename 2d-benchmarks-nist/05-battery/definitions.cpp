@@ -53,7 +53,7 @@ Ord CustomMatrixFormVol::ord(int n, double *wt, Func<Ord> *u_ext[],
   return matrix_form<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
 }
 
-MatrixFormVol<double>* CustomMatrixFormVol::clone()
+MatrixFormVol<double>* CustomMatrixFormVol::clone() const 
 {
   return new CustomMatrixFormVol(*this);
 }
@@ -129,7 +129,7 @@ Ord CustomVectorFormVol::ord(int n, double *wt, Func<Ord> *u_ext[],
   return vector_form<Ord, Ord>(n, wt, u_ext, v, e, ext);
 }
 
-VectorFormVol<double>* CustomVectorFormVol::clone()
+VectorFormVol<double>* CustomVectorFormVol::clone() const 
 {
   return new CustomVectorFormVol(*this);
 }
@@ -210,7 +210,7 @@ Ord CustomMatrixFormSurf::ord(int n, double *wt, Func<Ord> *u_ext[],
   return Ord(4.0);
 }
 
-MatrixFormSurf<double>* CustomMatrixFormSurf::clone()
+MatrixFormSurf<double>* CustomMatrixFormSurf::clone() const 
 {
   return new CustomMatrixFormSurf(*this);
 }
@@ -315,7 +315,7 @@ Ord CustomVectorFormSurf::ord(int n, double *wt, Func<Ord> *u_ext[],
   return Ord(4.0);
 }
 
-VectorFormSurf<double>* CustomVectorFormSurf::clone()
+VectorFormSurf<double>* CustomVectorFormSurf::clone() const 
 {
   return new CustomVectorFormSurf(*this);
 }

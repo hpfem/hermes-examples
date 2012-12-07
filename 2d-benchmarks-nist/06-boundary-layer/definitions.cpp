@@ -70,7 +70,7 @@ Ord CustomWeakForm::CustomMatrixFormVol::ord(int n, double *wt, Func<Ord> *u_ext
   return matrix_form<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
 }
 
-MatrixFormVol<double>* CustomWeakForm::CustomMatrixFormVol::clone()
+MatrixFormVol<double>* CustomWeakForm::CustomMatrixFormVol::clone() const 
 {
   return new CustomWeakForm::CustomMatrixFormVol(*this);
 }
@@ -102,7 +102,7 @@ Ord CustomWeakForm::CustomVectorFormVol::ord(int n, double *wt, Func<Ord> *u_ext
   return vector_form<Ord, Ord>(n, wt, u_ext, v, e, ext);
 }
 
-VectorFormVol<double>* CustomWeakForm::CustomVectorFormVol::clone()
+VectorFormVol<double>* CustomWeakForm::CustomVectorFormVol::clone() const 
 {
   return new CustomWeakForm::CustomVectorFormVol(*this);
 }

@@ -18,7 +18,7 @@ Ord CustomWeakForm::Jacobian::ord(int n, double* wt,
   return u->dx[0] * v->dx[0] + u->dy[0] * v->dy[0];
 }
 
-MatrixFormVol<double>* CustomWeakForm::Jacobian::clone()
+MatrixFormVol<double>* CustomWeakForm::Jacobian::clone() const 
 {
   return new CustomWeakForm::Jacobian(*this);
 }
@@ -39,7 +39,7 @@ Ord CustomWeakForm::Residual::ord(int n, double* wt, Func< Ord >* u_ext[], Func<
   return u_ext[0]->dx[0] * v->dx[0] + u_ext[0]->dy[0] * v->dy[0] + rhs->value(e->x[0], e->y[0]) * v->val[0];
 }
 
-VectorFormVol<double>* CustomWeakForm::Residual::clone()
+VectorFormVol<double>* CustomWeakForm::Residual::clone() const 
 {
   return new CustomWeakForm::Residual(*this);
 }

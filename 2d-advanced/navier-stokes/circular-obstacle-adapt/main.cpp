@@ -250,10 +250,18 @@ int main(int argc, char* argv[])
 
       // Construct globally refined reference mesh
       // and setup reference space.
-      Hermes::vector<Space<double>*>* ref_spaces = Space<double>::construct_refined_spaces(Hermes::vector<Space<double>*>(&xvel_space, &yvel_space, &p_space));
-      Hermes::vector<const Space<double> *> ref_spaces_const((*ref_spaces)[0], (*ref_spaces)[1], (*ref_spaces)[2]);
+      Mesh::ReferenceMeshCreator refMeshCreator(&mesh);
+      Mesh* ref_mesh = refMeshCreator.create_ref_mesh();
 
-      // Initialize discrete problem on the reference mesh.
+      Space<double>::ReferenceSpaceCreator refSpaceCreatorX(&xvel_space, ref_mesh);
+      Space<double>* ref_xvel_space = refSpaceCreatorX.create_ref_space();
+      Space<double>::ReferenceSpaceCreator refSpaceCreatorY(&yvel_space, ref_mesh);
+      Space<double>* ref_yvel_space = refSpaceCreatorY.create_ref_space();
+      Space<double>::ReferenceSpaceCreator refSpaceCreatorP(&p_space, ref_mesh);
+      Space<double>* ref_p_space = refSpaceCreatorP.create_ref_space();
+
+      Hermes::vector<Space<double>*> ref_spaces(ref_xvel_space, ref_yvel_space, ref_p_space);
+      Hermes::vector<const Space<double>*> ref_spaces_const(ref_xvel_space, ref_yvel_space, ref_p_space);
 
       // Calculate initial coefficient vector for Newton on the fine mesh.
       double* coeff_vec = new double[Space<double>::get_num_dofs(ref_spaces_const)];

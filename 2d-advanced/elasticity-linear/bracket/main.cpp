@@ -142,11 +142,20 @@ int main(int argc, char* argv[])
     Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d:", as);
 
     // Construct globally refined reference mesh and setup reference space.
-    Hermes::vector<Space<double> *>* ref_spaces = 
-        Space<double>::construct_refined_spaces(Hermes::vector<Space<double> *>(&u1_space, &u2_space));
-    Hermes::vector<const Space<double>*> ref_spaces_const((*ref_spaces)[0], (*ref_spaces)[1]);
-    Space<double>* u_ref_space = (*ref_spaces)[0];
-    Space<double>* v_ref_space = (*ref_spaces)[1];
+    Mesh::ReferenceMeshCreator refMeshCreator1(&u1_mesh);
+    Mesh* ref_u1_mesh = refMeshCreator1.create_ref_mesh();
+
+    Space<double>::ReferenceSpaceCreator refSpaceCreator1(&u1_space, ref_u1_mesh);
+    Space<double>* ref_u1_space = refSpaceCreator1.create_ref_space();
+
+    Mesh::ReferenceMeshCreator refMeshCreator2(&u2_mesh);
+    Mesh* ref_u2_mesh = refMeshCreator2.create_ref_mesh();
+
+    Space<double>::ReferenceSpaceCreator refSpaceCreator2(&u2_space, ref_u2_mesh);
+    Space<double>* ref_u2_space = refSpaceCreator2.create_ref_space();
+
+    Hermes::vector<Space<double> *> ref_spaces(ref_u1_space, ref_u2_space);
+    Hermes::vector<const Space<double> *> ref_spaces_const(ref_u1_space, ref_u2_space);
 
     int ndof_ref = Space<double>::get_num_dofs(ref_spaces_const);
 
@@ -224,9 +233,9 @@ int main(int argc, char* argv[])
 
     // Report results.
     Hermes::Mixins::Loggable::Static::info("ndof_coarse[0]: %d, ndof_fine[0]: %d, err_est_rel[0]: %g%%", 
-         u1_space.Space<double>::get_num_dofs(), Space<double>::get_num_dofs((*ref_spaces)[0]), err_est_rel[0]*100);
+         u1_space.Space<double>::get_num_dofs(), Space<double>::get_num_dofs((ref_spaces)[0]), err_est_rel[0]*100);
     Hermes::Mixins::Loggable::Static::info("ndof_coarse[1]: %d, ndof_fine[1]: %d, err_est_rel[1]: %g%%",
-         u2_space.Space<double>::get_num_dofs(), Space<double>::get_num_dofs((*ref_spaces)[1]), err_est_rel[1]*100);
+         u2_space.Space<double>::get_num_dofs(), Space<double>::get_num_dofs((ref_spaces)[1]), err_est_rel[1]*100);
     Hermes::Mixins::Loggable::Static::info("ndof_coarse_total: %d, ndof_fine_total: %d, err_est_rel_total: %g%%",
          Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&u1_space, &u2_space)), 
          Space<double>::get_num_dofs(ref_spaces_const), err_est_rel_total);
@@ -252,9 +261,11 @@ int main(int argc, char* argv[])
     // Clean up.
     delete adaptivity;
     if(done == false)
-      for(unsigned int i = 0; i < ref_spaces->size(); i++)
-        delete (*ref_spaces)[i]->get_mesh();
-    delete ref_spaces;
+      for(unsigned int i = 0; i < ref_spaces.size(); i++)
+        {
+          delete (ref_spaces)[i]->get_mesh();
+          delete (ref_spaces)[i];
+      }
     
     // Increase counter.
     as++;

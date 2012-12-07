@@ -328,7 +328,11 @@ int main(int argc, char* argv[])
 
       // Construct globally refined reference mesh
       // and setup reference space.
-      Space<double>* ref_space = Space<double>::construct_refined_space(&space);
+      Mesh::ReferenceMeshCreator refMeshCreator(&mesh);
+      Mesh* ref_mesh = refMeshCreator.create_ref_mesh();
+
+      Space<double>::ReferenceSpaceCreator refSpaceCreator(&space, ref_mesh);
+      Space<double>* ref_space = refSpaceCreator.create_ref_space();
       ndof = Space<double>::get_num_dofs(ref_space);
 
       // Next we need to calculate the reference solution.
@@ -433,8 +437,7 @@ int main(int argc, char* argv[])
         {
           try
           {
-            picard.setPreviousSolution(&sln_prev_iter);
-            picard.solve();
+            picard.solve(&sln_prev_iter);
             Solution<double>::vector_to_solution(picard.get_sln_vector(), ref_space, &ref_sln);
             if(ts > 1)
               delete sln_prev_time.get_mesh();

@@ -28,7 +28,7 @@ public:
 
   virtual Ord ord(Ord x, Ord y) const;
 
-  MeshFunction<double>* clone();
+  MeshFunction<double>* clone() const;
 
   // Members.
   double mid_x, mid_y, radius, temp_fluid, temp_graphite;

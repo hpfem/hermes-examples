@@ -125,7 +125,11 @@ int main(int argc, char* argv[])
     Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d:", as);
 
     // Construct globally refined reference mesh and setup reference space.
-    Space<std::complex<double> >* ref_space = Space<std::complex<double> >::construct_refined_space(&space);
+    Mesh::ReferenceMeshCreator refMeshCreator(&mesh);
+    Mesh* ref_mesh = refMeshCreator.create_ref_mesh();
+
+    Space<std::complex<double> >::ReferenceSpaceCreator refSpaceCreator(&space, ref_mesh);
+    Space<std::complex<double> >* ref_space = refSpaceCreator.create_ref_space();
     int ndof_ref = Space<std::complex<double> >::get_num_dofs(ref_space);
 
     // Assemble the reference problem.

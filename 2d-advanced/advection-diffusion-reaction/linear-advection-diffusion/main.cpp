@@ -122,7 +122,11 @@ int main(int argc, char* argv[])
     Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d:", as);
 
     // Construct globally refined reference mesh and setup reference space.
-    Space<double>* ref_space = Space<double>::construct_refined_space(&space);
+    Mesh::ReferenceMeshCreator refMeshCreator(&mesh);
+    Mesh* ref_mesh = refMeshCreator.create_ref_mesh();
+
+    Space<double>::ReferenceSpaceCreator refSpaceCreator(&space, ref_mesh);
+    Space<double>* ref_space = refSpaceCreator.create_ref_space();
 
     // Initialize matrix solver.
     SparseMatrix<double>* matrix = create_matrix<double>();

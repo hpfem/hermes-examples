@@ -38,7 +38,7 @@ public:
 
   Ord er(int marker, Ord x, Ord y) const;
 
-  virtual MatrixFormVol<std::complex<double> >* clone();
+  virtual MatrixFormVol<std::complex<double> >* clone() const;
 
   // Geometry of the load.
   bool in_load(double x, double y) const;
@@ -67,7 +67,7 @@ public:
   virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
                   Func<Ord>* *ext) const;
 
-  virtual VectorFormVol<std::complex<double> >* clone();
+  virtual VectorFormVol<std::complex<double> >* clone() const;
 
   // Gamma as a function of x, y.
   double gamma(int marker, double x, double y) const;

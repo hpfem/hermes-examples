@@ -210,9 +210,9 @@ int main(int argc, char* argv[])
       space_rho.unrefine_all_mesh_elements(true);
       
       space_rho.adjust_element_order(-1, P_INIT);
-      space_rho_v_x.copy_orders(&space_rho);
-      space_rho_v_y.copy_orders(&space_rho);
-      space_e.copy_orders(&space_rho);
+      space_rho_v_x.adjust_element_order(-1, P_INIT);
+      space_rho_v_y.adjust_element_order(-1, P_INIT);
+      space_e.adjust_element_order(-1, P_INIT);
     }
 
     // Adaptivity loop:
@@ -226,10 +226,20 @@ int main(int argc, char* argv[])
       // Construct globally refined reference mesh and setup reference space.
       int order_increase = 1;
 
-      Hermes::vector<Space<double> *>* ref_spaces = Space<double>::construct_refined_spaces(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-        &space_rho_v_y, &space_e), order_increase);
-      Hermes::vector<const Space<double> *> ref_spaces_const((*ref_spaces)[0], (*ref_spaces)[1], 
-        (*ref_spaces)[2], (*ref_spaces)[3]);
+      Mesh::ReferenceMeshCreator refMeshCreatorFlow(&mesh);
+      Mesh* ref_mesh_flow = refMeshCreatorFlow.create_ref_mesh();
+
+      Space<double>::ReferenceSpaceCreator refSpaceCreatorRho(&space_rho, ref_mesh_flow, order_increase);
+      Space<double>* ref_space_rho = refSpaceCreatorRho.create_ref_space();
+      Space<double>::ReferenceSpaceCreator refSpaceCreatorRhoVx(&space_rho_v_x, ref_mesh_flow, order_increase);
+      Space<double>* ref_space_rho_v_x = refSpaceCreatorRhoVx.create_ref_space();
+      Space<double>::ReferenceSpaceCreator refSpaceCreatorRhoVy(&space_rho_v_y, ref_mesh_flow, order_increase);
+      Space<double>* ref_space_rho_v_y = refSpaceCreatorRhoVy.create_ref_space();
+      Space<double>::ReferenceSpaceCreator refSpaceCreatorE(&space_e, ref_mesh_flow, order_increase);
+      Space<double>* ref_space_e = refSpaceCreatorE.create_ref_space();
+
+      Hermes::vector<Space<double>*> ref_spaces(ref_space_rho, ref_space_rho_v_x, ref_space_rho_v_y, ref_space_e);
+      Hermes::vector<const Space<double>*> ref_spaces_const(ref_space_rho, ref_space_rho_v_x, ref_space_rho_v_y, ref_space_e);
 
       if(ndofs_prev != 0)
         if(Space<double>::get_num_dofs(ref_spaces_const) == ndofs_prev)
@@ -325,7 +335,7 @@ int main(int argc, char* argv[])
       delete rhs;
       delete adaptivity;
       if(!done)
-        for(unsigned int i = 0; i < ref_spaces->size(); i++)
+        for(unsigned int i = 0; i < ref_spaces.size(); i++)
           delete (ref_spaces_const)[i];
     }
     while (done == false);

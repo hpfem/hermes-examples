@@ -40,7 +40,7 @@ private:
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const;
 
     // This is needed for the rk_time_step_newton() method.
-    virtual MatrixFormVol<double>* clone();
+    virtual MatrixFormVol<double>* clone() const;
 
     double rho, heatcap;
   };
@@ -58,7 +58,7 @@ private:
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const;
 
     // Needed for the rk_time_step_newton() method.
-    virtual VectorFormVol<double>* clone();
+    virtual VectorFormVol<double>* clone() const;
 
     double rho, heatcap;
   };
@@ -82,7 +82,7 @@ private:
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const;
 
     // Needed for the rk_time_step_newton() method.
-    virtual VectorFormSurf<double>* clone();
+    virtual VectorFormSurf<double>* clone() const;
 
     // Fire temperature as function of x and t.
     template<typename Real>

@@ -18,7 +18,7 @@ Ord CustomInitialConditionWave::ord(Ord x, Ord y) const
   return Ord(10);
 }
 
-MeshFunction<double>* CustomInitialConditionWave::clone()
+MeshFunction<double>* CustomInitialConditionWave::clone() const 
 {
   return new CustomInitialConditionWave(this->mesh);
 }
@@ -46,7 +46,7 @@ Ord CustomWeakFormWaveRK::MatrixFormVolWave_0_1::ord(int n, double *wt, Func<Ord
   return int_e_f<Ord, Ord>(n, wt, u, v);
 }
 
-MatrixFormVol<double>* CustomWeakFormWaveRK::MatrixFormVolWave_0_1::clone() 
+MatrixFormVol<double>* CustomWeakFormWaveRK::MatrixFormVolWave_0_1::clone() const 
 {
   return new MatrixFormVolWave_0_1(*this);
 }
@@ -63,7 +63,7 @@ Ord CustomWeakFormWaveRK::MatrixFormVolWave_1_0::ord(int n, double *wt, Func<Ord
   return -c_squared * int_curl_e_curl_f<Ord, Ord>(n, wt, u, v);
 }
 
-MatrixFormVol<double>* CustomWeakFormWaveRK::MatrixFormVolWave_1_0::clone() 
+MatrixFormVol<double>* CustomWeakFormWaveRK::MatrixFormVolWave_1_0::clone() const 
 {
   return new MatrixFormVolWave_1_0(*this);
 }
@@ -82,7 +82,7 @@ Ord CustomWeakFormWaveRK::VectorFormVolWave_0::ord(int n, double *wt, Func<Ord> 
   return int_e_f<Ord, Ord>(n, wt, F_prev_newton, v);
 }
 
-VectorFormVol<double>* CustomWeakFormWaveRK::VectorFormVolWave_0::clone() 
+VectorFormVol<double>* CustomWeakFormWaveRK::VectorFormVolWave_0::clone() const 
 {
   return new VectorFormVolWave_0(*this);
 }
@@ -100,7 +100,7 @@ Ord CustomWeakFormWaveRK::VectorFormVolWave_1::ord(int n, double *wt, Func<Ord> 
   return -c_squared * int_curl_e_curl_f<Ord, Ord>(n, wt, E_prev_newton, v);
 }
 
-VectorFormVol<double>* CustomWeakFormWaveRK::VectorFormVolWave_1::clone() 
+VectorFormVol<double>* CustomWeakFormWaveRK::VectorFormVolWave_1::clone() const 
 {
   return new VectorFormVolWave_1(*this);
 }

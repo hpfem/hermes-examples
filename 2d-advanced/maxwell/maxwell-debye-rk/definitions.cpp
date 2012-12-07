@@ -103,7 +103,7 @@ Ord CustomWeakFormMD::MatrixFormVolMD_0_0::ord(int n, double *wt, Func<Ord> *u_e
   return -(eps_q - 1)/tau * int_e_f<Ord, Ord>(n, wt, u, v);
 }
 
-MatrixFormVol<double>* CustomWeakFormMD::MatrixFormVolMD_0_0::clone() 
+MatrixFormVol<double>* CustomWeakFormMD::MatrixFormVolMD_0_0::clone() const 
 {
   return new MatrixFormVolMD_0_0(*this);
 }
@@ -132,7 +132,7 @@ Ord CustomWeakFormMD::MatrixFormVolMD_0_1::ord(int n, double *wt, Func<Ord> *u_e
   return result * (1.0 / eps_0 / eps_inf);
 }
 
-MatrixFormVol<double>* CustomWeakFormMD::MatrixFormVolMD_0_1::clone() 
+MatrixFormVol<double>* CustomWeakFormMD::MatrixFormVolMD_0_1::clone() const 
 {
   return new MatrixFormVolMD_0_1(*this);
 }
@@ -150,7 +150,7 @@ Ord CustomWeakFormMD::MatrixFormVolMD_0_2::ord(int n, double *wt, Func<Ord> *u_e
   return (1.0 / eps_0 / eps_inf / tau) * int_e_f<Ord, Ord>(n, wt, u, v);
 }
 
-MatrixFormVol<double>* CustomWeakFormMD::MatrixFormVolMD_0_2::clone() 
+MatrixFormVol<double>* CustomWeakFormMD::MatrixFormVolMD_0_2::clone() const 
 {
   return new MatrixFormVolMD_0_2(*this);
 }
@@ -180,7 +180,7 @@ Ord CustomWeakFormMD::MatrixFormVolMD_1_0::ord(int n, double *wt, Func<Ord> *u_e
   return result * (-1.0 / mu_0); 
 }
 
-MatrixFormVol<double>* CustomWeakFormMD::MatrixFormVolMD_1_0::clone() 
+MatrixFormVol<double>* CustomWeakFormMD::MatrixFormVolMD_1_0::clone() const 
 {
   return new MatrixFormVolMD_1_0(*this);
 }
@@ -198,7 +198,7 @@ Ord CustomWeakFormMD::MatrixFormVolMD_2_0::ord(int n, double *wt, Func<Ord> *u_e
   return (eps_q - 1)*eps_0*eps_inf/tau * int_e_f<Ord, Ord>(n, wt, u, v);
 }
 
-MatrixFormVol<double>* CustomWeakFormMD::MatrixFormVolMD_2_0::clone() 
+MatrixFormVol<double>* CustomWeakFormMD::MatrixFormVolMD_2_0::clone() const 
 {
   return new MatrixFormVolMD_2_0(*this);
 }
@@ -216,7 +216,7 @@ Ord CustomWeakFormMD::MatrixFormVolMD_2_2::ord(int n, double *wt, Func<Ord> *u_e
   return (-1.0 / tau) * int_e_f<Ord, Ord>(n, wt, u, v);
 }
 
-MatrixFormVol<double>* CustomWeakFormMD::MatrixFormVolMD_2_2::clone() 
+MatrixFormVol<double>* CustomWeakFormMD::MatrixFormVolMD_2_2::clone() const 
 {
   return new MatrixFormVolMD_2_2(*this);
 }
@@ -256,7 +256,7 @@ Ord CustomWeakFormMD::VectorFormVolMD_0::ord(int n, double *wt, Func<Ord> *u_ext
          + (1.0 / eps_0 / eps_inf / tau) * int_e_f<Ord, Ord>(n, wt, P_prev_newton, v);
 }
 
-VectorFormVol<double>* CustomWeakFormMD::VectorFormVolMD_0::clone() 
+VectorFormVol<double>* CustomWeakFormMD::VectorFormVolMD_0::clone() const 
 {
   return new VectorFormVolMD_0(*this);
 }
@@ -286,7 +286,7 @@ Ord CustomWeakFormMD::VectorFormVolMD_1::ord(int n, double *wt, Func<Ord> *u_ext
   return (-1.0 / mu_0) * int_curl_E_v;
 }
 
-VectorFormVol<double>* CustomWeakFormMD::VectorFormVolMD_1::clone() 
+VectorFormVol<double>* CustomWeakFormMD::VectorFormVolMD_1::clone() const 
 {
   return new VectorFormVolMD_1(*this);
 }
@@ -310,7 +310,7 @@ Ord CustomWeakFormMD::VectorFormVolMD_2::ord(int n, double *wt, Func<Ord> *u_ext
          - (1.0 / tau) * int_e_f<Ord, Ord>(n, wt, P_prev_newton, v);
 }
 
-VectorFormVol<double>* CustomWeakFormMD::VectorFormVolMD_2::clone() 
+VectorFormVol<double>* CustomWeakFormMD::VectorFormVolMD_2::clone() const 
 {
   return new VectorFormVolMD_2(*this);
 }

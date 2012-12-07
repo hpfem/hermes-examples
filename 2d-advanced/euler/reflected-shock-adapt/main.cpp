@@ -196,9 +196,11 @@ int main(int argc, char* argv[])
   if(REUSE_SOLUTION && continuity.have_record_available())
   {
     continuity.get_last_record()->load_mesh(&mesh);
-    continuity.get_last_record()->load_spaces(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-      &space_rho_v_y, &space_e), Hermes::vector<SpaceType>(HERMES_L2_SPACE, HERMES_L2_SPACE, HERMES_L2_SPACE, HERMES_L2_SPACE), Hermes::vector<Mesh *>(&mesh, &mesh, 
-      &mesh, &mesh));
+    Hermes::vector<Space<double> *> spaceVector = continuity.get_last_record()->load_spaces(Hermes::vector<Mesh *>(&mesh, &mesh, &mesh, &mesh));
+    space_rho.copy(spaceVector[0], &mesh);
+    space_rho_v_x.copy(spaceVector[1], &mesh);
+    space_rho_v_y.copy(spaceVector[2], &mesh);
+    space_e.copy(spaceVector[3], &mesh);
     continuity.get_last_record()->load_time_step_length(time_step);
     t = continuity.get_last_record()->get_time() + time_step;
     iteration = (continuity.get_num()) * EVERY_NTH_STEP + 1;
@@ -231,9 +233,9 @@ int main(int argc, char* argv[])
         space_rho.unrefine_all_mesh_elements(true);
 
         space_rho.adjust_element_order(-1, P_INIT);
-        space_rho_v_x.copy_orders(&space_rho);
-        space_rho_v_y.copy_orders(&space_rho);
-        space_e.copy_orders(&space_rho);
+        space_rho_v_x.adjust_element_order(-1, P_INIT);
+        space_rho_v_y.adjust_element_order(-1, P_INIT);
+        space_e.adjust_element_order(-1, P_INIT);
       }
     }
 
@@ -248,11 +250,20 @@ int main(int argc, char* argv[])
       // Construct globally refined reference mesh and setup reference space.
       int order_increase = (CAND_LIST == H2D_HP_ANISO ? 1 : 0);
 
-      Hermes::vector<Space<double> *>* ref_spaces = Space<double>::construct_refined_spaces(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-        &space_rho_v_y, &space_e), order_increase);
+      Mesh::ReferenceMeshCreator refMeshCreatorFlow(&mesh);
+      Mesh* ref_mesh = refMeshCreatorFlow.create_ref_mesh();
 
-      Hermes::vector<const Space<double> *> ref_spaces_const((*ref_spaces)[0], (*ref_spaces)[1], 
-        (*ref_spaces)[2], (*ref_spaces)[3]);
+      Space<double>::ReferenceSpaceCreator refSpaceCreatorRho(&space_rho, ref_mesh, order_increase);
+      Space<double>* ref_space_rho = refSpaceCreatorRho.create_ref_space();
+      Space<double>::ReferenceSpaceCreator refSpaceCreatorRhoVx(&space_rho_v_x, ref_mesh, order_increase);
+      Space<double>* ref_space_rho_v_x = refSpaceCreatorRhoVx.create_ref_space();
+      Space<double>::ReferenceSpaceCreator refSpaceCreatorRhoVy(&space_rho_v_y, ref_mesh, order_increase);
+      Space<double>* ref_space_rho_v_y = refSpaceCreatorRhoVy.create_ref_space();
+      Space<double>::ReferenceSpaceCreator refSpaceCreatorE(&space_e, ref_mesh, order_increase);
+      Space<double>* ref_space_e = refSpaceCreatorE.create_ref_space();
+
+      Hermes::vector<Space<double>*> ref_spaces(ref_space_rho, ref_space_rho_v_x, ref_space_rho_v_y, ref_space_e);
+      Hermes::vector<const Space<double>*> ref_spaces_const(ref_space_rho, ref_space_rho_v_x, ref_space_rho_v_y, ref_space_e);
 
       if(ndofs_prev != 0)
         if(Space<double>::get_num_dofs(ref_spaces_const) == ndofs_prev)
@@ -269,7 +280,7 @@ int main(int argc, char* argv[])
         loaded_now = false;
 
         continuity.get_last_record()->load_solutions(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), 
-            Hermes::vector<Space<double> *>((*ref_spaces)[0], (*ref_spaces)[1], (*ref_spaces)[2], (*ref_spaces)[3]));
+            Hermes::vector<Space<double> *>(ref_space_rho, ref_space_rho_v_x, ref_space_rho_v_y, ref_space_e));
       }
       else
       {
@@ -287,8 +298,8 @@ int main(int argc, char* argv[])
       }
 
       spaces_to_delete.clear();
-      for(int i = 0; i < ref_spaces->size(); i++)
-        spaces_to_delete.push_back((*ref_spaces)[i]);
+      for(int i = 0; i < ref_spaces.size(); i++)
+        spaces_to_delete.push_back(ref_spaces[i]);
 
       // Report NDOFs.
       Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d.", 
@@ -339,7 +350,7 @@ int main(int argc, char* argv[])
       Hermes::Mixins::Loggable::Static::info("err_est_rel: %g%%", err_est_rel_total);
 
       // If err_est too large, adapt the mesh.
-      if (Space<double>::get_num_dofs(*ref_spaces) > NDOF_STOP || err_est_rel_total < THRESHOLD)
+      if (Space<double>::get_num_dofs(ref_spaces) > NDOF_STOP || err_est_rel_total < THRESHOLD)
       {
         done = true;
       }
@@ -367,7 +378,7 @@ int main(int argc, char* argv[])
           Mach_number_view.show(&Mach_number);
           //pressure_view.save_numbered_screenshot("Pressure-%u.bmp", iteration - 1, true);
           Mach_number_view.save_numbered_screenshot("Mach-%u.bmp", iteration - 1, true);
-          space_view.show((*ref_spaces)[0]);
+          space_view.show(ref_space_rho);
           space_view.save_numbered_screenshot("Space-%u.bmp", iteration - 1, true);
 
         }
@@ -383,9 +394,9 @@ int main(int argc, char* argv[])
           sprintf(filename, "Mach number-%i.vtk", iteration - 1);
           lin.save_solution_vtk(&Mach_number, filename, "MachNumber", false);
           sprintf(filename, "Mesh-%i.vtk", iteration - 1);
-          orderizer.save_mesh_vtk((*ref_spaces)[0], filename);
+          orderizer.save_mesh_vtk(ref_space_rho, filename);
           sprintf(filename, "Space-%i.vtk", iteration - 1);
-          orderizer.save_orders_vtk((*ref_spaces)[0], filename);
+          orderizer.save_orders_vtk(ref_space_rho, filename);
         }
       }
 

@@ -20,7 +20,7 @@ public:
 
   virtual Ord ord(Ord x, Ord y) const;
 
-  virtual MeshFunction<double>* clone();
+  virtual MeshFunction<double>* clone() const;
 };
 
 /* Weak forms */
@@ -43,7 +43,7 @@ private:
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
                     Geom<Ord> *e, Func<Ord>* *ext) const;
 
-    virtual MatrixFormVol<double>* clone();
+    virtual MatrixFormVol<double>* clone() const;
   };
 
   class MatrixFormVolWave_1_0 : public MatrixFormVol<double>
@@ -58,7 +58,7 @@ private:
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
                     Geom<Ord> *e, Func<Ord>* *ext) const;
 
-    virtual MatrixFormVol<double>* clone();
+    virtual MatrixFormVol<double>* clone() const;
     
     // Member.
     double c_squared;
@@ -75,7 +75,7 @@ private:
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
                     Func<Ord>* *ext) const;
 
-    virtual VectorFormVol<double>* clone();
+    virtual VectorFormVol<double>* clone() const;
   };
 
   class VectorFormVolWave_1 : public VectorFormVol<double>
@@ -89,7 +89,7 @@ private:
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const;
 
-    virtual VectorFormVol<double>* clone();
+    virtual VectorFormVol<double>* clone() const;
 
     double c_squared;
   };

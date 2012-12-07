@@ -143,9 +143,11 @@ int main(int argc, char* argv[])
   if(REUSE_SOLUTION && continuity.have_record_available())
   {
     continuity.get_last_record()->load_mesh(&mesh);
-    continuity.get_last_record()->load_spaces(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-      &space_rho_v_y, &space_e), Hermes::vector<SpaceType>(HERMES_L2_SPACE, HERMES_L2_SPACE, HERMES_L2_SPACE, HERMES_L2_SPACE), Hermes::vector<Mesh *>(&mesh, &mesh, 
-      &mesh, &mesh));
+    Hermes::vector<Space<double> *> spaceVector = continuity.get_last_record()->load_spaces(Hermes::vector<Mesh *>(&mesh, &mesh, &mesh, &mesh));
+    space_rho.copy(spaceVector[0], &mesh);
+    space_rho_v_x.copy(spaceVector[1], &mesh);
+    space_rho_v_y.copy(spaceVector[2], &mesh);
+    space_e.copy(spaceVector[3], &mesh);
     continuity.get_last_record()->load_solutions(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
       &space_rho_v_y, &space_e));
     continuity.get_last_record()->load_time_step_length(time_step);

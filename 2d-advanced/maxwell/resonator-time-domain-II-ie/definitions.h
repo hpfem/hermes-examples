@@ -27,7 +27,7 @@ private:
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
                     Geom<Ord> *e, Func<Ord>* *ext) const;
 
-    MatrixFormVol<double>* clone();
+    MatrixFormVol<double>* clone() const;
 
     double tau;
   };
@@ -42,7 +42,7 @@ private:
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
                     Geom<Ord> *e, Func<Ord>* *ext) const;
-    MatrixFormVol<double>* clone();
+    MatrixFormVol<double>* clone() const;
   };
 
   class MatrixFormVolWave_1_0 : public MatrixFormVol<double>
@@ -57,7 +57,7 @@ private:
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
                     Geom<Ord> *e, Func<Ord>* *ext) const;
 
-    MatrixFormVol<double>* clone();
+    MatrixFormVol<double>* clone() const;
     double c_squared;
   };
 
@@ -72,7 +72,7 @@ private:
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
                     Geom<Ord> *e, Func<Ord>* *ext) const;
 
-    MatrixFormVol<double>* clone();
+    MatrixFormVol<double>* clone() const;
     double tau;
   };
 
@@ -87,7 +87,7 @@ private:
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
                     Func<Ord>* *ext) const;
     
-    VectorFormVol<double>* clone();
+    VectorFormVol<double>* clone() const;
     double tau;
   };
 
@@ -102,7 +102,7 @@ private:
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const;
 
-    VectorFormVol<double>* clone();
+    VectorFormVol<double>* clone() const;
     double tau, c_squared;
   };
 };
@@ -119,6 +119,6 @@ public:
   virtual void derivatives (double x, double y, Scalar2<double>& dx, Scalar2<double>& dy) const;
 
   virtual Ord ord(Ord x, Ord y) const;
-  MeshFunction<double>* clone();
+  MeshFunction<double>* clone() const;
 };
 

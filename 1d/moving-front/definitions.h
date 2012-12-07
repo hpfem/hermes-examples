@@ -57,7 +57,7 @@ public:
   virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v,
     Geom<Ord> *e, Func<Ord>* *ext) const;
 
-  virtual VectorFormVol<double>* clone();
+  virtual VectorFormVol<double>* clone() const;
 
 private:
   Hermes::Hermes2DFunction<double>* coeff;

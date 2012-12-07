@@ -47,7 +47,7 @@ private:
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, 
                     Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const;
 
-    virtual MatrixFormVol<double>* clone();
+    virtual MatrixFormVol<double>* clone() const;
     ConstitutiveRelations* constitutive;
   };
 
@@ -65,7 +65,7 @@ private:
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
                     Func<Ord>* *ext) const;
 
-    virtual VectorFormVol<double>* clone();
+    virtual VectorFormVol<double>* clone() const;
     ConstitutiveRelations* constitutive;
   };
 };

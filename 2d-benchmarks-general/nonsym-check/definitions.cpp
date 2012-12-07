@@ -16,7 +16,7 @@ Ord CustomExactSolution::ord(Ord x, Ord y) const
   return Ord(20);
 }
 
-MeshFunction<double>* CustomExactSolution::clone()
+MeshFunction<double>* CustomExactSolution::clone() const 
 {
   return new CustomExactSolution(*this);
 }
@@ -37,7 +37,7 @@ Ord CustomJacobian::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Fun
   return Ord(20);
 }
 
-MatrixFormVol<double>* CustomJacobian::clone()
+MatrixFormVol<double>* CustomJacobian::clone() const 
 {
   return new CustomJacobian(*this);
 }
@@ -57,7 +57,7 @@ Ord CustomResidual::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v,
   return Ord(20);
 }
 
-VectorFormVol<double>* CustomResidual::clone()
+VectorFormVol<double>* CustomResidual::clone() const 
 {
   return new CustomResidual(*this);
 }

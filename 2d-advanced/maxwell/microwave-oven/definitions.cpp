@@ -46,7 +46,7 @@ Ord CustomMatrixForm::gamma(int marker, Ord x, Ord y) const
   return Ord(0.0);
 }
 
-MatrixFormVol<std::complex<double> >* CustomMatrixForm::clone() 
+MatrixFormVol<std::complex<double> >* CustomMatrixForm::clone() const 
 {
   CustomMatrixForm* form = new CustomMatrixForm(i, j, e_0, mu_0, mu_r, kappa, omega, J, align_mesh);
   form->wf = this->wf;
@@ -128,7 +128,7 @@ Ord CustomResidualForm::gamma(int marker, Ord x, Ord y) const
   return Ord(0.0); 
 }
 
-CustomResidualForm::VectorFormVol<std::complex<double> >* CustomResidualForm::clone() 
+CustomResidualForm::VectorFormVol<std::complex<double> >* CustomResidualForm::clone() const 
 {
     CustomResidualForm* form = new CustomResidualForm(i, e_0, mu_0, mu_r, kappa, omega, J, align_mesh);
     form->wf = this->wf;

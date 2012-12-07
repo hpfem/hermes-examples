@@ -26,7 +26,7 @@ public:
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, 
                     Func<Ord>* *ext) const;
 
-    MatrixFormVol<double>* clone();
+    MatrixFormVol<double>* clone() const;
   protected:
     bool Stokes;
     double Reynolds;
@@ -44,7 +44,7 @@ public:
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, 
                     Func<Ord>* *ext) const;
-    MatrixFormVol<double>* clone();
+    MatrixFormVol<double>* clone() const;
 
   protected:
     bool Stokes;
@@ -61,7 +61,7 @@ public:
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, 
                     Func<Ord>* *ext) const;
-    MatrixFormVol<double>* clone();
+    MatrixFormVol<double>* clone() const;
 
   protected:
     bool Stokes;
@@ -78,7 +78,7 @@ public:
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, 
                     Func<Ord>* *ext) const;
-    MatrixFormVol<double>* clone();
+    MatrixFormVol<double>* clone() const;
 
   protected:
     bool Stokes;
@@ -96,7 +96,7 @@ public:
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, 
                     Func<Ord>* *ext) const;
 
-    MatrixFormVol<double>* clone();
+    MatrixFormVol<double>* clone() const;
   protected:
     bool Stokes;
   };
@@ -111,7 +111,7 @@ public:
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, 
                     Func<Ord>* *ext) const;
-    MatrixFormVol<double>* clone();
+    MatrixFormVol<double>* clone() const;
 
   };
 
@@ -125,7 +125,7 @@ public:
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, 
                     Func<Ord>* *ext) const;
-    MatrixFormVol<double>* clone();
+    MatrixFormVol<double>* clone() const;
   };
 
   class VectorFormNS_0 : public VectorFormVol<double>
@@ -139,7 +139,7 @@ public:
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const;
 
-    VectorFormVol<double>* clone();
+    VectorFormVol<double>* clone() const;
   protected:
     bool Stokes;
     double Reynolds;
@@ -156,7 +156,7 @@ public:
                          Func<double>* *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const;
-    VectorFormVol<double>* clone();
+    VectorFormVol<double>* clone() const;
 
   protected:
     bool Stokes;
@@ -173,7 +173,7 @@ public:
                          Func<double>* *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const;
-    VectorFormVol<double>* clone();
+    VectorFormVol<double>* clone() const;
 
   };
 

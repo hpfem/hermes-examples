@@ -334,9 +334,20 @@ int main (int argc, char* argv[]) {
 
       // Construct globally refined reference mesh
       // and setup reference space.
-      Hermes::vector<Space<double> *>* ref_spaces =
-          Space<double>::construct_refined_spaces(Hermes::vector<Space<double> *>(&C_space, &phi_space));
-      Hermes::vector<const Space<double>*> ref_spaces_const((*ref_spaces)[0], (*ref_spaces)[1]);
+      Mesh::ReferenceMeshCreator refMeshCreatorC(&C_mesh);
+      Mesh* ref_C_mesh = refMeshCreatorC.create_ref_mesh();
+
+      Space<double>::ReferenceSpaceCreator refSpaceCreatorC(&C_space, ref_C_mesh);
+      Space<double>* ref_C_space = refSpaceCreatorC.create_ref_space();
+
+      Mesh::ReferenceMeshCreator refMeshCreatorPhi(&phi_mesh);
+      Mesh* ref_phi_mesh = refMeshCreatorPhi.create_ref_mesh();
+
+      Space<double>::ReferenceSpaceCreator refSpaceCreatorPhi(&phi_space, ref_phi_mesh);
+      Space<double>* ref_phi_space = refSpaceCreatorPhi.create_ref_space();
+
+      Hermes::vector<const Space<double>*> ref_spaces(ref_C_space, ref_phi_space);
+      Hermes::vector<const Space<double>*> ref_spaces_const(ref_C_space, ref_phi_space);
 
       DiscreteProblem<double>* dp = new DiscreteProblem<double>(wf, ref_spaces_const);
       int ndof_ref = Space<double>::get_num_dofs(ref_spaces_const);
@@ -399,10 +410,10 @@ int main (int argc, char* argv[]) {
 
       // Report results.
       Hermes::Mixins::Loggable::Static::info("ndof_coarse[0]: %d, ndof_fine[0]: %d",
-           C_space.get_num_dofs(), (*ref_spaces)[0]->get_num_dofs());
+           C_space.get_num_dofs(), ref_C_space->get_num_dofs());
       Hermes::Mixins::Loggable::Static::info("err_est_rel[0]: %g%%", err_est_rel[0]*100);
       Hermes::Mixins::Loggable::Static::info("ndof_coarse[1]: %d, ndof_fine[1]: %d",
-           phi_space.get_num_dofs(), (*ref_spaces)[1]->get_num_dofs());
+           phi_space.get_num_dofs(), ref_phi_space->get_num_dofs());
       Hermes::Mixins::Loggable::Static::info("err_est_rel[1]: %g%%", err_est_rel[1]*100);
       // Report results.
       Hermes::Mixins::Loggable::Static::info("ndof_coarse_total: %d, ndof_fine_total: %d, err_est_rel: %g%%", 
@@ -450,7 +461,8 @@ int main (int argc, char* argv[]) {
       // Clean up.
       delete solver;
       delete adaptivity;
-      delete ref_spaces;
+      delete ref_C_space;
+      delete ref_phi_space;
       delete dp;
       delete [] coeff_vec;
     }

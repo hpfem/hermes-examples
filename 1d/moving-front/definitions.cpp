@@ -111,7 +111,7 @@ Ord CustomVectorFormVol::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v
   return result;
 }
 
-VectorFormVol<double>* CustomVectorFormVol::clone() 
+VectorFormVol<double>* CustomVectorFormVol::clone() const
 {
   return new CustomVectorFormVol(*this);
 }
