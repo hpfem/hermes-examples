@@ -138,5 +138,7 @@ public:
   const double g_n_top;
   const double g_n_right;
   const double g_n_bottom;
+
+  virtual WeakForm* clone() const;
 };
 

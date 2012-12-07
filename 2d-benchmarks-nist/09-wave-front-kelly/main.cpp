@@ -167,7 +167,7 @@ int main(int argc, char* argv[])
     memset(coeff_vec, 0, ndof * sizeof(double));
     
     NewtonSolver<double> newton(&dp);
-    newton.set_verbose_output(false);
+    //newton.set_verbose_output(false);
 
     try
     {

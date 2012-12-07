@@ -221,6 +221,11 @@ Ord CustomExactSolutionU::ord (Ord x, Ord y) const
   return Ord(4.0);
 }
 
+MeshFunction<double>* CustomExactSolutionU::clone() const
+{
+  return new CustomExactSolutionU(this->mesh, this->E, this->nu, this->lambda, this->Q);
+}
+
 double CustomExactSolutionV::get_angle(double y, double x) const 
 {
   double theta = Hermes::atan2(y, x);
@@ -426,6 +431,10 @@ Ord CustomExactSolutionV::ord (Ord x, Ord y) const
   return Ord(4.0);
 }
 
+MeshFunction<double>* CustomExactSolutionV::clone() const
+{
+  return new CustomExactSolutionV(this->mesh, this->E, this->nu, this->lambda, this->Q);
+}
 
 CustomWeakFormElasticityNIST::CustomWeakFormElasticityNIST(double E, double nu, double mu, double lambda) : WeakForm<double>(2) 
 {

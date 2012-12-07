@@ -158,7 +158,7 @@ int main(int argc, char* argv[])
     DiscreteProblem<double> dp(&wf, ref_space);
         
     NewtonSolver<double> newton(&dp);
-    newton.set_verbose_output(false);
+    //newton.set_verbose_output(false);
     
     Solution<double> ref_sln;
     try

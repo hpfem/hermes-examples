@@ -263,7 +263,7 @@ int main(int argc, char* argv[])
     int ndof = space.get_num_dofs();
     
     NewtonSolver<double> newton(&dp);
-    newton.set_verbose_output(false);
+    //newton.set_verbose_output(false);
 
     // Setup time continues in NewtonSolver::solve().
     try

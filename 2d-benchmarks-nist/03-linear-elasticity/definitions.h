@@ -9,7 +9,7 @@ using namespace Hermes::Hermes2D::Views;
 class CustomExactSolutionU : public ExactSolutionScalar<double>
 {
 public:
-  CustomExactSolutionU(Mesh* mesh, double E, double nu, double lambda, double Q) 
+  CustomExactSolutionU(const Mesh* mesh, double E, double nu, double lambda, double Q) 
       : ExactSolutionScalar<double>(mesh), E(E), nu(nu), lambda(lambda), Q(Q) {};
 
   double get_angle(double y, double x) const;
@@ -78,16 +78,20 @@ public:
   virtual double value(double x, double y) const;
 
   virtual void derivatives(double x, double y, double& dx, double& dy) const;
+  
+  virtual MeshFunction<double>* clone() const;
 
   virtual Ord ord (Ord x, Ord y) const;
 
   double E, nu, lambda, Q;
+
+
 };
 
 class CustomExactSolutionV : public ExactSolutionScalar<double>
 {
 public:
-  CustomExactSolutionV(Mesh* mesh, double E, double nu, double lambda, double Q) 
+  CustomExactSolutionV(const Mesh* mesh, double E, double nu, double lambda, double Q) 
       : ExactSolutionScalar<double>(mesh), E(E), nu(nu), lambda(lambda), Q(Q) {};
 
   double get_angle(double y, double x) const;
@@ -156,6 +160,8 @@ public:
   virtual double value(double x, double y) const;
 
   virtual void derivatives(double x, double y, double& dx, double& dy) const;
+  
+  virtual MeshFunction<double>* clone() const;
 
   virtual Ord ord (Ord x, Ord y) const;
 

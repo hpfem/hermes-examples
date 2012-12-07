@@ -37,7 +37,7 @@ enum shockCapturingType
   KRIVODONOVA
 };
 bool SHOCK_CAPTURING = true;
-shockCapturingType SHOCK_CAPTURING_TYPE = FEISTAUER;
+shockCapturingType SHOCK_CAPTURING_TYPE = KUZMIN;
 // Quantitative parameter of the discontinuity detector in case of Krivodonova.
 double DISCONTINUITY_DETECTOR_PARAM = 1.0;
 // Quantitative parameter of the shock capturing in case of Feistauer.
@@ -230,7 +230,15 @@ int main(int argc, char* argv[])
 
     // Assemble stiffness matrix and rhs.
     Hermes::Mixins::Loggable::Static::info("Assembling the stiffness matrix and right-hand side vector.");
-    dp.assemble(matrix, rhs);
+    try
+    {
+      dp.assemble(matrix, rhs);
+    }
+    catch(std::exception& e)
+    {
+      std::cout << e.what();
+      return -1;
+    }
 
     // Solve the matrix problem.
     Hermes::Mixins::Loggable::Static::info("Solving the matrix problem.");
