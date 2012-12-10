@@ -60,9 +60,6 @@ const double CONV_EXP = 1.0;
 // Adaptivity process stops when the number of degrees of freedom grows
 // over this limit. This is to prevent h-adaptivity to go on forever.
 const int NDOF_STOP = 60000;                      
-// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
 
 // Problem parameters.
 // Edge of square.
@@ -102,7 +99,8 @@ int main(int argc, char* argv[])
   // Load the mesh.
   Mesh mesh;
   MeshReaderExodusII mloader;
-  if (!mloader.load("iron-water.e", &mesh)) error("ExodusII mesh load failed.");
+  if (!mloader.load("iron-water.e", &mesh))
+		throw Hermes::Exceptions::Exception("ExodusII mesh load failed.");
    
   // Perform initial uniform mesh refinement.
   for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
@@ -141,28 +139,25 @@ int main(int argc, char* argv[])
   // DOF and CPU convergence graphs initialization.
   SimpleGraph graph_dof, graph_cpu;
   
-  // Time measurement.
-  TimePeriod cpu_time;
-  cpu_time.tick();
-
   // Adaptivity loop:
   int as = 1; bool done = false;
   do
   {
-    info("---- Adaptivity step %d:", as);
+    Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d:", as);
     
-    // Time measurement.
-    cpu_time.tick();
-
     // Construct globally refined mesh and setup fine mesh space.
-    Space<double>* ref_space = Space<double>::construct_refined_space(&space);
+		Mesh::ReferenceMeshCreator refMeshCreator(&mesh);
+		Mesh* ref_mesh = refMeshCreator.create_ref_mesh();
+
+		Space<double>::ReferenceSpaceCreator refSpaceCreator(&space, ref_mesh);
+		Space<double>* ref_space = refSpaceCreator.create_ref_space();
     int ndof_ref = ref_space->get_num_dofs();
 
     // Initialize fine mesh problem.
-    info("Solving on fine mesh.");
+    Hermes::Mixins::Loggable::Static::info("Solving on fine mesh.");
     DiscreteProblem<double> dp(&wf, ref_space);
     
-    NewtonSolver<double> newton(&dp, matrix_solver);
+    NewtonSolver<double> newton(&dp);
     newton.set_verbose_output(false);
 
     // Perform Newton's iteration.
@@ -173,53 +168,37 @@ int main(int argc, char* argv[])
     catch(Hermes::Exceptions::Exception e)
     {
       e.print_msg();
-      error("Newton's iteration failed.");
     }
 
     // Translate the resulting coefficient vector into the instance of Solution.
     Solution<double>::vector_to_solution(newton.get_sln_vector(), ref_space, &ref_sln);
     
     // Project the fine mesh solution onto the coarse mesh.
-    info("Projecting fine mesh solution on coarse mesh.");
-    OGProjection<double>::project_global(&space, &ref_sln, &sln, matrix_solver);
-
-    // Time measurement.
-    cpu_time.tick();
+    Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh.");
+    OGProjection<double> ogProjection;
+		ogProjection.project_global(&space, &ref_sln, &sln);
 
     // Visualize the solution and mesh.
     sview.show(&sln);
     oview.show(&space);
 
-    // Skip visualization time.
-    cpu_time.tick(HERMES_SKIP);
-
     // Calculate element errors and total error estimate.
-    info("Calculating error estimate.");
+    Hermes::Mixins::Loggable::Static::info("Calculating error estimate.");
     Adapt<double> adaptivity(&space);
     bool solutions_for_adapt = true;
     double err_est_rel = adaptivity.calc_err_est(&sln, &ref_sln, solutions_for_adapt,
                          HERMES_TOTAL_ERROR_REL | HERMES_ELEMENT_ERROR_REL) * 100;
 
     // Report results.
-    info("ndof_coarse: %d, ndof_fine: %d, err_est_rel: %g%%",
+    Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d, err_est_rel: %g%%",
       space.get_num_dofs(), ref_space->get_num_dofs(), err_est_rel);
-
-    // Add entry to DOF and CPU convergence graphs.
-    cpu_time.tick();    
-    graph_cpu.add_values(cpu_time.accumulated(), err_est_rel);
-    graph_cpu.save("conv_cpu_est.dat");
-    graph_dof.add_values(space.get_num_dofs(), err_est_rel);
-    graph_dof.save("conv_dof_est.dat");
-    
-    // Skip the time spent to save the convergence graphs.
-    cpu_time.tick(HERMES_SKIP);
 
     // If err_est too large, adapt the mesh.
     if (err_est_rel < ERR_STOP) 
       done = true;
     else
     {
-      info("Adapting coarse mesh.");
+      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
       done = adaptivity.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
 
       // Increase the counter of performed adaptivity steps.
@@ -235,8 +214,6 @@ int main(int argc, char* argv[])
     delete ref_space;
   }
   while (done == false);
-
-  verbose("Total running time: %g s", cpu_time.accumulated());
 
   // Show the fine mesh solution - final result.
   sview.set_title("Fine mesh solution");
