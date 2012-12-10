@@ -53,6 +53,55 @@ const int NEWTON_MAX_ITER = 100;
 //   Implicit_DIRK_ISMAIL_7_45_embedded. 
 ButcherTableType butcher_table = Implicit_RK_1;
 //ButcherTableType butcher_table = Implicit_SDIRK_2_2;
+// Every UNREF_FREQth time step the mesh is unrefined.
+const int UNREF_FREQ = 5;
+
+// Number of mesh refinements between two unrefinements.
+// The mesh is not unrefined unless there has been a refinement since
+// last unrefinement.
+int REFINEMENT_COUNT = 0;  
+
+// This is a quantitative parameter of the adapt(...) function and
+// it has different meanings for various adaptive strategies (see below).
+const double THRESHOLD = 0.5;
+
+// Adaptive strategy:
+// STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
+//   error is processed. If more elements have similar errors, refine
+//   all to keep the mesh symmetric.
+// STRATEGY = 1 ... refine all elements whose error is larger
+//   than THRESHOLD times maximum element error.
+// STRATEGY = 2 ... refine all elements whose error is larger
+//   than THRESHOLD.
+const int STRATEGY = 1;                           
+
+// Predefined list of element refinement candidates. Possible values are
+// H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
+// H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
+CandList CAND_LIST = H2D_HP_ANISO;                
+
+// Maximum polynomial degree used. -1 for unlimited.
+const int MAX_P_ORDER = -1;                       
+
+// Maximum allowed level of hanging nodes:
+// MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
+// MESH_REGULARITY = 1 ... at most one-level hanging nodes,
+// MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
+// Note that regular meshes are not supported, this is due to
+// their notoriously bad performance.
+const int MESH_REGULARITY = -1;                   
+
+// This parameter influences the selection of
+// candidates in hp-adaptivity. Default value is 1.0. 
+const double CONV_EXP = 1;                        
+
+// Stopping criterion for adaptivity (rel. error tolerance between the
+// fine mesh and coarse mesh solution in percent).
+const double ERR_STOP = 1E-4;                     
+
+// Adaptivity process stops when the number of degrees of freedom grows over
+// this limit. This is mainly to prevent h-adaptivity to go on forever.
+const int NDOF_STOP = 6200;  
 
 // Problem parameters.
 // Permeability of free space.
@@ -98,40 +147,48 @@ int main(int argc, char* argv[])
 		if (bt.is_fully_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage fully implicit R-K method.", bt.get_size());
 
 		// Load the mesh.
-		Mesh mesh;
+		Mesh E_mesh, H_mesh, P_mesh;
 		MeshReaderH2D mloader;
-		mloader.load("domain.mesh", &mesh);
+		mloader.load("domain.mesh", &E_mesh);
+		mloader.load("domain.mesh", &H_mesh);
+		mloader.load("domain.mesh", &P_mesh);
 
 		// Perform initial mesh refinemets.
-		for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
+		for (int i = 0; i < INIT_REF_NUM; i++)
+		{
+			E_mesh.refine_all_elements();
+			H_mesh.refine_all_elements();
+			P_mesh.refine_all_elements();
+		}
 
 		// Initialize solutions.
 		double current_time = 0;
-		CustomInitialConditionE E_time_prev(&mesh, current_time, OMEGA, K_x, K_y);
-		CustomInitialConditionH H_time_prev(&mesh, current_time, OMEGA, K_x, K_y);
-		CustomInitialConditionP P_time_prev(&mesh, current_time, OMEGA, K_x, K_y);
+		CustomInitialConditionE E_time_prev(&E_mesh, current_time, OMEGA, K_x, K_y);
+		CustomInitialConditionH H_time_prev(&H_mesh, current_time, OMEGA, K_x, K_y);
+		CustomInitialConditionP P_time_prev(&P_mesh, current_time, OMEGA, K_x, K_y);
 		Hermes::vector<Solution<double>*> slns_time_prev(&E_time_prev, &H_time_prev, &P_time_prev);
-		Solution<double> E_time_new(&mesh), H_time_new(&mesh), P_time_new(&mesh);
+		Solution<double> E_time_new(&E_mesh), H_time_new(&H_mesh), P_time_new(&P_mesh);
+		Solution<double> E_time_new_coarse, H_time_new_coarse, P_time_new_coarse;
 		Hermes::vector<Solution<double>*> slns_time_new(&E_time_new, &H_time_new, &P_time_new);
 
 		// Initialize the weak formulation.
 		const CustomWeakFormMD wf(OMEGA, K_x, K_y, MU_0, EPS_0, EPS_INF, EPS_Q, TAU);
-  
+
 		// Initialize boundary conditions
 		DefaultEssentialBCConst<double> bc_essential("Bdy", 0.0);
 		EssentialBCs<double> bcs(&bc_essential);
 
 		// Create x- and y- displacement space using the default H1 shapeset.
-		HcurlSpace<double> E_space(&mesh, &bcs, P_INIT);
-		H1Space<double> H_space(&mesh, NULL, P_INIT);
+		HcurlSpace<double> E_space(&E_mesh, &bcs, P_INIT);
+		H1Space<double> H_space(&H_mesh, NULL, P_INIT);
 		//L2Space<double> H_space(&mesh, P_INIT);
-		HcurlSpace<double> P_space(&mesh, &bcs, P_INIT);
+		HcurlSpace<double> P_space(&P_mesh, &bcs, P_INIT);
 
 		Hermes::vector<Space<double> *> spaces = Hermes::vector<Space<double> *>(&E_space, &H_space, &P_space);
 		Hermes::vector<const Space<double> *> spaces_mutable = Hermes::vector<const Space<double> *>(&E_space, &H_space, &P_space);
 		int ndof = Space<double>::get_num_dofs(spaces);
 		Hermes::Mixins::Loggable::Static::info("ndof = %d.", ndof);
-  
+
 		// Initialize views.
 		ScalarView E1_view("Solution E1", new WinGeom(0, 0, 400, 350));
 		E1_view.fix_scale_width(50);
@@ -169,33 +226,105 @@ int main(int argc, char* argv[])
 		// Initialize Runge-Kutta time stepping.
 		RungeKutta<double> runge_kutta(&wf, spaces_mutable, &bt);
 
+		// Initialize refinement selector.
+		H1ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, MAX_P_ORDER);
+
 		// Time stepping loop.
 		int ts = 1;
 		do
 		{
 			// Perform one Runge-Kutta time step according to the selected Butcher's table.
 			Hermes::Mixins::Loggable::Static::info("Runge-Kutta time step (t = %g s, time_step = %g s, stages: %d).", 
-					 current_time, time_step, bt.get_size());
-			bool freeze_jacobian = false;
-			bool block_diagonal_jacobian = false;
-			bool verbose = true;
-			double damping_coeff = 1.0;
-			double max_allowed_residual_norm = 1e10;
+				current_time, time_step, bt.get_size());
 
-			try
+			// Periodic global derefinements.
+			if (ts > 1 && ts % UNREF_FREQ == 0 && REFINEMENT_COUNT > 0) 
 			{
-				runge_kutta.set_time(current_time);
-				runge_kutta.set_time_step(time_step);
-				runge_kutta.set_newton_max_iter(NEWTON_MAX_ITER);
-				runge_kutta.set_newton_tol(NEWTON_TOL);
-				runge_kutta.set_verbose_output(true);
-				runge_kutta.rk_time_step_newton(slns_time_prev, slns_time_new);
+				Hermes::Mixins::Loggable::Static::info("Global mesh derefinement.");
+				REFINEMENT_COUNT = 0;
+
+				E_space.unrefine_all_mesh_elements(true);
+				H_space.unrefine_all_mesh_elements(true);
+				P_space.unrefine_all_mesh_elements(true);
+
+				E_space.adjust_element_order(-1, P_INIT);
+				H_space.adjust_element_order(-1, P_INIT);
+				P_space.adjust_element_order(-1, P_INIT);
 			}
-			catch(Exceptions::Exception& e)
+
+			// Adaptivity loop:
+			int as = 1; 
+			bool done = false;
+			do
 			{
-				e.print_msg();
-				throw Hermes::Exceptions::Exception("Runge-Kutta time step failed");
-			}
+				Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d:", as);
+
+				// Construct globally refined reference mesh and setup reference space.
+				int order_increase = 1;
+
+				Mesh::ReferenceMeshCreator refMeshCreatorE(&E_mesh);
+				Mesh::ReferenceMeshCreator refMeshCreatorH(&H_mesh);
+				Mesh::ReferenceMeshCreator refMeshCreatorP(&P_mesh);
+				Mesh* ref_mesh_E = refMeshCreatorE.create_ref_mesh();
+				Mesh* ref_mesh_H = refMeshCreatorH.create_ref_mesh();
+				Mesh* ref_mesh_P = refMeshCreatorP.create_ref_mesh();
+
+				Space<double>::ReferenceSpaceCreator refSpaceCreatorRho(&E_space, ref_mesh_E, order_increase);
+				Space<double>* ref_space_E = refSpaceCreatorRho.create_ref_space();
+				Space<double>::ReferenceSpaceCreator refSpaceCreatorRhoVx(&H_space, ref_mesh_H, order_increase);
+				Space<double>* ref_space_H = refSpaceCreatorRhoVx.create_ref_space();
+				Space<double>::ReferenceSpaceCreator refSpaceCreatorRhoVy(&P_space, ref_mesh_P, order_increase);
+				Space<double>* ref_space_P = refSpaceCreatorRhoVy.create_ref_space();
+
+				try
+				{
+					runge_kutta.set_time(current_time);
+					runge_kutta.set_time_step(time_step);
+					runge_kutta.set_newton_max_iter(NEWTON_MAX_ITER);
+					runge_kutta.set_newton_tol(NEWTON_TOL);
+					runge_kutta.set_verbose_output(true);
+					runge_kutta.rk_time_step_newton(slns_time_prev, slns_time_new);
+				}
+				catch(Exceptions::Exception& e)
+				{
+					e.print_msg();
+					throw Hermes::Exceptions::Exception("Runge-Kutta time step failed");
+				}
+
+				// Project the fine mesh solution onto the coarse mesh.
+				Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
+				OGProjection<double> ogProjection; ogProjection.project_global(Hermes::vector<const Space<double> *>(&E_space, &H_space, 
+					&P_space), Hermes::vector<Solution<double>*>(&E_time_new, &H_time_new, &P_time_new), Hermes::vector<Solution<double>*>(&E_time_new_coarse, &H_time_new_coarse, &P_time_new_coarse)); 
+
+				// Calculate element errors and total error estimate.
+				Hermes::Mixins::Loggable::Static::info("Calculating error estimate.");
+				Adapt<double>* adaptivity = new Adapt<double>(Hermes::vector<Space<double> *>(&E_space, &H_space, &P_space));
+
+				double err_est_rel_total = adaptivity->calc_err_est(Hermes::vector<Solution<double>*>(&E_time_new_coarse, &H_time_new_coarse, &P_time_new_coarse),
+					Hermes::vector<Solution<double>*>(&E_time_new, &H_time_new, &P_time_new)) * 100;
+
+				// Report results.
+				Hermes::Mixins::Loggable::Static::info("err_est_rel: %g%%", err_est_rel_total);
+
+				// If err_est too large, adapt the mesh.
+				if (err_est_rel_total < ERR_STOP)
+					done = true;
+				else
+				{
+					Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
+					if (Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&E_space, &H_space, &P_space)) >= NDOF_STOP) 
+						done = true;
+					else
+					{
+						REFINEMENT_COUNT++;
+						done = adaptivity->adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&selector, &selector, &selector), 
+							THRESHOLD, STRATEGY, MESH_REGULARITY);
+					}
+
+					if(!done)
+						as++;
+				}
+			} while(!done);
 
 			// Visualize the solutions.
 			char title[100];
@@ -226,7 +355,7 @@ int main(int argc, char* argv[])
 
 			// Update time.
 			current_time += time_step;
-  
+
 		} while (current_time < T_FINAL);
 
 		// Wait for the view to be closed.
@@ -237,5 +366,5 @@ int main(int argc, char* argv[])
 		std::cout << e.what();
 	}
 
-  return 0;
+	return 0;
 }
