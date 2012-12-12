@@ -24,7 +24,7 @@
 // The following parameters can be changed:
 
 // Initial polynomial degree of mesh elements.
-const int P_INIT = 4;                              
+const int P_INIT = 1;                              
 // Number of initial uniform mesh refinements.
 const int INIT_REF_NUM = 2;                        
 // Time step.
@@ -32,7 +32,7 @@ const double time_step = 0.00001;
 // Final time.
 const double T_FINAL = 35.0;                       
 // Stopping criterion for the Newton's method.
-const double NEWTON_TOL = 1e-5;                  
+const double NEWTON_TOL = 1e-4;                  
 // Maximum allowed number of Newton iterations.
 const int NEWTON_MAX_ITER = 100;                   
 
@@ -97,7 +97,10 @@ const double CONV_EXP = 1;
 
 // Stopping criterion for adaptivity (rel. error tolerance between the
 // fine mesh and coarse mesh solution in percent).
-const double ERR_STOP = 1E-4;                     
+const double ERR_STOP = 0.5;  
+
+// Stopping criterion for adaptivity (number of adaptivity steps).
+const int ADAPTIVITY_STEPS = 5;
 
 // Adaptivity process stops when the number of degrees of freedom grows over
 // this limit. This is mainly to prevent h-adaptivity to go on forever.
@@ -178,17 +181,14 @@ int main(int argc, char* argv[])
 		DefaultEssentialBCConst<double> bc_essential("Bdy", 0.0);
 		EssentialBCs<double> bcs(&bc_essential);
 
-		// Create x- and y- displacement space using the default H1 shapeset.
 		HcurlSpace<double> E_space(&E_mesh, &bcs, P_INIT);
 		H1Space<double> H_space(&H_mesh, NULL, P_INIT);
 		//L2Space<double> H_space(&mesh, P_INIT);
 		HcurlSpace<double> P_space(&P_mesh, &bcs, P_INIT);
 
 		Hermes::vector<Space<double> *> spaces = Hermes::vector<Space<double> *>(&E_space, &H_space, &P_space);
-		Hermes::vector<const Space<double> *> spaces_mutable = Hermes::vector<const Space<double> *>(&E_space, &H_space, &P_space);
-		int ndof = Space<double>::get_num_dofs(spaces);
-		Hermes::Mixins::Loggable::Static::info("ndof = %d.", ndof);
-
+		Hermes::vector<const Space<double> *> spaces_const = Hermes::vector<const Space<double> *>(&E_space, &H_space, &P_space);
+		
 		// Initialize views.
 		ScalarView E1_view("Solution E1", new WinGeom(0, 0, 400, 350));
 		E1_view.fix_scale_width(50);
@@ -221,20 +221,22 @@ int main(int argc, char* argv[])
 		P2_view.set_title(title);
 		P2_view.show(&P_time_prev, H2D_FN_VAL_1);
 
-		View::wait(HERMES_WAIT_KEYPRESS);
-
 		// Initialize Runge-Kutta time stepping.
-		RungeKutta<double> runge_kutta(&wf, spaces_mutable, &bt);
+		RungeKutta<double> runge_kutta(&wf, spaces_const, &bt);
+    runge_kutta.set_newton_max_iter(NEWTON_MAX_ITER);
+		runge_kutta.set_newton_tol(NEWTON_TOL);
+		runge_kutta.set_verbose_output(true);
 
 		// Initialize refinement selector.
-		H1ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, MAX_P_ORDER);
+		H1ProjBasedSelector<double> H1selector(CAND_LIST, CONV_EXP, MAX_P_ORDER);
+		HcurlProjBasedSelector<double> HcurlSelector(CAND_LIST, CONV_EXP, MAX_P_ORDER);
 
 		// Time stepping loop.
 		int ts = 1;
 		do
 		{
 			// Perform one Runge-Kutta time step according to the selected Butcher's table.
-			Hermes::Mixins::Loggable::Static::info("Runge-Kutta time step (t = %g s, time_step = %g s, stages: %d).", 
+			Hermes::Mixins::Loggable::Static::info("\nRunge-Kutta time step (t = %g s, time_step = %g s, stages: %d).", 
 				current_time, time_step, bt.get_size());
 
 			// Periodic global derefinements.
@@ -257,7 +259,7 @@ int main(int argc, char* argv[])
 			bool done = false;
 			do
 			{
-				Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d:", as);
+				Hermes::Mixins::Loggable::Static::info("Adaptivity step %d:", as);
 
 				// Construct globally refined reference mesh and setup reference space.
 				int order_increase = 1;
@@ -269,20 +271,21 @@ int main(int argc, char* argv[])
 				Mesh* ref_mesh_H = refMeshCreatorH.create_ref_mesh();
 				Mesh* ref_mesh_P = refMeshCreatorP.create_ref_mesh();
 
-				Space<double>::ReferenceSpaceCreator refSpaceCreatorRho(&E_space, ref_mesh_E, order_increase);
-				Space<double>* ref_space_E = refSpaceCreatorRho.create_ref_space();
-				Space<double>::ReferenceSpaceCreator refSpaceCreatorRhoVx(&H_space, ref_mesh_H, order_increase);
-				Space<double>* ref_space_H = refSpaceCreatorRhoVx.create_ref_space();
-				Space<double>::ReferenceSpaceCreator refSpaceCreatorRhoVy(&P_space, ref_mesh_P, order_increase);
-				Space<double>* ref_space_P = refSpaceCreatorRhoVy.create_ref_space();
+				Space<double>::ReferenceSpaceCreator refSpaceCreatorE(&E_space, ref_mesh_E, order_increase);
+				Space<double>* ref_space_E = refSpaceCreatorE.create_ref_space();
+				Space<double>::ReferenceSpaceCreator refSpaceCreatorH(&H_space, ref_mesh_H, order_increase);
+				Space<double>* ref_space_H = refSpaceCreatorH.create_ref_space();
+				Space<double>::ReferenceSpaceCreator refSpaceCreatorP(&P_space, ref_mesh_P, order_increase);
+				Space<double>* ref_space_P = refSpaceCreatorP.create_ref_space();
+
+        int ndof = Space<double>::get_num_dofs(Hermes::vector<const Space<double>*>(ref_space_E, ref_space_H, ref_space_P));
+		    Hermes::Mixins::Loggable::Static::info("ndof = %d.", ndof);
 
 				try
 				{
+          runge_kutta.set_spaces(Hermes::vector<const Space<double>*>(ref_space_E, ref_space_H, ref_space_P));
 					runge_kutta.set_time(current_time);
 					runge_kutta.set_time_step(time_step);
-					runge_kutta.set_newton_max_iter(NEWTON_MAX_ITER);
-					runge_kutta.set_newton_tol(NEWTON_TOL);
-					runge_kutta.set_verbose_output(true);
 					runge_kutta.rk_time_step_newton(slns_time_prev, slns_time_new);
 				}
 				catch(Exceptions::Exception& e)
@@ -291,10 +294,30 @@ int main(int argc, char* argv[])
 					throw Hermes::Exceptions::Exception("Runge-Kutta time step failed");
 				}
 
+        // Visualize the solutions.
+			  char title[100];
+			  sprintf(title, "E1, t = %g", current_time + time_step);
+			  E1_view.set_title(title);
+			  E1_view.show(&E_time_new, H2D_FN_VAL_0);
+			  sprintf(title, "E2, t = %g", current_time + time_step);
+			  E2_view.set_title(title);
+			  E2_view.show(&E_time_new, H2D_FN_VAL_1);
+
+			  sprintf(title, "H, t = %g", current_time + time_step);
+			  H_view.set_title(title);
+			  H_view.show(&H_time_new);
+
+			  sprintf(title, "P1, t = %g", current_time + time_step);
+			  P1_view.set_title(title);
+			  P1_view.show(&P_time_new, H2D_FN_VAL_0);
+			  sprintf(title, "P2, t = %g", current_time + time_step);
+			  P2_view.set_title(title);
+			  P2_view.show(&P_time_new, H2D_FN_VAL_1);
+
 				// Project the fine mesh solution onto the coarse mesh.
 				Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
 				OGProjection<double> ogProjection; ogProjection.project_global(Hermes::vector<const Space<double> *>(&E_space, &H_space, 
-					&P_space), Hermes::vector<Solution<double>*>(&E_time_new, &H_time_new, &P_time_new), Hermes::vector<Solution<double>*>(&E_time_new_coarse, &H_time_new_coarse, &P_time_new_coarse)); 
+					&P_space), Hermes::vector<Solution<double>*>(&E_time_new, &H_time_new, &P_time_new), Hermes::vector<Solution<double>*>(&E_time_new_coarse, &H_time_new_coarse, &P_time_new_coarse));
 
 				// Calculate element errors and total error estimate.
 				Hermes::Mixins::Loggable::Static::info("Calculating error estimate.");
@@ -304,57 +327,56 @@ int main(int argc, char* argv[])
 					Hermes::vector<Solution<double>*>(&E_time_new, &H_time_new, &P_time_new)) * 100;
 
 				// Report results.
-				Hermes::Mixins::Loggable::Static::info("err_est_rel: %g%%", err_est_rel_total);
+				Hermes::Mixins::Loggable::Static::info("Error estimate: %g%%", err_est_rel_total);
 
 				// If err_est too large, adapt the mesh.
-				if (err_est_rel_total < ERR_STOP)
+				if (err_est_rel_total < ERR_STOP || as > ADAPTIVITY_STEPS - 1)
+        {
+          if(err_est_rel_total < ERR_STOP)
+				    Hermes::Mixins::Loggable::Static::info("Error estimate under the specified threshold -> moving to next time step.");
+          else
+				    Hermes::Mixins::Loggable::Static::info("Error estimate above the specified threshold, but the specified number of adaptivity steps reached -> moving to next time step.");
 					done = true;
+        }
 				else
 				{
 					Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
-					if (Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&E_space, &H_space, &P_space)) >= NDOF_STOP) 
-						done = true;
-					else
-					{
-						REFINEMENT_COUNT++;
-						done = adaptivity->adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&selector, &selector, &selector), 
-							THRESHOLD, STRATEGY, MESH_REGULARITY);
-					}
+					REFINEMENT_COUNT++;
+					done = adaptivity->adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&HcurlSelector, &H1selector, &HcurlSelector), 
+						THRESHOLD, STRATEGY, MESH_REGULARITY);
 
-					if(!done)
+          delete ref_mesh_E;
+          delete ref_mesh_H;
+          delete ref_mesh_P;
+
+          if(!done)
 						as++;
 				}
+          
+        delete ref_space_E;
+        delete ref_space_H;
+        delete ref_space_P;
+
+        delete adaptivity;
 			} while(!done);
-
-			// Visualize the solutions.
-			char title[100];
-			sprintf(title, "E1, t = %g", current_time + time_step);
-			E1_view.set_title(title);
-			E1_view.show(&E_time_new, H2D_FN_VAL_0);
-			sprintf(title, "E2, t = %g", current_time + time_step);
-			E2_view.set_title(title);
-			E2_view.show(&E_time_new, H2D_FN_VAL_1);
-
-			sprintf(title, "H, t = %g", current_time + time_step);
-			H_view.set_title(title);
-			H_view.show(&H_time_new);
-
-			sprintf(title, "P1, t = %g", current_time + time_step);
-			P1_view.set_title(title);
-			P1_view.show(&P_time_new, H2D_FN_VAL_0);
-			sprintf(title, "P2, t = %g", current_time + time_step);
-			P2_view.set_title(title);
-			P2_view.show(&P_time_new, H2D_FN_VAL_1);
 
 			//View::wait();
 
 			// Update solutions.
+      if(ts > 1)
+      {
+        delete E_time_prev.get_mesh();
+        delete H_time_prev.get_mesh();
+        delete P_time_prev.get_mesh();
+      }
+
 			E_time_prev.copy(&E_time_new);
 			H_time_prev.copy(&H_time_new);
 			P_time_prev.copy(&P_time_new);
 
 			// Update time.
 			current_time += time_step;
+      ts++;
 
 		} while (current_time < T_FINAL);
 
