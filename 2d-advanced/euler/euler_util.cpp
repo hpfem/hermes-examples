@@ -590,16 +590,16 @@ std::set<int>& KuzminDiscontinuityDetector::get_discontinuous_element_ids()
         switch(i)
         {
         case 0:
-          oscillatory_element_idsRho.insert(std::make_pair<int, double>(e->id, high_limit));
+          oscillatory_element_idsRho.insert(std::pair<int, double>(e->id, high_limit));
           break;
         case 1:
-          oscillatory_element_idsRhoVX.insert(std::make_pair<int, double>(e->id, high_limit));
+          oscillatory_element_idsRhoVX.insert(std::pair<int, double>(e->id, high_limit));
           break;
         case 2:
-          oscillatory_element_idsRhoVY.insert(std::make_pair<int, double>(e->id, high_limit));
+          oscillatory_element_idsRhoVY.insert(std::pair<int, double>(e->id, high_limit));
           break;
         case 3:
-          oscillatory_element_idsRhoE.insert(std::make_pair<int, double>(e->id, high_limit));
+          oscillatory_element_idsRhoE.insert(std::pair<int, double>(e->id, high_limit));
           break;
         }
       }
@@ -609,16 +609,16 @@ std::set<int>& KuzminDiscontinuityDetector::get_discontinuous_element_ids()
         switch(i)
         {
         case 0:
-          oscillatory_element_idsRho.insert(std::make_pair<int, double>(e->id, low_limit));
+          oscillatory_element_idsRho.insert(std::pair<int, double>(e->id, low_limit));
           break;
         case 1:
-          oscillatory_element_idsRhoVX.insert(std::make_pair<int, double>(e->id, low_limit));
+          oscillatory_element_idsRhoVX.insert(std::pair<int, double>(e->id, low_limit));
           break;
         case 2:
-          oscillatory_element_idsRhoVY.insert(std::make_pair<int, double>(e->id, low_limit));
+          oscillatory_element_idsRhoVY.insert(std::pair<int, double>(e->id, low_limit));
           break;
         case 3:
-          oscillatory_element_idsRhoE.insert(std::make_pair<int, double>(e->id, low_limit));
+          oscillatory_element_idsRhoE.insert(std::pair<int, double>(e->id, low_limit));
           break;
         }
       }
