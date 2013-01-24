@@ -124,7 +124,7 @@ int main(int argc, char* argv[])
   Solution<std::complex<double> > sln, ref_sln;
 
   // Initialize refinements selector.
-  HcurlProjBasedSelector selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
+  HcurlProjBasedSelector<std::complex<double> > selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Initialize views.
   ScalarView eview("Electric field", new WinGeom(0, 0, 580, 400));
