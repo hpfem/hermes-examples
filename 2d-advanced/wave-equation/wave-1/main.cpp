@@ -1,6 +1,8 @@
-#define HERMES_REPORT_ALL
-#define HERMES_REPORT_FILE "application.log"
-#include "definitions.h"
+#include "definitions.cpp"
+
+using namespace Hermes;
+using namespace Hermes::Hermes2D;
+using namespace Hermes::Hermes2D::Views;
 
 // This example solves a simple linear wave equation by converting it 
 // into a system of two first-order equations in time. Time discretization 
@@ -8,7 +10,7 @@
 // Runge-Kutta methods entered via their Butcher's tables.
 // For a list of available R-K methods see the file hermes_common/tables.h.
 //
-// The function rk_time_step_newton() needs more optimisation, see a todo list at 
+// The function rk_time_step() needs more optimisation, see a todo list at 
 // the beginning of file src/runge-kutta.h.
 //
 // PDE: \frac{1}{C_SQUARED}\frac{\partial^2 u}{\partial t^2} - \Delta u = 0,
@@ -24,15 +26,9 @@
 //
 // The following parameters can be changed:
 
-// Initial polynomial degree of all elements.
-const int P_INIT = 6;                              
-// Time step.
-const double time_step = 0.01;                     
-// Final time.
-const double T_FINAL = 2.0;                        
-// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;   
+const int P_INIT = 6;                              // Initial polynomial degree of all elements.
+const double time_step = 0.01;                     // Time step.
+const double T_FINAL = 2.15;                       // Final time.
 
 // Choose one of the following time-integration methods, or define your own Butcher's table. The last number 
 // in the name of each method is its order. The one before last, if present, is the number of stages.
@@ -51,9 +47,11 @@ MatrixSolverType matrix_solver = SOLVER_UMFPACK;
 //   Implicit_DIRK_ISMAIL_7_45_embedded. 
 ButcherTableType butcher_table_type = Implicit_RK_1;
 
+// Boundary markers.
+const std::string BDY = "Bdy";
+
 // Problem parameters.
-// Square of wave speed.  
-const double C_SQUARED = 100;                                         
+const double C_SQUARED = 100;                      // Square of wave speed.                     
 
 int main(int argc, char* argv[])
 {
@@ -68,28 +66,34 @@ int main(int argc, char* argv[])
   MeshReaderH2D mloader;
   mloader.load("domain.mesh", &mesh);
 
-  // Refine towards boundary.
-  mesh.refine_towards_boundary("Bdy", 1, true);
-
   // Refine once towards vertex #4.
-  mesh.refine_towards_vertex(4, 1);
+  mesh.refine_towards_vertex(4, 6);
 
+  // Refine towards boundary.
+  mesh.refine_towards_boundary(BDY, 1);
+
+  MeshView m;
+  m.show(&mesh);
+  
   // Initialize solutions.
   CustomInitialConditionWave u_sln(&mesh);
   ZeroSolution<double> v_sln(&mesh);
-  Hermes::vector<Solution<double>*> slns(&u_sln, &v_sln);
 
   // Initialize the weak formulation.
   CustomWeakFormWave wf(time_step, C_SQUARED, &u_sln, &v_sln);
   
   // Initialize boundary conditions
-  DefaultEssentialBCConst<double> bc_essential("Bdy", 0.0);
+  DefaultEssentialBCConst<double> bc_essential(BDY, 0.0);
   EssentialBCs<double> bcs(&bc_essential);
 
   // Create x- and y- displacement space using the default H1 shapeset.
   H1Space<double> u_space(&mesh, &bcs, P_INIT);
   H1Space<double> v_space(&mesh, &bcs, P_INIT);
-  Hermes::Mixins::Loggable::Static::info("ndof = %d.", Space<double>::get_num_dofs(Hermes::vector<const Space<double>*>(&u_space, &v_space)));
+  Hermes::Mixins::Loggable::Static::info("ndof = %d.", Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&u_space, &v_space)));
+
+  // Initialize the FE problem.
+  bool is_linear = true;
+  DiscreteProblem<double> dp(&wf, Hermes::vector<const Space<double> *>(&u_space, &v_space));
 
   // Initialize views.
   ScalarView u_view("Solution u", new WinGeom(0, 0, 500, 400));
@@ -100,28 +104,30 @@ int main(int argc, char* argv[])
   v_view.fix_scale_width(50);
 
   // Initialize Runge-Kutta time stepping.
-  RungeKutta<double> runge_kutta(&wf, Hermes::vector<const Space<double>*>(&u_space, &v_space), &bt);
+  RungeKutta<double> runge_kutta(&wf, Hermes::vector<const Space<double> *>(&u_space, &v_space), &bt);
 
   // Time stepping loop.
-  double current_time = 0; int ts = 1;
+  double current_time = time_step; int ts = 1;
   do
   {
     // Perform one Runge-Kutta time step according to the selected Butcher's table.
     Hermes::Mixins::Loggable::Static::info("Runge-Kutta time step (t = %g s, time_step = %g s, stages: %d).", 
          current_time, time_step, bt.get_size());
-    bool jacobian_changed = false;
     bool verbose = true;
+    Hermes::vector<Solution<double>*> slns_time_prev(&u_sln, &v_sln);
+    Hermes::vector<Solution<double>*> slns_time_new(&u_sln, &v_sln);
+
+    runge_kutta.set_verbose_output(true);
+    runge_kutta.set_time(current_time);
+    runge_kutta.set_time_step(time_step);
 
     try
     {
-      runge_kutta.set_time(current_time);
-      runge_kutta.set_time_step(time_step);
-
-      runge_kutta.rk_time_step_newton(slns, slns);
+      runge_kutta.rk_time_step_newton(slns_time_prev, slns_time_new);
     }
-    catch(Exceptions::Exception& e)
+    catch(Hermes::Exceptions::Exception& e)
     {
-      e.print_msg();
+      std::cout << e.what();
     }
 
     // Visualize the solutions.
