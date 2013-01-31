@@ -28,19 +28,19 @@
 // The following parameters can be changed:
 
 // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM = 0;                       
+const int INIT_REF_NUM = 1;                       
 // Initial polynomial degree. NOTE: The meaning is different from
 // standard continuous elements in the space H1. Here, P_INIT refers
 // to the maximum poly order of the tangential component, and polynomials
 // of degree P_INIT + 1 are present in element interiors. P_INIT = 0
 // is for Whitney elements.
-const int P_INIT = 2;                             
+const int P_INIT = 1;                             
 // if ALIGN_MESH == true, curvilinear elements aligned with the
 // circular load are used, otherwise one uses a non-aligned mesh.
-const bool ALIGN_MESH = true;                     
+const bool ALIGN_MESH = false;                     
 // This is a quantitative parameter of the adapt(...) function and
 // it has different meanings for various adaptive strategies.
-const double THRESHOLD = 0.3;                     
+const double THRESHOLD = 0.75;                     
 // Adapt<std::complex<double> >ive strategy:
 // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
 //   error is processed. If more elements have similar errors, refine
@@ -104,6 +104,8 @@ int main(int argc, char* argv[])
   else 
     mloader.load("oven_load_square.mesh", &mesh);
 
+  mesh.refine_towards_boundary(BDY_CURRENT, 2);
+
   // Perform initial mesh refinemets.
   for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
 
@@ -127,6 +129,7 @@ int main(int argc, char* argv[])
   HcurlProjBasedSelector<std::complex<double> > selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
 
   // Initialize views.
+  VectorView vview("Electric field", new WinGeom(0, 0, 580, 400));
   ScalarView eview("Electric field", new WinGeom(0, 0, 580, 400));
   OrderView  oview("Polynomial orders", new WinGeom(590, 0, 550, 400));
   
@@ -180,13 +183,11 @@ int main(int argc, char* argv[])
    
     // View the coarse mesh solution and polynomial orders.
     RealFilter real(&sln);
-    MagFilter<double> magn(&real);
-    ValFilter limited_magn(&magn, 0.0, 4e3);
     char title[100];
     sprintf(title, "Electric field, adaptivity step %d", as);
-    eview.set_title(title);
-    //eview.set_min_max_range(0.0, 4e3);
-    eview.show(&limited_magn);
+    vview.set_title(title);
+    vview.set_min_max_range(0.0, 4e3);
+    vview.show(&real);
     sprintf(title, "Polynomial orders, adaptivity step %d", as);
     oview.set_title(title);
     oview.show(&space);
