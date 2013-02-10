@@ -28,11 +28,11 @@ const int P_INIT = 4;
 // Number of initial uniform mesh refinements.
 const int INIT_REF_NUM = 2;                        
 // Time step.
-const double time_step = 0.00001;                     
+const double time_step = 1e-8;                     
 // Final time.
 const double T_FINAL = 35.0;                       
 // Stopping criterion for the Newton's method.
-const double NEWTON_TOL = 1e-5;                  
+const double NEWTON_TOL = 1e-4;                  
 // Maximum allowed number of Newton iterations.
 const int NEWTON_MAX_ITER = 100;                   
 
@@ -68,20 +68,20 @@ const double EPS_Q = EPS_S / EPS_INF;
 // Relaxation time of the medium.
 const double TAU = 1.0;
 // Angular frequency. Depends on wave number K. Must satisfy: 
-// omega^3 - 2 omega^2 + K^2 M_PI^2 omega - K^2 M_PI^2 = 0.
-// WARNING; Choosing wrong omega may lead to K**2 < 0.
-const double OMEGA = 1.5;
+// theta^3 - 2 theta^2 + K^2 theta - K^2 = 0.
+// WARNING; Choosing wrong theta may lead to K**2 < 0.
+const double THETA = 1.0532;
 // Wave vector direction (will be normalized to be compatible
 // with omega).
-double K_x = 1.0;
-double K_y = 1.0;
+double K_x = M_PI;
+double K_y = M_PI;
 
 int main(int argc, char* argv[])
 {
 	try
 	{
 		// Sanity check for omega. 
-		double K_squared = Hermes::sqr(OMEGA/M_PI) * (OMEGA - 2) / (1 - OMEGA);
+		double K_squared = Hermes::sqr(THETA) * (THETA - 2) / (1 - THETA);
 		if (K_squared <= 0) throw Hermes::Exceptions::Exception("Wrong choice of omega, K_squared < 0!");
 		double K_norm_coeff = std::sqrt(K_squared) / std::sqrt(Hermes::sqr(K_x) + Hermes::sqr(K_y));
 		Hermes::Mixins::Loggable::Static::info("Wave number K = %g", std::sqrt(K_squared));
@@ -107,15 +107,15 @@ int main(int argc, char* argv[])
 
 		// Initialize solutions.
 		double current_time = 0;
-		CustomInitialConditionE E_time_prev(&mesh, current_time, OMEGA, K_x, K_y);
-		CustomInitialConditionH H_time_prev(&mesh, current_time, OMEGA, K_x, K_y);
-		CustomInitialConditionP P_time_prev(&mesh, current_time, OMEGA, K_x, K_y);
+		CustomInitialConditionE E_time_prev(&mesh, current_time, THETA, K_x, K_y);
+		CustomInitialConditionH H_time_prev(&mesh, current_time, THETA, K_x, K_y);
+		CustomInitialConditionP P_time_prev(&mesh, current_time, THETA, K_x, K_y);
 		Hermes::vector<Solution<double>*> slns_time_prev(&E_time_prev, &H_time_prev, &P_time_prev);
 		Solution<double> E_time_new(&mesh), H_time_new(&mesh), P_time_new(&mesh);
 		Hermes::vector<Solution<double>*> slns_time_new(&E_time_new, &H_time_new, &P_time_new);
 
 		// Initialize the weak formulation.
-		const CustomWeakFormMD wf(OMEGA, K_x, K_y, MU_0, EPS_0, EPS_INF, EPS_Q, TAU);
+		const CustomWeakFormMD wf(THETA, K_x, K_y, MU_0, EPS_0, EPS_INF, EPS_Q, TAU);
   
 		// Initialize boundary conditions
 		DefaultEssentialBCConst<double> bc_essential("Bdy", 0.0);

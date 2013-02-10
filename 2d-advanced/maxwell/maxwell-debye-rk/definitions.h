@@ -9,24 +9,24 @@ using namespace Hermes::Hermes2D::RefinementSelectors;
 
 /* Global function alpha */
 
-double alpha(double omega, double k);
+double alpha(double theta, double k);
 
 /* Initial condition for E */
 
 class CustomInitialConditionE : public ExactSolutionVector<double>
 {
 public:
- CustomInitialConditionE(const Mesh* mesh, double time, double omega, double k_x, double k_y) 
-     : ExactSolutionVector<double>(mesh), time(time), omega(omega), k_x(k_x), k_y(k_y) {};
+ CustomInitialConditionE(const Mesh* mesh, double time, double theta, double k_x, double k_y) 
+     : ExactSolutionVector<double>(mesh), time(time), theta(theta), k_x(k_x), k_y(k_y) {};
 
   virtual Scalar2<double> value (double x, double y) const;
 
   virtual void derivatives (double x, double y, Scalar2<double>& dx, Scalar2<double>& dy) const;
 
   virtual Ord ord(Ord x, Ord y) const;
-  virtual MeshFunction<double>* clone() const { return new CustomInitialConditionE(mesh, time, omega, k_x, k_y); }
+  virtual MeshFunction<double>* clone() const { return new CustomInitialConditionE(mesh, time, theta, k_x, k_y); }
   
-  double time, omega, k_x, k_y;
+  double time, theta, k_x, k_y;
 };
 
 /* Initial condition for H */
@@ -34,17 +34,17 @@ public:
 class CustomInitialConditionH : public ExactSolutionScalar<double>
 {
 public:
-  CustomInitialConditionH(const Mesh* mesh, double time, double omega, double k_x, double k_y) 
-      : ExactSolutionScalar<double>(mesh), time(time), omega(omega), k_x(k_x), k_y(k_y) {};
+  CustomInitialConditionH(const Mesh* mesh, double time, double theta, double k_x, double k_y) 
+      : ExactSolutionScalar<double>(mesh), time(time), theta(theta), k_x(k_x), k_y(k_y) {};
 
   virtual double value (double x, double y) const;
 
   virtual void derivatives (double x, double y, double& dx, double& dy) const;
 
   virtual Ord ord(Ord x, Ord y) const;
-  virtual MeshFunction<double>* clone() const { return new CustomInitialConditionH(mesh, time, omega, k_x, k_y); }
+  virtual MeshFunction<double>* clone() const { return new CustomInitialConditionH(mesh, time, theta, k_x, k_y); }
 
-  double time, omega, k_x, k_y;
+  double time, theta, k_x, k_y;
 };
 
 /* Initial condition for P */
@@ -52,16 +52,16 @@ public:
 class CustomInitialConditionP : public ExactSolutionVector<double>
 {
 public:
-  CustomInitialConditionP(const Mesh* mesh, double time, double omega, double k_x, double k_y) 
-      : ExactSolutionVector<double>(mesh), time(time), omega(omega), k_x(k_x), k_y(k_y) {};
+  CustomInitialConditionP(const Mesh* mesh, double time, double theta, double k_x, double k_y) 
+      : ExactSolutionVector<double>(mesh), time(time), theta(theta), k_x(k_x), k_y(k_y) {};
 
   virtual Scalar2<double> value (double x, double y) const;
 
   virtual void derivatives (double x, double y, Scalar2<double>& dx, Scalar2<double>& dy) const;
 
   virtual Ord ord(Ord x, Ord y) const;
-  virtual MeshFunction<double>* clone() const { return new CustomInitialConditionP(mesh, time, omega, k_x, k_y); }
-  double time, omega, k_x, k_y;
+  virtual MeshFunction<double>* clone() const { return new CustomInitialConditionP(mesh, time, theta, k_x, k_y); }
+  double time, theta, k_x, k_y;
 };
 
 /* Weak forms */
@@ -70,7 +70,7 @@ class CustomWeakFormMD : public WeakForm<double>
 {
 public:
 
-  CustomWeakFormMD(double omega, double k_x, double k_y, double mu_0, 
+  CustomWeakFormMD(double theta, double k_x, double k_y, double mu_0, 
       double eps_0, double eps_inf, double eps_q, double tau);
 
 private:
