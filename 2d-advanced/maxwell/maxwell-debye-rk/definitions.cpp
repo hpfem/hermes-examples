@@ -2,49 +2,49 @@
 
 /* Global function alpha */
 
-double alpha(double omega, double k)
+double alpha(double theta, double k)
 {
-  return Hermes::sqr(omega) - omega + Hermes::sqr(k) * Hermes::sqr(M_PI);
+  return Hermes::sqr(theta) - theta + Hermes::sqr(k);
 }
 
 // **************
 Scalar2<double> CustomInitialConditionE::value (double x, double y) const 
 {
-  double val_0 = -omega*k_y*exp(-omega*time) * std::cos(k_x * M_PI * x) * std::sin(k_y * M_PI * y);
-  double val_1 = omega*k_x*exp(-omega*time) * std::sin(k_x * M_PI * x) * std::cos(k_y * M_PI * y);
+  double val_0 = -theta*k_y*exp(-theta*time) * std::cos(k_x * x) * std::sin(k_y * y) / M_PI;
+  double val_1 = theta*k_x*exp(-theta*time) * std::sin(k_x * x) * std::cos(k_y * y) / M_PI;
   return Scalar2<double>(val_0, val_1);
 }
 
 void CustomInitialConditionE::derivatives (double x, double y, Scalar2<double>& dx, Scalar2<double>& dy) const 
 {
-  dx[0] = -omega*k_y*exp(-omega*time) * (-1.0*std::sin(k_x * M_PI * x)*k_x*M_PI) * std::sin(k_y * M_PI * y);
-  dx[1] = omega*k_x*exp(-omega*time) * std::cos(k_x * M_PI * x)*k_x*M_PI * std::cos(k_y * M_PI * y);
-  dy[0] = -omega*k_y*exp(-omega*time) * std::cos(k_x * M_PI * x) * std::cos(k_y * M_PI * y)*k_y*M_PI;
-  dy[1] = omega*k_x*exp(-omega*time) * std::sin(k_x * M_PI * x) * (-1.0*std::sin(k_y * M_PI * y)*k_y*M_PI);
+  dx[0] = -theta*k_y*exp(-theta*time) * (-1.0*std::sin(k_x * x)*k_x) * std::sin(k_y * y) / M_PI;
+  dx[1] = theta*k_x*exp(-theta*time) * std::cos(k_x * x)*k_x * std::cos(k_y * y) / M_PI;
+  dy[0] = -theta*k_y*exp(-theta*time) * std::cos(k_x * x) * std::cos(k_y * y)*k_y / M_PI;
+  dy[1] = theta*k_x*exp(-theta*time) * std::sin(k_x * x) * (-1.0*std::sin(k_y * y)*k_y / M_PI);
 }
 
 Ord CustomInitialConditionE::ord(Ord x, Ord y) const 
 {
-  return Ord(20);
+  return Ord(10);
 }
 
 // **************
 double CustomInitialConditionH::value (double x, double y) const 
 {
   double k_squared = Hermes::sqr(k_x) + Hermes::sqr(k_y);
-  return k_squared * M_PI * exp(-omega*time) * std::cos(k_x * M_PI * x) * std::cos(k_y * M_PI * y);
+  return k_squared * exp(-theta*time) * std::cos(k_x * x) * std::cos(k_y * y) / M_PI;
 }
 
 void CustomInitialConditionH::derivatives (double x, double y, double& dx, double& dy) const 
 {
   double k_squared = Hermes::sqr(k_x) + Hermes::sqr(k_y);
-  dx = k_squared * M_PI * exp(-omega*time) * (-1.0*std::sin(k_x * M_PI * x)*k_x*M_PI) * std::cos(k_y * M_PI * y);
-  dy = k_squared * M_PI * exp(-omega*time) * std::cos(k_x * M_PI * x) * (-1.0*std::sin(k_y * M_PI * y)*k_y*M_PI);
+  dx = k_squared * exp(-theta*time) * (-1.0*std::sin(k_x * x)*k_x) * std::cos(k_y * y) / M_PI;
+  dy = k_squared * exp(-theta*time) * std::cos(k_x * x) * (-1.0*std::sin(k_y * y)*k_y) / M_PI;
 }
 
 Ord CustomInitialConditionH::ord(Ord x, Ord y) const 
 {
-  return Ord(20);
+  return Ord(10);
 }
 
 // **************
@@ -52,8 +52,8 @@ Scalar2<double> CustomInitialConditionP::value (double x, double y) const
 {
   double k_squared = Hermes::sqr(k_x) + Hermes::sqr(k_y);
   double k = std::sqrt(k_squared);
-  double val_0 = alpha(omega, k)*k_y*exp(-omega*time) * std::cos(k_x * M_PI * x) * std::sin(k_y * M_PI * y);
-  double val_1 = -k_x*alpha(omega, k)*exp(-omega*time) * std::sin(k_x * M_PI * x) * std::cos(k_y * M_PI * y);
+  double val_0 = alpha(theta, k)*k_y*exp(-theta*time) * std::cos(k_x * x) * std::sin(k_y * y) / M_PI;
+  double val_1 = -k_x*alpha(theta, k)*exp(-theta*time) * std::sin(k_x * x) * std::cos(k_y * y) / M_PI;
   return Scalar2<double>(val_0, val_1);
 }
 
@@ -61,19 +61,19 @@ void CustomInitialConditionP::derivatives (double x, double y, Scalar2<double>& 
 {
   double k_squared = std::abs(Hermes::sqr(k_x) + Hermes::sqr(k_y));
   double k = std::sqrt(k_squared);
-  dx[0] = alpha(omega, k)*k_y*exp(-omega*time) * (-1.0*std::sin(k_x * M_PI * x)*k_x*M_PI) * std::sin(k_y * M_PI * y);
-  dx[1] = -k_x*alpha(omega, k)*exp(-omega*time) * std::cos(k_x * M_PI * x)*k_x*M_PI * std::cos(k_y * M_PI * y);
-  dy[0] = alpha(omega, k)*k_y*exp(-omega*time) * std::cos(k_x * M_PI * x) * std::cos(k_y * M_PI * y)*k_y*M_PI;
-  dy[1] = -k_x*alpha(omega, k)*exp(-omega*time) * std::sin(k_x * M_PI * x) * (-1.0*std::sin(k_y * M_PI * y)*k_y*M_PI);
+  dx[0] = alpha(theta, k)*k_y*exp(-theta*time) * (-1.0*std::sin(k_x * x)*k_x) * std::sin(k_y * y) / M_PI;
+  dx[1] = -k_x*alpha(theta, k)*exp(-theta*time) * std::cos(k_x * x)*k_x * std::cos(k_y * y) / M_PI;
+  dy[0] = alpha(theta, k)*k_y*exp(-theta*time) * std::cos(k_x * x) * std::cos(k_y * y)*k_y / M_PI;
+  dy[1] = -k_x*alpha(theta, k)*exp(-theta*time) * std::sin(k_x * x) * (-1.0*std::sin(k_y * y)*k_y) / M_PI;
 }
 
 Ord CustomInitialConditionP::ord(Ord x, Ord y) const 
 {
-  return Ord(20);
+  return Ord(10);
 }
 
 // **************
-CustomWeakFormMD::CustomWeakFormMD(double omega, double k_x, double k_y, double mu_0, 
+CustomWeakFormMD::CustomWeakFormMD(double theta, double k_x, double k_y, double mu_0, 
     double eps_0, double eps_inf, double eps_q, double tau) : WeakForm<double>(3) 
 {
   // Stationary Jacobian.
