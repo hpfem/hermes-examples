@@ -19,7 +19,7 @@ class CustomWeakForm : public WeakForm<double>
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v,
                     Geom<Ord> *e, Func<Ord>* *ext) const;
 
-    MatrixFormVol<double>* clone() { return new Jacobian(); }
+    MatrixFormVol<double>* clone() const { return new Jacobian(); }
   };
   
   class Residual : public VectorFormVol<double>
@@ -33,7 +33,7 @@ class CustomWeakForm : public WeakForm<double>
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v,
                     Geom<Ord> *e, Func<Ord>* *ext) const;
-    VectorFormVol<double>* clone() { return new Residual(rhs); }
+    VectorFormVol<double>* clone() const { return new Residual(rhs); }
   };
   
   public:
@@ -73,7 +73,7 @@ public:
   virtual void derivatives (double x, double y, double& dx, double& dy) const;
   virtual Ord ord (Ord x, Ord y) const { return Ord(Ord::get_max_order()); }
 
-  MeshFunction<double>* clone() { return new CustomExactSolution(mesh, alpha, x_loc, y_loc, r_zero); }
+  MeshFunction<double>* clone() const { return new CustomExactSolution(mesh, alpha, x_loc, y_loc, r_zero); }
 
   double alpha, x_loc, y_loc, r_zero;
 };
@@ -103,7 +103,7 @@ public:
     return this->form->ord(n, wt, u_ext, u, v, e, ext);
   }
 
-  MatrixFormVol<double>* clone() { return new EnergyErrorForm(wf); }
+  MatrixFormVol<double>* clone() const { return new EnergyErrorForm(wf); }
 private:
   const MatrixFormVol<double>* form;
 };

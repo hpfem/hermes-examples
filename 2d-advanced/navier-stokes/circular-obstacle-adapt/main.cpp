@@ -76,7 +76,7 @@ const int MESH_REGULARITY = -1;
 // candidates in hp-adaptivity. Default value is 1.0. 
 const double CONV_EXP = 1.0;                      
 // Stopping criterion for adaptivity.
-const double ERR_STOP = 5.0;                      
+const double ERR_STOP = 1.0;                      
 // Adaptivity process stops when the number of degrees of freedom grows over
 // this limit. This is mainly to prevent h-adaptivity to go on forever.
 const int NDOF_STOP = 60000;                      
@@ -236,6 +236,10 @@ int main(int argc, char* argv[])
       xvel_space.set_uniform_order(P_INIT_VEL);
       yvel_space.set_uniform_order(P_INIT_VEL);
       p_space.set_uniform_order(P_INIT_PRESSURE);
+
+      xvel_space.assign_dofs();
+      yvel_space.assign_dofs();
+      p_space.assign_dofs();
     }
       
     DiscreteProblem<double> dp(wf, spaces);
@@ -332,6 +336,12 @@ int main(int argc, char* argv[])
       // Clean up.
       delete adaptivity;
       delete [] coeff_vec;
+      
+      if(!done)
+        delete ref_mesh;
+      delete ref_xvel_space;
+      delete ref_yvel_space;
+      delete ref_p_space;
     }
     while (done == false);
 

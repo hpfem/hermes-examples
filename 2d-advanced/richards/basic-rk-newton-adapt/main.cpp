@@ -197,6 +197,7 @@ int main(int argc, char* argv[])
         default: throw Hermes::Exceptions::Exception("Wrong global derefinement method.");
       }
 
+      space.assign_dofs();
       ndof_coarse = Space<double>::get_num_dofs(&space);
     }
 
@@ -295,8 +296,9 @@ int main(int argc, char* argv[])
     ordview.show(&space);
 
     // Copy last reference solution into h_time_prev.
+    if(ts > 1)
+      delete h_time_prev.get_mesh();
     h_time_prev.copy(&h_time_new);
-    delete h_time_new.get_mesh();
 
     // Increase current time and counter of time steps.
     current_time += time_step;

@@ -315,6 +315,7 @@ int main(int argc, char* argv[])
         default: throw Hermes::Exceptions::Exception("Wrong global derefinement method.");
       }
 
+      space.assign_dofs();
       ndof = Space<double>::get_num_dofs(&space);
     }
 

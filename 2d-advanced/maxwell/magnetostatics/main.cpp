@@ -64,6 +64,7 @@ int main(int argc, char* argv[])
   // extended by "interval_extension" on both sides.
   double interval_extension = 1.0; 
   bool plot_derivative = false;
+  mu_inv_iron.calculate_coeffs();
   mu_inv_iron.plot("spline.dat", interval_extension, plot_derivative);
   plot_derivative = true;
   mu_inv_iron.plot("spline_der.dat", interval_extension, plot_derivative);

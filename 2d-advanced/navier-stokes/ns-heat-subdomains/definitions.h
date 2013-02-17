@@ -20,7 +20,7 @@ const double HOLE_MID_Y = 0.5;
 class CustomInitialConditionTemperature : public ExactSolutionScalar<double>
 {
 public:
-  CustomInitialConditionTemperature(Mesh *mesh, double mid_x, double mid_y, double radius, double temp_fluid, double temp_graphite);
+  CustomInitialConditionTemperature(const Mesh *mesh, double mid_x, double mid_y, double radius, double temp_fluid, double temp_graphite);
 
   virtual double value(double x, double y) const;
 
@@ -62,7 +62,7 @@ public:
       Ord result = int_u_v<Ord, Ord>(n, wt, u, v) / time_step;
       return result;
     }
-    MatrixFormVol<double>* clone()
+    MatrixFormVol<double>* clone() const
     {
       return new BilinearFormTime(*this);
     }
@@ -93,7 +93,7 @@ public:
         result += int_u_v<Ord, Ord>(n, wt, u, v) / time_step;
       return result;
     }
-    MatrixFormVol<double>* clone()
+    MatrixFormVol<double>* clone() const
     {
       return new BilinearFormSymVel(*this);
     }
@@ -133,7 +133,7 @@ public:
       }
       return result;
     }
-    MatrixFormVol<double>* clone()
+    MatrixFormVol<double>* clone() const
     {
       return new BilinearFormUnSymVel_0_0(*this);
     }
@@ -167,7 +167,7 @@ public:
       }
       return result;
     }
-    MatrixFormVol<double>* clone()
+    MatrixFormVol<double>* clone() const
     {
       return new BilinearFormUnSymVel_0_1(*this);
     }
@@ -201,7 +201,7 @@ public:
       }
       return result;
     }
-    MatrixFormVol<double>* clone()
+    MatrixFormVol<double>* clone() const
     {
       return new BilinearFormUnSymVel_1_0(*this);
     }
@@ -239,7 +239,7 @@ public:
       }
       return result;
     }
-    MatrixFormVol<double>* clone()
+    MatrixFormVol<double>* clone() const
     {
       return new BilinearFormUnSymVel_1_1(*this);
     }
@@ -262,7 +262,7 @@ public:
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const {
       return - int_u_dvdx<Ord, Ord>(n, wt, u, v);
     }
-    MatrixFormVol<double>* clone()
+    MatrixFormVol<double>* clone() const
     {
       return new BilinearFormUnSymXVelPressure(*this);
     }
@@ -282,7 +282,7 @@ public:
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const {
       return - int_u_dvdy<Ord, Ord>(n, wt, u, v);
     }
-    MatrixFormVol<double>* clone()
+    MatrixFormVol<double>* clone() const
     {
       return new BilinearFormUnSymYVelPressure(*this);
     }
@@ -317,7 +317,7 @@ public:
       }
       return result;
     }
-    MatrixFormVol<double>* clone()
+    MatrixFormVol<double>* clone() const
     {
       return new CustomJacobianTempAdvection_3_0(*this);
     }
@@ -354,7 +354,7 @@ public:
       }
       return result;
     }
-    MatrixFormVol<double>* clone()
+    MatrixFormVol<double>* clone() const
     {
       return new CustomJacobianTempAdvection_3_3_simple(*this);
     }
@@ -388,7 +388,7 @@ public:
       }
       return result;
     }
-    MatrixFormVol<double>* clone()
+    MatrixFormVol<double>* clone() const
     {
       return new CustomJacobianTempAdvection_3_1(*this);
     }
@@ -425,7 +425,7 @@ public:
       }
       return result;
     }
-    MatrixFormVol<double>* clone()
+    MatrixFormVol<double>* clone() const
     {
       return new CustomJacobianTempAdvection_3_3(*this);
     }
@@ -452,7 +452,7 @@ public:
       Ord result = (int_u_v<Ord, Ord>(n, wt, u_ext[3], v) - int_u_v<Ord, Ord>(n, wt, func_prev_time, v)) / time_step;
       return result;
     }
-    VectorFormVol<double>* clone()
+    VectorFormVol<double>* clone() const
     {
       return new VectorFormTime(*this);
     }
@@ -494,7 +494,7 @@ public:
       }
       return result;
     }
-    VectorFormVol<double>* clone()
+    VectorFormVol<double>* clone() const
     {
       return new CustomResidualTempAdvection(*this);
     }
@@ -533,7 +533,7 @@ public:
       }
       return result;
     }
-    VectorFormVol<double>* clone()
+    VectorFormVol<double>* clone() const
     {
       return new CustomResidualTempAdvection_simple(*this);
     }
@@ -577,7 +577,7 @@ public:
           + ((xvel_prev_newton->val[i] * xvel_prev_newton->dx[i] + yvel_prev_newton->val[i] * xvel_prev_newton->dy[i]) * v->val[i]));
       return result;
     }
-    VectorFormVol<double>* clone()
+    VectorFormVol<double>* clone() const
     {
       return new VectorFormNS_0(*this);
     }
@@ -625,7 +625,7 @@ public:
           + ((xvel_prev_newton->val[i] * yvel_prev_newton->dx[i] + yvel_prev_newton->val[i] * yvel_prev_newton->dy[i]) * v->val[i]));
       return result;
     }
-    VectorFormVol<double>* clone()
+    VectorFormVol<double>* clone() const
     {
       return new VectorFormNS_1(*this);
     }
@@ -661,7 +661,7 @@ public:
         result += wt[i] * (xvel_prev_newton->dx[i] * v->val[i] + yvel_prev_newton->dy[i] * v->val[i]);
       return result;
     }
-    VectorFormVol<double>* clone()
+    VectorFormVol<double>* clone() const
     {
       return new VectorFormNS_2(*this);
     }

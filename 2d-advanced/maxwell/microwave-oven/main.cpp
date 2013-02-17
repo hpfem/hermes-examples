@@ -37,7 +37,7 @@ const int INIT_REF_NUM = 0;
 const int P_INIT = 2;                             
 // if ALIGN_MESH == true, curvilinear elements aligned with the
 // circular load are used, otherwise one uses a non-aligned mesh.
-const bool ALIGN_MESH = true;                     
+const bool ALIGN_MESH = false;                     
 // This is a quantitative parameter of the adapt(...) function and
 // it has different meanings for various adaptive strategies.
 const double THRESHOLD = 0.3;                     

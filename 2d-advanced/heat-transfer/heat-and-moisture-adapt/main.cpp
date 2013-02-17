@@ -33,7 +33,7 @@ const int UNREF_FREQ = 1;
 const int UNREF_METHOD = 3;                       
 // This is a quantitative parameter of the adapt(...) function and
 // it has different meanings for various adaptive strategies.
-const double THRESHOLD = 0.3;                     
+const double THRESHOLD = 0.9;                     
 // Adaptive strategy:
 // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
 //   error is processed. If more elements have similar errors, refine
@@ -222,6 +222,8 @@ int main(int argc, char* argv[])
                 break;
         default: throw Hermes::Exceptions::Exception("Wrong global derefinement method.");
       }
+      T_space.assign_dofs();
+      w_space.assign_dofs();
     }
 
     // Spatial adaptivity loop. Note: T_time_prev and w_time_prev must not be changed during 
@@ -280,7 +282,6 @@ int main(int argc, char* argv[])
 
       // Initialize an instance of the Adapt class and register custom error forms.
       Adapt<double>* adaptivity = new Adapt<double>(Hermes::vector<Space<double> *>(&T_space, &w_space));
-      /* ADAPT IN ENERGY NORM 
       CustomErrorForm cef_0_0(d_TT, c_TT);
       CustomErrorForm cef_0_1(d_Tw, c_TT);
       CustomErrorForm cef_1_0(d_wT, c_ww);
@@ -289,7 +290,6 @@ int main(int argc, char* argv[])
       adaptivity->set_error_form(0, 1, &cef_0_1);
       adaptivity->set_error_form(1, 0, &cef_1_0);
       adaptivity->set_error_form(1, 1, &cef_1_1);
-      */
 
       // Calculate element errors and total error estimate.
       Hermes::Mixins::Loggable::Static::info("Calculating error estimate."); 
@@ -325,9 +325,6 @@ int main(int argc, char* argv[])
         delete T_time_new.get_mesh();
         delete w_time_new.get_mesh();
       }
-
-      // Increase counter.
-      as++;
     }
     while (done == false);
 

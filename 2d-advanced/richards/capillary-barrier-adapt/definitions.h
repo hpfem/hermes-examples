@@ -32,7 +32,7 @@ public:
     return Ord(0);
   }
 
-  virtual MeshFunction<double>* clone()
+  virtual MeshFunction<double>* clone() const
   {
     return new InitialSolutionRichards(mesh, constant);
   }
@@ -55,7 +55,7 @@ public:
     dy = 2*y;
   };
   
-  virtual MeshFunction<double>* clone()
+  virtual MeshFunction<double>* clone() const
   {
     return new ExactSolutionPoisson(mesh);
   }
@@ -71,7 +71,7 @@ class WeakFormRichardsNewtonEuler : public WeakForm<double>
 {
 public:
   WeakFormRichardsNewtonEuler(ConstitutiveRelationsGenuchtenWithLayer* relations, double tau, Solution<double>* prev_time_sln, Mesh* mesh) 
-               : WeakForm<double>(1), mesh(mesh) {
+               : WeakForm<double>(1), mesh(mesh), relations(relations) {
     JacobianFormNewtonEuler* jac_form = new JacobianFormNewtonEuler(0, 0, relations, tau);
     jac_form->set_ext(prev_time_sln);
     add_matrix_form(jac_form);
@@ -126,7 +126,7 @@ private:
       return Ord(30);
     }
 
-    MatrixFormVol<double>* clone()
+    MatrixFormVol<double>* clone() const
     {
       JacobianFormNewtonEuler* form = new JacobianFormNewtonEuler(i, j, relations, tau);
       form->wf = this->wf;
@@ -170,7 +170,7 @@ private:
       return Ord(30);
     }
     
-    VectorFormVol<double>* clone()
+    VectorFormVol<double>* clone() const
     {
       ResidualFormNewtonEuler* form = new ResidualFormNewtonEuler(i, relations, tau);
       form->wf = this->wf;
@@ -183,13 +183,22 @@ private:
   };
 
   Mesh* mesh;
+
+  ConstitutiveRelationsGenuchtenWithLayer* relations;
+
+  WeakForm<double>* clone() const
+  {
+    WeakFormRichardsNewtonEuler* wf = new WeakFormRichardsNewtonEuler(*this);
+    wf->relations = this->relations;
+    return wf;
+  }
 };
 
 
 class WeakFormRichardsNewtonCrankNicolson : public WeakForm<double>
 {
 public:
-  WeakFormRichardsNewtonCrankNicolson(ConstitutiveRelationsGenuchtenWithLayer* relations, double tau, Solution<double>* prev_time_sln, Mesh* mesh) : WeakForm<double>(1), mesh(mesh) {
+  WeakFormRichardsNewtonCrankNicolson(ConstitutiveRelationsGenuchtenWithLayer* relations, double tau, Solution<double>* prev_time_sln, Mesh* mesh) : WeakForm<double>(1), relations(relations), mesh(mesh) {
     JacobianFormNewtonCrankNicolson* jac_form = new JacobianFormNewtonCrankNicolson(0, 0, relations, tau);
     jac_form->set_ext(prev_time_sln);
     add_matrix_form(jac_form);
@@ -234,7 +243,7 @@ private:
       return matrix_form<double, double>(n, wt, u_ext, u, v, e, ext);
     }
     
-    MatrixFormVol<double>* clone()
+    MatrixFormVol<double>* clone() const
     {
       JacobianFormNewtonCrankNicolson* form = new JacobianFormNewtonCrankNicolson(i, j, relations, tau);
       form->wf = this->wf;
@@ -284,7 +293,7 @@ private:
       return Ord(30);
     }
     
-    VectorFormVol<double>* clone()
+    VectorFormVol<double>* clone() const
     {
       ResidualFormNewtonCrankNicolson* form = new ResidualFormNewtonCrankNicolson(i, relations, tau);
       form->wf = this->wf;
@@ -297,13 +306,22 @@ private:
   };
 
   Mesh* mesh;
+
+  ConstitutiveRelationsGenuchtenWithLayer* relations;
+
+  WeakForm<double>* clone() const
+  {
+    WeakFormRichardsNewtonCrankNicolson* wf = new WeakFormRichardsNewtonCrankNicolson(*this);
+    wf->relations = this->relations;
+    return wf;
+  }
 };
 
 
 class WeakFormRichardsPicardEuler : public WeakForm<double>
 {
 public:
-  WeakFormRichardsPicardEuler(ConstitutiveRelationsGenuchtenWithLayer* relations, double tau, Solution<double>* prev_picard_sln, Solution<double>* prev_time_sln, Mesh* mesh) : WeakForm<double>(1), mesh(mesh) {
+  WeakFormRichardsPicardEuler(ConstitutiveRelationsGenuchtenWithLayer* relations, double tau, Solution<double>* prev_picard_sln, Solution<double>* prev_time_sln, Mesh* mesh) : WeakForm<double>(1), relations(relations), mesh(mesh) {
     JacobianFormPicardEuler* jac_form = new JacobianFormPicardEuler(0, 0, relations, tau);
     jac_form->set_ext(prev_picard_sln);
     add_matrix_form(jac_form);
@@ -340,7 +358,7 @@ private:
       return matrix_form<double, double>(n, wt, u_ext, u, v, e, ext);
     }
     
-    MatrixFormVol<double>* clone()
+    MatrixFormVol<double>* clone() const
     {
       JacobianFormPicardEuler* form = new JacobianFormPicardEuler(i, j, relations, tau);
       form->wf = this->wf;
@@ -376,7 +394,7 @@ private:
       return vector_form<double, double>(n, wt, u_ext, v, e, ext);
     }
     
-    VectorFormVol<double>* clone()
+    VectorFormVol<double>* clone() const
     {
       ResidualFormPicardEuler* form = new ResidualFormPicardEuler(i, relations, tau);
       form->wf = this->wf;
@@ -393,6 +411,15 @@ private:
   };
 
   Mesh* mesh;
+
+  ConstitutiveRelationsGenuchtenWithLayer* relations;
+
+  WeakForm<double>* clone() const
+  {
+    WeakFormRichardsPicardEuler* wf = new WeakFormRichardsPicardEuler(*this);
+    wf->relations = this->relations;
+    return wf;
+  }
 };
 
 class RichardsEssentialBC : public EssentialBoundaryCondition<double> {
