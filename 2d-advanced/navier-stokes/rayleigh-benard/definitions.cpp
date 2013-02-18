@@ -104,7 +104,7 @@ public:
       return result;
     }
 
-    virtual MatrixFormVol<double>* clone() { return new BilinearFormNonsymVel_0_0(i, j); }
+    virtual MatrixFormVol<double>* clone() const { return new BilinearFormNonsymVel_0_0(i, j); }
   };
 
   class BilinearFormNonsymVel_0_1 : public MatrixFormVol<double>
@@ -134,7 +134,7 @@ public:
 
       return result;
     }
-    virtual MatrixFormVol<double>* clone() { return new BilinearFormNonsymVel_0_1(i, j); }
+    virtual MatrixFormVol<double>* clone() const { return new BilinearFormNonsymVel_0_1(i, j); }
   };
   class BilinearFormNonsymVel_1_0 : public MatrixFormVol<double>
   {
@@ -160,7 +160,7 @@ public:
         result += wt[i] * u->val[i] * yvel_prev_newton->dx[i] * v->val[i];
       return result;
     }
-    virtual MatrixFormVol<double>* clone() { return new BilinearFormNonsymVel_1_0(i, j); }
+    virtual MatrixFormVol<double>* clone() const { return new BilinearFormNonsymVel_1_0(i, j); }
   };
   class BilinearFormNonsymVel_1_1 : public MatrixFormVol<double>
   {
@@ -190,7 +190,7 @@ public:
                            + u->val[i] * yvel_prev_newton->dy[i] * v->val[i]);
       return result;
     }
-    virtual MatrixFormVol<double>* clone() { return new BilinearFormNonsymVel_1_1(i, j); }
+    virtual MatrixFormVol<double>* clone() const { return new BilinearFormNonsymVel_1_1(i, j); }
   };
 
   class BilinearFormNonsymXVelPressure : public MatrixFormVol<double>
@@ -210,7 +210,7 @@ public:
                     Func<Ord>* *ext) const {
       return - int_u_dvdx<Ord, Ord>(n, wt, u, v);
     }
-    virtual MatrixFormVol<double>* clone() { return new BilinearFormNonsymXVelPressure(i, j); }
+    virtual MatrixFormVol<double>* clone() const { return new BilinearFormNonsymXVelPressure(i, j); }
   };
   class BilinearFormNonsymYVelPressure : public MatrixFormVol<double>
   {
@@ -229,7 +229,7 @@ public:
                     Func<Ord>* *ext) const {
       return - int_u_dvdy<Ord, Ord>(n, wt, u, v);
     }
-    virtual MatrixFormVol<double>* clone() { return new BilinearFormNonsymYVelPressure(i, j); }
+    virtual MatrixFormVol<double>* clone() const { return new BilinearFormNonsymYVelPressure(i, j); }
   };
 
   class VectorFormNS_0 : public VectorFormVol<double>
@@ -271,7 +271,7 @@ public:
                           + yvel_prev_newton->val[i] * xvel_prev_newton->dy[i]) * v->val[i]));
       return result;
     }
-    virtual VectorFormVol<double>* clone() { return new VectorFormNS_0(i, Pr, time_step); }
+    virtual VectorFormVol<double>* clone() const { return new VectorFormNS_0(i, Pr, time_step); }
   protected:
     double Pr, time_step;
   };
@@ -320,7 +320,7 @@ public:
                            + Pr*Ra*temp_prev_newton->val[i]*v->val[i]);
       return result;
     }
-    virtual VectorFormVol<double>* clone() { return new VectorFormNS_1(i, Pr, Ra, time_step); }
+    virtual VectorFormVol<double>* clone() const { return new VectorFormNS_1(i, Pr, Ra, time_step); }
   protected:
     double Pr, Ra, time_step;
   };
@@ -352,7 +352,7 @@ public:
         result += wt[i] * (xvel_prev_newton->dx[i] + yvel_prev_newton->dy[i]) * v->val[i];
       return result;
     }
-    virtual VectorFormVol<double>* clone() { return new VectorFormNS_2(i); }
+    virtual VectorFormVol<double>* clone() const { return new VectorFormNS_2(i); }
   };
 
   class VectorFormNS_3 : public VectorFormVol<double>
@@ -395,7 +395,7 @@ public:
       return result;
     }
 
-    virtual VectorFormVol<double>* clone() { return new VectorFormNS_3(i, time_step); }
+    virtual VectorFormVol<double>* clone() const { return new VectorFormNS_3(i, time_step); }
     private:
       double time_step;
   };
@@ -424,7 +424,7 @@ public:
         result += wt[i] * u->val[i] * temp_prev_newton->dx[i] * v->val[i];
       return result;
     }
-    virtual MatrixFormVol<double>* clone() { return new BilinearFormNonsymTemp_3_0(i, j); }
+    virtual MatrixFormVol<double>* clone() const { return new BilinearFormNonsymTemp_3_0(i, j); }
   };
 
   class BilinearFormNonsymTemp_3_1 : public MatrixFormVol<double>
@@ -451,7 +451,7 @@ public:
         result += wt[i] * u->val[i] * temp_prev_newton->dy[i] * v->val[i];
       return result;
     }
-    virtual MatrixFormVol<double>* clone() { return new BilinearFormNonsymTemp_3_1(i, j); }
+    virtual MatrixFormVol<double>* clone() const { return new BilinearFormNonsymTemp_3_1(i, j); }
   };
 
   class BilinearFormNonsymTemp_3_3 : public MatrixFormVol<double>
@@ -482,7 +482,7 @@ public:
                            + yvel_prev_newton->val[i] * u->dy[i]) * v->val[i];
       return result;
     }
-    virtual MatrixFormVol<double>* clone() { return new BilinearFormNonsymTemp_3_3(i, j); }
+    virtual MatrixFormVol<double>* clone() const { return new BilinearFormNonsymTemp_3_3(i, j); }
   };
 
   class CustomResidualSurfConst : public VectorFormSurf<double>
@@ -516,7 +516,7 @@ public:
     }
 
     // This is to make the form usable in rk_time_step_newton().
-    virtual VectorFormSurf* clone() {
+    virtual VectorFormSurf<double>* clone() const {
       return new CustomResidualSurfConst(*this);
     }
 

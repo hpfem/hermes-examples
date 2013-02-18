@@ -230,6 +230,7 @@ int main(int argc, char* argv[])
         default: throw Hermes::Exceptions::Exception("Wrong global derefinement method.");
       }
 
+      space.assign_dofs();
       ndof = Space<double>::get_num_dofs(&space);
     }
 
@@ -254,7 +255,8 @@ int main(int argc, char* argv[])
       {
         ogProjection.project_global(ref_space, &sln_prev_time, 
                                    &sln_prev_time);
-        delete sln_prev_time.get_mesh();
+        if(ts > 1)
+          delete sln_prev_time.get_mesh();
       }
       catch(Exceptions::Exception& e)
       {
