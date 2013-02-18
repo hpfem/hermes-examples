@@ -38,7 +38,7 @@ const int INIT_REF_NUM_BDY = 3;
 // pressure approximation). Otherwise the standard continuous
 // elements are used. The results are striking - check the
 // tutorial for comparisons.
-#define PRESSURE_IN_L2                            
+//#define PRESSURE_IN_L2                            
 // Initial polynomial degree for velocity components.
 // Note: P_INIT_VEL should always be greater than
 // P_INIT_PRESSURE because of the inf-sup condition.
@@ -64,7 +64,7 @@ const int STRATEGY = 1;
 // Predefined list of element refinement candidates. Possible values are
 // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
 // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
-const CandList CAND_LIST = H2D_H_ANISO;           
+const CandList CAND_LIST = H2D_HP_ANISO;           
 // Maximum allowed level of hanging nodes:
 // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
 // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
@@ -277,7 +277,7 @@ int main(int argc, char* argv[])
       }
       else {
         Hermes::Mixins::Loggable::Static::info("Projecting previous fine mesh solution to obtain coefficient vector on new fine mesh.");
-        OGProjection<double> ogProj; ogProj.project_global(ref_spaces_const, Hermes::vector<MeshFunction<double>*>(&xvel_ref_sln, &yvel_ref_sln, &p_ref_sln), 
+        OGProjection<double> ogProj; ogProj.project_global(ref_spaces_const, Hermes::vector<MeshFunction<double>*>(&xvel_prev_time, &yvel_prev_time, &p_prev_time), 
             coeff_vec);
       }
 
@@ -288,6 +288,8 @@ int main(int argc, char* argv[])
         newton.set_spaces(ref_spaces_const);
         newton.set_newton_max_iter(NEWTON_MAX_ITER);
         newton.set_newton_tol(NEWTON_TOL);
+        if(as == 2)
+          newton.output_matrix();
         newton.solve(coeff_vec);
       }
       catch(Hermes::Exceptions::Exception e)
@@ -337,8 +339,6 @@ int main(int argc, char* argv[])
       delete adaptivity;
       delete [] coeff_vec;
       
-      if(!done)
-        delete ref_mesh;
       delete ref_xvel_space;
       delete ref_yvel_space;
       delete ref_p_space;
