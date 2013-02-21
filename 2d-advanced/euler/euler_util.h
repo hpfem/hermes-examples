@@ -197,7 +197,7 @@ public:
   {
   };
 
-  MeshFunction<double>* clone()
+  MeshFunction<double>* clone() const
   {
     Hermes::vector<MeshFunction<double>*> slns;
     for(int i = 0; i < this->num; i++)
@@ -221,7 +221,7 @@ public:
   {
   };
 
-  MeshFunction<double>* clone()
+  MeshFunction<double>* clone() const
   {
     Hermes::vector<MeshFunction<double>*> slns;
     for(int i = 0; i < this->num; i++)
@@ -243,7 +243,7 @@ public:
   ~EntropyFilter() 
   {
   };
-  MeshFunction<double>* clone()
+  MeshFunction<double>* clone() const
   {
     Hermes::vector<MeshFunction<double>*> slns;
     for(int i = 0; i < this->num; i++)

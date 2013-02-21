@@ -88,6 +88,8 @@ const std::string BDY_SOLID_WALL_TOP = "4";
 
 int main(int argc, char* argv[])
 {
+  Hermes2DApi.set_integral_param_value(numThreads,1);
+
   // Load the mesh.
   Mesh mesh;
   MeshReaderH2D mloader;
@@ -191,7 +193,7 @@ int main(int argc, char* argv[])
           if(rhs_stabilization->get(al.get_dof()[0]) >= 1)
             discreteIndicator[e->id] = true;
         }
-        wf.set_discreteIndicator(discreteIndicator);
+        wf.set_discreteIndicator(discreteIndicator, space_stabilization.get_mesh()->get_max_element_id() + 1);
       }
 
     // Set the current time step.
