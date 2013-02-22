@@ -653,7 +653,7 @@ public:
     outlet_marker(outlet_marker), prev_density(prev_density), prev_density_vel_x(prev_density_vel_x), prev_density_vel_y(prev_density_vel_y),
     prev_energy(prev_energy), fvm_only(fvm_only),
     energy_ext(QuantityCalculator::calc_energy(rho_ext, rho_ext * v1_ext, rho_ext * v2_ext, pressure_ext, kappa)), 
-    euler_fluxes(new EulerFluxes(kappa))
+    euler_fluxes(new EulerFluxes(kappa)), discreteIndicator(NULL)
   {
     P_plus_cache = new double**[Hermes::Hermes2D::Hermes2DApi.get_integral_param_value(Hermes::Hermes2D::numThreads)];
     for(int i = 0; i < Hermes::Hermes2D::Hermes2DApi.get_integral_param_value(Hermes::Hermes2D::numThreads); i++)
@@ -810,9 +810,14 @@ public:
     this->solid_wall_bottom_marker, this->solid_wall_top_marker, this->inlet_marker, this->outlet_marker,
     this->prev_density, this->prev_density_vel_x, this->prev_density_vel_y, this->prev_energy, this->fvm_only, this->neq);
 
-    bool* discreteIndicatorLocal = new bool[this->discreteIndicatorSize];
-    memcpy(discreteIndicatorLocal, this->discreteIndicator, this->discreteIndicatorSize * sizeof(bool));
-    wf->set_discreteIndicator(discreteIndicatorLocal, this->discreteIndicatorSize);
+    wf->set_time_step(this->get_tau());
+
+    if(this->discreteIndicator != NULL)
+    {
+      bool* discreteIndicatorLocal = new bool[this->discreteIndicatorSize];
+      memcpy(discreteIndicatorLocal, this->discreteIndicator, this->discreteIndicatorSize * sizeof(bool));
+      wf->set_discreteIndicator(discreteIndicatorLocal, this->discreteIndicatorSize);
+    }
 
     return wf;
   }
