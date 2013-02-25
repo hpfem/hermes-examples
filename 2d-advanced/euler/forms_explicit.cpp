@@ -804,7 +804,6 @@ public:
     this->discreteIndicatorSize = size;
   }
 
-protected:
   class EulerEquationsBilinearFormTime : public MatrixFormVol<double>
   {
   public:
