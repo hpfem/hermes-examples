@@ -47,9 +47,9 @@ const double NU_2 = 0.1;
 bool REUSE_SOLUTION = false;
 
 // Initial polynomial degree.
-const int P_INIT = 1;
+const int P_INIT = 2;
 // Number of initial uniform mesh refinements.    
-const int INIT_REF_NUM = 0;
+const int INIT_REF_NUM = 2;
 // CFL value.
 double CFL_NUMBER = 0.01;                                
 // Initial time step.
@@ -93,7 +93,7 @@ int main(int argc, char* argv[])
   // Load the mesh.
   Mesh mesh;
   MeshReaderH2D mloader;
-  mloader.load("channel.mesh", &mesh);
+  mloader.load("GAMM-channel.mesh", &mesh);
 
   // Perform initial mesh refinements.
   for (int i = 0; i < INIT_REF_NUM; i++) 
@@ -271,7 +271,6 @@ int main(int argc, char* argv[])
         Mach_number_view.show(&Mach_number);
         pressure_view.save_numbered_screenshot("Pressure-%u.bmp", iteration - 1, true);
         Mach_number_view.save_numbered_screenshot("Mach-%u.bmp", iteration - 1, true);
-        Mach_number_view.wait_for_close();
       }
       // Output solution in VTK format.
       if(VTK_VISUALIZATION) 
