@@ -104,7 +104,7 @@ public:
   virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, 
                   Geom<Ord> *e, Func<Ord>* *ext) const;
 
-  virtual VectorFormSurf<std::complex<double> >* clone() { return new CustomVectorFormSurf(omega, J, this->areas[0]); }
+  virtual VectorFormSurf<std::complex<double> >* clone() const { return new CustomVectorFormSurf(omega, J, this->areas[0]); }
   double omega, J;
 };
 
@@ -148,7 +148,7 @@ public:
     return hcurl_form_kappa<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
   }
 
-  virtual MatrixFormVol<std::complex<double> >* clone() { return new CustomErrorForm(Hermes::sqrt(kappa_squared)); }
+  virtual MatrixFormVol<std::complex<double> >* clone() const { return new CustomErrorForm(Hermes::sqrt(kappa_squared)); }
 
 
   double kappa_squared;

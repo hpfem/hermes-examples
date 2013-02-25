@@ -62,10 +62,20 @@ Ord WeakFormNSSimpleLinearization::BilinearFormSymVel::ord(int n, double *wt, Fu
   return result;
 }
 
+MatrixFormVol<double>* WeakFormNSSimpleLinearization::BilinearFormSymVel::clone() const
+{
+  return new BilinearFormSymVel(*this);
+}
+
 WeakFormNSSimpleLinearization::BilinearFormNonsymVel::BilinearFormNonsymVel(int i, int j, bool Stokes) 
                              : MatrixFormVol<double>(i, j), Stokes(Stokes) 
 {
   
+}
+
+MatrixFormVol<double>* WeakFormNSSimpleLinearization::BilinearFormNonsymVel::clone() const
+{
+  return new BilinearFormNonsymVel(*this);
 }
 
 double WeakFormNSSimpleLinearization::BilinearFormNonsymVel::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
@@ -98,6 +108,11 @@ WeakFormNSSimpleLinearization::BilinearFormNonsymXVelPressure::BilinearFormNonsy
   this->setSymFlag(HERMES_ANTISYM);
 }
 
+MatrixFormVol<double>* WeakFormNSSimpleLinearization::BilinearFormNonsymXVelPressure::clone() const
+{
+  return new BilinearFormNonsymXVelPressure(*this);
+}
+
 double WeakFormNSSimpleLinearization::BilinearFormNonsymXVelPressure::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
                                                                             Geom<double> *e, Func<double>* *ext) const 
 {
@@ -127,10 +142,20 @@ Ord WeakFormNSSimpleLinearization::BilinearFormNonsymYVelPressure::ord(int n, do
   return - int_u_dvdy<Ord, Ord>(n, wt, u, v);
 }
 
+MatrixFormVol<double>* WeakFormNSSimpleLinearization::BilinearFormNonsymYVelPressure::clone() const
+{
+  return new BilinearFormNonsymYVelPressure(*this);
+}
+
 WeakFormNSSimpleLinearization::VectorFormVolVel::VectorFormVolVel(int i, bool Stokes, double time_step) 
                              : VectorFormVol<double>(i), Stokes(Stokes), time_step(time_step) 
 {
   
+}
+
+VectorFormVol<double>* WeakFormNSSimpleLinearization::VectorFormVolVel::clone() const
+{
+  return new VectorFormVolVel(*this);
 }
 
 double WeakFormNSSimpleLinearization::VectorFormVolVel::value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, 

@@ -273,7 +273,7 @@ html_theme_options = {
 'codebgcolor': '#F5F5F5',
 'codetextcolor': '#000000',
 
-'relbarbgcolor': '#824513',
+'relbarbgcolor': '#1553ef',
 'relbartextcolor': '#000000',
 'relbarlinkcolor': '#FFFFFF',
 'footerbgcolor': '#FFFFFF',
@@ -285,7 +285,7 @@ html_theme_path = ['']
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
-html_title = 'Hermes Documentation'
+html_title = 'Hermes Examples Guide'
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 html_short_title = 'Content'

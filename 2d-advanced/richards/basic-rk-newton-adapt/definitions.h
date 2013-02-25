@@ -68,4 +68,12 @@ private:
     virtual VectorFormVol<double>* clone() const;
     ConstitutiveRelations* constitutive;
   };
+  ConstitutiveRelations* constitutive;
+
+  WeakForm<double>* clone() const
+  {
+    CustomWeakFormRichardsRK* wf = new CustomWeakFormRichardsRK(*this);
+    wf->constitutive = this->constitutive;
+    return wf;
+  }
 };

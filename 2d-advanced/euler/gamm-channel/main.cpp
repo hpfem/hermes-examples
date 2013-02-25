@@ -35,7 +35,7 @@ enum shockCapturingType
   KUZMIN,
   KRIVODONOVA
 };
-bool SHOCK_CAPTURING = true;
+bool SHOCK_CAPTURING = false;
 shockCapturingType SHOCK_CAPTURING_TYPE = FEISTAUER;
 // Quantitative parameter of the discontinuity detector in case of Krivodonova.
 double DISCONTINUITY_DETECTOR_PARAM = 1.0;
@@ -47,15 +47,15 @@ const double NU_2 = 0.1;
 bool REUSE_SOLUTION = false;
 
 // Initial polynomial degree.
-const int P_INIT = 1;                                                      
+const int P_INIT = 1;
 // Number of initial uniform mesh refinements.    
-const int INIT_REF_NUM = 2;                                                
+const int INIT_REF_NUM = 1;
 // CFL value.
-double CFL_NUMBER = 0.25;                                
+double CFL_NUMBER = 0.1;                                
 // Initial time step.
-double time_step_n = 1E-6;                                
+double time_step_n = 1E-6;
 // Initial time step.
-double time_step_n_minus_one = 1E-6;                                
+double time_step_n_minus_one = 1E-6;
 
 // Matrix solver for orthogonal projections: 
 // SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
@@ -88,6 +88,8 @@ const std::string BDY_SOLID_WALL_TOP = "4";
 
 int main(int argc, char* argv[])
 {
+  Hermes2DApi.set_integral_param_value(numThreads,1);
+
   // Load the mesh.
   Mesh mesh;
   MeshReaderH2D mloader;
@@ -191,7 +193,7 @@ int main(int argc, char* argv[])
           if(rhs_stabilization->get(al.get_dof()[0]) >= 1)
             discreteIndicator[e->id] = true;
         }
-        wf.set_discreteIndicator(discreteIndicator);
+        wf.set_discreteIndicator(discreteIndicator, space_stabilization.get_mesh()->get_max_element_id() + 1);
       }
 
     // Set the current time step.

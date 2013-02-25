@@ -2,7 +2,7 @@
 
 /* Custom initial condition for temperature*/
 
-CustomInitialConditionTemperature::CustomInitialConditionTemperature(Mesh *mesh, double mid_x, double mid_y, double radius, double temp_fluid, double temp_graphite) 
+CustomInitialConditionTemperature::CustomInitialConditionTemperature(const Mesh *mesh, double mid_x, double mid_y, double radius, double temp_fluid, double temp_graphite) 
   : ExactSolutionScalar<double>(mesh), mid_x(mid_x), mid_y(mid_y), radius(radius), temp_fluid(temp_fluid), temp_graphite(temp_graphite) {}
 
 double CustomInitialConditionTemperature::value(double x, double y) const 
@@ -26,7 +26,7 @@ Ord CustomInitialConditionTemperature::ord(Ord x, Ord y) const
 
 MeshFunction<double>* CustomInitialConditionTemperature::clone() const 
 {
-  return new CustomInitialConditionTemperature(*this);
+  return new CustomInitialConditionTemperature(this->mesh, this->mid_x, this->mid_y, this->radius, this->temp_fluid, this->temp_graphite);
 }
 
 /* Weak forms */

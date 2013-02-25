@@ -117,7 +117,15 @@ int main(int argc, char* argv[])
   // Load the mesh.
   Mesh mesh, basemesh;
   MeshReaderH1DXML mloader;
-  mloader.load("domain.xml", &basemesh);
+  try
+  {
+    mloader.load("domain.xml", &basemesh);
+  }
+  catch(Hermes::Exceptions::MeshLoadFailureException& e)
+  {
+    e.print_msg();
+    return -1;
+  }
 
   // Perform initial mesh refinements.
   int refinement_type = 2;                        // Split elements vertically.
@@ -177,6 +185,7 @@ int main(int argc, char* argv[])
         default: throw Hermes::Exceptions::Exception("Wrong global derefinement method.");
       }
 
+      space.assign_dofs();
       ndof_coarse = space.get_num_dofs();
     }
 

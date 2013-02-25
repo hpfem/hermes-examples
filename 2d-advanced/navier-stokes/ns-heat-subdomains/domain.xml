@@ -3,70 +3,70 @@
   xmlns:domain="XMLSubdomains"
   xsi:schemaLocation="XMLSubdomains ../../../xml_schemas/subdomains_h2d_xml.xsd">
   <vertices>
-    <vertex x="0" y="0" i="0"/>
-    <vertex x="1.0" y="0" i="1"/>
-    <vertex x="1.0" y="1.0" i="2"/>
-    <vertex x="0" y="1.0" i="3"/>
-    <vertex x="0.35" y="0.35" i="4"/>
-    <vertex x="0.65" y="0.35" i="5"/>
-    <vertex x="0.65" y="0.65" i="6"/>
-    <vertex x="0.35" y="0.65" i="7"/>
-    <vertex x="0.4" y="0.4" i="8"/>
-    <vertex x="0.6" y="0.4" i="9"/>
-    <vertex x="0.6" y="0.6" i="10"/>
-    <vertex x="0.4" y="0.6" i="11"/>
-    <vertex x="2.0" y="0.0" i="12"/>
-    <vertex x="2.0" y="1.0" i="13"/>
+    <v x="0" y="0" i="0"/>
+    <v x="1.0" y="0" i="1"/>
+    <v x="1.0" y="1.0" i="2"/>
+    <v x="0" y="1.0" i="3"/>
+    <v x="0.35" y="0.35" i="4"/>
+    <v x="0.65" y="0.35" i="5"/>
+    <v x="0.65" y="0.65" i="6"/>
+    <v x="0.35" y="0.65" i="7"/>
+    <v x="0.4" y="0.4" i="8"/>
+    <v x="0.6" y="0.4" i="9"/>
+    <v x="0.6" y="0.6" i="10"/>
+    <v x="0.4" y="0.6" i="11"/>
+    <v x="2.0" y="0.0" i="12"/>
+    <v x="2.0" y="1.0" i="13"/>
 
-    <vertex x="0" y="0.5" i="14"/>
-    <vertex x="0.28786797" y="0.5" i="15"/>
-    <vertex x="0.4" y="0.5" i="16"/>
-    <vertex x="0.6" y="0.5" i="17"/>
-    <vertex x="0.71213203" y="0.5" i="18"/>
-    <vertex x="1.0" y="0.5" i="19"/>
-    <vertex x="2.0" y="0.5" i="20"/>
+    <v x="0" y="0.5" i="14"/>
+    <v x="0.28786797" y="0.5" i="15"/>
+    <v x="0.4" y="0.5" i="16"/>
+    <v x="0.6" y="0.5" i="17"/>
+    <v x="0.71213203" y="0.5" i="18"/>
+    <v x="1.0" y="0.5" i="19"/>
+    <v x="2.0" y="0.5" i="20"/>
 
   </vertices>
 
   <elements>
     <!-- Fluid -->
-    <domain:quad v1="0" v2="1" v3="5" v4="4" marker="Fluid" i="0"/>
-    <domain:quad v1="5" v2="1" v3="19" v4="18" marker="Fluid" i="1"/>
-    <domain:quad v1="18" v2="19" v3="2" v4="6" marker="Fluid" i="2"/>
-    <domain:quad v1="7" v2="6" v3="2" v4="3" marker="Fluid" i="3"/>
-    <domain:quad v1="0" v2="4" v3="15" v4="14" marker="Fluid" i="4"/>
-    <domain:quad v1="14" v2="15" v3="7" v4="3" marker="Fluid" i="5"/>
-    <domain:quad v1="1" v2="12" v3="20" v4="19" marker="Fluid" i="7"/>
-    <domain:quad v1="19" v2="20" v3="13" v4="2" marker="Fluid" i="8"/>
+    <domain:q v1="0" v2="1" v3="5" v4="4" m="Fluid" i="0"/>
+    <domain:q v1="5" v2="1" v3="19" v4="18" m="Fluid" i="1"/>
+    <domain:q v1="18" v2="19" v3="2" v4="6" m="Fluid" i="2"/>
+    <domain:q v1="7" v2="6" v3="2" v4="3" m="Fluid" i="3"/>
+    <domain:q v1="0" v2="4" v3="15" v4="14" m="Fluid" i="4"/>
+    <domain:q v1="14" v2="15" v3="7" v4="3" m="Fluid" i="5"/>
+    <domain:q v1="1" v2="12" v3="20" v4="19" m="Fluid" i="7"/>
+    <domain:q v1="19" v2="20" v3="13" v4="2" m="Fluid" i="8"/>
                 
     <!-- Graphite -->
-    <domain:quad v1="4" v2="5" v3="9" v4="8" marker="Graphite" i="9"/>
-    <domain:quad v1="9" v2="5" v3="18" v4="17" marker="Graphite" i="10"/>
-    <domain:quad v1="17" v2="18" v3="6" v4="10" marker="Graphite" i="11"/>
-    <domain:quad v1="11" v2="10" v3="6" v4="7" marker="Graphite" i="12"/>
-    <domain:quad v1="4" v2="8" v3="16" v4="15" marker="Graphite" i="13"/>
-    <domain:quad v1="15" v2="16" v3="11" v4="7" marker="Graphite" i="14"/>
-    <domain:quad v1="8" v2="9" v3="17" v4="16" marker="Graphite" i="15"/>
-    <domain:quad v1="16" v2="17" v3="10" v4="11" marker="Graphite" i="16"/>
+    <domain:q v1="4" v2="5" v3="9" v4="8" m="Graphite" i="9"/>
+    <domain:q v1="9" v2="5" v3="18" v4="17" m="Graphite" i="10"/>
+    <domain:q v1="17" v2="18" v3="6" v4="10" m="Graphite" i="11"/>
+    <domain:q v1="11" v2="10" v3="6" v4="7" m="Graphite" i="12"/>
+    <domain:q v1="4" v2="8" v3="16" v4="15" m="Graphite" i="13"/>
+    <domain:q v1="15" v2="16" v3="11" v4="7" m="Graphite" i="14"/>
+    <domain:q v1="8" v2="9" v3="17" v4="16" m="Graphite" i="15"/>
+    <domain:q v1="16" v2="17" v3="10" v4="11" m="Graphite" i="16"/>
   </elements>
 
   <edges>
-    <edge v1="0" v2="1" marker="Outer Wall" i="0"/>
-    <edge v1="1" v2="12" marker="Outer Wall" i="1"/>
-    <edge v1="12" v2="20" marker="Outlet" i="2"/>
-    <edge v1="20" v2="13" marker="Outlet" i="3"/>
-    <edge v1="13" v2="2" marker="Outer Wall" i="4"/>
-    <edge v1="2" v2="3" marker="Outer Wall" i="5"/>
+    <ed v1="0" v2="1" m="Outer Wall" i="0"/>
+    <ed v1="1" v2="12" m="Outer Wall" i="1"/>
+    <ed v1="12" v2="20" m="Outlet" i="2"/>
+    <ed v1="20" v2="13" m="Outlet" i="3"/>
+    <ed v1="13" v2="2" m="Outer Wall" i="4"/>
+    <ed v1="2" v2="3" m="Outer Wall" i="5"/>
     
-    <edge v1="3" v2="14" marker="Inlet" i="6"/>
-    <edge v1="14" v2="0" marker="Inlet" i="7"/>
+    <ed v1="3" v2="14" m="Inlet" i="6"/>
+    <ed v1="14" v2="0" m="Inlet" i="7"/>
 
-    <edge v1="4" v2="5" marker="Inner Wall" i="8"/>
-    <edge v1="5" v2="18" marker="Inner Wall" i="9"/>
-    <edge v1="18" v2="6" marker="Inner Wall" i="10"/>
-    <edge v1="6" v2="7" marker="Inner Wall" i="11"/>
-    <edge v1="7" v2="15" marker="Inner Wall" i="12"/>
-    <edge v1="15" v2="4" marker="Inner Wall" i="13"/>
+    <ed v1="4" v2="5" m="Inner Wall" i="8"/>
+    <ed v1="5" v2="18" m="Inner Wall" i="9"/>
+    <ed v1="18" v2="6" m="Inner Wall" i="10"/>
+    <ed v1="6" v2="7" m="Inner Wall" i="11"/>
+    <ed v1="7" v2="15" m="Inner Wall" i="12"/>
+    <ed v1="15" v2="4" m="Inner Wall" i="13"/>
   </edges> 
   
   <curves>

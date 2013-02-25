@@ -176,6 +176,7 @@ int main(int argc, char* argv[])
                 break;
       }
 
+      space.assign_dofs();
       ndof_coarse = space.get_num_dofs();
     }
 

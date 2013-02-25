@@ -73,7 +73,7 @@ private:
       return matrix_form<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
     }
 
-    MatrixFormVol<double>* clone()
+    MatrixFormVol<double>* clone() const
     {
       return new Jacobian(*this);
     }
@@ -137,7 +137,7 @@ private:
           return vector_form<Ord, Ord>(n, wt, u_ext, v, e, ext);
         }
         
-        VectorFormVol<double>* clone()
+        VectorFormVol<double>* clone() const
         {
           return new Residual(*this);
         }
@@ -225,7 +225,7 @@ private:
       return matrix_form<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
     }
     
-    MatrixFormVol<double>* clone()
+    MatrixFormVol<double>* clone() const
     {
       return new Jacobian(*this);
     }
@@ -294,7 +294,7 @@ private:
         return vector_form<Ord, Ord>(n, wt, u_ext, v, e, ext);
       }
       
-      VectorFormVol<double>* clone()
+      VectorFormVol<double>* clone() const
       {
         return new Residual(*this);
       }
@@ -383,7 +383,7 @@ private:
       return matrix_form<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
     }
     
-    MatrixFormVol<double>* clone()
+    MatrixFormVol<double>* clone() const
     {
       return new Jacobian(*this);
     }
@@ -448,7 +448,7 @@ private:
       return vector_form<Ord, Ord>(n, wt, u_ext, v, e, ext);
     }
     
-    VectorFormVol<double>* clone()
+    VectorFormVol<double>* clone() const
     {
       return new Residual(*this);
     }

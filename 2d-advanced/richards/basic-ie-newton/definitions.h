@@ -69,4 +69,11 @@ private:
   };
 
   ConstitutiveRelations* constitutive;
+
+  WeakForm<double>* clone() const
+  {
+    CustomWeakFormRichardsIE* wf = new CustomWeakFormRichardsIE(*this);
+    wf->constitutive = this->constitutive;
+    return wf;
+  }
 };

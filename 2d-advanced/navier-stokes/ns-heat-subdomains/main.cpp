@@ -24,9 +24,9 @@ const int P_INIT_PRESSURE = 1;
 const int P_INIT_TEMPERATURE = 1;
 
 // Initial uniform mesh refinements.
-const int INIT_REF_NUM_TEMPERATURE_GRAPHITE = 2;        
-const int INIT_REF_NUM_TEMPERATURE_FLUID = 3;        
-const int INIT_REF_NUM_FLUID = 3;        
+const int INIT_REF_NUM_TEMPERATURE_GRAPHITE = 2;
+const int INIT_REF_NUM_TEMPERATURE_FLUID = 3;
+const int INIT_REF_NUM_FLUID = 3;
 const int INIT_REF_NUM_BDY_GRAPHITE = 1;   
 const int INIT_REF_NUM_BDY_WALL = 1;   
 
@@ -125,7 +125,7 @@ int main(int argc, char* argv[])
   H1Space<double> p_space(&mesh_with_hole, &bcs_pressure, P_INIT_PRESSURE);
 #endif
   H1Space<double> temperature_space(&mesh_whole_domain, &bcs_temperature, P_INIT_TEMPERATURE);
-  Hermes::vector<Space<double> *> all_spaces(&xvel_space, 
+  Hermes::vector<const Space<double> *> all_spaces(&xvel_space, 
       &yvel_space, &p_space, &temperature_space);
   Hermes::vector<const Space<double> *> all_spaces_const(&xvel_space, 
       &yvel_space, &p_space, &temperature_space);
@@ -163,9 +163,10 @@ int main(int argc, char* argv[])
   // FIXME - currently the LocalProjection only does the lowest-order part (linear
   // interpolation) at the moment. Higher-order part needs to be added.
   double* coeff_vec = new double[ndof];
-  //Hermes::Mixins::Loggable::Static::Hermes::Mixins::Loggable::Static::info("Projecting initial condition to obtain initial vector for the Newton's method.");
-  //OGProjection<double> ogProjection; ogProjection.project_global(all_spaces, all_meshfns, coeff_vec, all_proj_norms);
-  LocalProjection<double>::project_local(all_spaces_const, all_meshfns, coeff_vec, all_proj_norms);
+  
+  Hermes::Mixins::Loggable::Static::info("Projecting initial condition to obtain initial vector for the Newton's method.");
+  OGProjection<double> ogProjection;
+  ogProjection.project_global(all_spaces, all_meshfns, coeff_vec, all_proj_norms);
 
   // Translate the solution vector back to Solutions. This is needed to replace
   // the discontinuous initial condition for temperature_prev_time with its projection.
