@@ -22,7 +22,7 @@ using namespace Hermes::Hermes2D::Views;
 
 // Visualization.
 // Set to "true" to enable Hermes OpenGL visualization. 
-const bool HERMES_VISUALIZATION = true;
+const bool HERMES_VISUALIZATION = false;
 // Set to "true" to enable VTK output.
 const bool VTK_VISUALIZATION = false;
 // Set visual output for every nth step.
@@ -241,21 +241,8 @@ int main(int argc, char* argv[])
     }
     catch(Hermes::Exceptions::LinearMatrixSolverException& e)
     {
-      FILE* fm = fopen("matrix", "w");
-      FILE* fb = fopen("vector", "w");
-      matrix->dump(fm, "A");
-      rhs->dump(fb, "b");
-      fclose(fm);
-      fclose(fb);
       e.print_msg();
     }
-
-    FILE* fm = fopen("matrix", "w");
-    FILE* fb = fopen("vector", "w");
-    matrix->dump(fm, "A");
-    rhs->dump(fb, "b");
-    fclose(fm);
-    fclose(fb);
 
     CFL.calculate_semi_implicit(Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), &mesh, time_step_n);
 
