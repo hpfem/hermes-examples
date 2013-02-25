@@ -73,7 +73,7 @@ double StegerWarmingNumericalFlux::numerical_flux_i(int component, double w_L[4]
   return result[component];
 }
 
-void StegerWarmingNumericalFlux::P_plus(double result[4], double w[4], double param[4],
+void StegerWarmingNumericalFlux::P_plus(double* result, double w[4], double param[4],
           double nx, double ny)
 {
   Q(q, w, nx, ny);
@@ -133,7 +133,7 @@ void StegerWarmingNumericalFlux::P_plus(double result[4], double w[4], double pa
   Q_inv(result, result, nx, ny);
 }
 
-void StegerWarmingNumericalFlux::P_minus(double result[4], double w[4], double param[4],
+void StegerWarmingNumericalFlux::P_minus(double* result, double w[4], double param[4],
           double nx, double ny)
 {
   Q(q, w, nx, ny);

@@ -222,7 +222,7 @@ int main(int argc, char* argv[])
           if(rhs_stabilization->get(al.get_dof()[0]) >= 1)
             discreteIndicator[e->id] = true;
         }
-        static_cast<EulerEquationsWeakFormSemiImplicitCoupled*>(wf)->set_discreteIndicator(discreteIndicator);
+        static_cast<EulerEquationsWeakFormSemiImplicitCoupled*>(wf)->set_discreteIndicator(discreteIndicator, space_stabilization.get_num_dofs());
       }
     }
     else

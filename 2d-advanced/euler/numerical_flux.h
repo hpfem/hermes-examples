@@ -54,10 +54,10 @@ public:
   virtual double numerical_flux_i(int component, double w_L[4], double w_R[4],
           double nx, double ny);
 
-  void P_plus(double result[4], double w[4], double param[4],
+  void P_plus(double* result, double w[4], double param[4],
           double nx, double ny);
 
-  void P_minus(double result[4], double w[4], double param[4],
+  void P_minus(double* result, double w[4], double param[4],
           double nx, double ny);
 
   // Also calculates the speed of sound.

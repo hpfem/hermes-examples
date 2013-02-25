@@ -49,9 +49,9 @@ bool REUSE_SOLUTION = false;
 // Initial polynomial degree.
 const int P_INIT = 1;
 // Number of initial uniform mesh refinements.    
-const int INIT_REF_NUM = 1;
+const int INIT_REF_NUM = 0;
 // CFL value.
-double CFL_NUMBER = 0.1;                                
+double CFL_NUMBER = 0.01;                                
 // Initial time step.
 double time_step_n = 1E-6;
 // Initial time step.
@@ -75,10 +75,10 @@ const double V2_EXT = 0.0;
 const double KAPPA = 1.4;
 
 // Boundary markers.
-const std::string BDY_INLET = "1";
-const std::string BDY_OUTLET = "2";
-const std::string BDY_SOLID_WALL_BOTTOM = "3";
-const std::string BDY_SOLID_WALL_TOP = "4";
+std::string BDY_INLET = "1";
+std::string BDY_OUTLET = "2";
+std::string BDY_SOLID_WALL_BOTTOM = "3";
+std::string BDY_SOLID_WALL_TOP = "4";
 
 // Weak forms.
 #include "../forms_explicit.cpp"
@@ -93,7 +93,7 @@ int main(int argc, char* argv[])
   // Load the mesh.
   Mesh mesh;
   MeshReaderH2D mloader;
-  mloader.load("GAMM-channel.mesh", &mesh);
+  mloader.load("channel.mesh", &mesh);
 
   // Perform initial mesh refinements.
   for (int i = 0; i < INIT_REF_NUM; i++) 
@@ -155,8 +155,13 @@ int main(int argc, char* argv[])
   }
 
   // Initialize weak formulation.
-  EulerEquationsWeakFormSemiImplicit wf(KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, BDY_SOLID_WALL_BOTTOM, BDY_SOLID_WALL_TOP, 
-    BDY_INLET, BDY_OUTLET, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, (P_INIT == 0));
+  Hermes::vector<std::string> solid_wall_markers(BDY_SOLID_WALL_BOTTOM, BDY_SOLID_WALL_TOP);
+  Hermes::vector<std::string> inlet_markers;
+  inlet_markers.push_back(BDY_INLET);
+  Hermes::vector<std::string> outlet_markers;
+  outlet_markers.push_back(BDY_OUTLET);
+
+  EulerEquationsWeakFormSemiImplicit wf(KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT,solid_wall_markers, inlet_markers, outlet_markers, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, (P_INIT == 0));
 
   EulerEquationsWeakFormStabilization wf_stabilization(&prev_rho);
 
@@ -197,7 +202,7 @@ int main(int argc, char* argv[])
       }
 
     // Set the current time step.
-    wf.set_time_step(time_step_n);
+    wf.set_current_time_step(time_step_n);
 
     // Assemble the stiffness matrix and rhs.
     Hermes::Mixins::Loggable::Static::info("Assembling the stiffness matrix and right-hand side vector.");
@@ -206,33 +211,51 @@ int main(int argc, char* argv[])
 
     // Solve the matrix problem.
     Hermes::Mixins::Loggable::Static::info("Solving the matrix problem.");
-    if(solver->solve())
+    try
     {
-      if(!SHOCK_CAPTURING || SHOCK_CAPTURING_TYPE == FEISTAUER)
+      solver->solve();
       {
-        Solution<double>::vector_to_solutions(solver->get_sln_vector(), Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
-          &space_rho_v_y, &space_e), Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
-      }
-      else
-      {
-        FluxLimiter* flux_limiter;
-        if(SHOCK_CAPTURING_TYPE == KUZMIN)
-          flux_limiter = new FluxLimiter(FluxLimiter::Kuzmin, solver->get_sln_vector(), Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
-          &space_rho_v_y, &space_e));
+        if(!SHOCK_CAPTURING || SHOCK_CAPTURING_TYPE == FEISTAUER)
+        {
+          Solution<double>::vector_to_solutions(solver->get_sln_vector(), Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
+            &space_rho_v_y, &space_e), Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
+        }
         else
-          flux_limiter = new FluxLimiter(FluxLimiter::Krivodonova, solver->get_sln_vector(), Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
-          &space_rho_v_y, &space_e));
+        {
+          FluxLimiter* flux_limiter;
+          if(SHOCK_CAPTURING_TYPE == KUZMIN)
+            flux_limiter = new FluxLimiter(FluxLimiter::Kuzmin, solver->get_sln_vector(), Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
+            &space_rho_v_y, &space_e));
+          else
+            flux_limiter = new FluxLimiter(FluxLimiter::Krivodonova, solver->get_sln_vector(), Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
+            &space_rho_v_y, &space_e));
 
-        if(SHOCK_CAPTURING_TYPE == KUZMIN)
-          flux_limiter->limit_second_orders_according_to_detector();
+          if(SHOCK_CAPTURING_TYPE == KUZMIN)
+            flux_limiter->limit_second_orders_according_to_detector();
 
-        flux_limiter->limit_according_to_detector();
+          flux_limiter->limit_according_to_detector();
 
-        flux_limiter->get_limited_solutions(Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
+          flux_limiter->get_limited_solutions(Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
+        }
       }
     }
-    else
-      throw Hermes::Exceptions::Exception("Matrix solver failed.\n");
+    catch(Hermes::Exceptions::LinearMatrixSolverException& e)
+    {
+      FILE* fm = fopen("matrix", "w");
+      FILE* fb = fopen("vector", "w");
+      matrix->dump(fm, "A");
+      rhs->dump(fb, "b");
+      fclose(fm);
+      fclose(fb);
+      e.print_msg();
+    }
+
+    FILE* fm = fopen("matrix", "w");
+    FILE* fb = fopen("vector", "w");
+    matrix->dump(fm, "A");
+    rhs->dump(fb, "b");
+    fclose(fm);
+    fclose(fb);
 
     CFL.calculate_semi_implicit(Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), &mesh, time_step_n);
 
@@ -248,6 +271,7 @@ int main(int argc, char* argv[])
         Mach_number_view.show(&Mach_number);
         pressure_view.save_numbered_screenshot("Pressure-%u.bmp", iteration - 1, true);
         Mach_number_view.save_numbered_screenshot("Mach-%u.bmp", iteration - 1, true);
+        Mach_number_view.wait_for_close();
       }
       // Output solution in VTK format.
       if(VTK_VISUALIZATION) 
