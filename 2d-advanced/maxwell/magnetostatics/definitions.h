@@ -35,7 +35,7 @@ class FilterFluxDensity : public Hermes::Hermes2D::Filter<double>
 public:
   FilterFluxDensity(Hermes::vector<MeshFunction<double>*> solutions);
 
-  virtual Func<double>* get_pt_value(double x, double y);
+  virtual Func<double>* get_pt_value(double x, double y, Element* e = NULL);
   virtual MeshFunction<double>* clone() const;
 
 protected:

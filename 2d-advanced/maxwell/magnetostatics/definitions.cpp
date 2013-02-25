@@ -54,7 +54,7 @@ FilterFluxDensity::FilterFluxDensity(Hermes::vector<MeshFunction<double>*> solut
 {
 }
 
-Func<double>* FilterFluxDensity::get_pt_value(double x, double y) 
+Func<double>* FilterFluxDensity::get_pt_value(double x, double y, Element* e) 
 {
   throw Hermes::Exceptions::Exception("Not implemented yet"); return 0;
 }
