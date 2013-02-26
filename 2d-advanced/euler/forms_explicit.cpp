@@ -955,7 +955,7 @@ public:
       double w[4];
       double result = 0.;
 
-      if(!(*this->cacheReady) || true)
+      if(!(*this->cacheReady))
       {
         for (int point_i = 0; point_i < n; point_i++) 
         {
@@ -1127,7 +1127,7 @@ public:
     {
       double result = 0.;
 
-      if(!(*this->cacheReady) || true)
+      if(!(*this->cacheReady))
       {
         for (int point_i = 0; point_i < n; point_i++) 
         {

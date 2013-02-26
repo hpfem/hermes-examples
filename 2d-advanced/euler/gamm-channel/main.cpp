@@ -51,7 +51,7 @@ const int P_INIT = 2;
 // Number of initial uniform mesh refinements.    
 const int INIT_REF_NUM = 2;
 // CFL value.
-double CFL_NUMBER = 0.01;                                
+double CFL_NUMBER = 0.1;                                
 // Initial time step.
 double time_step_n = 1E-6;
 // Initial time step.
