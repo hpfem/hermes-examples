@@ -286,17 +286,23 @@ int main(int argc, char* argv[])
           Hermes::vector<Solution<double>*>(prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e), Hermes::vector<Hermes::Hermes2D::ProjNormType>(), iteration > 1);
       }
 
-      // Initialize weak formulation.
-      EulerEquationsWeakFormExplicit wf(KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, BDY_SOLID_WALL_BOTTOM, BDY_SOLID_WALL_TOP, 
-        BDY_INLET, BDY_OUTLET, prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e, (P_INIT == 0 && CAND_LIST == H2D_H_ANISO));
-
-      EulerEquationsWeakFormStabilization wf_stabilization(prev_rho);
-
       // Report NDOFs.
       Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d.", 
         Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
         &space_rho_v_y, &space_e)), Space<double>::get_num_dofs(ref_spaces_const));
 
+      // Initialize weak formulation.
+      Hermes::vector<std::string> solid_wall_markers(BDY_SOLID_WALL_BOTTOM, BDY_SOLID_WALL_TOP);
+      Hermes::vector<std::string> inlet_markers;
+      inlet_markers.push_back(BDY_INLET);
+      Hermes::vector<std::string> outlet_markers;
+      outlet_markers.push_back(BDY_OUTLET);
+
+      EulerEquationsWeakFormSemiImplicit wf(KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT,solid_wall_markers, inlet_markers, outlet_markers, prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e, (P_INIT == 0));
+
+      EulerEquationsWeakFormStabilization wf_stabilization(prev_rho);
+
+      
       // Assemble the reference problem.
       Hermes::Mixins::Loggable::Static::info("Solving on reference mesh.");
       DiscreteProblem<double> dp(&wf, ref_spaces_const);

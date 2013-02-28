@@ -32,7 +32,7 @@ bool SHOCK_CAPTURING = true;
 double DISCONTINUITY_DETECTOR_PARAM = 1.0;
 
 // For saving/loading of solution.
-bool REUSE_SOLUTION = true;
+bool REUSE_SOLUTION = false;
 
 // Initial polynomial degree.     
 const int P_INIT = 0;                                              

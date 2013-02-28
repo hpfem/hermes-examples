@@ -302,7 +302,8 @@ int main(int argc, char* argv[])
         {
           for(int i = 0; i < spaces_to_delete.size(); i++)
           {
-            delete spaces_to_delete[i]->get_mesh();
+            if(i == 0)
+              delete spaces_to_delete[i]->get_mesh();
             delete spaces_to_delete[i];
           }
         }

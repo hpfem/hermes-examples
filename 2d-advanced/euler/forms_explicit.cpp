@@ -685,7 +685,8 @@ public:
 
       add_vector_form_surf(new EulerEquationsVectorFormSemiImplicitInletOutlet(form_i, rho_ext, v1_ext, v2_ext, energy_ext[0], inlet_markers, kappa));
 
-      add_vector_form_surf(new EulerEquationsVectorFormSemiImplicitInletOutlet(form_i, 0, 0, 0, 0, outlet_markers, kappa));
+      if(outlet_markers.size() > 0)
+        add_vector_form_surf(new EulerEquationsVectorFormSemiImplicitInletOutlet(form_i, 0, 0, 0, 0, outlet_markers, kappa));
 
       for(int form_j = 0; form_j < 4; form_j++)
       {
@@ -700,9 +701,12 @@ public:
         dgFormsInletOutlet.push_back(formSurf);
         add_matrix_form_surf(formSurf);
 
-        formSurf = new EulerEquationsMatrixFormSemiImplicitInletOutlet(form_i, form_j, 0,0,0,0, outlet_markers, kappa, &this->cacheReadySurf, this->P_plus_cache_surf, this->P_minus_cache_surf);
-        dgFormsInletOutlet.push_back(formSurf);
-        add_matrix_form_surf(formSurf);
+        if(outlet_markers.size() > 0)
+        {
+          formSurf = new EulerEquationsMatrixFormSemiImplicitInletOutlet(form_i, form_j, 0,0,0,0, outlet_markers, kappa, &this->cacheReadySurf, this->P_plus_cache_surf, this->P_minus_cache_surf);
+          dgFormsInletOutlet.push_back(formSurf);
+          add_matrix_form_surf(formSurf);
+        }
 
         add_matrix_form_surf(new EulerEquationsMatrixFormSolidWall(form_i, form_j, solid_wall_markers, kappa));
       }

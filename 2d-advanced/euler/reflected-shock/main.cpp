@@ -47,9 +47,9 @@ const double NU_2 = 0.1;
 bool REUSE_SOLUTION = false;
 
 // Initial polynomial degree.      
-const int P_INIT = 0;                                                   
+const int P_INIT = 1;                                                   
 // Number of initial uniform mesh refinements.      
-const int INIT_REF_NUM = 2;                                              
+const int INIT_REF_NUM = 3;                                              
 // CFL value.
 double CFL_NUMBER = 0.1;                                
 // Initial time step.
@@ -136,8 +136,8 @@ int main(int argc, char* argv[])
   MachNumberFilter Mach_number(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA);
   PressureFilter pressure(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA);
 
-  ScalarView pressure_view("Pressure", new WinGeom(0, 0, 600, 300));
-  ScalarView Mach_number_view("Mach number", new WinGeom(700, 0, 600, 300));
+  ScalarView pressure_view("Pressure", new WinGeom(700, 400, 600, 300));
+  ScalarView Mach_number_view("Mach number", new WinGeom(700, 700, 600, 300));
   ScalarView s1("prev_rho", new WinGeom(0, 0, 600, 300));
   ScalarView s2("prev_rho_v_x", new WinGeom(700, 0, 600, 300));
   ScalarView s3("prev_rho_v_y", new WinGeom(0, 400, 600, 300));

@@ -47,7 +47,7 @@ public:
     return Ord(1);
   }
 
-  MeshFunction<double>* clone() { return new InitialSolutionLinearProgress(mesh, max, min, size); }
+  MeshFunction<double>* clone() const { return new InitialSolutionLinearProgress(mesh, max, min, size); }
 
   // Value.
   double max, min, size;
