@@ -154,9 +154,15 @@ int main(int argc, char* argv[])
   }
 
   // Initialize weak formulation.
-  EulerEquationsWeakFormSemiImplicit wf(KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, BDY_SOLID_WALL, BDY_SOLID_WALL_PROFILE, 
-    BDY_INLET, BDY_OUTLET, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, (P_INIT == 0));
+  Hermes::vector<std::string> solid_wall_markers(BDY_SOLID_WALL, BDY_SOLID_WALL_PROFILE);
+  Hermes::vector<std::string> inlet_markers;
+  inlet_markers.push_back(BDY_INLET);
+  Hermes::vector<std::string> outlet_markers;
+  outlet_markers.push_back(BDY_OUTLET);
 
+  EulerEquationsWeakFormSemiImplicit wf(KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT,solid_wall_markers, 
+    inlet_markers, outlet_markers, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, (P_INIT == 0));
+  
   EulerEquationsWeakFormStabilization wf_stabilization(&prev_rho);
 
   if(SHOCK_CAPTURING && SHOCK_CAPTURING_TYPE == FEISTAUER)
@@ -194,7 +200,7 @@ int main(int argc, char* argv[])
     }
     
     // Set the current time step.
-    wf.set_time_step(time_step_n);
+    wf.set_current_time_step(time_step_n);
 
     // Assemble the stiffness matrix and rhs.
     Hermes::Mixins::Loggable::Static::info("Assembling the stiffness matrix and right-hand side vector.");

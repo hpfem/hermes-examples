@@ -309,7 +309,7 @@ int main(int argc, char* argv[])
       LinearMatrixSolver<double>* solver = create_linear_solver<double>( matrix, rhs);
 
       // Set the current time step.
-      wf.set_time_step(time_step_n);
+      wf.set_current_time_step(time_step_n);
 
       // If the FE problem is in fact a FV problem.
       if(P_INIT == 0 && CAND_LIST == H2D_H_ANISO) 

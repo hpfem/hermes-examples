@@ -376,7 +376,7 @@ int main(int argc, char* argv[])
 
       if(SEMI_IMPLICIT)
       {
-        static_cast<EulerEquationsWeakFormSemiImplicitCoupled*>(wf)->set_time_step(time_step_n);
+        static_cast<EulerEquationsWeakFormSemiImplicitCoupled*>(wf)->set_current_time_step(time_step_n);
         if(SHOCK_CAPTURING && SHOCK_CAPTURING_TYPE == FEISTAUER)
         {
           Hermes::Mixins::Loggable::Static::info("Assembling the stabilization right-hand side vector.");
@@ -398,7 +398,7 @@ int main(int argc, char* argv[])
         }
       }
       else
-        static_cast<EulerEquationsWeakFormExplicitCoupled*>(wf)->set_time_step(time_step_n);
+        static_cast<EulerEquationsWeakFormExplicitCoupled*>(wf)->set_current_time_step(time_step_n);
 
       // Assemble stiffness matrix and rhs.
       Hermes::Mixins::Loggable::Static::info("Assembling the stiffness matrix and right-hand side vector.");

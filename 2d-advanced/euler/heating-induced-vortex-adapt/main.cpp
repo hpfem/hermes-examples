@@ -174,8 +174,14 @@ int main(int argc, char* argv[])
   CalculationContinuity<double> continuity(CalculationContinuity<double>::onlyNumber);
 
   // Initialize weak formulation.
-  EulerEquationsWeakFormSemiImplicit wf(KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, BDY_SOLID_WALL, BDY_SOLID_WALL, 
-    BDY_INLET, "Outlet marker not used", &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e);
+  Hermes::vector<std::string> solid_wall_markers;
+  solid_wall_markers.push_back(BDY_SOLID_WALL);
+  Hermes::vector<std::string> inlet_markers;
+  inlet_markers.push_back(BDY_INLET);
+  Hermes::vector<std::string> outlet_markers;
+
+  EulerEquationsWeakFormSemiImplicit wf(KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT,solid_wall_markers, 
+    inlet_markers, outlet_markers, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e);
 
   // Filters for visualization of Mach number, pressure and entropy.
   MachNumberFilter Mach_number(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA);
@@ -268,7 +274,7 @@ int main(int argc, char* argv[])
       Vector<double>* rhs = create_vector<double>();
       LinearMatrixSolver<double>* solver = create_linear_solver<double>( matrix, rhs);
 
-      wf.set_time_step(time_step);
+      wf.set_current_time_step(time_step);
 
       dp.assemble(matrix, rhs);
 

@@ -9,5 +9,5 @@ add_subdirectory(heating-induced-vortex-adapt)
 add_subdirectory(joukowski-profile)
 add_subdirectory(joukowski-profile-adapt)
 
-add_subdirectory(euler-coupled)
-add_subdirectory(euler-coupled-adapt)
+# add_subdirectory(euler-coupled)
+# add_subdirectory(euler-coupled-adapt)

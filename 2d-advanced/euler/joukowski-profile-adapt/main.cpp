@@ -161,8 +161,17 @@ int main(int argc, char* argv[])
   Solution<double> rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e;
 
   // Initialize weak formulation.
-  EulerEquationsWeakFormSemiImplicit wf(KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, BDY_SOLID_WALL, BDY_SOLID_WALL_PROFILE, 
-    BDY_INLET, BDY_OUTLET, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e);
+  Hermes::vector<std::string> solid_wall_markers;
+  solid_wall_markers.push_back(BDY_SOLID_WALL);
+  solid_wall_markers.push_back(BDY_SOLID_WALL_PROFILE);
+  
+  Hermes::vector<std::string> inlet_markers;
+  inlet_markers.push_back(BDY_INLET);
+  Hermes::vector<std::string> outlet_markers;
+  outlet_markers.push_back(BDY_OUTLET);
+
+  EulerEquationsWeakFormSemiImplicit wf(KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT,solid_wall_markers, 
+    inlet_markers, outlet_markers, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e);
 
   // Filters for visualization of Mach number, pressure and entropy.
   MachNumberFilter Mach_number(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA);
@@ -296,7 +305,7 @@ int main(int argc, char* argv[])
       Vector<double>* rhs = create_vector<double>();
       LinearMatrixSolver<double>* solver = create_linear_solver<double>( matrix, rhs);
 
-      wf.set_time_step(time_step);
+      wf.set_current_time_step(time_step);
 
       // Assemble the stiffness matrix and rhs.
       Hermes::Mixins::Loggable::Static::info("Assembling the stiffness matrix and right-hand side vector.");

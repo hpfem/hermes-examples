@@ -132,9 +132,6 @@ int main(int argc, char* argv[])
 {
 	try
 	{
-		// Set only one computational core - there is apparently some bug on Linux with OpenMP - the code "hangs" in projections.
-		Hermes2DApi.set_integral_param_value(numThreads, 1);
-
 		// Sanity check for omega. 
 		double K_squared = Hermes::sqr(OMEGA/M_PI) * (OMEGA - 2) / (1 - OMEGA);
 		if (K_squared <= 0) throw Hermes::Exceptions::Exception("Wrong choice of omega, K_squared < 0!");

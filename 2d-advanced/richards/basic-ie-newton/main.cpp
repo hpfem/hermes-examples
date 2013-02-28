@@ -67,9 +67,6 @@ const double DAMPING_COEFF = 1.0;
 
 int main(int argc, char* argv[])
 {
-  // Only use ont e
-  Hermes2DApi.set_integral_param_value(numThreads, 1);
-
   // Load the mesh.
   Mesh mesh;
   MeshReaderH2D mloader;

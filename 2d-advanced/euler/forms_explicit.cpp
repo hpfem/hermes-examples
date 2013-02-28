@@ -614,11 +614,11 @@ public:
   Solution<double>* prev_energy;
 
   // External state.
-  double rho_ext;
-  double v1_ext;
-  double v2_ext;
-  double pressure_ext;
-  double energy_ext;
+  Hermes::vector<double> rho_ext;
+  Hermes::vector<double> v1_ext;
+  Hermes::vector<double> v2_ext;
+  Hermes::vector<double> pressure_ext;
+  Hermes::vector<double> energy_ext;
 
   // Fluxes for calculation.
   EulerFluxes* euler_fluxes;
@@ -639,20 +639,31 @@ public:
   double** P_plus_cache_surf;
   double** P_minus_cache_surf;
 
-  // Constructor.
-  EulerEquationsWeakFormSemiImplicit(
-    double kappa, double rho_ext, double v1_ext, double v2_ext, double pressure_ext, 
+  // Utility.
+  bool oneInflow;
+
+  // Constructor for one inflow.
+  EulerEquationsWeakFormSemiImplicit(double kappa, 
+    double rho_ext, double v1_ext, double v2_ext, double pressure_ext,
     Hermes::vector<std::string> solid_wall_markers, Hermes::vector<std::string> inlet_markers, Hermes::vector<std::string> outlet_markers, 
     Solution<double>* prev_density, Solution<double>* prev_density_vel_x, Solution<double>* prev_density_vel_y,  Solution<double>* prev_energy, 
     bool fvm_only = false, int num_of_equations = 4) :
 
   WeakForm<double>(num_of_equations), 
-    kappa(kappa), rho_ext(rho_ext), v1_ext(v1_ext), v2_ext(v2_ext), pressure_ext(pressure_ext), 
+    kappa(kappa), 
     solid_wall_markers(solid_wall_markers), inlet_markers(inlet_markers), outlet_markers(outlet_markers), 
     prev_density(prev_density), prev_density_vel_x(prev_density_vel_x), prev_density_vel_y(prev_density_vel_y), prev_energy(prev_energy), 
-    fvm_only(fvm_only), energy_ext(QuantityCalculator::calc_energy(rho_ext, rho_ext * v1_ext, rho_ext * v2_ext, pressure_ext, kappa)), 
+    fvm_only(fvm_only), 
     euler_fluxes(new EulerFluxes(kappa)), discreteIndicator(NULL)
   {
+    oneInflow = true;
+
+    this->rho_ext.push_back(rho_ext);
+    this->v1_ext.push_back(v1_ext);
+    this->v2_ext.push_back(v2_ext);
+    this->pressure_ext.push_back(pressure_ext); 
+    energy_ext.push_back(QuantityCalculator::calc_energy(rho_ext, rho_ext * v1_ext, rho_ext * v2_ext, pressure_ext, kappa));
+
     P_plus_cache_DG = new double*[13];
     P_minus_cache_DG = new double*[13];
     P_plus_cache_surf = new double*[13];
@@ -672,9 +683,9 @@ public:
 
       add_vector_form(new EulerEquationsLinearFormTime(form_i));
 
-      add_vector_form_surf(new EulerEquationsVectorFormSemiImplicitInletOutlet(form_i, inlet_markers, kappa));
+      add_vector_form_surf(new EulerEquationsVectorFormSemiImplicitInletOutlet(form_i, rho_ext, v1_ext, v2_ext, energy_ext[0], inlet_markers, kappa));
 
-      add_vector_form_surf(new EulerEquationsVectorFormSemiImplicitInletOutlet(form_i, outlet_markers, kappa));
+      add_vector_form_surf(new EulerEquationsVectorFormSemiImplicitInletOutlet(form_i, 0, 0, 0, 0, outlet_markers, kappa));
 
       for(int form_j = 0; form_j < 4; form_j++)
       {
@@ -685,11 +696,81 @@ public:
         dgForms.push_back(formDG);
         add_matrix_form_DG(formDG);
 
-        EulerEquationsMatrixFormSemiImplicitInletOutlet* formSurf = new EulerEquationsMatrixFormSemiImplicitInletOutlet(form_i, form_j, inlet_markers, kappa, &this->cacheReadySurf, this->P_plus_cache_surf, this->P_minus_cache_surf);
+        EulerEquationsMatrixFormSemiImplicitInletOutlet* formSurf = new EulerEquationsMatrixFormSemiImplicitInletOutlet(form_i, form_j, rho_ext, v1_ext, v2_ext, energy_ext[0], inlet_markers, kappa, &this->cacheReadySurf, this->P_plus_cache_surf, this->P_minus_cache_surf);
         dgFormsInletOutlet.push_back(formSurf);
         add_matrix_form_surf(formSurf);
 
-        formSurf = new EulerEquationsMatrixFormSemiImplicitInletOutlet(form_i, form_j, outlet_markers, kappa, &this->cacheReadySurf, this->P_plus_cache_surf, this->P_minus_cache_surf);
+        formSurf = new EulerEquationsMatrixFormSemiImplicitInletOutlet(form_i, form_j, 0,0,0,0, outlet_markers, kappa, &this->cacheReadySurf, this->P_plus_cache_surf, this->P_minus_cache_surf);
+        dgFormsInletOutlet.push_back(formSurf);
+        add_matrix_form_surf(formSurf);
+
+        add_matrix_form_surf(new EulerEquationsMatrixFormSolidWall(form_i, form_j, solid_wall_markers, kappa));
+      }
+    }
+
+    this->set_ext(Hermes::vector<MeshFunction<double>*>(prev_density, prev_density_vel_x, prev_density_vel_y, prev_energy));
+  };
+
+  // Constructor for more inflows.
+  EulerEquationsWeakFormSemiImplicit(double kappa, 
+    Hermes::vector<double> rho_ext, Hermes::vector<double> v1_ext, Hermes::vector<double> v2_ext, Hermes::vector<double> pressure_ext,
+    Hermes::vector<std::string> solid_wall_markers, Hermes::vector<std::string> inlet_markers, Hermes::vector<std::string> outlet_markers, 
+    Solution<double>* prev_density, Solution<double>* prev_density_vel_x, Solution<double>* prev_density_vel_y,  Solution<double>* prev_energy, 
+    bool fvm_only = false, int num_of_equations = 4) :
+
+  WeakForm<double>(num_of_equations), 
+    kappa(kappa), rho_ext(rho_ext), v1_ext(v1_ext), v2_ext(v2_ext), pressure_ext(pressure_ext), 
+    solid_wall_markers(solid_wall_markers), inlet_markers(inlet_markers), outlet_markers(outlet_markers), 
+    prev_density(prev_density), prev_density_vel_x(prev_density_vel_x), prev_density_vel_y(prev_density_vel_y), prev_energy(prev_energy), 
+    fvm_only(fvm_only), 
+    euler_fluxes(new EulerFluxes(kappa)), discreteIndicator(NULL)
+  {
+    oneInflow = false;
+    
+    for(unsigned int inlet_i = 0; inlet_i < inlet_markers.size(); inlet_i++)
+      energy_ext.push_back(QuantityCalculator::calc_energy(rho_ext[inlet_i], rho_ext[inlet_i] * v1_ext[inlet_i], rho_ext[inlet_i] * v2_ext[inlet_i], pressure_ext[inlet_i], kappa));
+
+    P_plus_cache_DG = new double*[13];
+    P_minus_cache_DG = new double*[13];
+    P_plus_cache_surf = new double*[13];
+    P_minus_cache_surf = new double*[13];
+
+    for(int coordinate_i = 0; coordinate_i < 13; coordinate_i++)
+    {
+      P_plus_cache_DG[coordinate_i] = new double[16];
+      P_minus_cache_DG[coordinate_i] = new double[16];
+      P_plus_cache_surf[coordinate_i] = new double[16];
+      P_minus_cache_surf[coordinate_i] = new double[16];
+    }
+
+    for(int form_i = 0; form_i < 4; form_i++)
+    {
+      add_matrix_form(new EulerEquationsBilinearFormTime(form_i));
+
+      add_vector_form(new EulerEquationsLinearFormTime(form_i));
+
+      for(unsigned int inlet_i = 0; inlet_i < inlet_markers.size(); inlet_i++)
+        add_vector_form_surf(new EulerEquationsVectorFormSemiImplicitInletOutlet(form_i, rho_ext[inlet_i], v1_ext[inlet_i], v2_ext[inlet_i], energy_ext[inlet_i], inlet_markers[inlet_i], kappa));
+
+      add_vector_form_surf(new EulerEquationsVectorFormSemiImplicitInletOutlet(form_i, 0, 0, 0, 0, outlet_markers, kappa));
+
+      for(int form_j = 0; form_j < 4; form_j++)
+      {
+        if(!fvm_only) 
+          add_matrix_form(new EulerEquationsBilinearForm(form_i, form_j, euler_fluxes));
+
+        EulerEquationsMatrixFormSurfSemiImplicit* formDG = new EulerEquationsMatrixFormSurfSemiImplicit(form_i, form_j, kappa, euler_fluxes, &this->cacheReadyDG, this->P_plus_cache_DG, this->P_minus_cache_DG);
+        dgForms.push_back(formDG);
+        add_matrix_form_DG(formDG);
+
+        for(unsigned int inlet_i = 0; inlet_i < inlet_markers.size(); inlet_i++)
+        {
+          EulerEquationsMatrixFormSemiImplicitInletOutlet* formSurf = new EulerEquationsMatrixFormSemiImplicitInletOutlet(form_i, form_j, rho_ext[inlet_i], v1_ext[inlet_i], v2_ext[inlet_i], energy_ext[inlet_i], inlet_markers[inlet_i], kappa, &this->cacheReadySurf, this->P_plus_cache_surf, this->P_minus_cache_surf);
+          dgFormsInletOutlet.push_back(formSurf);
+          add_matrix_form_surf(formSurf);
+        }
+
+        EulerEquationsMatrixFormSemiImplicitInletOutlet* formSurf = new EulerEquationsMatrixFormSemiImplicitInletOutlet(form_i, form_j, 0,0,0,0, outlet_markers, kappa, &this->cacheReadySurf, this->P_plus_cache_surf, this->P_minus_cache_surf);
         dgFormsInletOutlet.push_back(formSurf);
         add_matrix_form_surf(formSurf);
 
@@ -730,7 +811,12 @@ public:
 
   WeakForm<double>* clone() const
   {
-    EulerEquationsWeakFormSemiImplicit* wf = new EulerEquationsWeakFormSemiImplicit(this->kappa, this->rho_ext, this->v1_ext, this->v2_ext, this->pressure_ext, 
+    EulerEquationsWeakFormSemiImplicit* wf;
+    if(this->oneInflow)
+      wf = new EulerEquationsWeakFormSemiImplicit(this->kappa, this->rho_ext[0], this->v1_ext[0], this->v2_ext[0], this->pressure_ext[0], 
+    this->solid_wall_markers, this->inlet_markers, this->outlet_markers, this->prev_density, this->prev_density_vel_x, this->prev_density_vel_y, this->prev_energy, this->fvm_only, this->neq);
+    else
+      wf = new EulerEquationsWeakFormSemiImplicit(this->kappa, this->rho_ext, this->v1_ext, this->v2_ext, this->pressure_ext, 
     this->solid_wall_markers, this->inlet_markers, this->outlet_markers, this->prev_density, this->prev_density_vel_x, this->prev_density_vel_y, this->prev_energy, this->fvm_only, this->neq);
 
     wf->ext.clear();
@@ -1111,8 +1197,13 @@ public:
   class EulerEquationsMatrixFormSemiImplicitInletOutlet : public MatrixFormSurf<double>
   {
   public:
-    EulerEquationsMatrixFormSemiImplicitInletOutlet(int i, int j, Hermes::vector<std::string> markers, double kappa, bool* cacheReady, double** P_plus_cache, double** P_minus_cache) 
-      : MatrixFormSurf<double>(i, j), num_flux(new StegerWarmingNumericalFlux(kappa)), cacheReady(cacheReady), P_plus_cache(P_plus_cache), P_minus_cache(P_minus_cache)
+    EulerEquationsMatrixFormSemiImplicitInletOutlet(int i, int j, double rho_ext, double v1_ext, double v2_ext, double energy_ext, std::string marker, double kappa, bool* cacheReady, double** P_plus_cache, double** P_minus_cache) 
+      : MatrixFormSurf<double>(i, j), rho_ext(rho_ext), v1_ext(v1_ext), v2_ext(v2_ext), energy_ext(energy_ext), num_flux(new StegerWarmingNumericalFlux(kappa)), cacheReady(cacheReady), P_plus_cache(P_plus_cache), P_minus_cache(P_minus_cache)
+    { 
+      set_area(marker);
+    }
+    EulerEquationsMatrixFormSemiImplicitInletOutlet(int i, int j, double rho_ext, double v1_ext, double v2_ext, double energy_ext, Hermes::vector<std::string> markers, double kappa, bool* cacheReady, double** P_plus_cache, double** P_minus_cache) 
+      : MatrixFormSurf<double>(i, j), rho_ext(rho_ext), v1_ext(v1_ext), v2_ext(v2_ext), energy_ext(energy_ext), num_flux(new StegerWarmingNumericalFlux(kappa)), cacheReady(cacheReady), P_plus_cache(P_plus_cache), P_minus_cache(P_minus_cache)
     { 
       set_areas(markers); 
     }
@@ -1171,12 +1262,10 @@ public:
           num_flux->T_inv_4(T_inv);
 
           // "Prescribed" boundary state.
-          w_B[0] = static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->rho_ext;
-          w_B[1] = static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->rho_ext 
-            * static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->v1_ext;
-          w_B[2] = static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->rho_ext 
-            * static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->v2_ext;
-          w_B[3] = static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->energy_ext;
+          w_B[0] = this->rho_ext;
+          w_B[1] = this->rho_ext * this->v1_ext;
+          w_B[2] = this->rho_ext * this->v2_ext;
+          w_B[3] = this->energy_ext;
 
           num_flux->Q(q_ji_star, w_B, e->nx[point_i], e->ny[point_i]);
 
@@ -1317,11 +1406,15 @@ public:
 
     MatrixFormSurf<double>* clone()  const
     { 
-      EulerEquationsMatrixFormSemiImplicitInletOutlet* form = new EulerEquationsMatrixFormSemiImplicitInletOutlet(this->i, this->j, this->areas, this->num_flux->kappa, this->cacheReady, this->P_plus_cache, this->P_minus_cache);
+      EulerEquationsMatrixFormSemiImplicitInletOutlet* form = new EulerEquationsMatrixFormSemiImplicitInletOutlet(this->i, this->j, this->rho_ext, this->v1_ext, this->v2_ext, this->energy_ext, this->areas, this->num_flux->kappa, this->cacheReady, this->P_plus_cache, this->P_minus_cache);
       form->wf = this->wf;
       return form;
     }
 
+    double rho_ext;
+    double v1_ext;
+    double v2_ext;
+    double energy_ext;
     bool* cacheReady;
     double** P_plus_cache;
     double** P_minus_cache;
@@ -1331,9 +1424,18 @@ public:
   class EulerEquationsVectorFormSemiImplicitInletOutlet : public VectorFormSurf<double>
   {
   public:
-    EulerEquationsVectorFormSemiImplicitInletOutlet(int i, Hermes::vector<std::string> markers, double kappa) 
-      : VectorFormSurf<double>(i), 
-      num_flux(new StegerWarmingNumericalFlux(kappa)) {set_areas(markers); }
+    EulerEquationsVectorFormSemiImplicitInletOutlet(int i, double rho_ext, double v1_ext, double v2_ext, double energy_ext, std::string marker, double kappa) 
+      : VectorFormSurf<double>(i), rho_ext(rho_ext), v1_ext(v1_ext), v2_ext(v2_ext), energy_ext(energy_ext),
+      num_flux(new StegerWarmingNumericalFlux(kappa)) 
+    {
+      set_area(marker);
+    }
+    EulerEquationsVectorFormSemiImplicitInletOutlet(int i, double rho_ext, double v1_ext, double v2_ext, double energy_ext, Hermes::vector<std::string> markers, double kappa) 
+      : VectorFormSurf<double>(i), rho_ext(rho_ext), v1_ext(v1_ext), v2_ext(v2_ext), energy_ext(energy_ext),
+      num_flux(new StegerWarmingNumericalFlux(kappa)) 
+    {
+      set_areas(markers);
+    }
 
     ~EulerEquationsVectorFormSemiImplicitInletOutlet() 
     {
@@ -1387,12 +1489,10 @@ public:
         num_flux->T_inv_4(T_inv);
 
         // "Prescribed" boundary state.
-        w_B[0] = static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->rho_ext;
-        w_B[1] = static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->rho_ext 
-          * static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->v1_ext;
-        w_B[2] = static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->rho_ext 
-          * static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->v2_ext;
-        w_B[3] = static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->energy_ext;
+        w_B[0] = this->rho_ext;
+        w_B[1] = this->rho_ext * this->v1_ext;
+        w_B[2] = this->rho_ext * this->v2_ext;
+        w_B[3] = this->energy_ext;
 
         num_flux->Q(q_ji_star, w_B, e->nx[point_i], e->ny[point_i]);
 
@@ -1437,11 +1537,15 @@ public:
 
     VectorFormSurf<double>* clone()  const
     { 
-      EulerEquationsVectorFormSemiImplicitInletOutlet* form = new EulerEquationsVectorFormSemiImplicitInletOutlet(this->i, this->areas, this->num_flux->kappa);
+      EulerEquationsVectorFormSemiImplicitInletOutlet* form = new EulerEquationsVectorFormSemiImplicitInletOutlet(this->i, this->rho_ext, this->v1_ext, this->v2_ext, this->energy_ext, this->areas, this->num_flux->kappa);
       form->wf = this->wf;
       return form;
     }
 
+    double rho_ext;
+    double v1_ext;
+    double v2_ext;
+    double energy_ext;
     StegerWarmingNumericalFlux* num_flux;
   };
 

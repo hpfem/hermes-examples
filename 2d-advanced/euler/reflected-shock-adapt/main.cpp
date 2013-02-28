@@ -168,8 +168,19 @@ int main(int argc, char* argv[])
   ConstantSolution<double> rsln_e(&mesh, QuantityCalculator::calc_energy(RHO_INIT, RHO_INIT * V1_INIT, RHO_INIT * V2_INIT, PRESSURE_INIT, KAPPA));
 
   // Initialize weak formulation.
-  EulerEquationsWeakFormSemiImplicitTwoInflows wf(KAPPA, RHO_LEFT, V1_LEFT, V2_LEFT, PRESSURE_LEFT, RHO_TOP, V1_TOP, V2_TOP, PRESSURE_TOP, BDY_SOLID_WALL, BDY_INLET_LEFT, BDY_INLET_TOP, BDY_OUTLET,
-    &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, (P_INIT == 0 && CAND_LIST == H2D_H_ANISO));
+  Hermes::vector<std::string> solid_wall_markers;
+  solid_wall_markers.push_back(BDY_SOLID_WALL);
+  
+  Hermes::vector<std::string> inlet_markers(BDY_INLET_LEFT, BDY_INLET_TOP);
+  Hermes::vector<double> rho_ext(RHO_LEFT, RHO_TOP);
+  Hermes::vector<double> v1_ext(V1_LEFT, V1_TOP);
+  Hermes::vector<double> v2_ext(V2_LEFT, V2_TOP);
+  Hermes::vector<double> pressure_ext(PRESSURE_LEFT, PRESSURE_TOP);
+
+  Hermes::vector<std::string> outlet_markers;
+  outlet_markers.push_back(BDY_OUTLET);
+
+  EulerEquationsWeakFormSemiImplicit wf(KAPPA, rho_ext, v1_ext, v2_ext, pressure_ext, solid_wall_markers, inlet_markers, outlet_markers, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, (P_INIT == 0));
 
   // Filters for visualization of Mach number, pressure and entropy.
   MachNumberFilter Mach_number(Hermes::vector<MeshFunction<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), KAPPA);
@@ -310,7 +321,7 @@ int main(int argc, char* argv[])
       Hermes::Mixins::Loggable::Static::info("Solving on reference mesh.");
       
       solver.set_spaces(ref_spaces_const);
-      wf.set_time_step(time_step);
+      wf.set_current_time_step(time_step);
     
       solver.solve();
       if(!SHOCK_CAPTURING)
