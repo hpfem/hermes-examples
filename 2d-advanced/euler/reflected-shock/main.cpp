@@ -35,7 +35,7 @@ enum shockCapturingType
   KUZMIN,
   KRIVODONOVA
 };
-bool SHOCK_CAPTURING = false;
+bool SHOCK_CAPTURING = true;
 shockCapturingType SHOCK_CAPTURING_TYPE = KUZMIN;
 // Quantitative parameter of the discontinuity detector in case of Krivodonova.
 double DISCONTINUITY_DETECTOR_PARAM = 1.0;
@@ -204,10 +204,10 @@ int main(int argc, char* argv[])
       FluxLimiter* flux_limiter;
       if(SHOCK_CAPTURING_TYPE == KUZMIN)
         flux_limiter = new FluxLimiter(FluxLimiter::Kuzmin, solver.get_sln_vector(), Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
-        &space_rho_v_y, &space_e));
+        &space_rho_v_y, &space_e), true);
       else
         flux_limiter = new FluxLimiter(FluxLimiter::Krivodonova, solver.get_sln_vector(), Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
-        &space_rho_v_y, &space_e));
+        &space_rho_v_y, &space_e), true);
 
       if(SHOCK_CAPTURING_TYPE == KUZMIN)
         flux_limiter->limit_second_orders_according_to_detector();

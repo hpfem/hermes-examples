@@ -415,10 +415,10 @@ void KrivodonovaDiscontinuityDetector::calculate_jumps(Element* e, int edge_i, d
     DiscontinuousFunc<double> energy_discontinuous(energy, energy_neighbor, true);
 
     for(int point_i = 0; point_i < np; point_i++) {
-      result[0] += jwt[point_i] * std::abs(density_discontinuous.get_val_central(point_i) - density_discontinuous.get_val_neighbor(point_i)); 
-      result[1] += jwt[point_i] * std::abs(density_vel_x_discontinuous.get_val_central(point_i) - density_vel_x_discontinuous.get_val_neighbor(point_i));
-      result[2] += jwt[point_i] * std::abs(density_vel_y_discontinuous.get_val_central(point_i) - density_vel_y_discontinuous.get_val_neighbor(point_i));
-      result[3] += jwt[point_i] * std::abs(energy_discontinuous.get_val_central(point_i) - energy_discontinuous.get_val_neighbor(point_i));
+      result[0] += jwt[point_i] * std::abs(density_discontinuous.val[point_i] - density_discontinuous.val_neighbor[point_i]); 
+      result[1] += jwt[point_i] * std::abs(density_vel_x_discontinuous.val[point_i] - density_vel_x_discontinuous.val_neighbor[point_i]);
+      result[2] += jwt[point_i] * std::abs(density_vel_y_discontinuous.val[point_i] - density_vel_y_discontinuous.val_neighbor[point_i]);
+      result[3] += jwt[point_i] * std::abs(energy_discontinuous.val[point_i] - energy_discontinuous.val_neighbor[point_i]);
     }
 
     geom->free();
@@ -536,8 +536,12 @@ std::set<int>& KuzminDiscontinuityDetector::get_discontinuous_element_ids()
     if(e->get_nvert() == 3)
       throw Hermes::Exceptions::Exception("So far this limiter is implemented just for quads.");
     double u_c[4], u_dx_c[4], u_dy_c[4];
-    find_centroid_values(e, u_c);
-    find_centroid_derivatives(e, u_dx_c, u_dy_c);
+
+    double x_center, y_center, x_center_ref, y_center_ref;
+    e->get_center(x_center, y_center);
+    solutions[0]->get_refmap()->untransform(e, x_center, y_center, x_center_ref, y_center_ref);
+
+    find_centroid_values(e, u_c, x_center_ref, y_center_ref);
 
     // Vertex values.
     double u_i[4][4];
@@ -564,7 +568,7 @@ std::set<int>& KuzminDiscontinuityDetector::get_discontinuous_element_ids()
       if(1.0 > alpha_i_first_order[i])
       {
         // check for sanity.
-        if(std::abs(u_c[i]) > 1E-12 && (std::abs(u_dx_c[i]) > 1E-12 || std::abs(u_dy_c[i]) > 1E-12))
+        if(std::abs(u_c[i]) > 1E-12)
           discontinuous_element_ids.insert(e->id);
       }
       if(std::abs(u_c[i]) < 1e-3)
@@ -636,9 +640,12 @@ std::set<int>& KuzminDiscontinuityDetector::get_second_order_discontinuous_eleme
   {
     if(e->get_nvert() == 3)
       throw Hermes::Exceptions::Exception("So far this limiter is implemented just for quads.");
-    double u_dx_c[4], u_dy_c[4], u_dxx_c[4], u_dxy_c[4], u_dyy_c[4];
-    find_centroid_derivatives(e, u_dx_c, u_dy_c);
-    find_second_centroid_derivatives(e, u_dxx_c, u_dxy_c, u_dyy_c);
+    double c_x, c_y;
+    e->get_center(c_x, c_y);
+
+    double*** values = new double**[this->solutions.size()];
+    for(int i = 0; i < this->solutions.size(); i++)
+      values[i] = solutions[i]->get_ref_values_transformed(e, c_x, c_y);
 
     // Vertex values.
     double u_d_i[4][4][2];
@@ -654,18 +661,19 @@ std::set<int>& KuzminDiscontinuityDetector::get_second_order_discontinuous_eleme
           u_d_i_min_second_order[i][j][k] = std::numeric_limits<double>::infinity();
           u_d_i_max_second_order[i][j][k] = -std::numeric_limits<double>::infinity();
         }
+
     find_u_i_min_max_second_order(e, u_d_i_min_second_order, u_d_i_max_second_order);
 
     // alpha_i calculation.
     double alpha_i_second_order[4];
-    find_alpha_i_second_order(u_d_i_min_second_order, u_d_i_max_second_order, u_dx_c, u_dy_c, u_d_i, alpha_i_second_order);
+    find_alpha_i_second_order(u_d_i_min_second_order, u_d_i_max_second_order, values, values, u_d_i, alpha_i_second_order);
 
     // measure.
     for(unsigned int i = 0; i < 4; i++)
       if(1.0 > alpha_i_second_order[i])
       {
         // check for sanity.
-        if((std::abs(u_dx_c[i]) > 1E-12 || std::abs(u_dy_c[i]) > 1E-12) && (std::abs(u_dxx_c[i]) > 1E-12 || std::abs(u_dxy_c[i]) > 1E-12 || std::abs(u_dyy_c[i]) > 1E-12))
+        if(std::abs(values[i][0][1]) > 1E-12 || std::abs(values[i][0][2]) > 1E-12)
           second_order_discontinuous_element_ids.insert(e->id);
       }
   }
@@ -678,50 +686,18 @@ bool KuzminDiscontinuityDetector::get_limit_all_orders_independently()
   return this->limit_all_orders_independently;
 }
 
-void KuzminDiscontinuityDetector::find_centroid_values(Hermes::Hermes2D::Element* e, double u_c[4])
+void KuzminDiscontinuityDetector::find_centroid_values(Hermes::Hermes2D::Element* e, double u_c[4], double x_ref, double y_ref)
 {
-  double c_x, c_y;
-  double c_ref_x, c_ref_y;
-  if(e->get_nvert() == 3)
-  {
-      c_x = (0.33333333333333333) * (e->vn[0]->x + e->vn[1]->x + e->vn[2]->x);
-      c_y = (0.33333333333333333) * (e->vn[0]->y + e->vn[1]->y + e->vn[2]->y);
-  }
-  else
-  {
-      c_x = (0.25) * (e->vn[0]->x + e->vn[1]->x + e->vn[2]->x + e->vn[3]->x);
-      c_y = (0.25) * (e->vn[0]->y + e->vn[1]->y + e->vn[2]->y + e->vn[3]->y);
-  }
-
   for(unsigned int i = 0; i < this->solutions.size(); i++)
-  {
-    solutions[i]->set_active_element(e);
-    solutions[i]->get_refmap()->untransform(e, c_x, c_y, c_ref_x, c_ref_y);
-    u_c[i] = solutions[i]->get_ref_value_transformed(e, c_ref_x, c_ref_y, 0, 0);
-  }
+    u_c[i] = solutions[i]->get_ref_value_transformed(e, x_ref, y_ref, 0, 0);
 }
 
-void KuzminDiscontinuityDetector::find_centroid_derivatives(Hermes::Hermes2D::Element* e, double u_dx_c[4], double u_dy_c[4])
+void KuzminDiscontinuityDetector::find_centroid_derivatives(Hermes::Hermes2D::Element* e, double u_dx_c[4], double u_dy_c[4], double x_ref, double y_ref)
 {
-  double c_x, c_y;
-  double c_ref_x, c_ref_y;
-  if(e->get_nvert() == 3)
-  {
-      c_x = (0.33333333333333333) * (e->vn[0]->x + e->vn[1]->x + e->vn[2]->x);
-      c_y = (0.33333333333333333) * (e->vn[0]->y + e->vn[1]->y + e->vn[2]->y);
-  }
-  else
-  {
-      c_x = (0.25) * (e->vn[0]->x + e->vn[1]->x + e->vn[2]->x + e->vn[3]->x);
-      c_y = (0.25) * (e->vn[0]->y + e->vn[1]->y + e->vn[2]->y + e->vn[3]->y);
-  }
-
   for(unsigned int i = 0; i < this->solutions.size(); i++)
   {
-    solutions[i]->set_active_element(e);
-    solutions[i]->get_refmap()->untransform(e, c_x, c_y, c_ref_x, c_ref_y);
-    u_dx_c[i] = solutions[i]->get_ref_value_transformed(e, c_ref_x, c_ref_y, 0, 1);
-    u_dy_c[i] = solutions[i]->get_ref_value_transformed(e, c_ref_x, c_ref_y, 0, 2);
+    u_dx_c[i] = solutions[i]->get_ref_value_transformed(e, x_ref, y_ref, 0, 1);
+    u_dy_c[i] = solutions[i]->get_ref_value_transformed(e, x_ref, y_ref, 0, 2);
   }
 }
 
@@ -791,7 +767,14 @@ void KuzminDiscontinuityDetector::find_u_i_min_max_first_order(Hermes::Hermes2D:
     // First beginning neighbors on every edge.
     double u_c[4];
     ns.set_active_segment(0);
-    find_centroid_values(ns.get_neighb_el(), u_c);
+
+    Element* en = ns.get_neighb_el();
+    double x_center, y_center, x_center_ref, y_center_ref;
+    en->get_center(x_center, y_center);
+    solutions[0]->get_refmap()->untransform(en, x_center, y_center, x_center_ref, y_center_ref);
+
+    find_centroid_values(en, u_c, x_center_ref, y_center_ref);
+    
     for(unsigned int min_i = 0; min_i < 4; min_i++)
       if(u_i_min[min_i][j] > u_c[min_i])
         u_i_min[min_i][j] = u_c[min_i];
@@ -801,7 +784,13 @@ void KuzminDiscontinuityDetector::find_u_i_min_max_first_order(Hermes::Hermes2D:
 
     // Second end neighbors on every edge.
     ns.set_active_segment(ns.get_num_neighbors() - 1);
-    find_centroid_values(ns.get_neighb_el(), u_c);
+
+    en = ns.get_neighb_el();
+    en->get_center(x_center, y_center);
+    solutions[0]->get_refmap()->untransform(en, x_center, y_center, x_center_ref, y_center_ref);
+
+    find_centroid_values(en, u_c, x_center_ref, y_center_ref);
+
     for(unsigned int min_i = 0; min_i < 4; min_i++)
       if(u_i_min[min_i][(j + 1) % e->get_nvert()] > u_c[min_i])
         u_i_min[min_i][(j + 1) % e->get_nvert()] = u_c[min_i];
@@ -817,7 +806,13 @@ void KuzminDiscontinuityDetector::find_u_i_min_max_first_order(Hermes::Hermes2D:
       continue;
     ns_1.set_active_edge((ns.get_neighbor_edge().local_num_of_edge + 1) % ns.get_neighb_el()->get_nvert());
     ns_1.set_active_segment(0);
-    find_centroid_values(ns_1.get_neighb_el(), u_c);
+
+    en = ns_1.get_neighb_el();
+    en->get_center(x_center, y_center);
+    solutions[0]->get_refmap()->untransform(en, x_center, y_center, x_center_ref, y_center_ref);
+
+    find_centroid_values(en, u_c, x_center_ref, y_center_ref);
+
     for(unsigned int min_i = 0; min_i < 4; min_i++)
       if(u_i_min[min_i][j] > u_c[min_i])
         u_i_min[min_i][j] = u_c[min_i];
@@ -890,7 +885,13 @@ void KuzminDiscontinuityDetector::find_u_i_min_max_second_order(Hermes::Hermes2D
     // First beginning neighbors on every edge.
     double u_dx_c[4], u_dy_c[4];
     ns.set_active_segment(0);
-    find_centroid_derivatives(ns.get_neighb_el(), u_dx_c, u_dy_c);
+
+    Element* en = ns.get_neighb_el();
+    double x_center, y_center, x_center_ref, y_center_ref;
+    en->get_center(x_center, y_center);
+    solutions[0]->get_refmap()->untransform(en, x_center, y_center, x_center_ref, y_center_ref);
+
+    find_centroid_derivatives(en, u_dx_c, u_dy_c, x_center_ref, y_center_ref);
     for(unsigned int min_i = 0; min_i < 4; min_i++)
     {
       if(u_d_i_min[min_i][j][0] > u_dx_c[min_i])
@@ -907,7 +908,13 @@ void KuzminDiscontinuityDetector::find_u_i_min_max_second_order(Hermes::Hermes2D
     }
     // Second end neighbors on every edge.
     ns.set_active_segment(ns.get_num_neighbors() - 1);
-    find_centroid_derivatives(ns.get_neighb_el(), u_dx_c, u_dy_c);
+
+    en = ns.get_neighb_el();
+    en->get_center(x_center, y_center);
+    solutions[0]->get_refmap()->untransform(en, x_center, y_center, x_center_ref, y_center_ref);
+
+    find_centroid_derivatives(en, u_dx_c, u_dy_c, x_center_ref, y_center_ref);
+    
     for(unsigned int min_i = 0; min_i < 4; min_i++)
     {
       if(u_d_i_min[min_i][(j + 1) % e->get_nvert()][0] > u_dx_c[min_i])
@@ -931,7 +938,13 @@ void KuzminDiscontinuityDetector::find_u_i_min_max_second_order(Hermes::Hermes2D
       continue;
     ns_1.set_active_edge((ns.get_neighbor_edge().local_num_of_edge + 1) % ns.get_neighb_el()->get_nvert());
     ns_1.set_active_segment(0);
-    find_centroid_derivatives(ns_1.get_neighb_el(), u_dx_c, u_dy_c);
+
+    en = ns_1.get_neighb_el();
+    en->get_center(x_center, y_center);
+    solutions[0]->get_refmap()->untransform(en, x_center, y_center, x_center_ref, y_center_ref);
+
+    find_centroid_derivatives(en, u_dx_c, u_dy_c, x_center_ref, y_center_ref);
+
     for(unsigned int min_i = 0; min_i < 4; min_i++)
     {
       if(u_d_i_min[min_i][j][0] > u_dx_c[min_i])
@@ -949,49 +962,52 @@ void KuzminDiscontinuityDetector::find_u_i_min_max_second_order(Hermes::Hermes2D
   }
 }
 
-void KuzminDiscontinuityDetector::find_alpha_i_second_order(double u_d_i_min[4][4][2], double u_d_i_max[4][4][2], double u_dx_c[4], double u_dy_c[4], double u_d_i[4][4][2], double alpha_i[4])
+void KuzminDiscontinuityDetector::find_alpha_i_second_order(double u_d_i_min[4][4][2], double u_d_i_max[4][4][2], double*** u_dx_c, double*** u_dy_c, double u_d_i[4][4][2], double alpha_i[4])
 {
   for(unsigned int sol_i = 0; sol_i < 4; sol_i++)
   {
     alpha_i[sol_i] = 1;
+    double u_dx = u_dx_c[sol_i][0][1];
+    double u_dy = u_dy_c[sol_i][0][2];
+
     for(unsigned int vertex_i = 0; vertex_i < 4; vertex_i++)
     {
       // Sanity checks.
-      if(std::abs(u_dx_c[sol_i]) < 1E-5)
+      if(std::abs(u_dx) < 1E-5)
         continue;
-      if(std::abs((u_d_i_min[sol_i][vertex_i][0] - u_dx_c[sol_i]) / u_dx_c[sol_i]) > 10)
+      if(std::abs((u_d_i_min[sol_i][vertex_i][0] - u_dx) / u_dx) > 10)
         continue;
-      if(std::abs((u_d_i_max[sol_i][vertex_i][0] - u_dx_c[sol_i]) / u_dx_c[sol_i]) > 10)
+      if(std::abs((u_d_i_max[sol_i][vertex_i][0] - u_dx) / u_dx) > 10)
         continue;
 
-      if(std::abs(u_dy_c[sol_i]) < 1E-5)
+      if(std::abs(u_dy) < 1E-5)
         continue;
-      if(std::abs((u_d_i_min[sol_i][vertex_i][1] - u_dy_c[sol_i]) / u_dy_c[sol_i]) > 10)
+      if(std::abs((u_d_i_min[sol_i][vertex_i][1] - u_dy) / u_dy) > 10)
         continue;
-      if(std::abs((u_d_i_max[sol_i][vertex_i][1] - u_dy_c[sol_i]) / u_dy_c[sol_i]) > 10)
+      if(std::abs((u_d_i_max[sol_i][vertex_i][1] - u_dy) / u_dy) > 10)
         continue;
 
       // dx.
-      if(u_d_i[sol_i][vertex_i][0] < u_dx_c[sol_i])
+      if(u_d_i[sol_i][vertex_i][0] < u_dx)
       {
-        if((u_d_i_min[sol_i][vertex_i][0] - u_dx_c[sol_i]) / (u_d_i[sol_i][vertex_i][0] - u_dx_c[sol_i]) < alpha_i[sol_i])
-          alpha_i[sol_i] = (u_d_i_min[sol_i][vertex_i][0] - u_dx_c[sol_i]) / (u_d_i[sol_i][vertex_i][0] - u_dx_c[sol_i]);
+        if((u_d_i_min[sol_i][vertex_i][0] - u_dx) / (u_d_i[sol_i][vertex_i][0] - u_dx) < alpha_i[sol_i])
+          alpha_i[sol_i] = (u_d_i_min[sol_i][vertex_i][0] - u_dx) / (u_d_i[sol_i][vertex_i][0] - u_dx);
       }
       else
       {
-        if((u_d_i_max[sol_i][vertex_i][0] - u_dx_c[sol_i]) / (u_d_i[sol_i][vertex_i][0] - u_dx_c[sol_i]) < alpha_i[sol_i])
-          alpha_i[sol_i] = (u_d_i_max[sol_i][vertex_i][0] - u_dx_c[sol_i]) / (u_d_i[sol_i][vertex_i][0] - u_dx_c[sol_i]);
+        if((u_d_i_max[sol_i][vertex_i][0] - u_dx) / (u_d_i[sol_i][vertex_i][0] - u_dx) < alpha_i[sol_i])
+          alpha_i[sol_i] = (u_d_i_max[sol_i][vertex_i][0] - u_dx) / (u_d_i[sol_i][vertex_i][0] - u_dx);
       }
       // dy.
-      if(u_d_i[sol_i][vertex_i][1] < u_dy_c[sol_i])
+      if(u_d_i[sol_i][vertex_i][1] < u_dy)
       {
-        if((u_d_i_min[sol_i][vertex_i][1] - u_dy_c[sol_i]) / (u_d_i[sol_i][vertex_i][1] - u_dy_c[sol_i]) < alpha_i[sol_i])
-          alpha_i[sol_i] = (u_d_i_min[sol_i][vertex_i][1] - u_dy_c[sol_i]) / (u_d_i[sol_i][vertex_i][1] - u_dy_c[sol_i]);
+        if((u_d_i_min[sol_i][vertex_i][1] - u_dy) / (u_d_i[sol_i][vertex_i][1] - u_dy) < alpha_i[sol_i])
+          alpha_i[sol_i] = (u_d_i_min[sol_i][vertex_i][1] - u_dy) / (u_d_i[sol_i][vertex_i][1] - u_dy);
       }
       else
       {
-        if((u_d_i_max[sol_i][vertex_i][1] - u_dy_c[sol_i]) / (u_d_i[sol_i][vertex_i][1] - u_dy_c[sol_i]) < alpha_i[sol_i])
-          alpha_i[sol_i] = (u_d_i_max[sol_i][vertex_i][1] - u_dy_c[sol_i]) / (u_d_i[sol_i][vertex_i] [1]- u_dy_c[sol_i]);
+        if((u_d_i_max[sol_i][vertex_i][1] - u_dy) / (u_d_i[sol_i][vertex_i][1] - u_dy) < alpha_i[sol_i])
+          alpha_i[sol_i] = (u_d_i_max[sol_i][vertex_i][1] - u_dy) / (u_d_i[sol_i][vertex_i] [1]- u_dy);
       }
     }
   }

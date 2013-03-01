@@ -24,14 +24,15 @@ public:
     }
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
-      Geom<double> *e, Func<double>* *ext) const 
+      Geom<double> *e, DiscontinuousFunc<double>* *ext) const 
     {
       double result = 0;
       double w_L[4], w_R[4];
+      
       for (int i = 0;i < n;i++)
-        result += wt[i] * v->val[i] * (ext[0]->get_val_central(i) - ext[0]->get_val_neighbor(i)) * (ext[0]->get_val_central(i) - ext[0]->get_val_neighbor(i)) / (e->diam * std::pow(e->area, 0.75));
+        result += wt[i] * v->val[i] * (ext[0]->val[i] - ext[0]->val_neighbor[i]) * (ext[0]->val[i] - ext[0]->val_neighbor[i]);
 
-      return result;
+      return result / (e->diam * std::pow(e->area, 0.75));
     }
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
@@ -44,6 +45,7 @@ public:
   };
 };
 
+/*
 class EulerEquationsWeakFormExplicit : public WeakForm<double>
 {
 public:
@@ -598,6 +600,7 @@ protected:
   friend class EulerEquationsWeakFormSemiImplicit;
   friend class EulerEquationsWeakFormSemiImplicitCoupled;
 };
+*/
 
 class EulerEquationsWeakFormSemiImplicit : public WeakForm<double>
 {
@@ -1039,8 +1042,8 @@ public:
       delete num_flux;
     }
 
-    double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
-      Func<double> *v, Geom<double> *e, Func<double>* *ext) const 
+    double value(int n, double *wt, DiscontinuousFunc<double> *u, 
+      DiscontinuousFunc<double> *v, Geom<double> *e, DiscontinuousFunc<double>* *ext) const 
     {
       double w[4];
       double result = 0.;
@@ -1050,10 +1053,10 @@ public:
         for (int point_i = 0; point_i < n; point_i++) 
         {
           {
-            w[0] = ext[0]->get_val_central(point_i);
-            w[1] = ext[1]->get_val_central(point_i);
-            w[2] = ext[2]->get_val_central(point_i);
-            w[3] = ext[3]->get_val_central(point_i);
+            w[0] = ext[0]->val[point_i];
+            w[1] = ext[1]->val[point_i];
+            w[2] = ext[2]->val[point_i];
+            w[3] = ext[3]->val[point_i];
 
             double e_1_1[4] = {1, 0, 0, 0};
             double e_2_1[4] = {0, 1, 0, 0};
@@ -1065,10 +1068,10 @@ public:
             num_flux->P_plus(this->P_plus_cache[point_i] + 8, w, e_3_1, e->nx[point_i], e->ny[point_i]);
             num_flux->P_plus(this->P_plus_cache[point_i] + 12, w, e_4_1, e->nx[point_i], e->ny[point_i]);
 
-            w[0] = ext[0]->get_val_neighbor(point_i);
-            w[1] = ext[1]->get_val_neighbor(point_i);
-            w[2] = ext[2]->get_val_neighbor(point_i);
-            w[3] = ext[3]->get_val_neighbor(point_i);
+            w[0] = ext[0]->val_neighbor[point_i];
+            w[1] = ext[1]->val_neighbor[point_i];
+            w[2] = ext[2]->val_neighbor[point_i];
+            w[3] = ext[3]->val_neighbor[point_i];
 
             double e_1_2[4] = {1, 0, 0, 0};
             double e_2_2[4] = {0, 1, 0, 0};
@@ -1084,104 +1087,24 @@ public:
         *(const_cast<EulerEquationsMatrixFormSurfSemiImplicit*>(this))->cacheReady = true;
       }
 
-      for (int point_i = 0; point_i < n; point_i++) 
-      {
-        double u_central = u->get_val_central(point_i);
-        double u_neighbor = u->get_val_neighbor(point_i);
+      int index = j * 4 + i;
 
-        double v_jump = (v->get_val_central(point_i) - v->get_val_neighbor(point_i));
-
-        if(i == 0 && j == 0)
-        {
-          result += wt[point_i] * (this->P_plus_cache[point_i][0] * u_central + this->P_minus_cache[point_i][0] * u_neighbor) * v_jump;
-          continue;
-        }
-        if(i == 0 && j == 1)
-        {
-          result += wt[point_i] * (this->P_plus_cache[point_i][4] * u_central + this->P_minus_cache[point_i][4] * u_neighbor) * v_jump;
-          continue;
-        }
-        if(i == 0 && j == 2)
-        {
-          result += wt[point_i] * (this->P_plus_cache[point_i][8] * u_central + this->P_minus_cache[point_i][8] * u_neighbor) * v_jump;
-          continue;
-        }
-        if(i == 0 && j == 3)
-        {
-          result += wt[point_i] * (this->P_plus_cache[point_i][12] * u_central + this->P_minus_cache[point_i][12] * u_neighbor) * v_jump;
-          continue;
-        }
-
-        if(i == 1 && j == 0)
-        {
-          result += wt[point_i] * (this->P_plus_cache[point_i][1] * u_central + this->P_minus_cache[point_i][1] * u_neighbor) * v_jump;
-          continue;
-        }
-        if(i == 1 && j == 1)
-        {
-          result += wt[point_i] * (this->P_plus_cache[point_i][5] * u_central + this->P_minus_cache[point_i][5] * u_neighbor) * v_jump;
-          continue;
-        }
-        if(i == 1 && j == 2)
-        {
-          result += wt[point_i] * (this->P_plus_cache[point_i][9] * u_central + this->P_minus_cache[point_i][9] * u_neighbor) * v_jump;
-          continue;
-        }
-        if(i == 1 && j == 3)
-        {
-          result += wt[point_i] * (this->P_plus_cache[point_i][13] * u_central + this->P_minus_cache[point_i][13] * u_neighbor) * v_jump;
-          continue;
-        }
-
-        if(i == 2 && j == 0)
-        {
-          result += wt[point_i] * (this->P_plus_cache[point_i][2] * u_central + this->P_minus_cache[point_i][2] * u_neighbor) * v_jump;
-          continue;
-        }
-        if(i == 2 && j == 1)
-        {
-          result += wt[point_i] * (this->P_plus_cache[point_i][6] * u_central + this->P_minus_cache[point_i][6] * u_neighbor) * v_jump;
-          continue;
-        }
-        if(i == 2 && j == 2)
-        {
-          result += wt[point_i] * (this->P_plus_cache[point_i][10] * u_central + this->P_minus_cache[point_i][10] * u_neighbor) * v_jump;
-          continue;
-        }
-        if(i == 2 && j == 3)
-        {
-          result += wt[point_i] * (this->P_plus_cache[point_i][14] * u_central + this->P_minus_cache[point_i][14] * u_neighbor) * v_jump;
-          continue;
-        }
-
-        if(i == 3 && j == 0)
-        {
-          result += wt[point_i] * (this->P_plus_cache[point_i][3] * u_central + this->P_minus_cache[point_i][3] * u_neighbor) * v_jump;
-          continue;
-        }
-        if(i == 3 && j == 1)
-        {
-          result += wt[point_i] * (this->P_plus_cache[point_i][7] * u_central + this->P_minus_cache[point_i][7] * u_neighbor) * v_jump;
-          continue;
-        }
-        if(i == 3 && j == 2)
-        {
-          result += wt[point_i] * (this->P_plus_cache[point_i][11] * u_central + this->P_minus_cache[point_i][11] * u_neighbor) * v_jump;
-          continue;
-        }
-        if(i == 3 && j == 3)
-        {
-          result += wt[point_i] * (this->P_plus_cache[point_i][15] * u_central + this->P_minus_cache[point_i][15] * u_neighbor) * v_jump;
-          continue;
-        }
-      }
+      if(u->val == NULL)
+        if(v->val == NULL)
+          for (int point_i = 0; point_i < n; point_i++) 
+            result -= wt[point_i] * (this->P_minus_cache[point_i][index] * u->val_neighbor[point_i]) * v->val_neighbor[point_i];
+        else
+          for (int point_i = 0; point_i < n; point_i++) 
+            result += wt[point_i] * (this->P_minus_cache[point_i][index] * u->val_neighbor[point_i]) * v->val[point_i];
+      else
+        if(v->val == NULL)
+          for (int point_i = 0; point_i < n; point_i++) 
+            result -= wt[point_i] * (this->P_plus_cache[point_i][index] * u->val[point_i]) * v->val_neighbor[point_i];
+        else
+          for (int point_i = 0; point_i < n; point_i++) 
+            result += wt[point_i] * (this->P_plus_cache[point_i][index] * u->val[point_i]) * v->val[point_i];
+        
       return result * wf->get_current_time_step();
-    }
-
-    Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
-      Geom<Ord> *e, Func<Ord>* *ext) const 
-    {
-      return Ord(24);
     }
 
     MatrixFormDG<double>* clone()  const
@@ -1312,91 +1235,10 @@ public:
         *(const_cast<EulerEquationsMatrixFormSemiImplicitInletOutlet*>(this))->cacheReady = true;
       }
 
+      int index = j * 4 + i;
       for (int point_i = 0; point_i < n; point_i++) 
       {
-        if(i == 0 && j == 0)
-        {
-          result += wt[point_i] * P_plus_cache[point_i][0] * u->val[point_i] * v->val[point_i];
-          continue;
-        }
-        if(i == 0 && j == 1)
-        {
-          result += wt[point_i] * P_plus_cache[point_i][4] * u->val[point_i] * v->val[point_i];
-          continue;
-        }
-        if(i == 0 && j == 2)
-        {
-          result += wt[point_i] * P_plus_cache[point_i][8] * u->val[point_i] * v->val[point_i];
-          continue;
-        }
-        if(i == 0 && j == 3)
-        {
-          result += wt[point_i] * P_plus_cache[point_i][12] * u->val[point_i] * v->val[point_i];
-          continue;
-        }
-
-        if(i == 1 && j == 0)
-        {
-          result += wt[point_i] * P_plus_cache[point_i][1] * u->val[point_i] * v->val[point_i];
-          continue;
-        }
-        if(i == 1 && j == 1)
-        {
-          result += wt[point_i] * P_plus_cache[point_i][5] * u->val[point_i] * v->val[point_i];
-          continue;
-        }
-        if(i == 1 && j == 2)
-        {
-          result += wt[point_i] * P_plus_cache[point_i][9] * u->val[point_i] * v->val[point_i];
-          continue;
-        }
-        if(i == 1 && j == 3)
-        {
-          result += wt[point_i] * P_plus_cache[point_i][13] * u->val[point_i] * v->val[point_i];
-          continue;
-        }
-
-        if(i == 2 && j == 0)
-        {
-          result += wt[point_i] * P_plus_cache[point_i][2] * u->val[point_i] * v->val[point_i];
-          continue;
-        }
-        if(i == 2 && j == 1)
-        {
-          result += wt[point_i] * P_plus_cache[point_i][6] * u->val[point_i] * v->val[point_i];
-          continue;
-        }
-        if(i == 2 && j == 2)
-        {
-          result += wt[point_i] * P_plus_cache[point_i][10] * u->val[point_i] * v->val[point_i];
-          continue;
-        }
-        if(i == 2 && j == 3)
-        {
-          result += wt[point_i] * P_plus_cache[point_i][14] * u->val[point_i] * v->val[point_i];
-          continue;
-        }
-
-        if(i == 3 && j == 0)
-        {
-          result += wt[point_i] * P_plus_cache[point_i][3] * u->val[point_i] * v->val[point_i];
-          continue;
-        }
-        if(i == 3 && j == 1)
-        {
-          result += wt[point_i] * P_plus_cache[point_i][7] * u->val[point_i] * v->val[point_i];
-          continue;
-        }
-        if(i == 3 && j == 2)
-        {
-          result += wt[point_i] * P_plus_cache[point_i][11] * u->val[point_i] * v->val[point_i];
-          continue;
-        }
-        if(i == 3 && j == 3)
-        {
-          result += wt[point_i] * P_plus_cache[point_i][15] * u->val[point_i] * v->val[point_i];
-          continue;
-        }
+        result += wt[point_i] * P_plus_cache[point_i][index] * u->val[point_i] * v->val[point_i];
       }
 
       return result * wf->get_current_time_step();
@@ -1743,16 +1585,30 @@ public:
     EulerEquationsFormStabilizationSurf(int i, int j, double nu_2) 
       : MatrixFormDG<double>(i, j), nu_2(nu_2) {}
 
-    double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
-      Func<double> *v, Geom<double> *e, Func<double>* *ext) const 
+    double value(int n, double *wt, DiscontinuousFunc<double> *u, 
+      DiscontinuousFunc<double> *v, Geom<double> *e, DiscontinuousFunc<double>* *ext) const 
     {
       double result = 0.;
 
       if(static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->discreteIndicator[e->id] && static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->discreteIndicator[e->get_neighbor_id()])
-        for (int i = 0; i < n;i++)
-          result += wt[i] * (u->get_val_central(i) - u->get_val_neighbor(i)) * (v->get_val_central(i) - v->get_val_neighbor(i)) * nu_2;
+      {
+        if(u->val == NULL)
+          if(v->val == NULL)
+            for (int point_i = 0; point_i < n; point_i++) 
+              result += wt[i] * (- u->val_neighbor[point_i]) * (- v->val_neighbor[point_i]);
+          else
+            for (int point_i = 0; point_i < n; point_i++) 
+              result += wt[i] * (- u->val_neighbor[point_i]) * ( v->val[point_i]);
+        else
+          if(v->val == NULL)
+            for (int point_i = 0; point_i < n; point_i++) 
+              result += wt[i] * (u->val[point_i]) * (- v->val_neighbor[point_i]);
+          else
+            for (int point_i = 0; point_i < n; point_i++) 
+              result += wt[i] * (u->val[point_i]) * ( v->val[point_i]);
+      }
 
-      return result;
+      return result * nu_2;
     }
 
     MatrixFormDG<double>* clone()  const

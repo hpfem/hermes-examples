@@ -130,8 +130,8 @@ public:
   bool get_limit_all_orders_independently();
 protected:
   /// Center.
-  void find_centroid_values(Hermes::Hermes2D::Element* e, double u_c[4]);
-  void find_centroid_derivatives(Hermes::Hermes2D::Element* e, double u_dx_c[4], double u_dy_c[4]);
+  void find_centroid_values(Hermes::Hermes2D::Element* e, double u_c[4], double x_ref, double y_ref);
+  void find_centroid_derivatives(Hermes::Hermes2D::Element* e, double u_dx_c[4], double u_dy_c[4], double x_ref, double y_ref);
   void find_second_centroid_derivatives(Hermes::Hermes2D::Element* e, double u_dxx_c[4], double u_dxy_c[4], double u_dyy_c[4]);
 
   /// Vertices.
@@ -145,7 +145,7 @@ protected:
 
   /// Logic - 2nd order.
   void find_u_i_min_max_second_order(Hermes::Hermes2D::Element* e, double u_d_i_min[4][4][2], double u_d_i_max[4][4][2]);
-  void find_alpha_i_second_order(double u_d_i_min[4][4][2], double u_d_i_max[4][4][2], double u_dx_c[4], double u_dy_c[4], double u_d_i[4][4][2], double alpha_i[4]);
+  void find_alpha_i_second_order(double u_d_i_min[4][4][2], double u_d_i_max[4][4][2], double*** u_dx_c, double*** u_dy_c, double u_d_i[4][4][2], double alpha_i[4]);
   void find_alpha_i_second_order_real(Hermes::Hermes2D::Element* e, double u_i[4][4][2], double u_dx_c[4], double u_dy_c[4], double u_dxx_c[4], double u_dxy_c[4], double u_dyy_c[4], double alpha_i_real[4]);
 
 private:

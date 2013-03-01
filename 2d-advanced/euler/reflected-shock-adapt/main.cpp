@@ -21,11 +21,11 @@ using namespace Hermes::Hermes2D::RefinementSelectors;
 
 // Frequently changed parameters.
 // Set to "true" to enable Hermes OpenGL visualization. 
-const bool HERMES_VISUALIZATION = true;
+const bool HERMES_VISUALIZATION = false;
 // Maximum polynomial degree used. -1 for unlimited.
 const int MAX_P_ORDER = 1;
 // Time interval length.
-const double T_END = 0.5;
+const double T_END = 1.0;
 // Shock capturing.
 bool SHOCK_CAPTURING = true;
 // Stopping criterion for adaptivity.
@@ -34,7 +34,7 @@ double ERR_STOP = 0.95;
 CandList CAND_LIST = H2D_HP_ANISO;                
 
 // Set to "true" to enable VTK output.
-const bool VTK_VISUALIZATION = true;
+const bool VTK_VISUALIZATION = false;
 
 // Set visual output for every nth step.
 const unsigned int EVERY_NTH_STEP = 1;
@@ -49,7 +49,7 @@ bool REUSE_SOLUTION = false;
 const int P_INIT = 0;                                             
 
 // Number of initial uniform mesh refinements.  
-const int INIT_REF_NUM = 3;                                            
+const int INIT_REF_NUM = 4;                                            
 
 // CFL value.
 double CFL_NUMBER = 0.1;                         
@@ -228,7 +228,7 @@ int main(int argc, char* argv[])
   Hermes::vector<Space<double>*> spaces_to_delete;
       
   // Time stepping loop.
-  for(; t < T_END; t += time_step)
+  for(; t < T_END && iteration < 25; t += time_step)
   {
     CFL.set_number(CFL_NUMBER + (t/4.0) * 1.0);
     Hermes::Mixins::Loggable::Static::info("---- Time step %d, time %3.5f.", iteration++, t);
@@ -247,6 +247,8 @@ int main(int argc, char* argv[])
         space_rho_v_x.adjust_element_order(-1, P_INIT);
         space_rho_v_y.adjust_element_order(-1, P_INIT);
         space_e.adjust_element_order(-1, P_INIT);
+
+        Space<double>::assign_dofs(Hermes::vector<Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
       }
     }
 
@@ -325,6 +327,7 @@ int main(int argc, char* argv[])
       wf.set_current_time_step(time_step);
     
       solver.solve();
+
       if(!SHOCK_CAPTURING)
         Solution<double>::vector_to_solutions(solver.get_sln_vector(), ref_spaces_const, 
         Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e));
