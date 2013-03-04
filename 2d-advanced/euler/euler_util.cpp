@@ -1300,7 +1300,7 @@ void PressureFilter::filter_fn(int n, Hermes::vector<double*> values, double* re
 void VelocityFilter::filter_fn(int n, Hermes::vector<double*> values, double* result)
 {
   for (int i = 0; i < n; i++)
-    result[i] = values.at(0)[i] * values.at(1)[i];
+    result[i] = values.at(1)[i] / values.at(0)[i];
 }
 
 void EntropyFilter::filter_fn(int n, Hermes::vector<double*> values, double* result) 

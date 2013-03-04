@@ -50,7 +50,7 @@ const int P_INIT = 1;
 // Number of initial uniform mesh refinements.    
 const int INIT_REF_NUM = 4;                                                
 // CFL value.
-double CFL_NUMBER = 0.5;                                
+double CFL_NUMBER = 0.7;                                
 // Initial time step.
 double time_step = 1E-4;                                
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
@@ -59,13 +59,13 @@ const MatrixSolverType matrix_solver = SOLVER_UMFPACK;
 
 // Equation parameters.
 // Exterior pressure (dimensionless).
-const double P_EXT = 2.0;           
+const double P_EXT = 1.5;           
 // Initial pressure (dimensionless).
 const double P_INITIAL_HIGH = 1.5;  
 // Initial pressure (dimensionless).
 const double P_INITIAL_LOW = 1.0;   
 // Inlet density (dimensionless).   
-const double RHO_EXT = 1.0;         
+const double RHO_EXT = 0.5;         
 // Initial density (dimensionless).   
 const double RHO_INITIAL_HIGH = 0.5;
 // Initial density (dimensionless).   
@@ -76,6 +76,10 @@ const double V1_EXT = 0.0;
 const double V2_EXT = 0.0;          
 // Kappa.
 const double KAPPA = 1.4;           
+
+// Stability for the concentration part.
+double ADVECTION_STABILITY_CONSTANT = 0.1;
+const double DIFFUSION_STABILITY_CONSTANT = 0.1;
 
 // Boundary markers.
 const std::string BDY_INLET = "Inlet";
@@ -93,6 +97,8 @@ const double MESH_SIZE = 3.0;
 
 int main(int argc, char* argv[])
 {
+  Hermes2DApi.set_integral_param_value(numThreads, 1);
+
   // Load the mesh.
   Mesh mesh;
   MeshReaderH2D mloader;
@@ -103,12 +109,16 @@ int main(int argc, char* argv[])
     mesh.refine_all_elements(0, true);
 
   // Initialize boundary condition types and spaces with default shapesets.
+  Hermes2D::DefaultEssentialBCConst<double> bc_temp_zero("Solid", 0.0);
+  EssentialBCs<double> bcs(&bc_temp_zero);
+
   L2Space<double> space_rho(&mesh, P_INIT);
   L2Space<double> space_rho_v_x(&mesh, P_INIT);
   L2Space<double> space_rho_v_y(&mesh, P_INIT);
   L2Space<double> space_e(&mesh, P_INIT);
+  H1Space<double> space_temp(&mesh, &bcs, 1);
   L2Space<double> space_stabilization(&mesh, 0);
-  int ndof = Space<double>::get_num_dofs(Hermes::vector<const Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
+  int ndof = Space<double>::get_num_dofs(Hermes::vector<const Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e, &space_temp));
   Hermes::Mixins::Loggable::Static::info("ndof: %d", ndof);
 
   // Initialize solutions, set initial conditions.
@@ -116,6 +126,7 @@ int main(int argc, char* argv[])
   ConstantSolution<double> prev_rho_v_x(&mesh, 0.0);
   ConstantSolution<double> prev_rho_v_y(&mesh, 0.0);
   InitialSolutionLinearProgress prev_e(&mesh, QuantityCalculator::calc_energy(RHO_INITIAL_HIGH, RHO_INITIAL_HIGH * V1_EXT, RHO_INITIAL_HIGH * V2_EXT, P_INITIAL_HIGH, KAPPA), QuantityCalculator::calc_energy(RHO_INITIAL_LOW, RHO_INITIAL_LOW * V1_EXT, RHO_INITIAL_LOW * V2_EXT, P_INITIAL_LOW, KAPPA), MESH_SIZE);
+  ConstantSolution<double> prev_temp(&mesh, 0.0);
 
   // Filters for visualization of Mach number, pressure and entropy.
   PressureFilter pressure(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA);
@@ -127,6 +138,7 @@ int main(int argc, char* argv[])
   ScalarView velocity_view_x("Velocity - x", new WinGeom(0, 400, 600, 300));
   ScalarView velocity_view_y("Velocity - y", new WinGeom(700, 400, 600, 300));
   ScalarView density_view("Density", new WinGeom(1400, 0, 600, 300));
+  ScalarView temperature_view("Temperature", new WinGeom(1400, 400, 600, 300));
 
   // Set up the solver, matrix, and rhs according to the solver selection.
   SparseMatrix<double>* matrix = create_matrix<double>();
@@ -136,25 +148,10 @@ int main(int argc, char* argv[])
 
   // Set up CFL calculation class.
   CFLCalculation CFL(CFL_NUMBER, KAPPA);
+  ADEStabilityCalculation ADES(ADVECTION_STABILITY_CONSTANT, DIFFUSION_STABILITY_CONSTANT, 1e2);
 
   // Look for a saved solution on the disk.
-  CalculationContinuity<double> continuity(CalculationContinuity<double>::onlyTime);
   int iteration = 0; double t = 0;
-
-  if(REUSE_SOLUTION && continuity.have_record_available())
-  {
-    continuity.get_last_record()->load_mesh(&mesh);
-    Hermes::vector<Space<double> *> spaceVector = continuity.get_last_record()->load_spaces(Hermes::vector<Mesh *>(&mesh, &mesh, &mesh, &mesh));
-    space_rho.copy(spaceVector[0], &mesh);
-    space_rho_v_x.copy(spaceVector[1], &mesh);
-    space_rho_v_y.copy(spaceVector[2], &mesh);
-    space_e.copy(spaceVector[3], &mesh);
-    continuity.get_last_record()->load_solutions(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-      &space_rho_v_y, &space_e));
-    continuity.get_last_record()->load_time_step_length(time_step);
-    t = continuity.get_last_record()->get_time();
-    iteration = continuity.get_num();
-  }
 
   // Initialize weak formulation.
   Hermes::vector<std::string> solid_wall_markers;
@@ -163,8 +160,8 @@ int main(int argc, char* argv[])
   inlet_markers.push_back(BDY_INLET);
   Hermes::vector<std::string> outlet_markers;
 
-  EulerEquationsWeakFormSemiImplicit wf(KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, solid_wall_markers, 
-    inlet_markers, outlet_markers, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e);
+  EulerEquationsWeakFormSemiImplicitCoupledWithHeat wf(KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, solid_wall_markers, 
+    inlet_markers, outlet_markers, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_temp);
   
   EulerEquationsWeakFormStabilization wf_stabilization(&prev_rho);
 
@@ -172,12 +169,8 @@ int main(int argc, char* argv[])
     wf.set_stabilization(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, NU_1, NU_2);
 
   // Initialize the FE problem.
-  DiscreteProblem<double> dp(&wf, Hermes::vector<const Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
+  DiscreteProblem<double> dp(&wf, Hermes::vector<const Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e, &space_temp));
   DiscreteProblem<double> dp_stabilization(&wf_stabilization, &space_stabilization);
-
-  // If the FE problem is in fact a FV problem.
-  if(P_INIT == 0) 
-    dp.set_fvm();
 
   // Time stepping loop.
   for(; t < 10.0; t += time_step)
@@ -215,7 +208,7 @@ int main(int argc, char* argv[])
       if(!SHOCK_CAPTURING || SHOCK_CAPTURING_TYPE == FEISTAUER)
       {
         Solution<double>::vector_to_solutions(solver->get_sln_vector(), Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
-          &space_rho_v_y, &space_e), Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
+          &space_rho_v_y, &space_e, &space_temp), Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_temp));
       }
       else
       {      
@@ -233,12 +226,23 @@ int main(int argc, char* argv[])
         flux_limiter->limit_according_to_detector();
 
         flux_limiter->get_limited_solutions(Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
+
+        Solution<double>::vector_to_solution(solver->get_sln_vector() + Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
+          &space_rho_v_y, &space_e)), &space_temp, &prev_temp);
       }
     }
     else
       throw Hermes::Exceptions::Exception("Matrix solver failed.\n");
 
     CFL.calculate_semi_implicit(Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), &mesh, time_step);
+
+    double util_time_step = time_step;
+
+    ADES.calculate(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y), &mesh, util_time_step);
+
+    if(util_time_step < time_step)
+      time_step = util_time_step;
+
 
     // Visualization.
     if((iteration - 1) % EVERY_NTH_STEP == 0) 
@@ -252,6 +256,7 @@ int main(int argc, char* argv[])
         pressure_view.show(&pressure);
         velocity_view.show(&vel_x, &vel_y);
         density_view.show(&prev_rho);
+        temperature_view.show(&prev_temp);
       }
       // Output solution in VTK format.
       if(VTK_VISUALIZATION) 
@@ -266,6 +271,9 @@ int main(int argc, char* argv[])
   }
 
   pressure_view.close();
+  velocity_view.close();
+  density_view.close();
+  temperature_view.close();
   
   return 0;
 }

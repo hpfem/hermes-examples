@@ -602,6 +602,8 @@ protected:
 };
 */
 
+
+
 class EulerEquationsWeakFormSemiImplicit : public WeakForm<double>
 {
 public:
@@ -633,8 +635,6 @@ public:
   // For cache handling.
   class EulerEquationsMatrixFormSurfSemiImplicit;
   class EulerEquationsMatrixFormSemiImplicitInletOutlet;
-  Hermes::vector<EulerEquationsMatrixFormSurfSemiImplicit*> dgForms;
-  Hermes::vector<EulerEquationsMatrixFormSemiImplicitInletOutlet*> dgFormsInletOutlet;
   bool cacheReadyDG;
   bool cacheReadySurf;
   double** P_plus_cache_DG;
@@ -697,17 +697,14 @@ public:
           add_matrix_form(new EulerEquationsBilinearForm(form_i, form_j, euler_fluxes));
 
         EulerEquationsMatrixFormSurfSemiImplicit* formDG = new EulerEquationsMatrixFormSurfSemiImplicit(form_i, form_j, kappa, euler_fluxes, &this->cacheReadyDG, this->P_plus_cache_DG, this->P_minus_cache_DG);
-        dgForms.push_back(formDG);
         add_matrix_form_DG(formDG);
 
         EulerEquationsMatrixFormSemiImplicitInletOutlet* formSurf = new EulerEquationsMatrixFormSemiImplicitInletOutlet(form_i, form_j, rho_ext, v1_ext, v2_ext, energy_ext[0], inlet_markers, kappa, &this->cacheReadySurf, this->P_plus_cache_surf, this->P_minus_cache_surf);
-        dgFormsInletOutlet.push_back(formSurf);
         add_matrix_form_surf(formSurf);
 
         if(outlet_markers.size() > 0)
         {
           formSurf = new EulerEquationsMatrixFormSemiImplicitInletOutlet(form_i, form_j, 0,0,0,0, outlet_markers, kappa, &this->cacheReadySurf, this->P_plus_cache_surf, this->P_minus_cache_surf);
-          dgFormsInletOutlet.push_back(formSurf);
           add_matrix_form_surf(formSurf);
         }
 
@@ -767,18 +764,15 @@ public:
           add_matrix_form(new EulerEquationsBilinearForm(form_i, form_j, euler_fluxes));
 
         EulerEquationsMatrixFormSurfSemiImplicit* formDG = new EulerEquationsMatrixFormSurfSemiImplicit(form_i, form_j, kappa, euler_fluxes, &this->cacheReadyDG, this->P_plus_cache_DG, this->P_minus_cache_DG);
-        dgForms.push_back(formDG);
         add_matrix_form_DG(formDG);
 
         for(unsigned int inlet_i = 0; inlet_i < inlet_markers.size(); inlet_i++)
         {
           EulerEquationsMatrixFormSemiImplicitInletOutlet* formSurf = new EulerEquationsMatrixFormSemiImplicitInletOutlet(form_i, form_j, rho_ext[inlet_i], v1_ext[inlet_i], v2_ext[inlet_i], energy_ext[inlet_i], inlet_markers[inlet_i], kappa, &this->cacheReadySurf, this->P_plus_cache_surf, this->P_minus_cache_surf);
-          dgFormsInletOutlet.push_back(formSurf);
           add_matrix_form_surf(formSurf);
         }
 
         EulerEquationsMatrixFormSemiImplicitInletOutlet* formSurf = new EulerEquationsMatrixFormSemiImplicitInletOutlet(form_i, form_j, 0,0,0,0, outlet_markers, kappa, &this->cacheReadySurf, this->P_plus_cache_surf, this->P_minus_cache_surf);
-        dgFormsInletOutlet.push_back(formSurf);
         add_matrix_form_surf(formSurf);
 
         add_matrix_form_surf(new EulerEquationsMatrixFormSolidWall(form_i, form_j, solid_wall_markers, kappa));
@@ -907,13 +901,6 @@ public:
   public:
     EulerEquationsBilinearFormTime(int i) : MatrixFormVol<double>(i, i) {}
 
-    template<typename Real, typename Scalar>
-    Scalar matrix_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u, Func<Real> *v, 
-      Geom<Real> *e, Func<Scalar>* *ext) const 
-    {
-      return int_u_v<Real, Scalar>(n, wt, u, v);
-    }
-
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
       Geom<double> *e, Func<double>* *ext) const 
     {
@@ -1023,7 +1010,7 @@ public:
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const 
     {
-      return Ord(24);
+      return Ord(10);
     }
 
     MatrixFormVol<double>* clone() const
@@ -1415,7 +1402,7 @@ public:
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
       Func<Ord>* *ext) const 
     {
-      return Ord(24);
+      return int_u_v<Ord, Ord>(n, wt, ext[this->i], v);
     }
 
     VectorFormVol<double>* clone() const { return new EulerEquationsLinearFormTime(this->i); }
@@ -1452,89 +1439,7 @@ public:
         P[2][2] = (kappa - 1) * (-v_2) * e->ny[point_i];
         P[2][3] = (kappa - 1) * e->ny[point_i];
 
-        if(i == 0 && j == 0)
-        {
-          result += wt[point_i] * P[0][0] * u->val[point_i] * v->val[point_i];
-          continue;
-        }
-        if(i == 0 && j == 1)
-        {
-          result += wt[point_i] * P[0][1] * u->val[point_i] * v->val[point_i];
-          continue;
-        }
-        if(i == 0 && j == 2)
-        {
-          result += wt[point_i] * P[0][2] * u->val[point_i] * v->val[point_i];
-          continue;
-        }
-        if(i == 0 && j == 3)
-        {
-          result += wt[point_i] * P[0][3] * u->val[point_i] * v->val[point_i];
-          continue;
-        }
-
-        if(i == 1 && j == 0)
-        {
-          result += wt[point_i] * P[1][0] * u->val[point_i] * v->val[point_i];
-          continue;
-        }
-        if(i == 1 && j == 1)
-        {
-          result += wt[point_i] * P[1][1] * u->val[point_i] * v->val[point_i];
-          continue;
-        }
-        if(i == 1 && j == 2)
-        {
-          result += wt[point_i] * P[1][2] * u->val[point_i] * v->val[point_i];
-          continue;
-        }
-        if(i == 1 && j == 3)
-        {
-          result += wt[point_i] * P[1][3] * u->val[point_i] * v->val[point_i];
-          continue;
-        }
-
-        if(i == 2 && j == 0)
-        {
-          result += wt[point_i] * P[2][0] * u->val[point_i] * v->val[point_i];
-          continue;
-        }
-        if(i == 2 && j == 1)
-        {
-          result += wt[point_i] * P[2][1] * u->val[point_i] * v->val[point_i];
-          continue;
-        }
-        if(i == 2 && j == 2)
-        {
-          result += wt[point_i] * P[2][2] * u->val[point_i] * v->val[point_i];
-          continue;
-        }
-        if(i == 2 && j == 3)
-        {
-          result += wt[point_i] * P[2][3] * u->val[point_i] * v->val[point_i];
-          continue;
-        }
-
-        if(i == 3 && j == 0)
-        {
-          result += wt[point_i] * P[3][0] * u->val[point_i] * v->val[point_i];
-          continue;
-        }
-        if(i == 3 && j == 1)
-        {
-          result += wt[point_i] * P[3][1] * u->val[point_i] * v->val[point_i];
-          continue;
-        }
-        if(i == 3 && j == 2)
-        {
-          result += wt[point_i] * P[3][2] * u->val[point_i] * v->val[point_i];
-          continue;
-        }
-        if(i == 3 && j == 3)
-        {
-          result += wt[point_i] * P[3][3] * u->val[point_i] * v->val[point_i];
-          continue;
-        }
+        result += wt[point_i] * P[i][j] * u->val[point_i] * v->val[point_i];
       }
 
       return result * wf->get_current_time_step();
@@ -1625,7 +1530,147 @@ public:
 
     double nu_2;
   };
+
+  
 };
+
+class EulerEquationsWeakFormSemiImplicitCoupledWithHeat : public EulerEquationsWeakFormSemiImplicit
+{
+public:
+  Solution<double>* prev_temp;
+
+  EulerEquationsWeakFormSemiImplicitCoupledWithHeat(double kappa, 
+    double rho_ext, double v1_ext, double v2_ext, double pressure_ext,
+    Hermes::vector<std::string> solid_wall_markers, Hermes::vector<std::string> inlet_markers, Hermes::vector<std::string> outlet_markers, 
+    Solution<double>* prev_density, Solution<double>* prev_density_vel_x, Solution<double>* prev_density_vel_y, Solution<double>* prev_energy, Solution<double>* prev_temp, 
+    bool fvm_only = false) : EulerEquationsWeakFormSemiImplicit(kappa, rho_ext, v1_ext, v2_ext, pressure_ext, solid_wall_markers, inlet_markers, outlet_markers, prev_density,
+    prev_density_vel_x, prev_density_vel_y, prev_energy, fvm_only, 5), prev_temp(prev_temp)
+  {
+    add_matrix_form(new HeatBilinearFormTime(4));
+
+    add_vector_form(new HeatLinearFormTime(4));
+
+    this->add_vector_form_surf(new HeatLinearSurfForm(4, inlet_markers));
+
+    this->ext.push_back(prev_temp);
+  }
+
+  WeakForm<double>* clone() const
+  {
+    EulerEquationsWeakFormSemiImplicitCoupledWithHeat* wf;
+    wf = new EulerEquationsWeakFormSemiImplicitCoupledWithHeat(this->kappa, this->rho_ext[0], this->v1_ext[0], this->v2_ext[0], this->pressure_ext[0], 
+    this->solid_wall_markers, this->inlet_markers, this->outlet_markers, this->prev_density, this->prev_density_vel_x, this->prev_density_vel_y, this->prev_energy, this->prev_temp, this->fvm_only);
+
+    wf->ext.clear();
+
+    for(unsigned int i = 0; i < this->ext.size(); i++)
+    {
+      Solution<double>* ext = static_cast<Solution<double>*>(this->ext[i]->clone());
+      if((static_cast<Solution<double>*>(this->ext[i]))->get_type() == HERMES_SLN)
+        ext->set_type(HERMES_SLN);
+      wf->ext.push_back(ext);
+    }
+
+    wf->set_current_time_step(this->get_current_time_step());
+
+    return wf;
+  }
+
+  class HeatBilinearFormTime : public MatrixFormVol<double>
+  {
+  public:
+    HeatBilinearFormTime(int i) : MatrixFormVol<double>(i, i), c_p(1e2), lambda(1e2) {}
+
+    double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
+      Geom<double> *e, Func<double>* *ext) const 
+    {
+      double result = 0.;
+      for (int point_i = 0; point_i < n; point_i++)
+      {
+        double rho = ext[0]->val[point_i];
+        result += wt[point_i] * u->val[point_i] * v->val[point_i] * rho * c_p;
+        result -= wt[point_i] * (u->dx[point_i] * v->dx[point_i] + u->dy[point_i] * v->dy[point_i]) * lambda;
+        result -= (ext[1]->val[point_i] * u->dx[point_i] + ext[2]->val[point_i] * u->dy[point_i]) * v->val[point_i] * c_p;
+      }
+      return result;
+    }
+
+    Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, 
+      Func<Ord>* *ext) const 
+    {
+      Ord result = Ord(0);
+      for (int point_i = 0; point_i < n; point_i++)
+      {
+        Ord rho = ext[0]->val[point_i];
+        result += wt[point_i] * (u->val[point_i] * v->val[point_i] * rho - u->dx[point_i] * v->dx[point_i] - u->dy[point_i] * v->dy[point_i] - rho * rho * (ext[1]->val[point_i] * u->dx[point_i] + ext[2]->val[point_i] * u->dy[point_i]) * v->val[point_i]);
+      }
+      return result;
+    }
+
+    MatrixFormVol<double>* clone() const { return new HeatBilinearFormTime(this->i); }
+
+    double c_p, lambda;
+  };
+
+  class HeatLinearFormTime : public VectorFormVol<double>
+  {
+  public:
+    HeatLinearFormTime(int i) 
+      : VectorFormVol<double>(i), c_p(1e2) {}
+
+    double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e,
+      Func<double>* *ext) const 
+    {
+      double result = 0.;
+      for (int point_i = 0; point_i < n; point_i++)
+      {
+        double rho = ext[0]->val[point_i];
+        result += wt[i] * v->val[point_i] * rho * ext[this->i]->val[point_i] * c_p;
+      }
+      return result;
+    }
+
+    Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
+      Func<Ord>* *ext) const 
+    {
+      return wt[0] * v->val[0] * ext[0]->val[0] * ext[this->i]->val[0];
+    }
+
+    VectorFormVol<double>* clone() const { return new HeatLinearFormTime(this->i); }
+
+    double c_p;
+  };
+
+  class HeatLinearSurfForm : public VectorFormSurf<double>
+  {
+  public:
+    HeatLinearSurfForm(int i, Hermes::vector<std::string> areas)
+      : VectorFormSurf<double>(i), neumann_value(1e-6), lambda(1e2) 
+    {
+      this->set_areas(areas);
+    }
+
+    double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e,
+      Func<double>* *ext) const 
+    {
+      double result = 0.;
+      for (int point_i = 0; point_i < n; point_i++)
+        result -= wt[i] * v->val[point_i] * neumann_value * lambda;
+      return result;
+    }
+
+    Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
+      Func<Ord>* *ext) const 
+    {
+      return wt[0] * v->val[0];
+    }
+
+    VectorFormSurf<double>* clone() const { return new HeatLinearSurfForm(this->i, this->areas); }
+
+    double neumann_value, lambda;
+  };
+};
+
 
 /*
 class EulerEquationsWeakFormSemiImplicitTwoInflows : public WeakForm<double>
