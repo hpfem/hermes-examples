@@ -236,6 +236,29 @@ protected:
   double kappa;
 };
 
+class VelocityFilter : public Hermes::Hermes2D::SimpleFilter<double>
+{
+public:
+  // Vector of solutions: 0-th position - density, 1-st position - velocity component.
+  VelocityFilter(Hermes::vector<MeshFunction<double>*> solutions) : SimpleFilter<double>(solutions) {};
+  ~VelocityFilter() 
+  {
+  };
+
+  MeshFunction<double>* clone() const
+  {
+    Hermes::vector<MeshFunction<double>*> slns;
+    for(int i = 0; i < this->num; i++)
+      slns.push_back(this->sln[i]->clone());
+
+    VelocityFilter* filter = new VelocityFilter(slns);
+    filter->setDeleteSolutions();
+    return filter;
+  }
+protected:
+  virtual void filter_fn(int n, Hermes::vector<double*> values, double* result);
+};
+
 class EntropyFilter : public Hermes::Hermes2D::SimpleFilter<double>
 {
 public: 

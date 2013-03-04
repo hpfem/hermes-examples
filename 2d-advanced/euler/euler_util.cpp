@@ -1297,6 +1297,11 @@ void PressureFilter::filter_fn(int n, Hermes::vector<double*> values, double* re
     result[i] = (kappa - 1.) * (values.at(3)[i] - (values.at(1)[i]*values.at(1)[i] + values.at(2)[i]*values.at(2)[i])/(2*values.at(0)[i]));
 }
 
+void VelocityFilter::filter_fn(int n, Hermes::vector<double*> values, double* result)
+{
+  for (int i = 0; i < n; i++)
+    result[i] = values.at(0)[i] * values.at(1)[i];
+}
 
 void EntropyFilter::filter_fn(int n, Hermes::vector<double*> values, double* result) 
 {

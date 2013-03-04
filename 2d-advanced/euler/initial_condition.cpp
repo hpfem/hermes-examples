@@ -47,7 +47,7 @@ public:
     return Ord(1);
   }
 
-  MeshFunction<double>* clone() const { return new InitialSolutionLinearProgress(mesh, max, min, size); }
+  MeshFunction<double>* clone() const { if(this->get_type() == HERMES_SLN) return Solution<double>::clone(); else return new InitialSolutionLinearProgress(mesh, max, min, size); }
 
   // Value.
   double max, min, size;

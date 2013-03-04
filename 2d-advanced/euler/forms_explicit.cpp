@@ -829,7 +829,12 @@ public:
     wf->ext.clear();
 
     for(unsigned int i = 0; i < this->ext.size(); i++)
-        wf->ext.push_back(this->ext[i]->clone());
+    {
+      Solution<double>* ext = static_cast<Solution<double>*>(this->ext[i]->clone());
+      if((static_cast<Solution<double>*>(this->ext[i]))->get_type() == HERMES_SLN)
+        ext->set_type(HERMES_SLN);
+      wf->ext.push_back(ext);
+    }
 
     wf->set_current_time_step(this->get_current_time_step());
 

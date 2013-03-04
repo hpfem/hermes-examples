@@ -11,3 +11,6 @@ add_subdirectory(heating-induced-vortex)
 
 # add_subdirectory(euler-coupled)
 # add_subdirectory(euler-coupled-adapt)
+
+
+add_subdirectory(heating-flow-coupling)
