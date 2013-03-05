@@ -14,3 +14,4 @@ add_subdirectory(heating-induced-vortex)
 
 
 add_subdirectory(heating-flow-coupling)
+add_subdirectory(heating-flow-coupling-adapt)

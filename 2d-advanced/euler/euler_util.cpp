@@ -52,20 +52,20 @@ void CFLCalculation::calculate(Hermes::vector<Solution<double>*> solutions, Mesh
   Element *e;
   for_all_active_elements(e, mesh)
   {
-  AsmList<double> al;
-  constant_rho_space.get_element_assembly_list(e, &al);
-  double rho = sln_vector[al.get_dof()[0]];
-  constant_rho_v_x_space.get_element_assembly_list(e, &al);
-  double v1 = sln_vector[al.get_dof()[0]] / rho;
-  constant_rho_v_y_space.get_element_assembly_list(e, &al);
-  double v2 = sln_vector[al.get_dof()[0]] / rho;
-  constant_energy_space.get_element_assembly_list(e, &al);
-  double energy = sln_vector[al.get_dof()[0]];
+    AsmList<double> al;
+    constant_rho_space.get_element_assembly_list(e, &al);
+    double rho = sln_vector[al.get_dof()[0]];
+    constant_rho_v_x_space.get_element_assembly_list(e, &al);
+    double v1 = sln_vector[al.get_dof()[0]] / rho;
+    constant_rho_v_y_space.get_element_assembly_list(e, &al);
+    double v2 = sln_vector[al.get_dof()[0]] / rho;
+    constant_energy_space.get_element_assembly_list(e, &al);
+    double energy = sln_vector[al.get_dof()[0]];
 
-  double condition = e->get_area() * CFL_number / (std::sqrt(v1*v1 + v2*v2) + QuantityCalculator::calc_sound_speed(rho, rho*v1, rho*v2, energy, kappa));
+    double condition = e->get_area() * CFL_number / (std::sqrt(v1*v1 + v2*v2) + QuantityCalculator::calc_sound_speed(rho, rho*v1, rho*v2, energy, kappa));
 
-  if(condition < min_condition || min_condition == 0.)
-    min_condition = condition;
+    if(condition < min_condition || min_condition == 0.)
+      min_condition = condition;
   }
 
   time_step = min_condition;
@@ -93,66 +93,66 @@ void CFLCalculation::calculate_semi_implicit(Hermes::vector<Solution<double>*> s
   double w[4];
   for_all_active_elements(e, mesh)
   {
-AsmList<double> al;
-  constant_rho_space.get_element_assembly_list(e, &al);
-  w[0] = sln_vector[al.get_dof()[0]];
-  constant_rho_v_x_space.get_element_assembly_list(e, &al);
-  w[1] = sln_vector[al.get_dof()[0]];
-  constant_rho_v_y_space.get_element_assembly_list(e, &al);
-  w[2] = sln_vector[al.get_dof()[0]];
-  constant_energy_space.get_element_assembly_list(e, &al);
-  w[3] = sln_vector[al.get_dof()[0]];
+    AsmList<double> al;
+    constant_rho_space.get_element_assembly_list(e, &al);
+    w[0] = sln_vector[al.get_dof()[0]];
+    constant_rho_v_x_space.get_element_assembly_list(e, &al);
+    w[1] = sln_vector[al.get_dof()[0]];
+    constant_rho_v_y_space.get_element_assembly_list(e, &al);
+    w[2] = sln_vector[al.get_dof()[0]];
+    constant_energy_space.get_element_assembly_list(e, &al);
+    w[3] = sln_vector[al.get_dof()[0]];
 
-  double edge_length_max_lambda = 0.0;
+    double edge_length_max_lambda = 0.0;
 
-  solutions[0]->set_active_element(e);
-  for(unsigned int edge_i = 0; edge_i < e->get_nvert(); edge_i++) {
-    // Initialization.
-    SurfPos surf_pos;
-    surf_pos.marker = e->marker;
-    surf_pos.surf_num = edge_i;
-    int eo = solutions[1]->get_quad_2d()->get_edge_points(surf_pos.surf_num, 20, e->get_mode());
-    double3* tan = NULL;
-    Geom<double>* geom = init_geom_surf(solutions[0]->get_refmap(), surf_pos.surf_num, surf_pos.marker, eo, tan);
-    int np = solutions[1]->get_quad_2d()->get_num_points(eo, e->get_mode());
+    solutions[0]->set_active_element(e);
+    for(unsigned int edge_i = 0; edge_i < e->get_nvert(); edge_i++) {
+      // Initialization.
+      SurfPos surf_pos;
+      surf_pos.marker = e->marker;
+      surf_pos.surf_num = edge_i;
+      int eo = solutions[1]->get_quad_2d()->get_edge_points(surf_pos.surf_num, 20, e->get_mode());
+      double3* tan = NULL;
+      Geom<double>* geom = init_geom_surf(solutions[0]->get_refmap(), surf_pos.surf_num, surf_pos.marker, eo, tan);
+      int np = solutions[1]->get_quad_2d()->get_num_points(eo, e->get_mode());
 
-    // Calculation of the edge length.
-    double edge_length = std::sqrt(std::pow(e->vn[(edge_i + 1) % e->get_nvert()]->x - e->vn[edge_i]->x, 2) + std::pow(e->vn[(edge_i + 1) % e->get_nvert()]->y - e->vn[edge_i]->y, 2));
+      // Calculation of the edge length.
+      double edge_length = std::sqrt(std::pow(e->vn[(edge_i + 1) % e->get_nvert()]->x - e->vn[edge_i]->x, 2) + std::pow(e->vn[(edge_i + 1) % e->get_nvert()]->y - e->vn[edge_i]->y, 2));
 
-    // Calculation of the maximum eigenvalue of the matrix P.
-    double max_eigen_value = 0.0;
-    for(int point_i = 0; point_i < np; point_i++) {
-      // Transform to the local coordinates.
-      double transformed[4];
-      transformed[0] = w[0];
-      transformed[1] = geom->nx[point_i] * w[1] + geom->ny[point_i] * w[2];
-      transformed[2] = -geom->ny[point_i] * w[1] + geom->nx[point_i] * w[2];
-      transformed[3] = w[3];
+      // Calculation of the maximum eigenvalue of the matrix P.
+      double max_eigen_value = 0.0;
+      for(int point_i = 0; point_i < np; point_i++) {
+        // Transform to the local coordinates.
+        double transformed[4];
+        transformed[0] = w[0];
+        transformed[1] = geom->nx[point_i] * w[1] + geom->ny[point_i] * w[2];
+        transformed[2] = -geom->ny[point_i] * w[1] + geom->nx[point_i] * w[2];
+        transformed[3] = w[3];
 
-      // Calc sound speed.
-      double a = QuantityCalculator::calc_sound_speed(transformed[0], transformed[1], transformed[2], transformed[3], kappa);
+        // Calc sound speed.
+        double a = QuantityCalculator::calc_sound_speed(transformed[0], transformed[1], transformed[2], transformed[3], kappa);
 
-      // Calc max eigenvalue.
-      if(transformed[1] / transformed[0] - a > max_eigen_value || point_i == 0)
-        max_eigen_value = transformed[1] / transformed[0] - a;
-      if(transformed[1] / transformed[0] > max_eigen_value)
-        max_eigen_value = transformed[1] / transformed[0];
-      if(transformed[1] / transformed[0] + a> max_eigen_value)
-        max_eigen_value = transformed[1] / transformed[0] + a;
+        // Calc max eigenvalue.
+        if(transformed[1] / transformed[0] - a > max_eigen_value || point_i == 0)
+          max_eigen_value = transformed[1] / transformed[0] - a;
+        if(transformed[1] / transformed[0] > max_eigen_value)
+          max_eigen_value = transformed[1] / transformed[0];
+        if(transformed[1] / transformed[0] + a> max_eigen_value)
+          max_eigen_value = transformed[1] / transformed[0] + a;
+      }
+
+      if(edge_length * max_eigen_value > edge_length_max_lambda || edge_i == 0)
+        edge_length_max_lambda = edge_length * max_eigen_value;
+
+      geom->free();
+      delete geom;
     }
 
-    if(edge_length * max_eigen_value > edge_length_max_lambda || edge_i == 0)
-      edge_length_max_lambda = edge_length * max_eigen_value;
 
-    geom->free();
-    delete geom;
-  }
+    double condition = e->get_area() * CFL_number / edge_length_max_lambda;
 
-
-  double condition = e->get_area() * CFL_number / edge_length_max_lambda;
-
-  if(condition < min_condition || min_condition == 0.)
-    min_condition = condition;
+    if(condition < min_condition || min_condition == 0.)
+      min_condition = condition;
   }
 
   time_step = min_condition;
@@ -188,38 +188,27 @@ void ADEStabilityCalculation::calculate(Hermes::vector<Solution<double>*> soluti
   Element *e;
   for_all_active_elements(e, mesh)
   {
-AsmList<double> al;
-  constant_rho_space.get_element_assembly_list(e, &al);
-  double rho = sln_vector[al.get_dof()[0]];
-  constant_rho_v_x_space.get_element_assembly_list(e, &al);
-  double v1 = sln_vector[al.get_dof()[0] + constant_rho_space.get_num_dofs()] / rho;
-  constant_rho_v_y_space.get_element_assembly_list(e, &al);
-  double v2 = sln_vector[al.get_dof()[0] + constant_rho_space.get_num_dofs() + constant_rho_space.get_num_dofs()] / rho;
+    AsmList<double> al;
+    constant_rho_space.get_element_assembly_list(e, &al);
+    double rho = sln_vector[al.get_dof()[0]];
+    constant_rho_v_x_space.get_element_assembly_list(e, &al);
+    double v1 = sln_vector[al.get_dof()[0] + constant_rho_space.get_num_dofs()] / rho;
+    constant_rho_v_y_space.get_element_assembly_list(e, &al);
+    double v2 = sln_vector[al.get_dof()[0] + 2 * constant_rho_space.get_num_dofs()] / rho;
 
-  double condition_advection = AdvectionRelativeConstant * approximate_inscribed_circle_radius(e) / std::sqrt(v1*v1 + v2*v2);
-  double condition_diffusion = DiffusionRelativeConstant * e->get_area() / epsilon;
+    double condition_advection = AdvectionRelativeConstant * e->get_diameter() / std::sqrt(v1*v1 + v2*v2);
+    double condition_diffusion = DiffusionRelativeConstant * e->get_area() / epsilon;
 
-  if(condition_advection < min_condition_advection || min_condition_advection == 0.)
-    min_condition_advection = condition_advection;
+    if(condition_advection < min_condition_advection || min_condition_advection == 0.)
+      min_condition_advection = condition_advection;
 
-  if(condition_diffusion < min_condition_diffusion || min_condition_diffusion == 0.)
-    min_condition_diffusion = condition_diffusion;
+    if(condition_diffusion < min_condition_diffusion || min_condition_diffusion == 0.)
+      min_condition_diffusion = condition_diffusion;
   }
 
   time_step = std::min(min_condition_advection, min_condition_diffusion);
 
   delete [] sln_vector;
-}
-
-double ADEStabilityCalculation::approximate_inscribed_circle_radius(Element * e)
-{
-  double h = std::sqrt(std::pow(e->vn[(0 + 1) % e->get_nvert()]->x - e->vn[0]->x, 2) + std::pow(e->vn[(0 + 1) % e->get_nvert()]->y - e->vn[0]->y, 2));
-  for(int edge_i = 0; edge_i < e->get_nvert(); edge_i++) {
-    double edge_length = std::sqrt(std::pow(e->vn[(edge_i + 1) % e->get_nvert()]->x - e->vn[edge_i]->x, 2) + std::pow(e->vn[(edge_i + 1) % e->get_nvert()]->y - e->vn[edge_i]->y, 2));
-    if(edge_length < h)
-      h = edge_length;
-  }
-  return h / 2;
 }
 
 DiscontinuityDetector::DiscontinuityDetector(Hermes::vector<const Space<double>*> spaces, 
@@ -314,7 +303,7 @@ double KrivodonovaDiscontinuityDetector::calculate_relative_flow_direction(Eleme
 
   double3* tan;
   Geom<double>* geom = init_geom_surf(solutions[1]->get_refmap(), surf_pos.surf_num, surf_pos.marker, eo, tan);
-    
+
   double* jwt = new double[np];
   for(int i = 0; i < np; i++)
     jwt[i] = pt[i][2] * tan[i][2];
@@ -556,77 +545,77 @@ std::set<int>& KuzminDiscontinuityDetector::get_discontinuous_element_ids()
         u_i_min_first_order[i][j] = std::numeric_limits<double>::infinity();
         u_i_max_first_order[i][j] = -std::numeric_limits<double>::infinity();
       }
-    find_u_i_min_max_first_order(e, u_i_min_first_order, u_i_max_first_order);
+      find_u_i_min_max_first_order(e, u_i_min_first_order, u_i_max_first_order);
 
-    // alpha_i calculation.
-    double alpha_i_first_order[4];
-    find_alpha_i_first_order(u_i_min_first_order, u_i_max_first_order, u_c, u_i, alpha_i_first_order);
+      // alpha_i calculation.
+      double alpha_i_first_order[4];
+      find_alpha_i_first_order(u_i_min_first_order, u_i_max_first_order, u_c, u_i, alpha_i_first_order);
 
-    // measure.
-    for(unsigned int i = 0; i < 4; i++)
-    {
-      if(1.0 > alpha_i_first_order[i])
+      // measure.
+      for(unsigned int i = 0; i < 4; i++)
       {
-        // check for sanity.
-        if(std::abs(u_c[i]) > 1E-12)
-          discontinuous_element_ids.insert(e->id);
-      }
-      if(std::abs(u_c[i]) < 1e-3)
-        continue;
-      bool bnd = false;
-      for(unsigned int j = 0; j < 4; j++)
-        if(e->en[j]->bnd)
-          bnd = true;
-      if(bnd)
-        continue;
-      double high_limit = -std::numeric_limits<double>::infinity();
-      double low_limit = std::numeric_limits<double>::infinity();
-      for(unsigned int j = 0; j < 4; j++)
-      {
-        if(u_i_max_first_order[i][j] > high_limit)
-          high_limit = u_i_max_first_order[i][j];
-        if(u_i_min_first_order[i][j] < low_limit)
-          low_limit = u_i_min_first_order[i][j];
-      }
-      if(u_c[i] > high_limit && std::abs(u_c[i] - high_limit) > 1e-3)
-      {
-        high_limit = (u_i_max_first_order[i][0] + u_i_max_first_order[i][1] + u_i_max_first_order[i][2] + u_i_max_first_order[i][3] + u_i_min_first_order[i][0] + u_i_min_first_order[i][1] + u_i_min_first_order[i][2] + u_i_min_first_order[i][3]) / 8.0;
-        switch(i)
+        if(1.0 > alpha_i_first_order[i])
         {
-        case 0:
-          oscillatory_element_idsRho.insert(std::pair<int, double>(e->id, high_limit));
-          break;
-        case 1:
-          oscillatory_element_idsRhoVX.insert(std::pair<int, double>(e->id, high_limit));
-          break;
-        case 2:
-          oscillatory_element_idsRhoVY.insert(std::pair<int, double>(e->id, high_limit));
-          break;
-        case 3:
-          oscillatory_element_idsRhoE.insert(std::pair<int, double>(e->id, high_limit));
-          break;
+          // check for sanity.
+          if(std::abs(u_c[i]) > 1E-12)
+            discontinuous_element_ids.insert(e->id);
+        }
+        if(std::abs(u_c[i]) < 1e-3)
+          continue;
+        bool bnd = false;
+        for(unsigned int j = 0; j < 4; j++)
+          if(e->en[j]->bnd)
+            bnd = true;
+        if(bnd)
+          continue;
+        double high_limit = -std::numeric_limits<double>::infinity();
+        double low_limit = std::numeric_limits<double>::infinity();
+        for(unsigned int j = 0; j < 4; j++)
+        {
+          if(u_i_max_first_order[i][j] > high_limit)
+            high_limit = u_i_max_first_order[i][j];
+          if(u_i_min_first_order[i][j] < low_limit)
+            low_limit = u_i_min_first_order[i][j];
+        }
+        if(u_c[i] > high_limit && std::abs(u_c[i] - high_limit) > 1e-3)
+        {
+          high_limit = (u_i_max_first_order[i][0] + u_i_max_first_order[i][1] + u_i_max_first_order[i][2] + u_i_max_first_order[i][3] + u_i_min_first_order[i][0] + u_i_min_first_order[i][1] + u_i_min_first_order[i][2] + u_i_min_first_order[i][3]) / 8.0;
+          switch(i)
+          {
+          case 0:
+            oscillatory_element_idsRho.insert(std::pair<int, double>(e->id, high_limit));
+            break;
+          case 1:
+            oscillatory_element_idsRhoVX.insert(std::pair<int, double>(e->id, high_limit));
+            break;
+          case 2:
+            oscillatory_element_idsRhoVY.insert(std::pair<int, double>(e->id, high_limit));
+            break;
+          case 3:
+            oscillatory_element_idsRhoE.insert(std::pair<int, double>(e->id, high_limit));
+            break;
+          }
+        }
+        if(u_c[i] < low_limit && std::abs(u_c[i] - low_limit) > 1e-3)
+        {
+          low_limit = (u_i_max_first_order[i][0] + u_i_max_first_order[i][1] + u_i_max_first_order[i][2] + u_i_max_first_order[i][3] + u_i_min_first_order[i][0] + u_i_min_first_order[i][1] + u_i_min_first_order[i][2] + u_i_min_first_order[i][3]) / 8.0;
+          switch(i)
+          {
+          case 0:
+            oscillatory_element_idsRho.insert(std::pair<int, double>(e->id, low_limit));
+            break;
+          case 1:
+            oscillatory_element_idsRhoVX.insert(std::pair<int, double>(e->id, low_limit));
+            break;
+          case 2:
+            oscillatory_element_idsRhoVY.insert(std::pair<int, double>(e->id, low_limit));
+            break;
+          case 3:
+            oscillatory_element_idsRhoE.insert(std::pair<int, double>(e->id, low_limit));
+            break;
+          }
         }
       }
-      if(u_c[i] < low_limit && std::abs(u_c[i] - low_limit) > 1e-3)
-      {
-        low_limit = (u_i_max_first_order[i][0] + u_i_max_first_order[i][1] + u_i_max_first_order[i][2] + u_i_max_first_order[i][3] + u_i_min_first_order[i][0] + u_i_min_first_order[i][1] + u_i_min_first_order[i][2] + u_i_min_first_order[i][3]) / 8.0;
-        switch(i)
-        {
-        case 0:
-          oscillatory_element_idsRho.insert(std::pair<int, double>(e->id, low_limit));
-          break;
-        case 1:
-          oscillatory_element_idsRhoVX.insert(std::pair<int, double>(e->id, low_limit));
-          break;
-        case 2:
-          oscillatory_element_idsRhoVY.insert(std::pair<int, double>(e->id, low_limit));
-          break;
-        case 3:
-          oscillatory_element_idsRhoE.insert(std::pair<int, double>(e->id, low_limit));
-          break;
-        }
-      }
-    }
   }
 
   return discontinuous_element_ids;
@@ -650,7 +639,7 @@ std::set<int>& KuzminDiscontinuityDetector::get_second_order_discontinuous_eleme
     // Vertex values.
     double u_d_i[4][4][2];
     find_vertex_derivatives(e, u_d_i);
-    
+
     // Boundaries for alpha_i calculation.
     double u_d_i_min_second_order[4][4][2];
     double u_d_i_max_second_order[4][4][2];
@@ -662,20 +651,20 @@ std::set<int>& KuzminDiscontinuityDetector::get_second_order_discontinuous_eleme
           u_d_i_max_second_order[i][j][k] = -std::numeric_limits<double>::infinity();
         }
 
-    find_u_i_min_max_second_order(e, u_d_i_min_second_order, u_d_i_max_second_order);
+        find_u_i_min_max_second_order(e, u_d_i_min_second_order, u_d_i_max_second_order);
 
-    // alpha_i calculation.
-    double alpha_i_second_order[4];
-    find_alpha_i_second_order(u_d_i_min_second_order, u_d_i_max_second_order, values, values, u_d_i, alpha_i_second_order);
+        // alpha_i calculation.
+        double alpha_i_second_order[4];
+        find_alpha_i_second_order(u_d_i_min_second_order, u_d_i_max_second_order, values, values, u_d_i, alpha_i_second_order);
 
-    // measure.
-    for(unsigned int i = 0; i < 4; i++)
-      if(1.0 > alpha_i_second_order[i])
-      {
-        // check for sanity.
-        if(std::abs(values[i][0][1]) > 1E-12 || std::abs(values[i][0][2]) > 1E-12)
-          second_order_discontinuous_element_ids.insert(e->id);
-      }
+        // measure.
+        for(unsigned int i = 0; i < 4; i++)
+          if(1.0 > alpha_i_second_order[i])
+          {
+            // check for sanity.
+            if(std::abs(values[i][0][1]) > 1E-12 || std::abs(values[i][0][2]) > 1E-12)
+              second_order_discontinuous_element_ids.insert(e->id);
+          }
   }
 
   return second_order_discontinuous_element_ids;
@@ -707,13 +696,13 @@ void KuzminDiscontinuityDetector::find_second_centroid_derivatives(Hermes::Herme
   double c_ref_x, c_ref_y;
   if(e->get_nvert() == 3)
   {
-      c_x = (0.33333333333333333) * (e->vn[0]->x + e->vn[1]->x + e->vn[2]->x);
-      c_y = (0.33333333333333333) * (e->vn[0]->y + e->vn[1]->y + e->vn[2]->y);
+    c_x = (0.33333333333333333) * (e->vn[0]->x + e->vn[1]->x + e->vn[2]->x);
+    c_y = (0.33333333333333333) * (e->vn[0]->y + e->vn[1]->y + e->vn[2]->y);
   }
   else
   {
-      c_x = (0.25) * (e->vn[0]->x + e->vn[1]->x + e->vn[2]->x + e->vn[3]->x);
-      c_y = (0.25) * (e->vn[0]->y + e->vn[1]->y + e->vn[2]->y + e->vn[3]->y);
+    c_x = (0.25) * (e->vn[0]->x + e->vn[1]->x + e->vn[2]->x + e->vn[3]->x);
+    c_y = (0.25) * (e->vn[0]->y + e->vn[1]->y + e->vn[2]->y + e->vn[3]->y);
   }
 
   for(unsigned int i = 0; i < this->solutions.size(); i++)
@@ -774,7 +763,7 @@ void KuzminDiscontinuityDetector::find_u_i_min_max_first_order(Hermes::Hermes2D:
     solutions[0]->get_refmap()->untransform(en, x_center, y_center, x_center_ref, y_center_ref);
 
     find_centroid_values(en, u_c, x_center_ref, y_center_ref);
-    
+
     for(unsigned int min_i = 0; min_i < 4; min_i++)
       if(u_i_min[min_i][j] > u_c[min_i])
         u_i_min[min_i][j] = u_c[min_i];
@@ -850,19 +839,19 @@ void KuzminDiscontinuityDetector::find_alpha_i_first_order(double u_i_min[4][4],
     }
   }
 }
-  
+
 void KuzminDiscontinuityDetector::find_alpha_i_first_order_real(Hermes::Hermes2D::Element* e, double u_i[4][4], double u_c[4], double u_dx_c[4], double u_dy_c[4], double alpha_i_real[4])
 {
   double c_x, c_y;
   if(e->get_nvert() == 3)
   {
-      c_x = (1/3) * (e->vn[0]->x + e->vn[1]->x + e->vn[2]->x);
-      c_y = (1/3) * (e->vn[0]->y + e->vn[1]->y + e->vn[2]->y);
+    c_x = (1/3) * (e->vn[0]->x + e->vn[1]->x + e->vn[2]->x);
+    c_y = (1/3) * (e->vn[0]->y + e->vn[1]->y + e->vn[2]->y);
   }
   else
   {
-      c_x = (1/4) * (e->vn[0]->x + e->vn[1]->x + e->vn[2]->x + e->vn[3]->x);
-      c_y = (1/4) * (e->vn[0]->y + e->vn[1]->y + e->vn[2]->y + e->vn[3]->y);
+    c_x = (1/4) * (e->vn[0]->x + e->vn[1]->x + e->vn[2]->x + e->vn[3]->x);
+    c_y = (1/4) * (e->vn[0]->y + e->vn[1]->y + e->vn[2]->y + e->vn[3]->y);
   }
 
   alpha_i_real[0] = alpha_i_real[1] = alpha_i_real[2] = alpha_i_real[3] = -std::numeric_limits<double>::infinity();
@@ -914,7 +903,7 @@ void KuzminDiscontinuityDetector::find_u_i_min_max_second_order(Hermes::Hermes2D
     solutions[0]->get_refmap()->untransform(en, x_center, y_center, x_center_ref, y_center_ref);
 
     find_centroid_derivatives(en, u_dx_c, u_dy_c, x_center_ref, y_center_ref);
-    
+
     for(unsigned int min_i = 0; min_i < 4; min_i++)
     {
       if(u_d_i_min[min_i][(j + 1) % e->get_nvert()][0] > u_dx_c[min_i])
@@ -1012,19 +1001,19 @@ void KuzminDiscontinuityDetector::find_alpha_i_second_order(double u_d_i_min[4][
     }
   }
 }
-  
+
 void KuzminDiscontinuityDetector::find_alpha_i_second_order_real(Hermes::Hermes2D::Element* e, double u_i[4][4][2], double u_dx_c[4], double u_dy_c[4], double u_dxx_c[4], double u_dxy_c[4], double u_dyy_c[4], double alpha_i_real[4])
 {
   double c_x, c_y;
   if(e->get_nvert() == 3)
   {
-      c_x = (1/3) * (e->vn[0]->x + e->vn[1]->x + e->vn[2]->x);
-      c_y = (1/3) * (e->vn[0]->y + e->vn[1]->y + e->vn[2]->y);
+    c_x = (1/3) * (e->vn[0]->x + e->vn[1]->x + e->vn[2]->x);
+    c_y = (1/3) * (e->vn[0]->y + e->vn[1]->y + e->vn[2]->y);
   }
   else
   {
-      c_x = (1/4) * (e->vn[0]->x + e->vn[1]->x + e->vn[2]->x + e->vn[3]->x);
-      c_y = (1/4) * (e->vn[0]->y + e->vn[1]->y + e->vn[2]->y + e->vn[3]->y);
+    c_x = (1/4) * (e->vn[0]->x + e->vn[1]->x + e->vn[2]->x + e->vn[3]->x);
+    c_y = (1/4) * (e->vn[0]->y + e->vn[1]->y + e->vn[2]->y + e->vn[3]->y);
   }
 
   alpha_i_real[0] = alpha_i_real[1] = alpha_i_real[2] = alpha_i_real[3] = -std::numeric_limits<double>::infinity();
@@ -1049,12 +1038,12 @@ FluxLimiter::FluxLimiter(FluxLimiter::LimitingType type, double* solution_vector
   Solution<double>::vector_to_solutions(solution_vector, spaces, limited_solutions);
   switch(type)
   {
-    case Krivodonova:
-      this->detector = new KrivodonovaDiscontinuityDetector(spaces, limited_solutions);
-      break;
-    case Kuzmin:
-      this->detector = new KuzminDiscontinuityDetector(spaces, limited_solutions, Kuzmin_limit_all_orders_independently);
-      break;
+  case Krivodonova:
+    this->detector = new KrivodonovaDiscontinuityDetector(spaces, limited_solutions);
+    break;
+  case Kuzmin:
+    this->detector = new KuzminDiscontinuityDetector(spaces, limited_solutions, Kuzmin_limit_all_orders_independently);
+    break;
   }
 };
 
@@ -1071,12 +1060,12 @@ FluxLimiter::FluxLimiter(FluxLimiter::LimitingType type, Hermes::vector<Solution
 
   switch(type)
   {
-    case Krivodonova:
-      this->detector = new KrivodonovaDiscontinuityDetector(spaces, limited_solutions);
-      break;
-    case Kuzmin:
-      this->detector = new KuzminDiscontinuityDetector(spaces, limited_solutions, Kuzmin_limit_all_orders_independently);
-      break;
+  case Krivodonova:
+    this->detector = new KrivodonovaDiscontinuityDetector(spaces, limited_solutions);
+    break;
+  case Kuzmin:
+    this->detector = new KuzminDiscontinuityDetector(spaces, limited_solutions, Kuzmin_limit_all_orders_independently);
+    break;
   }
 };
 
@@ -1100,7 +1089,7 @@ int FluxLimiter::limit_according_to_detector(Hermes::vector<Space<double> *> coa
   std::set<std::pair<int, double> > oscillatory_element_idsRhoVX = this->detector->get_oscillatory_element_idsRhoVX();
   std::set<std::pair<int, double> > oscillatory_element_idsRhoVY = this->detector->get_oscillatory_element_idsRhoVY();
   std::set<std::pair<int, double> > oscillatory_element_idsRhoE = this->detector->get_oscillatory_element_idsRhoE();
-  
+
   // First adjust the solution_vector.
   int running_dofs = 0;
   for(unsigned int space_i = 0; space_i < spaces.size(); space_i++)
@@ -1112,7 +1101,7 @@ int FluxLimiter::limit_according_to_detector(Hermes::vector<Space<double> *> coa
       spaces[space_i]->get_element_assembly_list(spaces[space_i]->get_mesh()->get_element(*it), &al);
       for(unsigned int shape_i = 0; shape_i < al.get_cnt(); shape_i++)
         if(H2D_GET_H_ORDER(spaces[space_i]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) > 0 || H2D_GET_V_ORDER(spaces[space_i]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) > 0)
-         solution_vector[running_dofs + al.get_dof()[shape_i]] = 0.0;
+          solution_vector[running_dofs + al.get_dof()[shape_i]] = 0.0;
     }
     if(this->limitOscillations)
       running_dofs += spaces[space_i]->get_num_dofs();
@@ -1236,52 +1225,52 @@ void FluxLimiter::limit_second_orders_according_to_detector(Hermes::vector<Space
     }
     //running_dofs += spaces[space_i]->get_num_dofs();
   }
-    // Now adjust the solutions.
-    Solution<double>::vector_to_solutions(solution_vector, spaces, limited_solutions);
-    if(dynamic_cast<KuzminDiscontinuityDetector*>(this->detector))
-    {
-      bool Kuzmin_limit_all_orders_independently = dynamic_cast<KuzminDiscontinuityDetector*>(this->detector)->get_limit_all_orders_independently();
-      delete detector;
-      this->detector = new KuzminDiscontinuityDetector(spaces, limited_solutions, Kuzmin_limit_all_orders_independently);
-    }
-    else
-    {
-      delete detector;
-      this->detector = new KrivodonovaDiscontinuityDetector(spaces, limited_solutions);
-    }
+  // Now adjust the solutions.
+  Solution<double>::vector_to_solutions(solution_vector, spaces, limited_solutions);
+  if(dynamic_cast<KuzminDiscontinuityDetector*>(this->detector))
+  {
+    bool Kuzmin_limit_all_orders_independently = dynamic_cast<KuzminDiscontinuityDetector*>(this->detector)->get_limit_all_orders_independently();
+    delete detector;
+    this->detector = new KuzminDiscontinuityDetector(spaces, limited_solutions, Kuzmin_limit_all_orders_independently);
+  }
+  else
+  {
+    delete detector;
+    this->detector = new KrivodonovaDiscontinuityDetector(spaces, limited_solutions);
+  }
 
-    if(coarse_spaces_to_limit != Hermes::vector<Space<double>*>()) {
-      // Now set the element order to zero.
-      Element* e;
+  if(coarse_spaces_to_limit != Hermes::vector<Space<double>*>()) {
+    // Now set the element order to zero.
+    Element* e;
 
-      for_all_elements(e, spaces[0]->get_mesh())
-        e->visited = false;
+    for_all_elements(e, spaces[0]->get_mesh())
+      e->visited = false;
 
-      for(std::set<int>::iterator it = discontinuous_elements.begin(); it != discontinuous_elements.end(); it++) {
-        AsmList<double> al;
-        spaces[0]->get_element_assembly_list(spaces[0]->get_mesh()->get_element(*it), &al);
-        for(unsigned int shape_i = 0; shape_i < al.get_cnt(); shape_i++) {
-          if(H2D_GET_H_ORDER(spaces[0]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) > 1 || H2D_GET_V_ORDER(spaces[0]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) > 1) {
-            int h_order_to_set = std::min(1, H2D_GET_H_ORDER(spaces[0]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())));
-            int v_order_to_set = std::min(1, H2D_GET_V_ORDER(spaces[0]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())));
-            spaces[0]->get_mesh()->get_element(*it)->visited = true;
-            bool all_sons_visited = true;
-            for(unsigned int son_i = 0; son_i < 4; son_i++)
-              if(!spaces[0]->get_mesh()->get_element(*it)->parent->sons[son_i]->visited)
-              {
-                all_sons_visited = false;
-                break;
-              }
-              if(all_sons_visited)
-                for(unsigned int space_i = 0; space_i < spaces.size(); space_i++) 
-                  coarse_spaces_to_limit[space_i]->set_element_order_internal(spaces[space_i]->get_mesh()->get_element(*it)->parent->id, H2D_MAKE_QUAD_ORDER(h_order_to_set, v_order_to_set));
-          }
+    for(std::set<int>::iterator it = discontinuous_elements.begin(); it != discontinuous_elements.end(); it++) {
+      AsmList<double> al;
+      spaces[0]->get_element_assembly_list(spaces[0]->get_mesh()->get_element(*it), &al);
+      for(unsigned int shape_i = 0; shape_i < al.get_cnt(); shape_i++) {
+        if(H2D_GET_H_ORDER(spaces[0]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) > 1 || H2D_GET_V_ORDER(spaces[0]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())) > 1) {
+          int h_order_to_set = std::min(1, H2D_GET_H_ORDER(spaces[0]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())));
+          int v_order_to_set = std::min(1, H2D_GET_V_ORDER(spaces[0]->get_shapeset()->get_order(al.get_idx()[shape_i], e->get_mode())));
+          spaces[0]->get_mesh()->get_element(*it)->visited = true;
+          bool all_sons_visited = true;
+          for(unsigned int son_i = 0; son_i < 4; son_i++)
+            if(!spaces[0]->get_mesh()->get_element(*it)->parent->sons[son_i]->visited)
+            {
+              all_sons_visited = false;
+              break;
+            }
+            if(all_sons_visited)
+              for(unsigned int space_i = 0; space_i < spaces.size(); space_i++) 
+                coarse_spaces_to_limit[space_i]->set_element_order_internal(spaces[space_i]->get_mesh()->get_element(*it)->parent->id, H2D_MAKE_QUAD_ORDER(h_order_to_set, v_order_to_set));
         }
       }
-
-      for(int i = 0; i < coarse_spaces_to_limit.size(); i++)
-        coarse_spaces_to_limit.at(i)->assign_dofs();
     }
+
+    for(int i = 0; i < coarse_spaces_to_limit.size(); i++)
+      coarse_spaces_to_limit.at(i)->assign_dofs();
+  }
 };
 
 void MachNumberFilter::filter_fn(int n, Hermes::vector<double*> values, double* result) 
