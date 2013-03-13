@@ -32,7 +32,7 @@ public:
 class InitialSolutionLinearProgress : public ExactSolutionScalar<double>
 {
 public:
-  InitialSolutionLinearProgress(const Mesh* mesh, double max, double min, double size) : ExactSolutionScalar<double>(mesh), max(max), min(min), size(size) {};
+  InitialSolutionLinearProgress(MeshSharedPtr mesh, double max, double min, double size) : ExactSolutionScalar<double>(mesh), max(max), min(min), size(size) {};
 
   virtual double value (double x, double y) const {
     return min + ((max - min) * (size - y) / size); 

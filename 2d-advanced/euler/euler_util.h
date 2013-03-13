@@ -26,8 +26,8 @@ public:
   CFLCalculation(double CFL_number, double kappa);
 
   // If the time step is necessary to decrease / possible to increase, the value time_step will be rewritten.
-  void calculate(Hermes::vector<Solution<double>*> solutions, Mesh* mesh, double & time_step) const;
-  void calculate_semi_implicit(Hermes::vector<Solution<double>*> solutions, Mesh* mesh, double & time_step) const;
+  void calculate(Hermes::vector<MeshFunctionSharedPtr<double> > solutions, MeshSharedPtr mesh, double & time_step) const;
+  void calculate_semi_implicit(Hermes::vector<MeshFunctionSharedPtr<double> > solutions, MeshSharedPtr mesh, double & time_step) const;
 
   void set_number(double new_CFL_number);
   
@@ -42,7 +42,7 @@ public:
   ADEStabilityCalculation(double AdvectionRelativeConstant, double DiffusionRelativeConstant, double epsilon);
 
   // If the time step is necessary to decrease / possible to increase, the value time_step will be rewritten.
-  void calculate(Hermes::vector<Solution<double>*> solutions, Mesh* mesh, double & time_step);
+  void calculate(Hermes::vector<MeshFunctionSharedPtr<double> > solutions, MeshSharedPtr mesh, double & time_step);
   
 protected:
   double AdvectionRelativeConstant;
@@ -54,8 +54,8 @@ class DiscontinuityDetector
 {
 public:
   /// Constructor.
-  DiscontinuityDetector(Hermes::vector<const Space<double> *> spaces, 
-                        Hermes::vector<Solution<double> *> solutions);
+  DiscontinuityDetector(Hermes::vector<SpaceSharedPtr<double> > spaces, 
+                        Hermes::vector<MeshFunctionSharedPtr<double> > solutions);
 
   /// Destructor.
    ~DiscontinuityDetector();
@@ -69,22 +69,23 @@ public:
 
 protected:
   /// Members.
-  Hermes::vector<const Space<double> *> spaces;
-  Hermes::vector<Solution<double> *> solutions;
+  Hermes::vector<SpaceSharedPtr<double> > spaces;
+  Hermes::vector<MeshFunctionSharedPtr<double> > solutions;
+  Hermes::vector<Solution<double>*> solutionsInternal;
   std::set<int> discontinuous_element_ids;
   std::set<std::pair<int, double> > oscillatory_element_idsRho;
   std::set<std::pair<int, double> > oscillatory_element_idsRhoVX;
   std::set<std::pair<int, double> > oscillatory_element_idsRhoVY;
   std::set<std::pair<int, double> > oscillatory_element_idsRhoE;
-  Mesh* mesh;
+  MeshSharedPtr mesh;
 };
 
 class KrivodonovaDiscontinuityDetector : public DiscontinuityDetector
 {
 public:
   /// Constructor.
-  KrivodonovaDiscontinuityDetector(Hermes::vector<const Space<double> *> spaces, 
-                        Hermes::vector<Solution<double> *> solutions);
+  KrivodonovaDiscontinuityDetector(Hermes::vector<SpaceSharedPtr<double> > spaces, 
+                        Hermes::vector<MeshFunctionSharedPtr<double> > solutions);
 
   /// Destructor.
    ~KrivodonovaDiscontinuityDetector();
@@ -111,8 +112,8 @@ class KuzminDiscontinuityDetector : public DiscontinuityDetector
 {
 public:
   /// Constructor.
-  KuzminDiscontinuityDetector(Hermes::vector<const Space<double> *> spaces, 
-                        Hermes::vector<Solution<double> *> solutions, bool limit_all_orders_independently = false);
+  KuzminDiscontinuityDetector(Hermes::vector<SpaceSharedPtr<double> > spaces, 
+                        Hermes::vector<MeshFunctionSharedPtr<double> > solutions, bool limit_all_orders_independently = false);
 
   /// Destructor.
    ~KuzminDiscontinuityDetector();
@@ -162,41 +163,41 @@ public:
     Kuzmin
   };
   /// Constructor.
-  FluxLimiter(LimitingType type, double* solution_vector, Hermes::vector<const Space<double> *> spaces, bool Kuzmin_limit_all_orders_independently = false);
-  FluxLimiter(FluxLimiter::LimitingType type, Hermes::vector<Solution<double>*> solutions, Hermes::vector<const Space<double>*> spaces, bool Kuzmin_limit_all_orders_independently = false);
+  FluxLimiter(LimitingType type, double* solution_vector, Hermes::vector<SpaceSharedPtr<double> > spaces, bool Kuzmin_limit_all_orders_independently = false);
+  FluxLimiter(FluxLimiter::LimitingType type, Hermes::vector<MeshFunctionSharedPtr<double> > solutions, Hermes::vector<SpaceSharedPtr<double>  > spaces, bool Kuzmin_limit_all_orders_independently = false);
   
   /// Destructor.
    ~FluxLimiter();
 
   /// Do the limiting.
   /// With the possibility to also limit the spaces from which the spaces in the constructors are refined.
-  virtual int limit_according_to_detector(Hermes::vector<Space<double> *> coarse_spaces_to_limit = Hermes::vector<Space<double> *>());
+  virtual int limit_according_to_detector(Hermes::vector<SpaceSharedPtr<double> > coarse_spaces_to_limit = Hermes::vector<SpaceSharedPtr<double> >());
   
   /// For Kuzmin's detector.
-  virtual void limit_second_orders_according_to_detector(Hermes::vector<Space<double> *> coarse_spaces_to_limit = Hermes::vector<Space<double> *>());
+  virtual void limit_second_orders_according_to_detector(Hermes::vector<SpaceSharedPtr<double> > coarse_spaces_to_limit = Hermes::vector<SpaceSharedPtr<double> >());
   
-  void get_limited_solutions(Hermes::vector<Solution<double>*> solutions_to_limit);
+  void get_limited_solutions(Hermes::vector<MeshFunctionSharedPtr<double> > solutions_to_limit);
   bool limitOscillations;
 protected:
   /// Members.
   double* solution_vector;
-  Hermes::vector<const Space<double> *> spaces;
+  Hermes::vector<SpaceSharedPtr<double> > spaces;
   DiscontinuityDetector* detector;
-  Hermes::vector<Solution<double>*> limited_solutions;
+  Hermes::vector<MeshFunctionSharedPtr<double> > limited_solutions;
 };
 
 // Filters.
 class MachNumberFilter : public Hermes::Hermes2D::SimpleFilter<double>
 {
 public: 
-  MachNumberFilter(Hermes::vector<MeshFunction<double>*> solutions, double kappa) : SimpleFilter<double>(solutions), kappa(kappa) {};
+  MachNumberFilter(Hermes::vector<MeshFunctionSharedPtr<double> > solutions, double kappa) : SimpleFilter<double>(solutions), kappa(kappa) {};
   ~MachNumberFilter() 
   {
   };
 
   MeshFunction<double>* clone() const
   {
-    Hermes::vector<MeshFunction<double>*> slns;
+    Hermes::vector<MeshFunctionSharedPtr<double> > slns;
     for(int i = 0; i < this->num; i++)
       slns.push_back(this->sln[i]->clone());
     MachNumberFilter* filter = new MachNumberFilter(slns, this->kappa);
@@ -213,14 +214,14 @@ protected:
 class PressureFilter : public Hermes::Hermes2D::SimpleFilter<double>
 {
 public: 
-  PressureFilter(Hermes::vector<MeshFunction<double>*> solutions, double kappa) : SimpleFilter<double>(solutions), kappa(kappa) {};
+  PressureFilter(Hermes::vector<MeshFunctionSharedPtr<double> > solutions, double kappa) : SimpleFilter<double>(solutions), kappa(kappa) {};
   ~PressureFilter() 
   {
   };
 
   MeshFunction<double>* clone() const
   {
-    Hermes::vector<MeshFunction<double>*> slns;
+    Hermes::vector<MeshFunctionSharedPtr<double> > slns;
     for(int i = 0; i < this->num; i++)
       slns.push_back(this->sln[i]->clone());
     PressureFilter* filter = new PressureFilter(slns, this->kappa);
@@ -237,14 +238,14 @@ class VelocityFilter : public Hermes::Hermes2D::SimpleFilter<double>
 {
 public:
   // Vector of solutions: 0-th position - density, 1-st position - velocity component.
-  VelocityFilter(Hermes::vector<MeshFunction<double>*> solutions) : SimpleFilter<double>(solutions) {};
+  VelocityFilter(Hermes::vector<MeshFunctionSharedPtr<double> > solutions) : SimpleFilter<double>(solutions) {};
   ~VelocityFilter() 
   {
   };
 
   MeshFunction<double>* clone() const
   {
-    Hermes::vector<MeshFunction<double>*> slns;
+    Hermes::vector<MeshFunctionSharedPtr<double> > slns;
     for(int i = 0; i < this->num; i++)
       slns.push_back(this->sln[i]->clone());
 
@@ -259,13 +260,13 @@ protected:
 class EntropyFilter : public Hermes::Hermes2D::SimpleFilter<double>
 {
 public: 
-  EntropyFilter(Hermes::vector<MeshFunction<double>*> solutions, double kappa, double rho_ext, double p_ext) : SimpleFilter<double>(solutions), kappa(kappa), rho_ext(rho_ext), p_ext(p_ext) {};
+  EntropyFilter(Hermes::vector<MeshFunctionSharedPtr<double> > solutions, double kappa, double rho_ext, double p_ext) : SimpleFilter<double>(solutions), kappa(kappa), rho_ext(rho_ext), p_ext(p_ext) {};
   ~EntropyFilter() 
   {
   };
   MeshFunction<double>* clone() const
   {
-    Hermes::vector<MeshFunction<double>*> slns;
+    Hermes::vector<MeshFunctionSharedPtr<double> > slns;
     for(int i = 0; i < this->num; i++)
       slns.push_back(this->sln[i]->clone());
     EntropyFilter* filter = new EntropyFilter(slns, this->kappa, rho_ext, p_ext);

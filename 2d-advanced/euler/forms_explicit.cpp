@@ -9,7 +9,7 @@
 class EulerEquationsWeakFormStabilization : public WeakForm<double>
 {
 public:
-  EulerEquationsWeakFormStabilization(Solution<double>* prev_rho) : WeakForm<double>()
+  EulerEquationsWeakFormStabilization(MeshFunctionSharedPtr<double> prev_rho) : WeakForm<double>()
   {
     this->set_ext(prev_rho);
     add_vector_form_DG(new DGVectorFormIndicator());
@@ -23,11 +23,10 @@ public:
     {
     }
 
-    double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
+    double value(int n, double *wt, DiscontinuousFunc<double> *u_ext[], Func<double> *v, 
       Geom<double> *e, DiscontinuousFunc<double>* *ext) const 
     {
       double result = 0;
-      double w_L[4], w_R[4];
       
       for (int i = 0;i < n;i++)
         result += wt[i] * v->val[i] * (ext[0]->val[i] - ext[0]->val_neighbor[i]) * (ext[0]->val[i] - ext[0]->val_neighbor[i]);
@@ -35,7 +34,7 @@ public:
       return result / (e->diam * std::pow(e->area, 0.75));
     }
 
-    Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
+    Ord ord(int n, double *wt, DiscontinuousFunc<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
       Func<Ord>* *ext) const 
     {
       return v->val[0] * v->val[0] * Ord(6);
@@ -54,10 +53,10 @@ public:
   Hermes::vector<std::string> inlet_markers;
   Hermes::vector<std::string> outlet_markers;
 
-  Solution<double>* prev_density;
-  Solution<double>* prev_density_vel_x;
-  Solution<double>* prev_density_vel_y;
-  Solution<double>* prev_energy;
+  MeshFunctionSharedPtr<double> prev_density;
+  MeshFunctionSharedPtr<double> prev_density_vel_x;
+  MeshFunctionSharedPtr<double> prev_density_vel_y;
+  MeshFunctionSharedPtr<double> prev_energy;
 
   // External state.
   Hermes::vector<double> rho_ext;
@@ -90,7 +89,7 @@ public:
   EulerEquationsWeakFormSemiImplicit(double kappa, 
     double rho_ext, double v1_ext, double v2_ext, double pressure_ext,
     Hermes::vector<std::string> solid_wall_markers, Hermes::vector<std::string> inlet_markers, Hermes::vector<std::string> outlet_markers, 
-    Solution<double>* prev_density, Solution<double>* prev_density_vel_x, Solution<double>* prev_density_vel_y,  Solution<double>* prev_energy, 
+    MeshFunctionSharedPtr<double> prev_density, MeshFunctionSharedPtr<double> prev_density_vel_x, MeshFunctionSharedPtr<double> prev_density_vel_y,  MeshFunctionSharedPtr<double> prev_energy, 
     bool fvm_only = false, int num_of_equations = 4) :
 
   WeakForm<double>(num_of_equations), 
@@ -130,7 +129,7 @@ public:
       add_vector_form_surf(new EulerEquationsVectorFormSemiImplicitInletOutlet(form_i, rho_ext, v1_ext, v2_ext, energy_ext[0], inlet_markers, kappa));
 
       if(outlet_markers.size() > 0)
-        add_vector_form_surf(new EulerEquationsVectorFormSemiImplicitInletOutlet(form_i, 0, 0, 0, 0, outlet_markers, kappa));
+        add_vector_form_surf(new EulerEquationsVectorFormSemiImplicitInletOutlet(form_i, rho_ext, v1_ext, v2_ext, energy_ext[0], outlet_markers, kappa));
 
       for(int form_j = 0; form_j < 4; form_j++)
       {
@@ -145,7 +144,7 @@ public:
 
         if(outlet_markers.size() > 0)
         {
-          formSurf = new EulerEquationsMatrixFormSemiImplicitInletOutlet(form_i, form_j, 0,0,0,0, outlet_markers, kappa, &this->cacheReadySurf, this->P_plus_cache_surf, this->P_minus_cache_surf);
+          formSurf = new EulerEquationsMatrixFormSemiImplicitInletOutlet(form_i, form_j, rho_ext, v1_ext, v2_ext, energy_ext[0], outlet_markers, kappa, &this->cacheReadySurf, this->P_plus_cache_surf, this->P_minus_cache_surf);
           add_matrix_form_surf(formSurf);
         }
 
@@ -153,14 +152,14 @@ public:
       }
     }
 
-    this->set_ext(Hermes::vector<MeshFunction<double>*>(prev_density, prev_density_vel_x, prev_density_vel_y, prev_energy));
+    this->set_ext(Hermes::vector<MeshFunctionSharedPtr<double> >(prev_density, prev_density_vel_x, prev_density_vel_y, prev_energy));
   };
 
   // Constructor for more inflows.
   EulerEquationsWeakFormSemiImplicit(double kappa, 
     Hermes::vector<double> rho_ext, Hermes::vector<double> v1_ext, Hermes::vector<double> v2_ext, Hermes::vector<double> pressure_ext,
     Hermes::vector<std::string> solid_wall_markers, Hermes::vector<std::string> inlet_markers, Hermes::vector<std::string> outlet_markers, 
-    Solution<double>* prev_density, Solution<double>* prev_density_vel_x, Solution<double>* prev_density_vel_y,  Solution<double>* prev_energy, 
+    MeshFunctionSharedPtr<double> prev_density, MeshFunctionSharedPtr<double> prev_density_vel_x, MeshFunctionSharedPtr<double> prev_density_vel_y,  MeshFunctionSharedPtr<double> prev_energy, 
     bool fvm_only = false, int num_of_equations = 4) :
 
   WeakForm<double>(num_of_equations), 
@@ -220,7 +219,7 @@ public:
       }
     }
 
-    this->set_ext(Hermes::vector<MeshFunction<double>*>(prev_density, prev_density_vel_x, prev_density_vel_y, prev_energy));
+    this->set_ext(Hermes::vector<MeshFunctionSharedPtr<double> >(prev_density, prev_density_vel_x, prev_density_vel_y, prev_energy));
   };
 
   virtual ~EulerEquationsWeakFormSemiImplicit()
@@ -266,7 +265,7 @@ public:
     for(unsigned int i = 0; i < this->ext.size(); i++)
     {
       Solution<double>* ext = static_cast<Solution<double>*>(this->ext[i]->clone());
-      if((static_cast<Solution<double>*>(this->ext[i]))->get_type() == HERMES_SLN)
+      if((static_cast<Solution<double>*>(this->ext[i].get()))->get_type() == HERMES_SLN)
         ext->set_type(HERMES_SLN);
       wf->ext.push_back(ext);
     }
@@ -293,7 +292,7 @@ public:
   {
   }
 
-  void set_stabilization(Solution<double>* prev_density, Solution<double>* prev_density_vel_x, Solution<double>* prev_density_vel_y, Solution<double>* prev_energy, double nu_1, double nu_2) 
+  void set_stabilization(MeshFunctionSharedPtr<double> prev_density, MeshFunctionSharedPtr<double> prev_density_vel_x, MeshFunctionSharedPtr<double> prev_density_vel_y, MeshFunctionSharedPtr<double> prev_energy, double nu_1, double nu_2) 
   {
     int mfvol_size = this->mfvol.size();
     int mfsurf_size = this->mfsurf.size();   
@@ -322,12 +321,12 @@ public:
 
     for(unsigned int matrix_form_i = mfvol_size;matrix_form_i < this->mfvol.size();matrix_form_i++) 
     {
-      mfvol.at(matrix_form_i)->set_ext(Hermes::vector<MeshFunction<double>*>(prev_density, prev_density_vel_x, prev_density_vel_y, prev_energy));
+      mfvol.at(matrix_form_i)->set_ext(Hermes::vector<MeshFunctionSharedPtr<double> >(prev_density, prev_density_vel_x, prev_density_vel_y, prev_energy));
     }
 
     for(unsigned int matrix_form_i = mfsurf_size;matrix_form_i < this->mfsurf.size();matrix_form_i++) 
     {
-      mfsurf.at(matrix_form_i)->set_ext(Hermes::vector<MeshFunction<double>*>(prev_density, prev_density_vel_x, prev_density_vel_y, prev_energy));
+      mfsurf.at(matrix_form_i)->set_ext(Hermes::vector<MeshFunctionSharedPtr<double> >(prev_density, prev_density_vel_x, prev_density_vel_y, prev_energy));
     }
   }
 
@@ -475,7 +474,7 @@ public:
       delete num_flux;
     }
 
-    double value(int n, double *wt, DiscontinuousFunc<double> *u, 
+    double value(int n, double *wt, DiscontinuousFunc<double> **u_ext, DiscontinuousFunc<double> *u, 
       DiscontinuousFunc<double> *v, Geom<double> *e, DiscontinuousFunc<double>* *ext) const 
     {
       double w[4];
@@ -645,8 +644,6 @@ public:
                 q_ji[si] += alpha[sj] * T[si][sj];
 
           num_flux->Q_inv(w_ji, q_ji, e->nx[point_i], e->ny[point_i]);
-
-          double P_minus[4];
 
           double w_temp[4];
           w_temp[0] = (w_ji[0] + w_L[0]) / 2;
@@ -936,7 +933,7 @@ public:
     EulerEquationsFormStabilizationSurf(int i, int j, double nu_2) 
       : MatrixFormDG<double>(i, j), nu_2(nu_2) {}
 
-    double value(int n, double *wt, DiscontinuousFunc<double> *u, 
+    double value(int n, double *wt, DiscontinuousFunc<double> **u_ext, DiscontinuousFunc<double> *u, 
       DiscontinuousFunc<double> *v, Geom<double> *e, DiscontinuousFunc<double>* *ext) const 
     {
       double result = 0.;
@@ -978,13 +975,13 @@ public:
 class EulerEquationsWeakFormSemiImplicitCoupledWithHeat : public EulerEquationsWeakFormSemiImplicit
 {
 public:
-  Solution<double>* prev_temp;
+  MeshFunctionSharedPtr<double> prev_temp;
   double lambda, c_p, heat_flux;
 
   EulerEquationsWeakFormSemiImplicitCoupledWithHeat(double kappa, 
     double rho_ext, double v1_ext, double v2_ext, double pressure_ext,
     Hermes::vector<std::string> solid_wall_markers, Hermes::vector<std::string> inlet_markers, Hermes::vector<std::string> outlet_markers, 
-    Solution<double>* prev_density, Solution<double>* prev_density_vel_x, Solution<double>* prev_density_vel_y, Solution<double>* prev_energy, Solution<double>* prev_temp, double lambda, double c_p, double heat_flux): EulerEquationsWeakFormSemiImplicit(kappa, rho_ext, v1_ext, v2_ext, pressure_ext, solid_wall_markers, inlet_markers, outlet_markers, prev_density,
+    MeshFunctionSharedPtr<double> prev_density, MeshFunctionSharedPtr<double> prev_density_vel_x, MeshFunctionSharedPtr<double> prev_density_vel_y, MeshFunctionSharedPtr<double> prev_energy, MeshFunctionSharedPtr<double> prev_temp, double lambda, double c_p, double heat_flux): EulerEquationsWeakFormSemiImplicit(kappa, rho_ext, v1_ext, v2_ext, pressure_ext, solid_wall_markers, inlet_markers, outlet_markers, prev_density,
     prev_density_vel_x, prev_density_vel_y, prev_energy, false, 5), prev_temp(prev_temp), lambda(lambda), c_p(c_p), heat_flux(heat_flux)
   {
     add_matrix_form(new HeatBilinearFormTime(4, c_p, lambda));
@@ -1007,7 +1004,7 @@ public:
     for(unsigned int i = 0; i < this->ext.size(); i++)
     {
       Solution<double>* ext = static_cast<Solution<double>*>(this->ext[i]->clone());
-      if((static_cast<Solution<double>*>(this->ext[i]))->get_type() == HERMES_SLN)
+      if((static_cast<Solution<double>*>(this->ext[i].get()))->get_type() == HERMES_SLN)
         ext->set_type(HERMES_SLN);
       wf->ext.push_back(ext);
     }

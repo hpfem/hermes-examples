@@ -33,18 +33,18 @@ CFLCalculation::CFLCalculation(double CFL_number, double kappa) : CFL_number(CFL
 {
 }
 
-void CFLCalculation::calculate(Hermes::vector<Solution<double>*> solutions, Mesh* mesh, double & time_step) const
+void CFLCalculation::calculate(Hermes::vector<MeshFunctionSharedPtr<double> > solutions, MeshSharedPtr mesh, double & time_step) const
 {
   // Create spaces of constant functions over the given mesh.
-  L2Space<double> constant_rho_space(mesh, 0);
-  L2Space<double> constant_rho_v_x_space(mesh, 0);
-  L2Space<double> constant_rho_v_y_space(mesh, 0);
-  L2Space<double> constant_energy_space(mesh, 0);
+  SpaceSharedPtr<double> constant_rho_space(new L2Space<double> (mesh, 0));
+  SpaceSharedPtr<double> constant_rho_v_x_space(new L2Space<double> (mesh, 0));
+  SpaceSharedPtr<double> constant_rho_v_y_space(new L2Space<double> (mesh, 0));
+  SpaceSharedPtr<double> constant_energy_space(new L2Space<double> (mesh, 0));
 
-  double* sln_vector = new double[constant_rho_space.get_num_dofs() * 4];
+  double* sln_vector = new double[constant_rho_space->get_num_dofs() * 4];
 
   OGProjection<double> ogProjection;
-  ogProjection.project_global(Hermes::vector<const Space<double>*>(&constant_rho_space, &constant_rho_v_x_space, &constant_rho_v_y_space, &constant_energy_space), solutions, sln_vector);
+  ogProjection.project_global(Hermes::vector<SpaceSharedPtr<double>  >(constant_rho_space, constant_rho_v_x_space, constant_rho_v_y_space, constant_energy_space), solutions, sln_vector);
 
   // Determine the time step according to the CFL condition.
 
@@ -53,13 +53,13 @@ void CFLCalculation::calculate(Hermes::vector<Solution<double>*> solutions, Mesh
   for_all_active_elements(e, mesh)
   {
     AsmList<double> al;
-    constant_rho_space.get_element_assembly_list(e, &al);
+    constant_rho_space->get_element_assembly_list(e, &al);
     double rho = sln_vector[al.get_dof()[0]];
-    constant_rho_v_x_space.get_element_assembly_list(e, &al);
+    constant_rho_v_x_space->get_element_assembly_list(e, &al);
     double v1 = sln_vector[al.get_dof()[0]] / rho;
-    constant_rho_v_y_space.get_element_assembly_list(e, &al);
+    constant_rho_v_y_space->get_element_assembly_list(e, &al);
     double v2 = sln_vector[al.get_dof()[0]] / rho;
-    constant_energy_space.get_element_assembly_list(e, &al);
+    constant_energy_space->get_element_assembly_list(e, &al);
     double energy = sln_vector[al.get_dof()[0]];
 
     double condition = e->get_area() * CFL_number / (std::sqrt(v1*v1 + v2*v2) + QuantityCalculator::calc_sound_speed(rho, rho*v1, rho*v2, energy, kappa));
@@ -73,18 +73,18 @@ void CFLCalculation::calculate(Hermes::vector<Solution<double>*> solutions, Mesh
   delete [] sln_vector;
 }
 
-void CFLCalculation::calculate_semi_implicit(Hermes::vector<Solution<double>*> solutions, Mesh* mesh, double & time_step) const
+void CFLCalculation::calculate_semi_implicit(Hermes::vector<MeshFunctionSharedPtr<double> > solutions, MeshSharedPtr mesh, double & time_step) const
 {
   // Create spaces of constant functions over the given mesh.
-  L2Space<double> constant_rho_space(mesh, 0);
-  L2Space<double> constant_rho_v_x_space(mesh, 0);
-  L2Space<double> constant_rho_v_y_space(mesh, 0);
-  L2Space<double> constant_energy_space(mesh, 0);
+  SpaceSharedPtr<double> constant_rho_space(new L2Space<double>(mesh, 0));
+  SpaceSharedPtr<double> constant_rho_v_x_space(new L2Space<double>(mesh, 0));
+  SpaceSharedPtr<double> constant_rho_v_y_space(new L2Space<double>(mesh, 0));
+  SpaceSharedPtr<double> constant_energy_space(new L2Space<double>(mesh, 0));
 
-  double* sln_vector = new double[constant_rho_space.get_num_dofs() * 4];
+  double* sln_vector = new double[constant_rho_space->get_num_dofs() * 4];
 
   OGProjection<double> ogProjection;
-  ogProjection.project_global(Hermes::vector<const Space<double>*>(&constant_rho_space, &constant_rho_v_x_space, &constant_rho_v_y_space, &constant_energy_space), solutions, sln_vector);
+  ogProjection.project_global(Hermes::vector<SpaceSharedPtr<double>  >(constant_rho_space, constant_rho_v_x_space, constant_rho_v_y_space, constant_energy_space), solutions, sln_vector);
 
   // Determine the time step according to the CFL condition.
 
@@ -94,13 +94,13 @@ void CFLCalculation::calculate_semi_implicit(Hermes::vector<Solution<double>*> s
   for_all_active_elements(e, mesh)
   {
     AsmList<double> al;
-    constant_rho_space.get_element_assembly_list(e, &al);
+    constant_rho_space->get_element_assembly_list(e, &al);
     w[0] = sln_vector[al.get_dof()[0]];
-    constant_rho_v_x_space.get_element_assembly_list(e, &al);
+    constant_rho_v_x_space->get_element_assembly_list(e, &al);
     w[1] = sln_vector[al.get_dof()[0]];
-    constant_rho_v_y_space.get_element_assembly_list(e, &al);
+    constant_rho_v_y_space->get_element_assembly_list(e, &al);
     w[2] = sln_vector[al.get_dof()[0]];
-    constant_energy_space.get_element_assembly_list(e, &al);
+    constant_energy_space->get_element_assembly_list(e, &al);
     w[3] = sln_vector[al.get_dof()[0]];
 
     double edge_length_max_lambda = 0.0;
@@ -170,17 +170,17 @@ ADEStabilityCalculation::ADEStabilityCalculation(double AdvectionRelativeConstan
 {
 }
 
-void ADEStabilityCalculation::calculate(Hermes::vector<Solution<double>*> solutions, Mesh* mesh, double & time_step)
+void ADEStabilityCalculation::calculate(Hermes::vector<MeshFunctionSharedPtr<double> > solutions, MeshSharedPtr mesh, double & time_step)
 {
   // Create spaces of constant functions over the given mesh.
-  L2Space<double> constant_rho_space(mesh, 0);
-  L2Space<double> constant_rho_v_x_space(mesh, 0);
-  L2Space<double> constant_rho_v_y_space(mesh, 0);
+  SpaceSharedPtr<double> constant_rho_space(new L2Space<double>(mesh, 0));
+  SpaceSharedPtr<double> constant_rho_v_x_space(new L2Space<double>(mesh, 0));
+  SpaceSharedPtr<double> constant_rho_v_y_space(new L2Space<double>(mesh, 0));
 
-  double* sln_vector = new double[constant_rho_space.get_num_dofs() * 3];
+  double* sln_vector = new double[constant_rho_space->get_num_dofs() * 3];
 
   OGProjection<double> ogProjection;
-  ogProjection.project_global(Hermes::vector<const Space<double>*>(&constant_rho_space, &constant_rho_v_x_space, &constant_rho_v_y_space), solutions, sln_vector);
+  ogProjection.project_global(Hermes::vector<SpaceSharedPtr<double>  >(constant_rho_space, constant_rho_v_x_space, constant_rho_v_y_space), solutions, sln_vector);
 
   // Determine the time step according to the conditions.
   double min_condition_advection = 0.;
@@ -189,12 +189,12 @@ void ADEStabilityCalculation::calculate(Hermes::vector<Solution<double>*> soluti
   for_all_active_elements(e, mesh)
   {
     AsmList<double> al;
-    constant_rho_space.get_element_assembly_list(e, &al);
+    constant_rho_space->get_element_assembly_list(e, &al);
     double rho = sln_vector[al.get_dof()[0]];
-    constant_rho_v_x_space.get_element_assembly_list(e, &al);
-    double v1 = sln_vector[al.get_dof()[0] + constant_rho_space.get_num_dofs()] / rho;
-    constant_rho_v_y_space.get_element_assembly_list(e, &al);
-    double v2 = sln_vector[al.get_dof()[0] + 2 * constant_rho_space.get_num_dofs()] / rho;
+    constant_rho_v_x_space->get_element_assembly_list(e, &al);
+    double v1 = sln_vector[al.get_dof()[0] + constant_rho_space->get_num_dofs()] / rho;
+    constant_rho_v_y_space->get_element_assembly_list(e, &al);
+    double v2 = sln_vector[al.get_dof()[0] + 2 * constant_rho_space->get_num_dofs()] / rho;
 
     double condition_advection = AdvectionRelativeConstant * e->get_diameter() / std::sqrt(v1*v1 + v2*v2);
     double condition_diffusion = DiffusionRelativeConstant * e->get_area() / epsilon;
@@ -211,22 +211,24 @@ void ADEStabilityCalculation::calculate(Hermes::vector<Solution<double>*> soluti
   delete [] sln_vector;
 }
 
-DiscontinuityDetector::DiscontinuityDetector(Hermes::vector<const Space<double>*> spaces, 
-  Hermes::vector<Solution<double>*> solutions) : spaces(spaces), solutions(solutions)
+DiscontinuityDetector::DiscontinuityDetector(Hermes::vector<SpaceSharedPtr<double>  > spaces, 
+  Hermes::vector<MeshFunctionSharedPtr<double> > solutions) : spaces(spaces), solutions(solutions)
 {
+  for(int i = 0; i < solutions.size(); i++)
+    this->solutionsInternal.push_back((Solution<double>*)solutions[i].get());
 };
 
 DiscontinuityDetector::~DiscontinuityDetector()
 {};
 
-KrivodonovaDiscontinuityDetector::KrivodonovaDiscontinuityDetector(Hermes::vector<const Space<double>*> spaces, 
-  Hermes::vector<Solution<double>*> solutions) : DiscontinuityDetector(spaces, solutions)
+KrivodonovaDiscontinuityDetector::KrivodonovaDiscontinuityDetector(Hermes::vector<SpaceSharedPtr<double>  > spaces, 
+  Hermes::vector<MeshFunctionSharedPtr<double> > solutions) : DiscontinuityDetector(spaces, solutions)
 {
   // A check that all meshes are the same in the spaces.
   unsigned int mesh0_seq = spaces[0]->get_mesh()->get_seq();
   for(unsigned int i = 0; i < spaces.size(); i++)
     if(spaces[i]->get_mesh()->get_seq() != mesh0_seq)
-      throw Hermes::Exceptions::Exception("So far DiscontinuityDetector works only for single mesh.");
+      throw Hermes::Exceptions::Exception("So far DiscontinuityDetector works only for single mesh->");
   mesh = spaces[0]->get_mesh();
 };
 
@@ -309,8 +311,8 @@ double KrivodonovaDiscontinuityDetector::calculate_relative_flow_direction(Eleme
     jwt[i] = pt[i][2] * tan[i][2];
 
   // Calculate.
-  Func<double>* density_vel_x = init_fn(solutions[1], eo);
-  Func<double>* density_vel_y = init_fn(solutions[2], eo);
+  Func<double>* density_vel_x = init_fn(solutions[1].get(), eo);
+  Func<double>* density_vel_y = init_fn(solutions[2].get(), eo);
 
   double result = 0.0;
   for(int point_i = 0; point_i < np; point_i++)
@@ -373,10 +375,10 @@ void KrivodonovaDiscontinuityDetector::calculate_jumps(Element* e, int edge_i, d
       jwt[i] = pt[i][2] * tan[i][2];
 
     // Prepare functions on the central element.
-    Func<double>* density = init_fn(solutions[0], eo);
-    Func<double>* density_vel_x = init_fn(solutions[1], eo);
-    Func<double>* density_vel_y = init_fn(solutions[2], eo);
-    Func<double>* energy = init_fn(solutions[3], eo);
+    Func<double>* density = init_fn(solutions[0].get(), eo);
+    Func<double>* density_vel_x = init_fn(solutions[1].get(), eo);
+    Func<double>* density_vel_y = init_fn(solutions[2].get(), eo);
+    Func<double>* energy = init_fn(solutions[3].get(), eo);
 
     // Set neighbor element to the solutions.
     solutions[0]->set_active_element(ns.get_neighb_el());
@@ -393,10 +395,10 @@ void KrivodonovaDiscontinuityDetector::calculate_jumps(Element* e, int edge_i, d
     }
 
     // Prepare functions on the neighbor element.
-    Func<double>* density_neighbor = init_fn(solutions[0], eo);
-    Func<double>* density_vel_x_neighbor = init_fn(solutions[1], eo);
-    Func<double>* density_vel_y_neighbor = init_fn(solutions[2], eo);
-    Func<double>* energy_neighbor = init_fn(solutions[3], eo);
+    Func<double>* density_neighbor = init_fn(solutions[0].get(), eo);
+    Func<double>* density_vel_x_neighbor = init_fn(solutions[1].get(), eo);
+    Func<double>* density_vel_y_neighbor = init_fn(solutions[2].get(), eo);
+    Func<double>* energy_neighbor = init_fn(solutions[3].get(), eo);
 
     DiscontinuousFunc<double> density_discontinuous(density, density_neighbor, true);
     DiscontinuousFunc<double> density_vel_x_discontinuous(density_vel_x, density_vel_x_neighbor, true);
@@ -468,10 +470,10 @@ void KrivodonovaDiscontinuityDetector::calculate_norms(Element* e, int edge_i, d
     jwt[i] = pt[i][2] * tan[i][2];
 
   // Calculate.
-  Func<double>* density = init_fn(solutions[0], eo);
-  Func<double>* density_vel_x = init_fn(solutions[1], eo);
-  Func<double>* density_vel_y = init_fn(solutions[2], eo);
-  Func<double>* energy = init_fn(solutions[3], eo);
+  Func<double>* density = init_fn(solutions[0].get(), eo);
+  Func<double>* density_vel_x = init_fn(solutions[1].get(), eo);
+  Func<double>* density_vel_y = init_fn(solutions[2].get(), eo);
+  Func<double>* energy = init_fn(solutions[3].get(), eo);
 
   for(int point_i = 0; point_i < np; point_i++) {
     result[0] = std::max(result[0], std::abs(density->val[point_i]));
@@ -495,14 +497,14 @@ void KrivodonovaDiscontinuityDetector::calculate_norms(Element* e, int edge_i, d
   delete energy;
 };
 
-KuzminDiscontinuityDetector::KuzminDiscontinuityDetector(Hermes::vector<const Space<double>*> spaces, 
-  Hermes::vector<Solution<double>*> solutions, bool limit_all_orders_independently) : DiscontinuityDetector(spaces, solutions), limit_all_orders_independently(limit_all_orders_independently)
+KuzminDiscontinuityDetector::KuzminDiscontinuityDetector(Hermes::vector<SpaceSharedPtr<double>  > spaces, 
+  Hermes::vector<MeshFunctionSharedPtr<double> > solutions, bool limit_all_orders_independently) : DiscontinuityDetector(spaces, solutions), limit_all_orders_independently(limit_all_orders_independently)
 {
   // A check that all meshes are the same in the spaces.
   unsigned int mesh0_seq = spaces[0]->get_mesh()->get_seq();
   for(unsigned int i = 0; i < spaces.size(); i++)
     if(spaces[i]->get_mesh()->get_seq() != mesh0_seq)
-      throw Hermes::Exceptions::Exception("So far DiscontinuityDetector works only for single mesh.");
+      throw Hermes::Exceptions::Exception("So far DiscontinuityDetector works only for single mesh->");
   mesh = spaces[0]->get_mesh();
 };
 
@@ -634,7 +636,7 @@ std::set<int>& KuzminDiscontinuityDetector::get_second_order_discontinuous_eleme
 
     double*** values = new double**[this->solutions.size()];
     for(int i = 0; i < this->solutions.size(); i++)
-      values[i] = solutions[i]->get_ref_values_transformed(e, c_x, c_y);
+      values[i] = solutionsInternal[i]->get_ref_values_transformed(e, c_x, c_y);
 
     // Vertex values.
     double u_d_i[4][4][2];
@@ -678,15 +680,15 @@ bool KuzminDiscontinuityDetector::get_limit_all_orders_independently()
 void KuzminDiscontinuityDetector::find_centroid_values(Hermes::Hermes2D::Element* e, double u_c[4], double x_ref, double y_ref)
 {
   for(unsigned int i = 0; i < this->solutions.size(); i++)
-    u_c[i] = solutions[i]->get_ref_value_transformed(e, x_ref, y_ref, 0, 0);
+    u_c[i] = solutionsInternal[i]->get_ref_value_transformed(e, x_ref, y_ref, 0, 0);
 }
 
 void KuzminDiscontinuityDetector::find_centroid_derivatives(Hermes::Hermes2D::Element* e, double u_dx_c[4], double u_dy_c[4], double x_ref, double y_ref)
 {
   for(unsigned int i = 0; i < this->solutions.size(); i++)
   {
-    u_dx_c[i] = solutions[i]->get_ref_value_transformed(e, x_ref, y_ref, 0, 1);
-    u_dy_c[i] = solutions[i]->get_ref_value_transformed(e, x_ref, y_ref, 0, 2);
+    u_dx_c[i] = solutionsInternal[i]->get_ref_value_transformed(e, x_ref, y_ref, 0, 1);
+    u_dy_c[i] = solutionsInternal[i]->get_ref_value_transformed(e, x_ref, y_ref, 0, 2);
   }
 }
 
@@ -709,9 +711,9 @@ void KuzminDiscontinuityDetector::find_second_centroid_derivatives(Hermes::Herme
   {
     solutions[i]->set_active_element(e);
     solutions[i]->get_refmap()->untransform(e, c_x, c_y, c_ref_x, c_ref_y);
-    u_dxx_c[i] = solutions[i]->get_ref_value_transformed(e, c_ref_x, c_ref_y, 0, 3);
-    u_dyy_c[i] = solutions[i]->get_ref_value_transformed(e, c_ref_x, c_ref_y, 0, 4);
-    u_dxy_c[i] = solutions[i]->get_ref_value_transformed(e, c_ref_x, c_ref_y, 0, 5);
+    u_dxx_c[i] = solutionsInternal[i]->get_ref_value_transformed(e, c_ref_x, c_ref_y, 0, 3);
+    u_dyy_c[i] = solutionsInternal[i]->get_ref_value_transformed(e, c_ref_x, c_ref_y, 0, 4);
+    u_dxy_c[i] = solutionsInternal[i]->get_ref_value_transformed(e, c_ref_x, c_ref_y, 0, 5);
   }
 }
 
@@ -724,7 +726,7 @@ void KuzminDiscontinuityDetector::find_vertex_values(Hermes::Hermes2D::Element* 
     {
       solutions[i]->get_refmap()->set_active_element(e);
       solutions[i]->get_refmap()->untransform(e, e->vn[j]->x, e->vn[j]->y, c_ref_x, c_ref_y);
-      vertex_values[i][j] = solutions[i]->get_ref_value_transformed(e, c_ref_x, c_ref_y, 0, 0);
+      vertex_values[i][j] = solutionsInternal[i]->get_ref_value_transformed(e, c_ref_x, c_ref_y, 0, 0);
     }
   }
 }
@@ -738,8 +740,8 @@ void KuzminDiscontinuityDetector::find_vertex_derivatives(Hermes::Hermes2D::Elem
     {
       solutions[i]->get_refmap()->set_active_element(e);
       solutions[i]->get_refmap()->untransform(e, e->vn[j]->x, e->vn[j]->y, c_ref_x, c_ref_y);
-      vertex_derivatives[i][j][0] = solutions[i]->get_ref_value_transformed(e, c_ref_x, c_ref_y, 0, 1);
-      vertex_derivatives[i][j][1] = solutions[i]->get_ref_value_transformed(e, c_ref_x, c_ref_y, 0, 2);
+      vertex_derivatives[i][j][0] = solutionsInternal[i]->get_ref_value_transformed(e, c_ref_x, c_ref_y, 0, 1);
+      vertex_derivatives[i][j][1] = solutionsInternal[i]->get_ref_value_transformed(e, c_ref_x, c_ref_y, 0, 2);
     }
   }
 }
@@ -1030,7 +1032,7 @@ void KuzminDiscontinuityDetector::find_alpha_i_second_order_real(Hermes::Hermes2
 }
 
 
-FluxLimiter::FluxLimiter(FluxLimiter::LimitingType type, double* solution_vector, Hermes::vector<const Space<double>*> spaces, bool Kuzmin_limit_all_orders_independently) : solution_vector(solution_vector), spaces(spaces), limitOscillations(false)
+FluxLimiter::FluxLimiter(FluxLimiter::LimitingType type, double* solution_vector, Hermes::vector<SpaceSharedPtr<double>  > spaces, bool Kuzmin_limit_all_orders_independently) : solution_vector(solution_vector), spaces(spaces), limitOscillations(false)
 {
   for(unsigned int sol_i = 0; sol_i < spaces.size(); sol_i++)
     limited_solutions.push_back(new Hermes::Hermes2D::Solution<double>(spaces[sol_i]->get_mesh()));
@@ -1047,7 +1049,7 @@ FluxLimiter::FluxLimiter(FluxLimiter::LimitingType type, double* solution_vector
   }
 };
 
-FluxLimiter::FluxLimiter(FluxLimiter::LimitingType type, Hermes::vector<Solution<double>*> solutions, Hermes::vector<const Space<double>*> spaces, bool Kuzmin_limit_all_orders_independently) : spaces(spaces), limitOscillations(false)
+FluxLimiter::FluxLimiter(FluxLimiter::LimitingType type, Hermes::vector<MeshFunctionSharedPtr<double> > solutions, Hermes::vector<SpaceSharedPtr<double>  > spaces, bool Kuzmin_limit_all_orders_independently) : spaces(spaces), limitOscillations(false)
 {
   for(unsigned int sol_i = 0; sol_i < spaces.size(); sol_i++)
     limited_solutions.push_back(new Hermes::Hermes2D::Solution<double>(spaces[sol_i]->get_mesh()));
@@ -1071,18 +1073,16 @@ FluxLimiter::FluxLimiter(FluxLimiter::LimitingType type, Hermes::vector<Solution
 
 FluxLimiter::~FluxLimiter()
 {
-  delete detector;
-  for(unsigned int sol_i = 0; sol_i < spaces.size(); sol_i++)
-    delete limited_solutions[sol_i];
+	delete detector;
 };
 
-void FluxLimiter::get_limited_solutions(Hermes::vector<Solution<double>*> solutions_to_limit)
+void FluxLimiter::get_limited_solutions(Hermes::vector<MeshFunctionSharedPtr<double> > solutions_to_limit)
 {
   for(unsigned int i = 0; i < solutions_to_limit.size(); i++)
     solutions_to_limit[i]->copy(this->limited_solutions[i]);
 }
 
-int FluxLimiter::limit_according_to_detector(Hermes::vector<Space<double> *> coarse_spaces_to_limit)
+int FluxLimiter::limit_according_to_detector(Hermes::vector<SpaceSharedPtr<double> > coarse_spaces_to_limit)
 {
   std::set<int> discontinuous_elements = this->detector->get_discontinuous_element_ids();
   std::set<std::pair<int, double> > oscillatory_element_idsRho = this->detector->get_oscillatory_element_idsRho();
@@ -1165,7 +1165,7 @@ int FluxLimiter::limit_according_to_detector(Hermes::vector<Space<double> *> coa
   // Now adjust the solutions.
   Solution<double>::vector_to_solutions(solution_vector, spaces, limited_solutions);
 
-  if(coarse_spaces_to_limit != Hermes::vector<Space<double>*>()) 
+  if(coarse_spaces_to_limit != Hermes::vector<SpaceSharedPtr<double> >()) 
   {
     // Now set the element order to zero.
     Element* e;
@@ -1202,7 +1202,7 @@ int FluxLimiter::limit_according_to_detector(Hermes::vector<Space<double> *> coa
   return discontinuous_elements.size() + oscillatory_element_idsRho.size() + oscillatory_element_idsRhoVX.size() + oscillatory_element_idsRhoVY.size() + oscillatory_element_idsRhoE.size();
 };
 
-void FluxLimiter::limit_second_orders_according_to_detector(Hermes::vector<Space<double> *> coarse_spaces_to_limit)
+void FluxLimiter::limit_second_orders_according_to_detector(Hermes::vector<SpaceSharedPtr<double> > coarse_spaces_to_limit)
 {
   std::set<int> discontinuous_elements;
   if(dynamic_cast<KuzminDiscontinuityDetector*>(this->detector))
@@ -1239,7 +1239,7 @@ void FluxLimiter::limit_second_orders_according_to_detector(Hermes::vector<Space
     this->detector = new KrivodonovaDiscontinuityDetector(spaces, limited_solutions);
   }
 
-  if(coarse_spaces_to_limit != Hermes::vector<Space<double>*>()) {
+  if(coarse_spaces_to_limit != Hermes::vector<SpaceSharedPtr<double> >()) {
     // Now set the element order to zero.
     Element* e;
 

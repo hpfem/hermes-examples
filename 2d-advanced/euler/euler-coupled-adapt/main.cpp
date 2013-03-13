@@ -339,20 +339,6 @@ int main(int argc, char* argv[])
 
       ogProjection.project_global(ref_space_stabilization, &prev_rho, &prev_rho_stabilization);
 
-      if(as > 1) 
-      {
-        delete rsln_rho.get_mesh();
-        
-        delete rsln_rho_v_x.get_mesh();
-        
-        delete rsln_rho_v_y.get_mesh();
-        
-        delete rsln_e.get_mesh();
-        
-        delete rsln_c.get_mesh();
-        
-      }
-
       // Report NDOFs.
       Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d.", 
         Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
@@ -540,17 +526,6 @@ int main(int argc, char* argv[])
     prev_rho_v_y.copy(&rsln_rho_v_y);
     prev_e.copy(&rsln_e);
     prev_c.copy(&rsln_c);
-
-    delete rsln_rho.get_mesh();
-    
-    delete rsln_rho_v_x.get_mesh();
-    
-    delete rsln_rho_v_y.get_mesh();
-    
-    delete rsln_e.get_mesh();
-    
-    delete rsln_c.get_mesh();
-    
 
     // Visualization.
     if((iteration - 1) % EVERY_NTH_STEP == 0) 

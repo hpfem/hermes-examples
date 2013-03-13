@@ -31,9 +31,6 @@ bool SHOCK_CAPTURING = true;
 // Quantitative parameter of the discontinuity detector.
 double DISCONTINUITY_DETECTOR_PARAM = 1.0;
 
-// For saving/loading of solution.
-bool REUSE_SOLUTION = false;
-
 // Initial polynomial degree.     
 const int P_INIT = 0;                                              
 // Number of initial uniform mesh refinements. 
@@ -117,40 +114,40 @@ int refinement_criterion(Element* e)
 int main(int argc, char* argv[])
 {
   // Load the mesh.
-  Mesh mesh, base_mesh;
+  MeshSharedPtr mesh(new Mesh), base_mesh(new Mesh);
   MeshReaderH2D mloader;
-  mloader.load("ffs.mesh", &base_mesh);
+  mloader.load("ffs.mesh", base_mesh);
 
-  base_mesh.refine_by_criterion(refinement_criterion, INIT_REF_NUM_STEP);
+  base_mesh->refine_by_criterion(refinement_criterion, INIT_REF_NUM_STEP);
 
   // Perform initial mesh refinements.
   for (int i = 0; i < INIT_REF_NUM; i++)
-    base_mesh.refine_all_elements(0, true);
+    base_mesh->refine_all_elements(0, true);
 
-  mesh.copy(&base_mesh);
+  mesh->copy(base_mesh);
 
   // Initialize boundary condition types and spaces with default shapesets.
-  L2Space<double>space_rho(&mesh, P_INIT);
-  L2Space<double>space_rho_v_x(&mesh, P_INIT);
-  L2Space<double>space_rho_v_y(&mesh, P_INIT);
-  L2Space<double>space_e(&mesh, P_INIT);
-  int ndof = Space<double>::get_num_dofs(Hermes::vector<const Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
+  SpaceSharedPtr<double> space_rho(new L2Space<double>(mesh, P_INIT));
+  SpaceSharedPtr<double> space_rho_v_x(new L2Space<double>(mesh, P_INIT));
+  SpaceSharedPtr<double> space_rho_v_y(new L2Space<double>(mesh, P_INIT));
+  SpaceSharedPtr<double> space_e(new L2Space<double>(mesh, P_INIT));
 
-  // Initialize solutions, set initial conditions.
-  ConstantSolution<double> sln_rho(&mesh, RHO_EXT);
-  ConstantSolution<double> sln_rho_v_x(&mesh, RHO_EXT * V1_EXT);
-  ConstantSolution<double> sln_rho_v_y(&mesh, RHO_EXT * V2_EXT);
-  ConstantSolution<double> sln_e(&mesh, QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA));
+  int ndof = Space<double>::get_num_dofs(Hermes::vector<SpaceSharedPtr<double> >(space_rho, space_rho_v_x, space_rho_v_y, space_e));
 
-  ConstantSolution<double> prev_rho(&mesh, RHO_EXT);
-  ConstantSolution<double> prev_rho_v_x(&mesh, RHO_EXT * V1_EXT);
-  ConstantSolution<double> prev_rho_v_y(&mesh, RHO_EXT * V2_EXT);
-  ConstantSolution<double> prev_e(&mesh, QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA));
+  MeshFunctionSharedPtr<double> sln_rho(new ConstantSolution<double>(mesh, RHO_EXT));
+  MeshFunctionSharedPtr<double> sln_rho_v_x(new ConstantSolution<double> (mesh, RHO_EXT * V1_EXT));
+  MeshFunctionSharedPtr<double> sln_rho_v_y(new ConstantSolution<double> (mesh, RHO_EXT * V2_EXT));
+  MeshFunctionSharedPtr<double> sln_e(new ConstantSolution<double> (mesh, QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA)));
 
-  ConstantSolution<double> rsln_rho(&mesh, RHO_EXT);
-  ConstantSolution<double> rsln_rho_v_x(&mesh, RHO_EXT * V1_EXT);
-  ConstantSolution<double> rsln_rho_v_y(&mesh, RHO_EXT * V2_EXT);
-  ConstantSolution<double> rsln_e(&mesh, QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA));
+  MeshFunctionSharedPtr<double> prev_rho(new ConstantSolution<double>(mesh, RHO_EXT));
+  MeshFunctionSharedPtr<double> prev_rho_v_x(new ConstantSolution<double> (mesh, RHO_EXT * V1_EXT));
+  MeshFunctionSharedPtr<double> prev_rho_v_y(new ConstantSolution<double> (mesh, RHO_EXT * V2_EXT));
+  MeshFunctionSharedPtr<double> prev_e(new ConstantSolution<double> (mesh, QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA)));
+
+  MeshFunctionSharedPtr<double> rsln_rho(new ConstantSolution<double>(mesh, RHO_EXT));
+  MeshFunctionSharedPtr<double> rsln_rho_v_x(new ConstantSolution<double> (mesh, RHO_EXT * V1_EXT));
+  MeshFunctionSharedPtr<double> rsln_rho_v_y(new ConstantSolution<double> (mesh, RHO_EXT * V2_EXT));
+  MeshFunctionSharedPtr<double> rsln_e(new ConstantSolution<double> (mesh, QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA)));
 
   // Initialize weak formulation.
   Hermes::vector<std::string> solid_wall_markers(BDY_SOLID_WALL_BOTTOM, BDY_SOLID_WALL_TOP);
@@ -160,11 +157,11 @@ int main(int argc, char* argv[])
   outlet_markers.push_back(BDY_OUTLET);
 
   EulerEquationsWeakFormSemiImplicit wf(KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT,solid_wall_markers, 
-    inlet_markers, outlet_markers, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e);
+    inlet_markers, outlet_markers, prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e);
   
   // Filters for visualization of Mach number, pressure and entropy.
-  MachNumberFilter Mach_number(Hermes::vector<MeshFunction<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), KAPPA);
-  PressureFilter pressure(Hermes::vector<MeshFunction<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), KAPPA);
+  MeshFunctionSharedPtr<double> Mach_number(new MachNumberFilter (Hermes::vector<MeshFunctionSharedPtr<double> >(rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e), KAPPA));
+  MeshFunctionSharedPtr<double> pressure(new PressureFilter (Hermes::vector<MeshFunctionSharedPtr<double> >(rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e), KAPPA));
 
   ScalarView pressure_view("Pressure", new WinGeom(0, 0, 600, 300));
   ScalarView Mach_number_view("Mach number", new WinGeom(700, 0, 600, 300));
@@ -180,25 +177,6 @@ int main(int argc, char* argv[])
 
   // Set up CFL calculation class.
   CFLCalculation CFL(CFL_NUMBER, KAPPA);
-
-  // Look for a saved solution on the disk.
-  CalculationContinuity<double> continuity(CalculationContinuity<double>::onlyTime);
-  int iteration = 0; double t = 0;
-  bool loaded_now = false;
-
-  if(REUSE_SOLUTION && continuity.have_record_available())
-  {
-    continuity.get_last_record()->load_mesh(&mesh);
-    Hermes::vector<Space<double> *> spaceVector = continuity.get_last_record()->load_spaces(Hermes::vector<Mesh *>(&mesh, &mesh, &mesh, &mesh));
-    space_rho.copy(spaceVector[0], &mesh);
-    space_rho_v_x.copy(spaceVector[1], &mesh);
-    space_rho_v_y.copy(spaceVector[2], &mesh);
-    space_e.copy(spaceVector[3], &mesh);
-    continuity.get_last_record()->load_time_step_length(time_step);
-    t = continuity.get_last_record()->get_time() + time_step;
-    iteration = (continuity.get_num()) * EVERY_NTH_STEP + 1;
-    loaded_now = true;
-  }
 
   // Time stepping loop.
   for(; t < 14.5; t += time_step)
@@ -217,7 +195,7 @@ int main(int argc, char* argv[])
     {
       Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d:", as);
 
-      Hermes::vector<Space<double> *>* ref_spacesNoDerefinement;
+      Hermes::vector<SpaceSharedPtr<double> >* ref_spacesNoDerefinement;
       
       // Periodic global derefinements.
       if (as == 1 && (iteration > 1 && iteration % UNREF_FREQ == 0 && REFINEMENT_COUNT > 0))
@@ -226,28 +204,28 @@ int main(int argc, char* argv[])
 
         REFINEMENT_COUNT = 0;
 
-        space_rho.unrefine_all_mesh_elements(true);
+        space_rho->unrefine_all_mesh_elements(true);
 
-        space_rho.adjust_element_order(-1, P_INIT);
-        space_rho_v_x.adjust_element_order(-1, P_INIT);
-        space_rho_v_y.adjust_element_order(-1, P_INIT);
-        space_e.adjust_element_order(-1, P_INIT);
+        space_rho->adjust_element_order(-1, P_INIT);
+        space_rho_v_x->adjust_element_order(-1, P_INIT);
+        space_rho_v_y->adjust_element_order(-1, P_INIT);
+        space_e->adjust_element_order(-1, P_INIT);
       }
 
-      Mesh::ReferenceMeshCreator refMeshCreatorFlow(&mesh);
-      Mesh* ref_mesh_flow = refMeshCreatorFlow.create_ref_mesh();
+      Mesh::ReferenceMeshCreator refMeshCreatorFlow(mesh);
+      MeshSharedPtr ref_mesh_flow = refMeshCreatorFlow.create_ref_mesh();
 
       int order_increase = 1;
-      Space<double>::ReferenceSpaceCreator refSpaceCreatorRho(&space_rho, ref_mesh_flow, order_increase);
-      Space<double>* ref_space_rho = refSpaceCreatorRho.create_ref_space();
-      Space<double>::ReferenceSpaceCreator refSpaceCreatorRhoVx(&space_rho_v_x, ref_mesh_flow, order_increase);
-      Space<double>* ref_space_rho_v_x = refSpaceCreatorRhoVx.create_ref_space();
-      Space<double>::ReferenceSpaceCreator refSpaceCreatorRhoVy(&space_rho_v_y, ref_mesh_flow, order_increase);
-      Space<double>* ref_space_rho_v_y = refSpaceCreatorRhoVy.create_ref_space();
-      Space<double>::ReferenceSpaceCreator refSpaceCreatorE(&space_e, ref_mesh_flow, order_increase);
-      Space<double>* ref_space_e = refSpaceCreatorE.create_ref_space();
+      Space<double>::ReferenceSpaceCreator refSpaceCreatorRho(space_rho, ref_mesh_flow, order_increase);
+      SpaceSharedPtr<double> ref_space_rho = refSpaceCreatorRho.create_ref_space();
+      Space<double>::ReferenceSpaceCreator refSpaceCreatorRhoVx(space_rho_v_x, ref_mesh_flow, order_increase);
+      SpaceSharedPtr<double> ref_space_rho_v_x = refSpaceCreatorRhoVx.create_ref_space();
+      Space<double>::ReferenceSpaceCreator refSpaceCreatorRhoVy(space_rho_v_y, ref_mesh_flow, order_increase);
+      SpaceSharedPtr<double> ref_space_rho_v_y = refSpaceCreatorRhoVy.create_ref_space();
+      Space<double>::ReferenceSpaceCreator refSpaceCreatorE(space_e, ref_mesh_flow, order_increase);
+      SpaceSharedPtr<double> ref_space_e = refSpaceCreatorE.create_ref_space();
 
-      Hermes::vector<const Space<double>*> ref_spaces_const(ref_space_rho, ref_space_rho_v_x, ref_space_rho_v_y, ref_space_e);
+      Hermes::vector<SpaceSharedPtr<double>  > ref_spaces_const(ref_space_rho, ref_space_rho_v_x, ref_space_rho_v_y, ref_space_e);
 
       if(ndofs_prev != 0)
         if(Space<double>::get_num_dofs(ref_spaces_const) == ndofs_prev)
@@ -257,23 +235,13 @@ int main(int argc, char* argv[])
 
       ndofs_prev = Space<double>::get_num_dofs(ref_spaces_const);
 
-      // Project the previous time level solution onto the new fine mesh.
-      Hermes::Mixins::Loggable::Static::info("Projecting the previous time level solution onto the new fine mesh.");
-      if(loaded_now)
-      {
-        loaded_now = false;
-
-        continuity.get_last_record()->load_solutions(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e),
-            Hermes::vector<Space<double> *>(ref_space_rho, ref_space_rho_v_x, ref_space_rho_v_y, ref_space_e));
-      }
-      else
-      {
+      // Project the previous time level solution onto the new fine mesh->
+      Hermes::Mixins::Loggable::Static::info("Projecting the previous time level solution onto the new fine mesh->");
         OGProjection<double> ogProjection;
-        ogProjection.project_global(ref_spaces_const, Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), 
-        Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), Hermes::vector<Hermes::Hermes2D::ProjNormType>());
-      }
+        ogProjection.project_global(ref_spaces_const, Hermes::vector<MeshFunctionSharedPtr<double> >(prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e), 
+        Hermes::vector<MeshFunctionSharedPtr<double> >(prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e), Hermes::vector<Hermes::Hermes2D::ProjNormType>());
 
-      FluxLimiter flux_limiterLoading(FluxLimiter::Kuzmin, Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), ref_spaces_const, true);
+      FluxLimiter flux_limiterLoading(FluxLimiter::Kuzmin, Hermes::vector<MeshFunctionSharedPtr<double> >(prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e), ref_spaces_const, true);
 
       flux_limiterLoading.limitOscillations = true;
 
@@ -286,23 +254,15 @@ int main(int argc, char* argv[])
         Hermes::Mixins::Loggable::Static::info("Limited in %d-th step: %d.", ++counter, limited);
       }
 
-      flux_limiterLoading.get_limited_solutions(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
-
-      if(iteration > std::max((int)(continuity.get_num() * EVERY_NTH_STEP + 1), 1))
-      {
-        delete rsln_rho.get_mesh();
-        delete rsln_rho_v_x.get_mesh();
-        delete rsln_rho_v_y.get_mesh();
-        delete rsln_e.get_mesh();
-      }
+      flux_limiterLoading.get_limited_solutions(Hermes::vector<MeshFunctionSharedPtr<double> >(prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e));
 
       // Report NDOFs.
       Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d.", 
-        Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
-        &space_rho_v_y, &space_e)), Space<double>::get_num_dofs(ref_spaces_const));
+        Space<double>::get_num_dofs(Hermes::vector<SpaceSharedPtr<double> >(space_rho, space_rho_v_x, 
+        space_rho_v_y, space_e)), Space<double>::get_num_dofs(ref_spaces_const));
 
       // Assemble the reference problem.
-      Hermes::Mixins::Loggable::Static::info("Solving on reference mesh.");
+      Hermes::Mixins::Loggable::Static::info("Solving on reference mesh->");
       DiscreteProblem<double> dp(&wf, ref_spaces_const);
 
       SparseMatrix<double>* matrix = create_matrix<double>();
@@ -325,16 +285,16 @@ int main(int argc, char* argv[])
 
         if(!SHOCK_CAPTURING)
           Solution<double>::vector_to_solutions(solver->get_sln_vector(), ref_spaces_const, 
-          Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e));
+          Hermes::vector<MeshFunctionSharedPtr<double> >(rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e));
         else
         {      
           FluxLimiter flux_limiter(FluxLimiter::Kuzmin, solver->get_sln_vector(), ref_spaces_const, true);
 
-          flux_limiter.limit_second_orders_according_to_detector(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
+          flux_limiter.limit_second_orders_according_to_detector(Hermes::vector<SpaceSharedPtr<double> >(space_rho, space_rho_v_x, space_rho_v_y, space_e));
 
-          flux_limiter.limit_according_to_detector(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
+          flux_limiter.limit_according_to_detector(Hermes::vector<SpaceSharedPtr<double> >(space_rho, space_rho_v_x, space_rho_v_y, space_e));
 
-          flux_limiter.get_limited_solutions(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e));
+          flux_limiter.get_limited_solutions(Hermes::vector<MeshFunctionSharedPtr<double> >(rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e));
         }
       }
       catch(std::exception& e)
@@ -342,32 +302,32 @@ int main(int argc, char* argv[])
         std::cout << e.what();
       }
 
-      // Project the fine mesh solution onto the coarse mesh.
-      Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
-      OGProjection<double> ogProjection; ogProjection.project_global(Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x,
-        &space_rho_v_y, &space_e), Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), 
-        Hermes::vector<Solution<double>*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y, &sln_e), 
+      // Project the fine mesh solution onto the coarse mesh->
+      Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh->");
+      ogProjection.project_global(Hermes::vector<SpaceSharedPtr<double> >(space_rho, space_rho_v_x,
+        space_rho_v_y, space_e), Hermes::vector<MeshFunctionSharedPtr<double> >(rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e), 
+        Hermes::vector<MeshFunctionSharedPtr<double> >(sln_rho, sln_rho_v_x, sln_rho_v_y, sln_e), 
         Hermes::vector<ProjNormType>(HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM)); 
 
       // Calculate element errors and total error estimate.
       Hermes::Mixins::Loggable::Static::info("Calculating error estimate.");
-      Adapt<double>* adaptivity = new Adapt<double>(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-        &space_rho_v_y, &space_e), Hermes::vector<ProjNormType>(HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM));
-      double err_est_rel_total = adaptivity->calc_err_est(Hermes::vector<Solution<double>*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y, &sln_e),
-        Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e)) * 100;
+      Adapt<double>* adaptivity = new Adapt<double>(Hermes::vector<SpaceSharedPtr<double> >(space_rho, space_rho_v_x, 
+        space_rho_v_y, space_e), Hermes::vector<ProjNormType>(HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM));
+      double err_est_rel_total = adaptivity->calc_err_est(Hermes::vector<MeshFunctionSharedPtr<double> >(sln_rho, sln_rho_v_x, sln_rho_v_y, sln_e),
+        Hermes::vector<MeshFunctionSharedPtr<double> >(rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e)) * 100;
 
-      CFL.calculate_semi_implicit(Hermes::vector<Solution<double> *>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), ref_space_rho->get_mesh(), time_step);
+      CFL.calculate_semi_implicit(Hermes::vector<MeshFunctionSharedPtr<double> >(rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e), ref_space_rho->get_mesh(), time_step);
 
       // Report results.
       Hermes::Mixins::Loggable::Static::info("err_est_rel: %g%%", err_est_rel_total);
 
-      // If err_est too large, adapt the mesh.
+      // If err_est too large, adapt the mesh->
       if (err_est_rel_total < ERR_STOP)
         done = true;
       else
       {
-        if (Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
-          &space_rho_v_y, &space_e)) >= NDOF_STOP) 
+        if (Space<double>::get_num_dofs(Hermes::vector<SpaceSharedPtr<double> >(space_rho, space_rho_v_x, 
+          space_rho_v_y, space_e)) >= NDOF_STOP) 
         {
           Hermes::Mixins::Loggable::Static::info("Max. number of DOFs exceeded.");
           REFINEMENT_COUNT++;
@@ -375,7 +335,7 @@ int main(int argc, char* argv[])
         }
         else
         {
-          Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
+          Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh->");
           REFINEMENT_COUNT++;
           done = adaptivity->adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&selector, &selector, &selector, &selector), 
             THRESHOLD, STRATEGY, MESH_REGULARITY);
@@ -391,24 +351,22 @@ int main(int argc, char* argv[])
         // Hermes visualization.
         if(HERMES_VISUALIZATION)
         {        
-          Mach_number.reinit();
-          pressure.reinit();
-          pressure_view.show(&pressure);
-          Mach_number_view.show(&Mach_number);
-          pressure_view.save_numbered_screenshot("Pressure-%u.bmp", iteration - 1, true);
-          Mach_number_view.save_numbered_screenshot("Mach-%u.bmp", iteration - 1, true);
+          Mach_number->reinit();
+          pressure->reinit();
+          pressure_view.show(pressure);
+          Mach_number_view.show(Mach_number);
         }
         // Output solution in VTK format.
         if(VTK_VISUALIZATION)
         {
-          Mach_number.reinit();
+          Mach_number->reinit();
           Linearizer lin;
           Orderizer ord;
           char filename[40];
           sprintf(filename, "Density-%i.vtk", iteration);
-          lin.save_solution_vtk(&rsln_rho, filename, "Density", false);
+          lin.save_solution_vtk(rsln_rho, filename, "Density", false);
           sprintf(filename, "Mach number-%i.vtk", iteration);
-          lin.save_solution_vtk(&Mach_number, filename, "MachNumber", false);
+          lin.save_solution_vtk(Mach_number, filename, "MachNumber", false);
           sprintf(filename, "Space-%i.vtk", iteration);
           ord.save_orders_vtk(ref_space_rho, filename);
           sprintf(filename, "Mesh-%i.vtk", iteration);
@@ -418,8 +376,8 @@ int main(int argc, char* argv[])
         // Save the progress.
         if(iteration > 1)
         {
-          continuity.add_record(t, Hermes::vector<Mesh*>(&mesh, &mesh, &mesh, &mesh), Hermes::vector<Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e), 
-            Hermes::vector<Solution<double> *>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), time_step);
+          continuity.add_record(t, Hermes::vector<MeshSharedPtr>(mesh, mesh, mesh, mesh), Hermes::vector<SpaceSharedPtr<double> >(space_rho, space_rho_v_x, space_rho_v_y, space_e), 
+            Hermes::vector<MeshFunctionSharedPtr<double> >(rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e), time_step);
         }
       }
 
@@ -434,10 +392,10 @@ int main(int argc, char* argv[])
     iteration++;
 
     // Copy the solutions into the previous time level ones.
-    prev_rho.copy(&rsln_rho);
-    prev_rho_v_x.copy(&rsln_rho_v_x);
-    prev_rho_v_y.copy(&rsln_rho_v_y);
-    prev_e.copy(&rsln_e);
+    prev_rho->copy(rsln_rho);
+    prev_rho_v_x->copy(rsln_rho_v_x);
+    prev_rho_v_y->copy(rsln_rho_v_y);
+    prev_e->copy(rsln_e);
   }
 
   pressure_view.close();
