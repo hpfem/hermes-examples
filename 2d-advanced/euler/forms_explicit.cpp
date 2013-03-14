@@ -1028,7 +1028,7 @@ public:
         double rho = ext[0]->val[point_i];
         result += wt[point_i] * u->val[point_i] * v->val[point_i] * rho * c_p / this->wf->get_current_time_step();
         result += wt[point_i] * (u->dx[point_i] * v->dx[point_i] + u->dy[point_i] * v->dy[point_i]) * lambda;
-        result += (ext[1]->val[point_i] * u->dx[point_i] + ext[2]->val[point_i] * u->dy[point_i]) * v->val[point_i] * c_p;
+        result += wt[point_i] * (ext[1]->val[point_i] * u->dx[point_i] + ext[2]->val[point_i] * u->dy[point_i]) * v->val[point_i] * c_p;
       }
       return result;
     }

@@ -35,7 +35,7 @@ CFLCalculation::CFLCalculation(double CFL_number, double kappa) : CFL_number(CFL
 
 void CFLCalculation::calculate(Hermes::vector<MeshFunctionSharedPtr<double> > solutions, MeshSharedPtr mesh, double & time_step) const
 {
-  // Create spaces of constant functions over the given mesh.
+  // Create spaces of constant functions over the given mesh->
   SpaceSharedPtr<double> constant_rho_space(new L2Space<double> (mesh, 0));
   SpaceSharedPtr<double> constant_rho_v_x_space(new L2Space<double> (mesh, 0));
   SpaceSharedPtr<double> constant_rho_v_y_space(new L2Space<double> (mesh, 0));
@@ -75,7 +75,7 @@ void CFLCalculation::calculate(Hermes::vector<MeshFunctionSharedPtr<double> > so
 
 void CFLCalculation::calculate_semi_implicit(Hermes::vector<MeshFunctionSharedPtr<double> > solutions, MeshSharedPtr mesh, double & time_step) const
 {
-  // Create spaces of constant functions over the given mesh.
+  // Create spaces of constant functions over the given mesh->
   SpaceSharedPtr<double> constant_rho_space(new L2Space<double>(mesh, 0));
   SpaceSharedPtr<double> constant_rho_v_x_space(new L2Space<double>(mesh, 0));
   SpaceSharedPtr<double> constant_rho_v_y_space(new L2Space<double>(mesh, 0));
@@ -153,7 +153,7 @@ void CFLCalculation::calculate_semi_implicit(Hermes::vector<MeshFunctionSharedPt
 
     if(condition < min_condition || min_condition == 0.)
       min_condition = condition;
-  }
+	}
 
   time_step = min_condition;
 
@@ -172,7 +172,7 @@ ADEStabilityCalculation::ADEStabilityCalculation(double AdvectionRelativeConstan
 
 void ADEStabilityCalculation::calculate(Hermes::vector<MeshFunctionSharedPtr<double> > solutions, MeshSharedPtr mesh, double & time_step)
 {
-  // Create spaces of constant functions over the given mesh.
+  // Create spaces of constant functions over the given mesh->
   SpaceSharedPtr<double> constant_rho_space(new L2Space<double>(mesh, 0));
   SpaceSharedPtr<double> constant_rho_v_x_space(new L2Space<double>(mesh, 0));
   SpaceSharedPtr<double> constant_rho_v_y_space(new L2Space<double>(mesh, 0));

@@ -78,7 +78,7 @@ std::string BDY_SOLID_WALL_TOP = "4";
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh.
+  // Load the mesh->
   MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("GAMM-channel.mesh", mesh);

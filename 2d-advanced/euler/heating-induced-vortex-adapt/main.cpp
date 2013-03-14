@@ -134,7 +134,7 @@ const double MESH_SIZE = 3.0;
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh.
+  // Load the mesh->
   MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("square.mesh", mesh);
@@ -293,8 +293,8 @@ int main(int argc, char* argv[])
       else
         throw Hermes::Exceptions::Exception("Matrix solver failed.\n");
 
-      // Project the fine mesh solution onto the coarse mesh->
-      Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh->");
+      // Project the fine mesh solution onto the coarse mesh.
+      Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
       ogProjection.project_global(Hermes::vector<SpaceSharedPtr<double> >(space_rho, space_rho_v_x, 
         space_rho_v_y, space_e), Hermes::vector<MeshFunctionSharedPtr<double> >(rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e), 
         Hermes::vector<MeshFunctionSharedPtr<double> >(sln_rho, sln_rho_v_x, sln_rho_v_y, sln_e), 
@@ -317,7 +317,7 @@ int main(int argc, char* argv[])
         done = true;
       else
       {
-        Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh->");
+        Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
         done = adaptivity->adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&selector, &selector, &selector, &selector), 
           THRESHOLD, STRATEGY, MESH_REGULARITY);
 

@@ -1,6 +1,7 @@
 #define HERMES_REPORT_INFO
 #define HERMES_REPORT_FILE "application.log"
 #include "hermes2d.h"
+#include "../coupling.h"
 
 using namespace Hermes;
 using namespace Hermes::Hermes2D;
@@ -19,7 +20,7 @@ const unsigned int EVERY_NTH_STEP = 1;
 // Initial polynomial degree.
 const int P_INIT_FLOW = 0;
 const int P_INIT_HEAT = 1;
-// Number of initial uniform mesh refinements.    
+// Number of initial uniform mesh refinements.
 const int INIT_REF_NUM = 1;
 
 // Shock capturing.
@@ -96,9 +97,7 @@ double ERR_STOP = 5.0;
 
 int main(int argc, char* argv[])
 {
-  Hermes2DApi.set_integral_param_value(numThreads, 1);
-
-  // Load the mesh.
+  // Load the mesh->
   MeshSharedPtr mesh(new Mesh), mesh_heat(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("square.mesh", mesh);
@@ -108,8 +107,8 @@ int main(int argc, char* argv[])
     mesh->refine_all_elements(0, true);
 
   mesh_heat->copy(mesh);
-  mesh_heat->refine_towards_boundary("Inlet", 3, false);
-  mesh->refine_all_elements(0, true);
+  //mesh_heat->refine_towards_boundary("Inlet", 3, false);
+  //mesh->refine_all_elements(0, true);
 
   // Initialize boundary condition types and spaces with default shapesets.
   Hermes2D::DefaultEssentialBCConst<double> bc_temp_zero("Solid", 0.0);
@@ -179,8 +178,7 @@ int main(int argc, char* argv[])
   ADEStabilityCalculation ADES(ADVECTION_STABILITY_CONSTANT, DIFFUSION_STABILITY_CONSTANT, LAMBDA);
 
   // Initialize refinement selector.
-  L2ProjBasedSelector<double> l2_selector(CAND_LIST, CONV_EXP, MAX_P_ORDER);
-  l2_selector.set_error_weights(1.0, 1.0, 1.0);
+  H1ProjBasedSelector<double> l2_selector(CAND_LIST, CONV_EXP, MAX_P_ORDER);
   H1ProjBasedSelector<double> h1_selector(CAND_LIST, CONV_EXP, MAX_P_ORDER);
 
   // Look for a saved solution on the disk.
@@ -301,17 +299,30 @@ int main(int argc, char* argv[])
       else
         throw Hermes::Exceptions::Exception("Matrix solver failed.\n");
 
-      // Project the fine mesh solution onto the coarse mesh->
-      Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh->");
+      // Project the fine mesh solution onto the coarse mesh.
+      Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
       ogProjection.project_global(cspaces, rslns, slns, Hermes::vector<ProjNormType>(HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_H1_NORM)); 
 
       // Calculate element errors and total error estimate.
       Hermes::Mixins::Loggable::Static::info("Calculating error estimate.");
 
-      Adapt<double>* adaptivity_flow = new Adapt<double>(flow_spaces, Hermes::vector<ProjNormType>(HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM));
-      Adapt<double>* adaptivity_heat = new Adapt<double>(space_temp, HERMES_H1_NORM);
-      double error_flow = adaptivity_flow->calc_err_est(flow_slns, rflow_slns) * 100;
-			double error_heat = adaptivity_heat->calc_err_est(sln_temp, rsln_temp) * 100;
+      Adapt<double>* adaptivity = new Adapt<double>(spaces, Hermes::vector<ProjNormType>(HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_H1_NORM));
+      adaptivity->set_error_form(new CouplingErrorFormVelocity(velX, C_P));
+      adaptivity->set_error_form(new CouplingErrorFormVelocity(velY, C_P));
+      adaptivity->set_norm_form(new CouplingErrorFormVelocity(velX, C_P));
+      adaptivity->set_norm_form(new CouplingErrorFormVelocity(velY, C_P));
+
+      adaptivity->set_error_form(new CouplingErrorFormTemperature(velX, C_P));
+      adaptivity->set_error_form(new CouplingErrorFormTemperature(velY, C_P));
+      adaptivity->set_norm_form(new CouplingErrorFormTemperature(velX, C_P));
+      adaptivity->set_norm_form(new CouplingErrorFormTemperature(velY, C_P));
+      Hermes::vector<double> component_errors;
+      double error_value = adaptivity->calc_err_est(slns, rslns, &component_errors) * 100;
+      
+      std::cout << std::endl;
+      for(int k = 0; k < 5; k ++)
+        std::cout << k << ':' << component_errors[k] << std::endl;
+      std::cout << std::endl;
 
       CFL.calculate_semi_implicit(rflow_slns, ref_mesh_flow, time_step);
 
@@ -323,22 +334,16 @@ int main(int argc, char* argv[])
         time_step = util_time_step;
 
       // Report results.
-      Hermes::Mixins::Loggable::Static::info("Error-flow: %g%%, error-heat: %g%%.", error_flow, error_heat);
+      Hermes::Mixins::Loggable::Static::info("Error: %g%%.", error_value);
 
       // If err_est too large, adapt the mesh->
-      if (error_flow < ERR_STOP)
+      if (error_value < ERR_STOP)
         done = true;
       else
       {
-        Hermes::Mixins::Loggable::Static::info("Adapting flow mesh->");
-        done = adaptivity_flow->adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&l2_selector, &l2_selector, &l2_selector, &l2_selector), 
+        Hermes::Mixins::Loggable::Static::info("Adapting coarse space.");
+        done = adaptivity->adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&l2_selector, &l2_selector, &l2_selector, &l2_selector, &h1_selector), 
           THRESHOLD, STRATEGY, MESH_REGULARITY);
-      }
-
-      if(error_heat >= ERR_STOP)
-      {
-        Hermes::Mixins::Loggable::Static::info("Adapting heat mesh->");
-        done = adaptivity_heat->adapt(&h1_selector, THRESHOLD, STRATEGY, MESH_REGULARITY) & done;
       }
 
       as++;
@@ -368,8 +373,7 @@ int main(int argc, char* argv[])
         }
       }
 
-      delete adaptivity_flow;
-      delete adaptivity_heat;
+      delete adaptivity;
     }
     while (!done);
 

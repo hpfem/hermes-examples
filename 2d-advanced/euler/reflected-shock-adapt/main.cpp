@@ -131,7 +131,7 @@ const std::string BDY_INLET_LEFT = "4";
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh.
+  // Load the mesh->
   MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("channel.mesh", mesh);
@@ -296,8 +296,8 @@ int main(int argc, char* argv[])
         flux_limiter.get_limited_solutions(Hermes::vector<MeshFunctionSharedPtr<double> >(rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e));
       }
 
-      // Project the fine mesh solution onto the coarse mesh->
-      Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh->");
+      // Project the fine mesh solution onto the coarse mesh.
+      Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
       ogProjection.project_global(Hermes::vector<SpaceSharedPtr<double> >(space_rho, space_rho_v_x, 
         space_rho_v_y, space_e), Hermes::vector<MeshFunctionSharedPtr<double> >(rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e), 
         Hermes::vector<MeshFunctionSharedPtr<double> >(sln_rho, sln_rho_v_x, sln_rho_v_y, sln_e), 
@@ -322,7 +322,7 @@ int main(int argc, char* argv[])
       }
       else
       {
-        Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh->");
+        Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
         REFINEMENT_COUNT++;
         done = adaptivity->adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&selector, &selector, &selector, &selector), 
           THRESHOLD, STRATEGY, MESH_REGULARITY);
