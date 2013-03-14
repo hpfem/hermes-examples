@@ -124,27 +124,27 @@ int main(int argc, char* argv[])
   if (bt.is_diagonally_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage diagonally implicit R-K method.", bt.get_size());
   if (bt.is_fully_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage fully implicit R-K method.", bt.get_size());
 
-  // Load the mesh.
+  // Load the mesh->
   Mesh mesh, basemesh;
   MeshReaderH2D mloader;
   mloader.load("square.mesh", &basemesh);
-  mesh.copy(&basemesh);
+  mesh->copy(&basemesh);
 
   // Initial mesh refinements.
-  for(int i = 0; i < INIT_GLOB_REF_NUM; i++) mesh.refine_all_elements();
-  mesh.refine_towards_boundary("Top", INIT_REF_NUM_BDY);
+  for(int i = 0; i < INIT_GLOB_REF_NUM; i++) mesh->refine_all_elements();
+  mesh->refine_towards_boundary("Top", INIT_REF_NUM_BDY);
 
   // Initialize boundary conditions.
   CustomEssentialBCNonConst bc_essential(Hermes::vector<std::string>("Bottom", "Right", "Top", "Left"));
   EssentialBCs<double> bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.
-  H1Space<double> space(&mesh, &bcs, P_INIT);
+  H1Space<double> space(mesh, &bcs, P_INIT);
   int ndof_coarse = Space<double>::get_num_dofs(&space);
   Hermes::Mixins::Loggable::Static::info("ndof_coarse = %d.", ndof_coarse);
 
   // Zero initial solution. This is why we use H_OFFSET.
-  ZeroSolution<double> h_time_prev(&mesh), h_time_new(&mesh);
+  ZeroSolution<double> h_time_prev(mesh), h_time_new(mesh);
 
   // Initialize the constitutive relations.
   ConstitutiveRelations* constitutive_relations;
@@ -185,10 +185,10 @@ int main(int argc, char* argv[])
     {
       Hermes::Mixins::Loggable::Static::info("Global mesh derefinement.");
       switch (UNREF_METHOD) {
-        case 1: mesh.copy(&basemesh);
+        case 1: mesh->copy(&basemesh);
                 space.set_uniform_order(P_INIT);
                 break;
-        case 2: mesh.unrefine_all_elements();
+        case 2: mesh->unrefine_all_elements();
                 space.set_uniform_order(P_INIT);
                 break;
         case 3: space.unrefine_all_mesh_elements();
@@ -209,7 +209,7 @@ int main(int argc, char* argv[])
       Hermes::Mixins::Loggable::Static::info("Time step %d, adaptivity step %d:", ts, as);
 
       // Construct globally refined reference mesh and setup reference space.
-      Mesh::ReferenceMeshCreator refMeshCreator(&mesh);
+      Mesh::ReferenceMeshCreator refMeshCreator(mesh);
       Mesh* ref_mesh = refMeshCreator.create_ref_mesh();
 
       Space<double>::ReferenceSpaceCreator refSpaceCreator(&space, ref_mesh);
@@ -239,7 +239,7 @@ int main(int argc, char* argv[])
         throw Hermes::Exceptions::Exception("Runge-Kutta time step failed");
       }
 
-      // Project the fine mesh solution onto the coarse mesh.
+      // Project the fine mesh solution onto the coarse mesh->
       Solution<double> sln_coarse;
       Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh for error estimation.");
       OGProjection<double> ogProjection; ogProjection.project_global(&space, &h_time_new, &sln_coarse); 
@@ -256,11 +256,11 @@ int main(int argc, char* argv[])
       // Time measurement.
       cpu_time.tick();
 
-      // If err_est too large, adapt the mesh.
+      // If err_est too large, adapt the mesh->
       if (err_est_rel_total < ERR_STOP) done = true;
       else 
       {
-        Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh.");
+        Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh->");
         done = adaptivity->adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
 
         if (Space<double>::get_num_dofs(&space) >= NDOF_STOP) 
@@ -285,7 +285,7 @@ int main(int argc, char* argv[])
     graph_cpu.add_values(current_time, cpu_time.accumulated());
     graph_cpu.save("conv_cpu_est.dat");
 
-    // Visualize the solution and mesh.
+    // Visualize the solution and mesh->
     char title[100];
     sprintf(title, "Solution, time %g", current_time);
     view.set_title(title);

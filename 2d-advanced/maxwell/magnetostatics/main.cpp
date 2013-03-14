@@ -69,20 +69,20 @@ int main(int argc, char* argv[])
   plot_derivative = true;
   mu_inv_iron.plot("spline_der.dat", interval_extension, plot_derivative);
 
-  // Load the mesh.
-  Mesh mesh;
+  // Load the mesh->
+  MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
-  mloader.load("actuator.mesh", &mesh);
+  mloader.load("actuator.mesh", mesh);
 
   // Perform initial mesh refinements.
-  for(int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
+  for(int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
 
   // Initialize boundary conditions.
   DefaultEssentialBCConst<double> bc_essential(BDY_DIRICHLET, 0.0);
   EssentialBCs<double> bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.
-  H1Space<double> space(&mesh, &bcs, P_INIT);
+  H1Space<double> space(mesh, &bcs, P_INIT);
   int ndof = space.get_num_dofs();
   Hermes::Mixins::Loggable::Static::info("ndof: %d", ndof);
 
@@ -97,7 +97,7 @@ int main(int argc, char* argv[])
   DiscreteProblem<double> dp(&wf, &space);
   
   // Initialize the solution.
-  ConstantSolution<double> sln(&mesh, INIT_COND);
+  ConstantSolution<double> sln(mesh, INIT_COND);
 
   // Project the initial condition on the FE space to obtain initial
   // coefficient vector for the Newton's method.
@@ -127,7 +127,7 @@ int main(int argc, char* argv[])
   // Cleanup.
   delete [] coeff_vec;
 
-  // Visualise the solution and mesh.
+  // Visualise the solution and mesh->
   ScalarView s_view1("Vector potential", new WinGeom(0, 0, 350, 450));
   FilterVectorPotential vector_potential(Hermes::vector<MeshFunction<double> *>(&sln, &sln),
       Hermes::vector<int>(H2D_FN_VAL, H2D_FN_VAL));

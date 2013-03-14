@@ -20,7 +20,7 @@
 //      \frac{E^{n+1} - E^{n}}{tau} - F^{n+1} = 0,
 //      \frac{F^{n+1} - F^{n}}{tau} + SPEED_OF_LIGHT**2 * curl curl E^{n+1} = 0.
 //
-// Domain: Square (-pi/2, pi/2) x (-pi/2, pi/2)... See mesh file domain.mesh.
+// Domain: Square (-pi/2, pi/2) x (-pi/2, pi/2)... See mesh file domain.mesh->
 //
 // BC:  E \times \nu = 0 on the boundary (perfect conductor),
 //      F \times \nu = 0 on the boundary (E \times \nu = 0 => \partial E / \partial t \times \nu = 0).
@@ -51,17 +51,17 @@ const double C_SQUARED = 1;
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh.
-  Mesh mesh;
+  // Load the mesh->
+  MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
-  mloader.load("domain.mesh", &mesh);
+  mloader.load("domain.mesh", mesh);
 
   // Perform initial mesh refinemets.
-  for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
+  for (int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
 
   // Initialize solutions.
-  CustomInitialConditionWave E_sln(&mesh);
-  ZeroSolutionVector<double> F_sln(&mesh);
+  CustomInitialConditionWave E_sln(mesh);
+  ZeroSolutionVector<double> F_sln(mesh);
   Hermes::vector<Solution<double>*> slns(&E_sln, &F_sln);
 
   // Initialize the weak formulation.
@@ -72,8 +72,8 @@ int main(int argc, char* argv[])
   EssentialBCs<double> bcs(&bc_essential);
 
   // Create x- and y- displacement space using the default H1 shapeset.
-  HcurlSpace<double> E_space(&mesh, &bcs, P_INIT);
-  HcurlSpace<double> F_space(&mesh, &bcs, P_INIT);
+  HcurlSpace<double> E_space(mesh, &bcs, P_INIT);
+  HcurlSpace<double> F_space(mesh, &bcs, P_INIT);
   Hermes::vector<const Space<double> *> spaces = Hermes::vector<const Space<double> *>(&E_space, &F_space);
   int ndof = HcurlSpace<double>::get_num_dofs(spaces);
   Hermes::Mixins::Loggable::Static::info("ndof = %d.", ndof);

@@ -14,7 +14,7 @@ using namespace RefinementSelectors;
 //
 //  Known exact solution.
 //
-//  Domain: unit square (0, 1) x (0, 1), see the file square.mesh.
+//  Domain: unit square (0, 1) x (0, 1), see the file square.mesh->
 //
 //  BC:  Dirichlet, given by exact solution.
 //
@@ -66,19 +66,19 @@ double slope = 60;
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh.
-  Mesh mesh;
+  // Load the mesh->
+  MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
   // Quadrilaterals.
-  mloader.load("square_quad.mesh", &mesh);     
+  mloader.load("square_quad.mesh", mesh);     
   // Triangles.
-  // mloader.load("square_tri.mesh", &mesh);   
+  // mloader.load("square_tri.mesh", mesh);   
 
   // Perform initial mesh refinements.
-  for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
+  for (int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
   
   // Define exact solution.
-  CustomExactSolution exact_sln(&mesh, slope);
+  CustomExactSolution exact_sln(mesh, slope);
 
   // Define custom function f.
   CustomFunction f(slope);
@@ -92,7 +92,7 @@ int main(int argc, char* argv[])
   EssentialBCs<double> bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.
-  H1Space<double> space(&mesh, &bcs, P_INIT);
+  H1Space<double> space(mesh, &bcs, P_INIT);
   
   // Initialize approximate solution.
   Solution<double> sln;
@@ -120,7 +120,7 @@ int main(int argc, char* argv[])
     cpu_time.tick();
 
     // Construct globally refined reference mesh and setup reference space.
-    Mesh::ReferenceMeshCreator refMeshCreator(&mesh);
+    Mesh::ReferenceMeshCreator refMeshCreator(mesh);
     Mesh* ref_mesh = refMeshCreator.create_ref_mesh();
 
     Space<double>::ReferenceSpaceCreator refSpaceCreator(&space, ref_mesh);
@@ -130,7 +130,7 @@ int main(int argc, char* argv[])
     Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d (%d DOF):", as, ndof_ref);
     cpu_time.tick();
     
-    Hermes::Mixins::Loggable::Static::info("Solving on reference mesh.");
+    Hermes::Mixins::Loggable::Static::info("Solving on reference mesh->");
 
     // Assemble the discrete problem.
     DiscreteProblem<double> dp(&wf, ref_space);
@@ -154,7 +154,7 @@ int main(int argc, char* argv[])
     cpu_time.tick();
     Hermes::Mixins::Loggable::Static::info("Solution: %g s", cpu_time.last());
 
-    // Project the fine mesh solution onto the coarse mesh.
+    // Project the fine mesh solution onto the coarse mesh->
     Hermes::Mixins::Loggable::Static::info("Calculating error estimate and exact error.");
     OGProjection<double> ogProjection; ogProjection.project_global(&space, &ref_sln, &sln);
 
@@ -192,7 +192,7 @@ int main(int argc, char* argv[])
     
     cpu_time.tick(Hermes::Mixins::TimeMeasurable::HERMES_SKIP);
 
-    // If err_est too large, adapt the mesh. The NDOF test must be here, so that the solution may be visualized
+    // If err_est too large, adapt the mesh-> The NDOF test must be here, so that the solution may be visualized
     // after ending due to this criterion.
     if (err_exact_rel < ERR_STOP || space.get_num_dofs() >= NDOF_STOP) 
       done = true;

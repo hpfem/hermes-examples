@@ -113,20 +113,20 @@ double SIGMA_A_5 = SIGMA_T_5 - SIGMA_S_5;
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh.
-  Mesh mesh;
+  // Load the mesh->
+  MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
-  mloader.load("domain.mesh", &mesh);
+  mloader.load("domain.mesh", mesh);
   
   // Perform initial uniform mesh refinement.
-  for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
+  for (int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
 
   // Set essential boundary conditions.
   DefaultEssentialBCConst<double> bc_essential(Hermes::vector<std::string>("right", "top"), 0.0);
   EssentialBCs<double> bcs(&bc_essential);
   
   // Create an H1 space with default shapeset.
-  H1Space<double> space(&mesh, &bcs, P_INIT);
+  H1Space<double> space(mesh, &bcs, P_INIT);
 
   // Associate element markers (corresponding to physical regions) 
   // with material properties (diffusion coefficient, absorption 
@@ -169,7 +169,7 @@ int main(int argc, char* argv[])
     cpu_time.tick();
 
     // Construct globally refined mesh and setup fine mesh space.
-    Mesh::ReferenceMeshCreator refMeshCreator(&mesh);
+    Mesh::ReferenceMeshCreator refMeshCreator(mesh);
     Mesh* ref_mesh = refMeshCreator.create_ref_mesh();
 
     Space<double>::ReferenceSpaceCreator refSpaceCreator(&space, ref_mesh);
@@ -177,7 +177,7 @@ int main(int argc, char* argv[])
     int ndof_ref = ref_space->get_num_dofs();
 
     // Initialize fine mesh problem.
-    Hermes::Mixins::Loggable::Static::info("Solving on fine mesh.");
+    Hermes::Mixins::Loggable::Static::info("Solving on fine mesh->");
     DiscreteProblem<double> dp(&wf, ref_space);
     
     NewtonSolver<double> newton(&dp);
@@ -197,14 +197,14 @@ int main(int argc, char* argv[])
     // Translate the resulting coefficient vector into the instance of Solution.
     Solution<double>::vector_to_solution(newton.get_sln_vector(), ref_space, &ref_sln);
     
-    // Project the fine mesh solution onto the coarse mesh.
-    Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh.");
+    // Project the fine mesh solution onto the coarse mesh->
+    Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh->");
     OGProjection<double> ogProjection; ogProjection.project_global(&space, &ref_sln, &sln);
 
     // Time measurement.
     cpu_time.tick();
 
-    // Visualize the solution and mesh.
+    // Visualize the solution and mesh->
     sview.show(&sln);
     oview.show(&space);
 
@@ -232,12 +232,12 @@ int main(int argc, char* argv[])
     // Skip the time spent to save the convergence graphs.
     cpu_time.tick(Hermes::Mixins::TimeMeasurable::HERMES_SKIP);
 
-    // If err_est too large, adapt the mesh.
+    // If err_est too large, adapt the mesh->
     if (err_est_rel < ERR_STOP) 
       done = true;
     else
     {
-      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
+      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh->");
       done = adaptivity.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
 
       // Increase the counter of performed adaptivity steps.

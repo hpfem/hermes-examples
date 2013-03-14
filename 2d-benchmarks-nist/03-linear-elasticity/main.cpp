@@ -105,18 +105,18 @@ const double nu = 0.3;
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh.
+  // Load the mesh->
   Mesh u_mesh, v_mesh;
   MeshReaderH2D mloader;
   mloader.load("elasticity.mesh", &u_mesh);
 
   // Create initial mesh (master mesh).
-  v_mesh.copy(&u_mesh);
+  v_mesh->copy(&u_mesh);
 
   // Perform initial mesh refinements.
   for (int i = 0; i < INIT_REF_NUM; i++) {
-    u_mesh.refine_all_elements();
-    v_mesh.refine_all_elements();
+    u_mesh->refine_all_elements();
+    v_mesh->refine_all_elements();
   }
   
   // Set exact solution for each displacement component.
@@ -188,7 +188,7 @@ int main(int argc, char* argv[])
     Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d (%d DOF):", as, ndof_ref);
     cpu_time.tick();
     
-    Hermes::Mixins::Loggable::Static::info("Solving on reference mesh.");
+    Hermes::Mixins::Loggable::Static::info("Solving on reference mesh->");
     
     // Assemble the discrete problem.    
     DiscreteProblem<double> dp(&wf, ref_spaces_const);
@@ -214,7 +214,7 @@ int main(int argc, char* argv[])
     cpu_time.tick();
     Hermes::Mixins::Loggable::Static::info("Solution: %g s", cpu_time.last());
     
-    // Project the fine mesh solution onto the coarse mesh.
+    // Project the fine mesh solution onto the coarse mesh->
     Hermes::Mixins::Loggable::Static::info("Calculating error estimate and exact error.");
     OGProjection<double> ogProjection; ogProjection.project_global(Hermes::vector<const Space<double>*>(&u_space, &v_space), 
         Hermes::vector<Solution<double>*>(&u_ref_sln, &v_ref_sln), 
@@ -271,12 +271,12 @@ int main(int argc, char* argv[])
     
     cpu_time.tick(Hermes::Mixins::TimeMeasurable::HERMES_SKIP);
 
-    // If err_est too large, adapt the mesh.
+    // If err_est too large, adapt the mesh->
     if (err_est_rel_total < ERR_STOP) 
       done = true;
     else 
     {
-      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
+      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh->");
       done = adaptivity->adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&selector, &selector), 
                                THRESHOLD, STRATEGY, MESH_REGULARITY);
     }

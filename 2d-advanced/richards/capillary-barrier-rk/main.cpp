@@ -80,7 +80,7 @@ CONSTITUTIVE_RELATIONS constitutive_relations_type = CONSTITUTIVE_GENUCHTEN;
 ButcherTableType butcher_table_type = Implicit_SDIRK_CASH_3_23_embedded;
 
 // Newton's method.
-// Stopping criterion for Newton on fine mesh.
+// Stopping criterion for Newton on fine mesh->
 const double NEWTON_TOL = 1e-5;                   
 // Maximum allowed number of Newton iterations.
 int NEWTON_MAX_ITER = 10;                         
@@ -196,27 +196,27 @@ int main(int argc, char* argv[])
   if (bt.is_diagonally_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage diagonally implicit R-K method.", bt.get_size());
   if (bt.is_fully_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage fully implicit R-K method.", bt.get_size());
 
-  // Load the mesh.
+  // Load the mesh->
   Mesh mesh, basemesh;
   MeshReaderH2D mloader;
   mloader.load(mesh_file, &basemesh);
   
   // Perform initial mesh refinements.
-  mesh.copy(&basemesh);
-  for(int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
-  mesh.refine_towards_boundary("Top", INIT_REF_NUM_BDY_TOP);
+  mesh->copy(&basemesh);
+  for(int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
+  mesh->refine_towards_boundary("Top", INIT_REF_NUM_BDY_TOP);
 
   // Initialize boundary conditions.
   RichardsEssentialBC bc_essential("Top", H_ELEVATION, PULSE_END_TIME, H_INIT, STARTUP_TIME);
   EssentialBCs<double> bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.
-  H1Space<double> space(&mesh, &bcs, P_INIT);
+  H1Space<double> space(mesh, &bcs, P_INIT);
   int ndof = space.get_num_dofs();
   Hermes::Mixins::Loggable::Static::info("ndof = %d.", ndof);
 
   // Convert initial condition into a Solution.
-  ZeroSolution<double> h_time_prev(&mesh), h_time_new(&mesh), time_error_fn(&mesh);
+  ZeroSolution<double> h_time_prev(mesh), h_time_new(mesh), time_error_fn(mesh);
 
   // Initialize views.
   ScalarView view("Initial condition", new WinGeom(0, 0, 600, 500));
@@ -228,7 +228,7 @@ int main(int argc, char* argv[])
   // Initialize the weak formulation.
   CustomWeakFormRichardsRK wf(&constitutive_relations);
 
-   // Visualize the projection and mesh.
+   // Visualize the projection and mesh->
   ScalarView sview("Initial condition", new WinGeom(0, 0, 400, 350));
   sview.fix_scale_width(50);
   sview.show(&h_time_prev);

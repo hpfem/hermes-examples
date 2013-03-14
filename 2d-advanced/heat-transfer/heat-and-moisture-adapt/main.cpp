@@ -19,7 +19,7 @@ const double W_SCALING_FACTOR = 100.;
 // Initial polynomial degrees.
 const int P_INIT = 2;                             
 // MULTI = true  ... use multi-mesh,
-// MULTI = false ... use single-mesh.
+// MULTI = false ... use single-mesh->
 // Note: In the single mesh option, the meshes are
 // forced to be geometrically the same but the
 // polynomial degrees can still vary.
@@ -67,7 +67,7 @@ const int NDOF_STOP = 100000;
 MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
 
 // Newton's method
-// Stopping criterion for Newton on fine mesh.
+// Stopping criterion for Newton on fine mesh->
 const double NEWTON_TOL = 1e-5;                   
 // Maximum allowed number of Newton iterations.
 const int NEWTON_MAX_ITER = 50;                   
@@ -132,15 +132,15 @@ int main(int argc, char* argv[])
   if (bt.is_diagonally_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage diagonally implicit R-K method.", bt.get_size());
   if (bt.is_fully_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage fully implicit R-K method.", bt.get_size());
 
-  // Load the mesh.
+  // Load the mesh->
   Mesh basemesh, T_mesh, w_mesh;
   MeshReaderH2D mloader;
   mloader.load("domain.mesh", &basemesh);
 
   // Create temperature and moisture meshes.
   // This also initializes the multimesh hp-FEM.
-  T_mesh.copy(&basemesh);
-  w_mesh.copy(&basemesh);
+  T_mesh->copy(&basemesh);
+  w_mesh->copy(&basemesh);
 
   // Initialize boundary conditions.
   EssentialBCNonConst temp_reactor("bdy_react", REACTOR_START_TIME, T_INITIAL, T_REACTOR_MAX);
@@ -203,20 +203,20 @@ int main(int argc, char* argv[])
     if (ts > 1 && ts % UNREF_FREQ == 0) {
       Hermes::Mixins::Loggable::Static::info("Global mesh derefinement.");
       switch (UNREF_METHOD) {
-        case 1: T_mesh.copy(&basemesh);
-                w_mesh.copy(&basemesh);
+        case 1: T_mesh->copy(&basemesh);
+                w_mesh->copy(&basemesh);
                 T_space.set_uniform_order(P_INIT);
                 w_space.set_uniform_order(P_INIT);
                 break;
-        case 2: T_mesh.unrefine_all_elements();
+        case 2: T_mesh->unrefine_all_elements();
                 if(MULTI)
-                  w_mesh.unrefine_all_elements();
+                  w_mesh->unrefine_all_elements();
                 T_space.set_uniform_order(P_INIT);
                 w_space.set_uniform_order(P_INIT);
                 break;
-        case 3: T_mesh.unrefine_all_elements();
+        case 3: T_mesh->unrefine_all_elements();
                 if(MULTI)
-                  w_mesh.unrefine_all_elements();
+                  w_mesh->unrefine_all_elements();
                 T_space.adjust_element_order(-1, -1, P_INIT, P_INIT);
                 w_space.adjust_element_order(-1, -1, P_INIT, P_INIT);
                 break;
@@ -306,7 +306,7 @@ int main(int argc, char* argv[])
         done = true;
       else 
       {
-        Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh.");
+        Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh->");
         done = adaptivity->adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&selector, &selector), THRESHOLD, STRATEGY, MESH_REGULARITY);
 
         if (Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&T_space, &w_space)) >= NDOF_STOP) 

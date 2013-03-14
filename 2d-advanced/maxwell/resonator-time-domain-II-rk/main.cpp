@@ -20,7 +20,7 @@
 //      \frac{\partial E}{\partial t} = F,
 //      \frac{\partial F}{\partial t} = -SPEED_OF_LIGHT**2 * curl curl E.
 //
-// Domain: Square (-pi/2, pi/2) x (-pi/2, pi/2)... See mesh file domain.mesh.
+// Domain: Square (-pi/2, pi/2) x (-pi/2, pi/2)... See mesh file domain.mesh->
 //
 // BC:  E \times \nu = 0 on the boundary (perfect conductor),
 //      F \times \nu = 0 on the boundary (E \times \nu = 0 => \partial E / \partial t \times \nu = 0).
@@ -75,17 +75,17 @@ int main(int argc, char* argv[])
   if (bt.is_diagonally_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage diagonally implicit R-K method.", bt.get_size());
   if (bt.is_fully_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage fully implicit R-K method.", bt.get_size());
 
-  // Load the mesh.
-  Mesh mesh;
+  // Load the mesh->
+  MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
-  mloader.load("domain.mesh", &mesh);
+  mloader.load("domain.mesh", mesh);
 
   // Perform initial mesh refinemets.
-  for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
+  for (int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
 
   // Initialize solutions.
-  CustomInitialConditionWave E_time_prev(&mesh);
-  ZeroSolutionVector<double> F_time_prev(&mesh);
+  CustomInitialConditionWave E_time_prev(mesh);
+  ZeroSolutionVector<double> F_time_prev(mesh);
   Hermes::vector<Solution<double>*> slns_time_prev(&E_time_prev, &F_time_prev);
   Solution<double> E_time_new, F_time_new;
   Hermes::vector<Solution<double>*> slns_time_new(&E_time_new, &F_time_new);
@@ -98,8 +98,8 @@ int main(int argc, char* argv[])
   EssentialBCs<double> bcs(&bc_essential);
 
   // Create x- and y- displacement space using the default H1 shapeset.
-  HcurlSpace<double> E_space(&mesh, &bcs, P_INIT);
-  HcurlSpace<double> F_space(&mesh, &bcs, P_INIT);
+  HcurlSpace<double> E_space(mesh, &bcs, P_INIT);
+  HcurlSpace<double> F_space(mesh, &bcs, P_INIT);
   Hermes::vector<const Space<double> *> spaces(&E_space, &F_space);
   int ndof = HcurlSpace<double>::get_num_dofs(spaces);
   Hermes::Mixins::Loggable::Static::info("ndof = %d.", ndof);

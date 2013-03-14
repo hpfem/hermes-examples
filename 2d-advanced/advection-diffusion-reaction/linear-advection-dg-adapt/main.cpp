@@ -59,16 +59,16 @@ const char* preconditioner = "jacobi";
 
 int main(int argc, char* args[])
 {
-  // Load the mesh.
-  Mesh mesh;
+  // Load the mesh->
+  MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
-  mloader.load("square.mesh", &mesh);
+  mloader.load("square.mesh", mesh);
 
   // Perform initial mesh refinement.
-  for (int i=0; i<INIT_REF; i++) mesh.refine_all_elements();
+  for (int i=0; i<INIT_REF; i++) mesh->refine_all_elements();
 
   // Create an L2 space.
-  L2Space<double> space(&mesh, P_INIT);
+  L2Space<double> space(mesh, P_INIT);
 
   // Initialize refinement selector.
   L2ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
@@ -79,7 +79,7 @@ int main(int argc, char* args[])
   // DOF and CPU convergence graphs.
   SimpleGraph graph_dof_est, graph_cpu_est;
 
-  // Display the mesh.
+  // Display the mesh->
   OrderView oview("Coarse mesh", new WinGeom(0, 0, 440, 350));
   oview.show(&space);
 
@@ -87,7 +87,7 @@ int main(int argc, char* args[])
   Solution<double> ref_sln;
 
   // Initialize the weak formulation.
-  CustomWeakForm wf("Bdy_bottom_left", &mesh);
+  CustomWeakForm wf("Bdy_bottom_left", mesh);
 
   ScalarView view1("Solution", new WinGeom(900, 0, 450, 350));
   view1.fix_scale_width(60);
@@ -100,7 +100,7 @@ int main(int argc, char* args[])
   {
     // Construct globally refined reference mesh
     // and setup reference space.
-    Mesh::ReferenceMeshCreator ref_mesh_creator(&mesh);
+    Mesh::ReferenceMeshCreator ref_mesh_creator(mesh);
     Mesh* ref_mesh = ref_mesh_creator.create_ref_mesh();
     Space<double>::ReferenceSpaceCreator ref_space_creator(&space, ref_mesh);
     Space<double>* ref_space = ref_space_creator.create_ref_space();
@@ -117,7 +117,7 @@ int main(int argc, char* args[])
     {
       std::cout << e.what();
     }
-    // Project the fine mesh solution onto the coarse mesh.
+    // Project the fine mesh solution onto the coarse mesh->
     OGProjection<double> ogProjection;
     ogProjection.project_global(&space, &ref_sln, &sln, HERMES_L2_NORM);
 
@@ -137,7 +137,7 @@ int main(int argc, char* args[])
     graph_dof_est.add_values(Space<double>::get_num_dofs(&space), err_est_rel);
     graph_dof_est.save("conv_dof_est.dat");
 
-    // If err_est_rel too large, adapt the mesh.
+    // If err_est_rel too large, adapt the mesh->
     if(err_est_rel < ERR_STOP) done = true;
     else
     {

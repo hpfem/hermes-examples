@@ -65,20 +65,20 @@ MatrixSolverType matrix_solver = SOLVER_UMFPACK;
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh.
-  Mesh mesh;
+  // Load the mesh->
+  MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
-  mloader.load("battery.mesh", &mesh);
+  mloader.load("battery.mesh", mesh);
 
   // Perform initial mesh refinements.
-  for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
+  for (int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
 
   // Create an H1 space with default shapeset.
-  H1Space<double> space(&mesh, P_INIT);
+  H1Space<double> space(mesh, P_INIT);
 
   // Initialize weak formulation.
   CustomWeakFormPoisson wf("e1", "e2", "e3", "e4", "e5", 
-                           "Bdy_left", "Bdy_top", "Bdy_right", "Bdy_bottom", &mesh);
+                           "Bdy_left", "Bdy_top", "Bdy_right", "Bdy_bottom", mesh);
 
   // Initialize coarse and fine mesh solution.
   Solution<double> sln, ref_sln;
@@ -108,7 +108,7 @@ int main(int argc, char* argv[])
     cpu_time.tick();
 
     // Construct globally refined mesh and setup fine mesh space.
-    Mesh::ReferenceMeshCreator refMeshCreator(&mesh);
+    Mesh::ReferenceMeshCreator refMeshCreator(mesh);
     Mesh* ref_mesh = refMeshCreator.create_ref_mesh();
 
     Space<double>::ReferenceSpaceCreator refSpaceCreator(&space, ref_mesh);
@@ -116,7 +116,7 @@ int main(int argc, char* argv[])
     int ndof_ref = ref_space->get_num_dofs();
 
     // Initialize fine mesh problem.
-    Hermes::Mixins::Loggable::Static::info("Solving on fine mesh.");
+    Hermes::Mixins::Loggable::Static::info("Solving on fine mesh->");
     DiscreteProblem<double> dp(&wf, ref_space);
     
     NewtonSolver<double> newton(&dp);
@@ -136,8 +136,8 @@ int main(int argc, char* argv[])
     // Translate the resulting coefficient vector into the instance of Solution.
     Solution<double>::vector_to_solution(newton.get_sln_vector(), ref_space, &ref_sln);
     
-    // Project the fine mesh solution onto the coarse mesh.
-    Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh.");
+    // Project the fine mesh solution onto the coarse mesh->
+    Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh->");
     OGProjection<double> ogProjection; ogProjection.project_global(&space, &ref_sln, &sln);
 
     // Time measurement.
@@ -198,12 +198,12 @@ int main(int argc, char* argv[])
     // Skip the time spent to save the convergence graphs.
     cpu_time.tick(Hermes::Mixins::TimeMeasurable::HERMES_SKIP);
 
-    // If err_est too large, adapt the mesh.
+    // If err_est too large, adapt the mesh->
     if (err_est_rel < ERR_STOP) 
       done = true;
     else
     {
-      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
+      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh->");
       done = adaptivity.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
 
       // Increase the counter of performed adaptivity steps.

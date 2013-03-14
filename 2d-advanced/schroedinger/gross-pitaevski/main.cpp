@@ -69,17 +69,17 @@ int main(int argc, char* argv[])
   if (bt.is_diagonally_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage diagonally implicit R-K method.", bt.get_size());
   if (bt.is_fully_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage fully implicit R-K method.", bt.get_size());
 
-  // Load the mesh.
-  Mesh mesh;
+  // Load the mesh->
+  MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
-  mloader.load("square.mesh", &mesh);
+  mloader.load("square.mesh", mesh);
 
   // Initial mesh refinements.
-  for(int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
+  for(int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
 
   // Convert initial condition into a Solution<std::complex<double> >.
-  CustomInitialCondition psi_time_prev(&mesh);
-  Solution<std::complex<double> > psi_time_new(&mesh);
+  CustomInitialCondition psi_time_prev(mesh);
+  Solution<std::complex<double> > psi_time_new(mesh);
 
   // Initialize the weak formulation.
   double current_time = 0;
@@ -91,7 +91,7 @@ int main(int argc, char* argv[])
   EssentialBCs<std::complex<double> > bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.
-  H1Space<std::complex<double> > space(&mesh, &bcs, P_INIT);
+  H1Space<std::complex<double> > space(mesh, &bcs, P_INIT);
   int ndof = space.get_num_dofs();
   Hermes::Mixins::Loggable::Static::info("ndof = %d", ndof);
  

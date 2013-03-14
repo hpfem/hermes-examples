@@ -77,9 +77,9 @@ bool SIMPLE_TEMPERATURE_ADVECTION = false;
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh.
+  // Load the mesh->
   Mesh mesh_whole_domain, mesh_with_hole;
-  Hermes::vector<Mesh*> meshes (&mesh_whole_domain, &mesh_with_hole);
+  Hermes::vector<Mesh*> meshes (mesh_whole_domain, mesh_with_hole);
   MeshReaderH2DXML mloader;
   mloader.load("domain.xml", meshes);
 
@@ -103,8 +103,8 @@ int main(int argc, char* argv[])
 
   /* View both meshes. */
   MeshView m1("Mesh for temperature"), m2("Mesh for fluid");
-  m1.show(&mesh_whole_domain);
-  m2.show(&mesh_with_hole);
+  m1.show(mesh_whole_domain);
+  m2.show(mesh_with_hole);
 
   // Initialize boundary conditions.
   EssentialBCNonConst bc_inlet_vel_x("Inlet", VEL_INLET, H, STARTUP_TIME);
@@ -117,14 +117,14 @@ int main(int argc, char* argv[])
   EssentialBCs<double> bcs_temperature(&bc_temperature);
 
   // Spaces for velocity components, pressure and temperature.
-  H1Space<double> xvel_space(&mesh_with_hole, &bcs_vel_x, P_INIT_VEL);
-  H1Space<double> yvel_space(&mesh_with_hole, &bcs_vel_y, P_INIT_VEL);
+  H1Space<double> xvel_space(mesh_with_hole, &bcs_vel_x, P_INIT_VEL);
+  H1Space<double> yvel_space(mesh_with_hole, &bcs_vel_y, P_INIT_VEL);
 #ifdef PRESSURE_IN_L2
-  L2Space<double> p_space(&mesh_with_hole, P_INIT_PRESSURE);
+  L2Space<double> p_space(mesh_with_hole, P_INIT_PRESSURE);
 #else
-  H1Space<double> p_space(&mesh_with_hole, &bcs_pressure, P_INIT_PRESSURE);
+  H1Space<double> p_space(mesh_with_hole, &bcs_pressure, P_INIT_PRESSURE);
 #endif
-  H1Space<double> temperature_space(&mesh_whole_domain, &bcs_temperature, P_INIT_TEMPERATURE);
+  H1Space<double> temperature_space(mesh_whole_domain, &bcs_temperature, P_INIT_TEMPERATURE);
   Hermes::vector<const Space<double> *> all_spaces(&xvel_space, 
       &yvel_space, &p_space, &temperature_space);
   Hermes::vector<const Space<double> *> all_spaces_const(&xvel_space, 
@@ -148,8 +148,8 @@ int main(int argc, char* argv[])
 
   // Initial conditions and such.
   //Hermes::Mixins::Loggable::Static::Hermes::Mixins::Loggable::Static::info("Setting initial conditions.");
-  ZeroSolution<double> xvel_prev_time(&mesh_with_hole), yvel_prev_time(&mesh_with_hole), p_prev_time(&mesh_with_hole);
-  CustomInitialConditionTemperature temperature_init_cond(&mesh_whole_domain, HOLE_MID_X, HOLE_MID_Y, 
+  ZeroSolution<double> xvel_prev_time(mesh_with_hole), yvel_prev_time(mesh_with_hole), p_prev_time(mesh_with_hole);
+  CustomInitialConditionTemperature temperature_init_cond(mesh_whole_domain, HOLE_MID_X, HOLE_MID_Y, 
       0.5*OBSTACLE_DIAMETER, TEMPERATURE_INIT_FLUID, TEMPERATURE_INIT_GRAPHITE); 
   Solution<double> temperature_prev_time;
   Hermes::vector<Solution<double> *> all_solutions = Hermes::vector<Solution<double> *>(&xvel_prev_time, 

@@ -73,7 +73,7 @@ const int NDOF_STOP = 60000;
 MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
 
 // Newton's method
-// Stopping criterion for Newton on fine mesh.
+// Stopping criterion for Newton on fine mesh->
 const double NEWTON_TOL = 1e-5;                   
 // Maximum allowed number of Newton iterations.
 const int NEWTON_MAX_ITER = 20;                   
@@ -115,24 +115,24 @@ int main(int argc, char* argv[])
   if (bt.is_diagonally_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage diagonally implicit R-K method.", bt.get_size());
   if (bt.is_fully_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage fully implicit R-K method.", bt.get_size());
 
-  // Load the mesh.
+  // Load the mesh->
   Mesh mesh, basemesh;
   MeshReaderH2D mloader;
   mloader.load("domain.mesh", &basemesh);
 
   // Perform initial mesh refinements.
-  for(int i = 0; i < INIT_REF_NUM; i++) basemesh.refine_all_elements(0, true);
-  mesh.copy(&basemesh);
+  for(int i = 0; i < INIT_REF_NUM; i++) basemesh->refine_all_elements(0, true);
+  mesh->copy(&basemesh);
   
   // Exact solution.
-  CustomExactSolution exact_sln(&mesh, x_0, x_1, y_0, y_1, &current_time, s, c);
+  CustomExactSolution exact_sln(mesh, x_0, x_1, y_0, y_1, &current_time, s, c);
 
   // Initialize boundary conditions.
   DefaultEssentialBCConst<double> bc_essential("Bdy", 0);
   EssentialBCs<double> bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.
-  H1Space<double> space(&mesh, &bcs, P_INIT);
+  H1Space<double> space(mesh, &bcs, P_INIT);
   int ndof_coarse = space.get_num_dofs();
 
   // Initialize the weak formulation
@@ -140,8 +140,8 @@ int main(int argc, char* argv[])
   CustomWeakFormPoisson wf(HERMES_ANY, new Hermes::Hermes1DFunction<double>(-1.0), &f);
 
   // Previous and next time level solution.
-  ZeroSolution<double> sln_time_prev(&mesh);
-  Solution<double> sln_time_new(&mesh);
+  ZeroSolution<double> sln_time_prev(mesh);
+  Solution<double> sln_time_new(mesh);
 
   // Create a refinement selector.
   H1ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
@@ -165,13 +165,13 @@ int main(int argc, char* argv[])
     {
       Hermes::Mixins::Loggable::Static::info("Global mesh derefinement.");
       switch (UNREF_METHOD) {
-        case 1: mesh.copy(&basemesh);
+        case 1: mesh->copy(&basemesh);
                 space.set_uniform_order(P_INIT);
                 break;
-        case 2: mesh.unrefine_all_elements();
+        case 2: mesh->unrefine_all_elements();
                 space.set_uniform_order(P_INIT);
                 break;
-        case 3: mesh.unrefine_all_elements();
+        case 3: mesh->unrefine_all_elements();
                 space.adjust_element_order(-1, -1, P_INIT, P_INIT);
                 break;
       }
@@ -188,7 +188,7 @@ int main(int argc, char* argv[])
       Hermes::Mixins::Loggable::Static::info("Time step %d, adaptivity step %d:", ts, as);
 
       // Construct globally refined reference mesh and setup reference space.
-      Mesh::ReferenceMeshCreator refMeshCreator(&mesh);
+      Mesh::ReferenceMeshCreator refMeshCreator(mesh);
       Mesh* ref_mesh = refMeshCreator.create_ref_mesh();
 
       Space<double>::ReferenceSpaceCreator refSpaceCreator(&space, ref_mesh);
@@ -216,7 +216,7 @@ int main(int argc, char* argv[])
         e.print_msg();
       }
 
-      // Project the fine mesh solution onto the coarse mesh.
+      // Project the fine mesh solution onto the coarse mesh->
       Solution<double> sln_coarse;
       Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh for error estimation.");
       OGProjection<double> ogProjection;
@@ -231,11 +231,11 @@ int main(int argc, char* argv[])
       Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_ref: %d, err_est_rel: %g%%", 
            space.get_num_dofs(), ref_space->get_num_dofs(), err_est_rel_total);
 
-      // If err_est too large, adapt the mesh.
+      // If err_est too large, adapt the mesh->
       if (err_est_rel_total < ERR_STOP) done = true;
       else 
       {
-        Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh.");
+        Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh->");
         done = adaptivity->adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
 
         if (space.get_num_dofs() >= NDOF_STOP) 
@@ -255,7 +255,7 @@ int main(int argc, char* argv[])
     }
     while (done == false);
 
-    // Visualize the solution and mesh.
+    // Visualize the solution and mesh->
     char title[100];
     sprintf(title, "Solution, time %g", current_time);
     sview.set_title(title);

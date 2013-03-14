@@ -93,7 +93,7 @@ const double STARTUP_TIME = 1.0;
 const double TAU = 0.01;                          
 // Time interval length.
 const double T_FINAL = 30000.0;                   
-// Stopping criterion for Newton on fine mesh.
+// Stopping criterion for Newton on fine mesh->
 const double NEWTON_TOL = 0.05;                   
 // Maximum allowed number of Newton iterations.
 const int NEWTON_MAX_ITER = 20;                   
@@ -142,20 +142,20 @@ void mag(int n, double* a, double* dadx, double* dady,
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh.
+  // Load the mesh->
   Mesh mesh, basemesh;
   MeshReaderH2D mloader;
   mloader.load("domain.mesh", &basemesh);
 
   // Initial mesh refinements.
-  //mesh.refine_all_elements();
-  basemesh.refine_towards_boundary(BDY_OBSTACLE, 1, false);
+  //mesh->refine_all_elements();
+  basemesh->refine_towards_boundary(BDY_OBSTACLE, 1, false);
   // '4' is the number of levels.
-  basemesh.refine_towards_boundary(BDY_TOP, 1, true);     
+  basemesh->refine_towards_boundary(BDY_TOP, 1, true);     
   // 'true' stands for anisotropic refinements.
-  basemesh.refine_towards_boundary(BDY_BOTTOM, 1, true);  
+  basemesh->refine_towards_boundary(BDY_BOTTOM, 1, true);  
 
-  mesh.copy(&basemesh);
+  mesh->copy(&basemesh);
 
   // Initialize boundary conditions.
   EssentialBCNonConst bc_left_vel_x(BDY_LEFT, VEL_INLET, H, STARTUP_TIME);
@@ -165,12 +165,12 @@ int main(int argc, char* argv[])
   EssentialBCs<double> bcs_vel_y(&bc_vel_y);
 
   // Spaces for velocity components and pressure.
-  H1Space<double> xvel_space(&mesh, &bcs_vel_x, P_INIT_VEL);
-  H1Space<double> yvel_space(&mesh, &bcs_vel_y, P_INIT_VEL);
+  H1Space<double> xvel_space(mesh, &bcs_vel_x, P_INIT_VEL);
+  H1Space<double> yvel_space(mesh, &bcs_vel_y, P_INIT_VEL);
 #ifdef PRESSURE_IN_L2
-  L2Space<double> p_space(&mesh, P_INIT_PRESSURE);
+  L2Space<double> p_space(mesh, P_INIT_PRESSURE);
 #else
-  H1Space<double> p_space(&mesh, P_INIT_PRESSURE);
+  H1Space<double> p_space(mesh, P_INIT_PRESSURE);
 #endif
   Hermes::vector<const Space<double>*> spaces = Hermes::vector<const Space<double>*>(&xvel_space, &yvel_space, &p_space);
 
@@ -190,14 +190,14 @@ int main(int argc, char* argv[])
   Hermes::Mixins::Loggable::Static::info("Setting initial conditions.");
   Solution<double> xvel_ref_sln, yvel_ref_sln, p_ref_sln;
 
-  // Define initial conditions on the coarse mesh.
-  ZeroSolution<double> xvel_prev_time(&mesh);
-  ZeroSolution<double> yvel_prev_time(&mesh);
-  ZeroSolution<double> p_prev_time(&mesh);
+  // Define initial conditions on the coarse mesh->
+  ZeroSolution<double> xvel_prev_time(mesh);
+  ZeroSolution<double> yvel_prev_time(mesh);
+  ZeroSolution<double> p_prev_time(mesh);
  
-  ZeroSolution<double> xvel_sln(&mesh);
-  ZeroSolution<double> yvel_sln(&mesh);
-  ZeroSolution<double> p_sln(&mesh);
+  ZeroSolution<double> xvel_sln(mesh);
+  ZeroSolution<double> yvel_sln(mesh);
+  ZeroSolution<double> p_sln(mesh);
 
   // Initialize weak formulation.
   WeakForm<double>* wf;
@@ -232,7 +232,7 @@ int main(int argc, char* argv[])
     // Periodic global derefinements.
     if (ts > 1 && ts % UNREF_FREQ == 0) {
       Hermes::Mixins::Loggable::Static::info("Global mesh derefinement.");
-      mesh.copy(&basemesh);
+      mesh->copy(&basemesh);
       xvel_space.set_uniform_order(P_INIT_VEL);
       yvel_space.set_uniform_order(P_INIT_VEL);
       p_space.set_uniform_order(P_INIT_PRESSURE);
@@ -254,7 +254,7 @@ int main(int argc, char* argv[])
 
       // Construct globally refined reference mesh
       // and setup reference space.
-      Mesh::ReferenceMeshCreator refMeshCreator(&mesh);
+      Mesh::ReferenceMeshCreator refMeshCreator(mesh);
       Mesh* ref_mesh = refMeshCreator.create_ref_mesh();
 
       Space<double>::ReferenceSpaceCreator refSpaceCreatorX(&xvel_space, ref_mesh);
@@ -267,16 +267,16 @@ int main(int argc, char* argv[])
       Hermes::vector<Space<double>*> ref_spaces(ref_xvel_space, ref_yvel_space, ref_p_space);
       Hermes::vector<const Space<double>*> ref_spaces_const(ref_xvel_space, ref_yvel_space, ref_p_space);
 
-      // Calculate initial coefficient vector for Newton on the fine mesh.
+      // Calculate initial coefficient vector for Newton on the fine mesh->
       double* coeff_vec = new double[Space<double>::get_num_dofs(ref_spaces_const)];
 
       if (ts == 1) {
-        Hermes::Mixins::Loggable::Static::info("Projecting coarse mesh solution to obtain coefficient vector on new fine mesh.");
+        Hermes::Mixins::Loggable::Static::info("Projecting coarse mesh solution to obtain coefficient vector on new fine mesh->");
         OGProjection<double> ogProj; ogProj.project_global(ref_spaces_const, Hermes::vector<MeshFunction<double>*>(&xvel_sln, &yvel_sln, &p_sln), 
                       coeff_vec);
       }
       else {
-        Hermes::Mixins::Loggable::Static::info("Projecting previous fine mesh solution to obtain coefficient vector on new fine mesh.");
+        Hermes::Mixins::Loggable::Static::info("Projecting previous fine mesh solution to obtain coefficient vector on new fine mesh->");
         OGProjection<double> ogProj; ogProj.project_global(ref_spaces_const, Hermes::vector<MeshFunction<double>*>(&xvel_prev_time, &yvel_prev_time, &p_prev_time), 
             coeff_vec);
       }
@@ -300,8 +300,8 @@ int main(int argc, char* argv[])
       // Update previous time level solutions.
       Solution<double>::vector_to_solutions(newton.get_sln_vector(), ref_spaces_const, Hermes::vector<Solution<double>*>(&xvel_ref_sln, &yvel_ref_sln, &p_ref_sln));
        
-      // Project the fine mesh solution onto the coarse mesh.
-      Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
+      // Project the fine mesh solution onto the coarse mesh->
+      Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh->");
       OGProjection<double> ogProj; ogProj.project_global(Hermes::vector<const Space<double>*>(&xvel_space, &yvel_space, &p_space), 
           Hermes::vector<Solution<double>*>(&xvel_ref_sln, &yvel_ref_sln, &p_ref_sln), 
           Hermes::vector<Solution<double>*>(&xvel_sln, &yvel_sln, &p_sln), 
@@ -320,11 +320,11 @@ int main(int argc, char* argv[])
            Space<double>::get_num_dofs(Hermes::vector<const Space<double>*>(&xvel_space, &yvel_space, &p_space)), 
            Space<double>::get_num_dofs(ref_spaces_const), err_est_rel_total);
 
-      // If err_est too large, adapt the mesh.
+      // If err_est too large, adapt the mesh->
       if (err_est_rel_total < ERR_STOP) done = true;
       else 
       {
-        Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh.");
+        Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh->");
         done = adaptivity->adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&selector, &selector, &selector), 
                                  THRESHOLD, STRATEGY, MESH_REGULARITY);
 

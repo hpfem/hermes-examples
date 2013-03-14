@@ -38,15 +38,15 @@ const double FIXED_BDY_TEMP = 20.0;
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh.
-  Mesh mesh;
+  // Load the mesh->
+  MeshSharedPtr mesh(new Mesh);
   MeshReaderH1DXML mloader;
-  mloader.load("domain.xml", &mesh);
+  mloader.load("domain.xml", mesh);
 
   // Perform initial mesh refinements (optional).
   // Split elements vertically.
   int refinement_type = 2;            
-  for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements(refinement_type);
+  for (int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements(refinement_type);
 
   // Initialize the weak formulation.
   CustomWeakFormPoisson wf("Al", new Hermes::Hermes1DFunction<double>(LAMBDA_AL), "Cu", 
@@ -59,7 +59,7 @@ int main(int argc, char* argv[])
   EssentialBCs<double> bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.
-  H1Space<double> space(&mesh, &bcs, P_INIT);
+  H1Space<double> space(mesh, &bcs, P_INIT);
   int ndof = space.get_num_dofs();
   Hermes::Mixins::Loggable::Static::info("ndof = %d", ndof);
   

@@ -8,7 +8,7 @@
 //
 //  PDE: -div(1/rho grad p) - omega**2 / (rho c**2) * p = 0.
 //
-//  Domain: Axisymmetric geometry of a horn, see mesh file domain.mesh.
+//  Domain: Axisymmetric geometry of a horn, see mesh file domain.mesh->
 //
 //  BC: Prescribed pressure on the bottom edge,
 //      zero Neumann on the walls and on the axis of symmetry,
@@ -75,24 +75,24 @@ int main(int argc, char* argv[])
   Hermes::Mixins::TimeMeasurable cpu_time;
   cpu_time.tick();
 
-  // Load the mesh.
-  Mesh mesh;
+  // Load the mesh->
+  MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
-  mloader.load("domain.mesh", &mesh);
+  mloader.load("domain.mesh", mesh);
 
   //MeshView mv("Initial mesh", new WinGeom(0, 0, 400, 400));
-  //mv.show(&mesh);
+  //mv.show(mesh);
   //View::wait(HERMES_WAIT_KEYPRESS);
 
   // Perform initial mesh refinements.
-  for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
+  for (int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
 
   // Initialize boundary conditions.
   DefaultEssentialBCConst<std::complex<double> > bc_essential("Source", P_SOURCE);
   EssentialBCs<std::complex<double> > bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.
-  H1Space<std::complex<double> > space(&mesh, &bcs, P_INIT);
+  H1Space<std::complex<double> > space(mesh, &bcs, P_INIT);
   int ndof = Space<std::complex<double> >::get_num_dofs(&space);
   Hermes::Mixins::Loggable::Static::info("ndof = %d", ndof);
 
@@ -125,7 +125,7 @@ int main(int argc, char* argv[])
     Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d:", as);
 
     // Construct globally refined reference mesh and setup reference space.
-    Mesh::ReferenceMeshCreator refMeshCreator(&mesh);
+    Mesh::ReferenceMeshCreator refMeshCreator(mesh);
     Mesh* ref_mesh = refMeshCreator.create_ref_mesh();
 
     Space<std::complex<double> >::ReferenceSpaceCreator refSpaceCreator(&space, ref_mesh);
@@ -133,7 +133,7 @@ int main(int argc, char* argv[])
     int ndof_ref = Space<std::complex<double> >::get_num_dofs(ref_space);
 
     // Assemble the reference problem.
-    Hermes::Mixins::Loggable::Static::info("Solving on reference mesh.");
+    Hermes::Mixins::Loggable::Static::info("Solving on reference mesh->");
     DiscreteProblem<std::complex<double> > dp(&wf, ref_space);
 
     // Time measurement.
@@ -153,8 +153,8 @@ int main(int argc, char* argv[])
     // Translate the resulting coefficient vector into the Solution<std::complex<double> > sln.
     Hermes::Hermes2D::Solution<std::complex<double> >::vector_to_solution(newton.get_sln_vector(), ref_space, &ref_sln);
 
-    // Project the fine mesh solution onto the coarse mesh.
-    Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
+    // Project the fine mesh solution onto the coarse mesh->
+    Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh->");
     OGProjection<std::complex<double> > ogProjection; ogProjection.project_global(&space, &ref_sln, &sln);
 
     // Time measurement.
@@ -183,11 +183,11 @@ int main(int argc, char* argv[])
     graph_cpu.add_values(cpu_time.accumulated(), err_est_rel);
     graph_cpu.save("conv_cpu_est.dat");
 
-    // If err_est too large, adapt the mesh.
+    // If err_est too large, adapt the mesh->
     if (err_est_rel < ERR_STOP) done = true;
     else
     {
-      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
+      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh->");
       done = adaptivity->adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
     }
     if (Space<std::complex<double> >::get_num_dofs(&space) >= NDOF_STOP) done = true;

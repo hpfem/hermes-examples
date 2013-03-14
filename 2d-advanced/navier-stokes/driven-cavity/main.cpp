@@ -95,16 +95,16 @@ int main(int argc, char* argv[])
 {
   
 
-  // Load the mesh.
-  Mesh mesh;
+  // Load the mesh->
+  MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
-  mloader.load("domain.mesh", &mesh);
+  mloader.load("domain.mesh", mesh);
 
-  //mloader.load("domain-concentric.mesh", &mesh);
+  //mloader.load("domain-concentric.mesh", mesh);
 
   // Initial mesh refinements.
-  for (int i=0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
-  mesh.refine_towards_boundary(Hermes::vector<std::string>("Bdy-1", "Bdy-2", "Bdy-3", "Bdy-4"), 
+  for (int i=0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
+  mesh->refine_towards_boundary(Hermes::vector<std::string>("Bdy-1", "Bdy-2", "Bdy-3", "Bdy-4"), 
                                INIT_BDY_REF_NUM_INNER, false);  // True for anisotropic refinement.
 
   // Initialize boundary conditions.
@@ -114,12 +114,12 @@ int main(int argc, char* argv[])
   EssentialBCs<double> bcs_vel_y(&bc_vel_y);
 
   // Spaces for velocity components and pressure.
-  H1Space<double> xvel_space(&mesh, &bcs_vel_x, P_INIT_VEL);
-  H1Space<double> yvel_space(&mesh, &bcs_vel_y, P_INIT_VEL);
+  H1Space<double> xvel_space(mesh, &bcs_vel_x, P_INIT_VEL);
+  H1Space<double> yvel_space(mesh, &bcs_vel_y, P_INIT_VEL);
 #ifdef PRESSURE_IN_L2
-  L2Space<double> p_space(&mesh, P_INIT_PRESSURE);
+  L2Space<double> p_space(mesh, P_INIT_PRESSURE);
 #else
-  H1Space<double> p_space(&mesh, P_INIT_PRESSURE);
+  H1Space<double> p_space(mesh, P_INIT_PRESSURE);
 #endif
   Hermes::vector<const Space<double>*> spaces = Hermes::vector<const Space<double>*>(&xvel_space, &yvel_space, &p_space);
 
@@ -137,9 +137,9 @@ int main(int argc, char* argv[])
 
   // Solutions for the Newton's iteration and time stepping.
   Hermes::Mixins::Loggable::Static::info("Setting initial conditions.");
-  ZeroSolution<double> xvel_prev_time(&mesh);
-  ZeroSolution<double> yvel_prev_time(&mesh);
-  ZeroSolution<double> p_prev_time(&mesh);
+  ZeroSolution<double> xvel_prev_time(mesh);
+  ZeroSolution<double> yvel_prev_time(mesh);
+  ZeroSolution<double> p_prev_time(mesh);
   Hermes::vector<Solution<double>*> slns_prev_time = 
       Hermes::vector<Solution<double>*>(&xvel_prev_time, &yvel_prev_time, &p_prev_time);
 

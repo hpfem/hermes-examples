@@ -89,9 +89,9 @@ const double TIME_STEP_INC_RATIO = 1.1;
 const double TIME_STEP_DEC_RATIO = 0.8;           
 
 // Newton's method.
-// Stopping criterion for Newton on coarse mesh.
+// Stopping criterion for Newton on coarse mesh->
 const double NEWTON_TOL_COARSE = 0.01;            
-// Stopping criterion for Newton on fine mesh.
+// Stopping criterion for Newton on fine mesh->
 const double NEWTON_TOL_FINE = 0.05;              
 // Maximum allowed number of Newton iterations.
 const int NEWTON_MAX_ITER = 50;                   
@@ -137,17 +137,17 @@ int main(int argc, char* argv[])
     ADAPTIVE_TIME_STEP_ON = false;
   }
 
-  // Load the mesh.
+  // Load the mesh->
   Mesh mesh, basemesh;
   MeshReaderH2D mloader;
   mloader.load("square.mesh", &basemesh);
-  mesh.copy(&basemesh);
+  mesh->copy(&basemesh);
 
   // Initial mesh refinements.
-  for(int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
+  for(int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
 
   // Convert initial condition into a Solution<std::complex<double> >.
-  CustomInitialCondition psi_time_prev(&mesh);
+  CustomInitialCondition psi_time_prev(mesh);
 
   // Initialize the weak formulation.
   double current_time = 0;
@@ -160,7 +160,7 @@ int main(int argc, char* argv[])
   EssentialBCs<std::complex<double> > bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.
-  H1Space<std::complex<double> > space(&mesh, &bcs, P_INIT);
+  H1Space<std::complex<double> > space(mesh, &bcs, P_INIT);
   int ndof = space.get_num_dofs();
   Hermes::Mixins::Loggable::Static::info("ndof = %d", ndof);
  
@@ -210,7 +210,7 @@ int main(int argc, char* argv[])
     {
       Hermes::Mixins::Loggable::Static::info("Global mesh derefinement.");
       switch (UNREF_METHOD) {
-        case 1: mesh.copy(&basemesh);
+        case 1: mesh->copy(&basemesh);
                 space.set_uniform_order(P_INIT);
                 break;
         case 2: space.unrefine_all_mesh_elements();
@@ -230,24 +230,24 @@ int main(int argc, char* argv[])
     // changed during spatial adaptivity. 
     Solution<std::complex<double> > ref_sln;
     Solution<std::complex<double> >* time_error_fn;
-    if (bt.is_embedded() == true) time_error_fn = new Solution<std::complex<double> >(&mesh);
+    if (bt.is_embedded() == true) time_error_fn = new Solution<std::complex<double> >(mesh);
     else time_error_fn = NULL;
     bool done = false; int as = 1;
     double err_est;
     do {
       // Construct globally refined reference mesh and setup reference space.
-      Mesh::ReferenceMeshCreator refMeshCreator(&mesh);
+      Mesh::ReferenceMeshCreator refMeshCreator(mesh);
       Mesh* ref_mesh = refMeshCreator.create_ref_mesh();
 
       Space<std::complex<double> >::ReferenceSpaceCreator refSpaceCreator(&space, ref_mesh);
       Space<std::complex<double> >* ref_space = refSpaceCreator.create_ref_space();
 
-      // Initialize discrete problem on reference mesh.
+      // Initialize discrete problem on reference mesh->
       DiscreteProblem<std::complex<double> >* ref_dp = new DiscreteProblem<std::complex<double> >(&wf, ref_space);
       
       RungeKutta<std::complex<double> > runge_kutta(&wf, ref_space, &bt);
 
-      // Runge-Kutta step on the fine mesh.
+      // Runge-Kutta step on the fine mesh->
       Hermes::Mixins::Loggable::Static::info("Runge-Kutta time step on fine mesh (t = %g s, time step = %g s, stages: %d).", 
          current_time, time_step, bt.get_size());
       bool verbose = true;
@@ -319,7 +319,7 @@ int main(int argc, char* argv[])
 
       Hermes::Mixins::Loggable::Static::info("Spatial adaptivity step %d.", as);
 
-      // Project the fine mesh solution onto the coarse mesh.
+      // Project the fine mesh solution onto the coarse mesh->
       Solution<std::complex<double> > sln;
       Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh for error estimation.");
       OGProjection<std::complex<double> > ogProjection; ogProjection.project_global(&space, &ref_sln, &sln); 
@@ -342,11 +342,11 @@ int main(int argc, char* argv[])
       Hermes::Mixins::Loggable::Static::info("ndof: %d, ref_ndof: %d, err_rel_space: %g%%", 
            Space<std::complex<double> >::get_num_dofs(&space), Space<std::complex<double> >::get_num_dofs(ref_space), err_rel_space);
 
-      // If err_est too large, adapt the mesh.
+      // If err_est too large, adapt the mesh->
       if (err_rel_space < SPACE_ERR_TOL) done = true;
       else 
       {
-        Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh.");
+        Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh->");
         done = adaptivity->adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
 
         if (Space<std::complex<double> >::get_num_dofs(&space) >= NDOF_STOP) 
@@ -371,7 +371,7 @@ int main(int argc, char* argv[])
     // Clean up.
     if (time_error_fn != NULL) delete time_error_fn;
 
-    // Visualize the solution and mesh.
+    // Visualize the solution and mesh->
     char title[100];
     sprintf(title, "Solution - real part, Time %3.2f s", current_time);
     sview_real.set_title(title);

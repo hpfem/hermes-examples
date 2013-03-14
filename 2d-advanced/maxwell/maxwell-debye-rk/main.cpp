@@ -149,7 +149,7 @@ int main(int argc, char* argv[])
 		if (bt.is_diagonally_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage diagonally implicit R-K method.", bt.get_size());
 		if (bt.is_fully_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage fully implicit R-K method.", bt.get_size());
 
-		// Load the mesh.
+		// Load the mesh->
 		Mesh E_mesh, H_mesh, P_mesh;
 		MeshReaderH2D mloader;
 		mloader.load("domain.mesh", &E_mesh);
@@ -159,9 +159,9 @@ int main(int argc, char* argv[])
 		// Perform initial mesh refinemets.
 		for (int i = 0; i < INIT_REF_NUM; i++)
 		{
-			E_mesh.refine_all_elements();
-			H_mesh.refine_all_elements();
-			P_mesh.refine_all_elements();
+			E_mesh->refine_all_elements();
+			H_mesh->refine_all_elements();
+			P_mesh->refine_all_elements();
 		}
 
 		// Initialize solutions.
@@ -183,7 +183,7 @@ int main(int argc, char* argv[])
 
 		HcurlSpace<double> E_space(&E_mesh, &bcs, P_INIT);
 		H1Space<double> H_space(&H_mesh, NULL, P_INIT);
-		//L2Space<double> H_space(&mesh, P_INIT);
+		//L2Space<double> H_space(mesh, P_INIT);
 		HcurlSpace<double> P_space(&P_mesh, &bcs, P_INIT);
 
 		Hermes::vector<Space<double> *> spaces = Hermes::vector<Space<double> *>(&E_space, &H_space, &P_space);
@@ -314,8 +314,8 @@ int main(int argc, char* argv[])
 			  P2_view.set_title(title);
 			  P2_view.show(&P_time_new, H2D_FN_VAL_1);
 
-				// Project the fine mesh solution onto the coarse mesh.
-				Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
+				// Project the fine mesh solution onto the coarse mesh->
+				Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh->");
 				OGProjection<double> ogProjection; ogProjection.project_global(Hermes::vector<const Space<double> *>(&E_space, &H_space, 
 					&P_space), Hermes::vector<Solution<double>*>(&E_time_new, &H_time_new, &P_time_new), Hermes::vector<Solution<double>*>(&E_time_new_coarse, &H_time_new_coarse, &P_time_new_coarse));
 
@@ -329,7 +329,7 @@ int main(int argc, char* argv[])
 				// Report results.
 				Hermes::Mixins::Loggable::Static::info("Error estimate: %g%%", err_est_rel_total);
 
-				// If err_est too large, adapt the mesh.
+				// If err_est too large, adapt the mesh->
 				if (err_est_rel_total < ERR_STOP || as > ADAPTIVITY_STEPS - 1)
         {
           if(err_est_rel_total < ERR_STOP)
@@ -340,7 +340,7 @@ int main(int argc, char* argv[])
         }
 				else
 				{
-					Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
+					Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh->");
 					REFINEMENT_COUNT++;
 					done = adaptivity->adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&HcurlSelector, &H1selector, &HcurlSelector), 
 						THRESHOLD, STRATEGY, MESH_REGULARITY);

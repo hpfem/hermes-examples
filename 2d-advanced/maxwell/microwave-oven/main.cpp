@@ -36,7 +36,7 @@ const int INIT_REF_NUM = 0;
 // is for Whitney elements.
 const int P_INIT = 2;                             
 // if ALIGN_MESH == true, curvilinear elements aligned with the
-// circular load are used, otherwise one uses a non-aligned mesh.
+// circular load are used, otherwise one uses a non-aligned mesh->
 const bool ALIGN_MESH = false;                     
 // This is a quantitative parameter of the adapt(...) function and
 // it has different meanings for various adaptive strategies.
@@ -96,16 +96,16 @@ const std::string BDY_CURRENT = "b1";
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh.
-  Mesh mesh;
+  // Load the mesh->
+  MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
   if (ALIGN_MESH) 
-    mloader.load("oven_load_circle.mesh", &mesh);
+    mloader.load("oven_load_circle.mesh", mesh);
   else 
-    mloader.load("oven_load_square.mesh", &mesh);
+    mloader.load("oven_load_square.mesh", mesh);
 
   // Perform initial mesh refinemets.
-  for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
+  for (int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
 
   // Initialize boundary conditions
   DefaultEssentialBCConst<std::complex<double> > bc_essential(BDY_PERFECT_CONDUCTOR, std::complex<double>(0.0, 0.0));
@@ -113,12 +113,12 @@ int main(int argc, char* argv[])
   EssentialBCs<std::complex<double> > bcs(&bc_essential);
 
   // Create an Hcurl space with default shapeset.
-  HcurlSpace<std::complex<double> > space(&mesh, &bcs, P_INIT);
+  HcurlSpace<std::complex<double> > space(mesh, &bcs, P_INIT);
   int ndof = space.get_num_dofs();
   Hermes::Mixins::Loggable::Static::info("ndof = %d", ndof);
 
   // Initialize the weak formulation.
-  CustomWeakForm wf(e_0, mu_0, mu_r, kappa, omega, J, ALIGN_MESH, &mesh, BDY_CURRENT);
+  CustomWeakForm wf(e_0, mu_0, mu_r, kappa, omega, J, ALIGN_MESH, mesh, BDY_CURRENT);
 
   // Initialize coarse and reference mesh solution.
   Solution<std::complex<double> > sln, ref_sln;
@@ -144,7 +144,7 @@ int main(int argc, char* argv[])
     Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d:", as);
 
     // Construct globally refined reference mesh and setup reference space.
-    Mesh::ReferenceMeshCreator refMeshCreator(&mesh);
+    Mesh::ReferenceMeshCreator refMeshCreator(mesh);
     Mesh* ref_mesh = refMeshCreator.create_ref_mesh();
 
     Space<std::complex<double> >::ReferenceSpaceCreator refSpaceCreator(&space, ref_mesh);
@@ -152,7 +152,7 @@ int main(int argc, char* argv[])
     int ndof_ref = Space<std::complex<double> >::get_num_dofs(ref_space);
 
     // Initialize reference problem.
-    Hermes::Mixins::Loggable::Static::info("Solving on reference mesh.");
+    Hermes::Mixins::Loggable::Static::info("Solving on reference mesh->");
     DiscreteProblem<std::complex<double> > dp(&wf, ref_space);
 
     // Time measurement.
@@ -174,8 +174,8 @@ int main(int argc, char* argv[])
     // Translate the resulting coefficient vector into the Solution<std::complex<double> > sln.
     Hermes::Hermes2D::Solution<std::complex<double> >::vector_to_solution(newton.get_sln_vector(), ref_space, &ref_sln);
   
-    // Project the fine mesh solution onto the coarse mesh.
-    Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
+    // Project the fine mesh solution onto the coarse mesh->
+    Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh->");
     OGProjection<std::complex<double> > ogProjection; ogProjection.project_global(&space, &ref_sln, &sln); 
    
     // View the coarse mesh solution and polynomial orders.
@@ -214,11 +214,11 @@ int main(int argc, char* argv[])
     graph_cpu.add_values(cpu_time.accumulated(), err_est_rel);
     graph_cpu.save("conv_cpu_est.dat");
 
-    // If err_est too large, adapt the mesh.
+    // If err_est too large, adapt the mesh->
     if (err_est_rel < ERR_STOP) done = true;
     else 
     {
-      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
+      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh->");
       done = adaptivity->adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
     }
     if (space.get_num_dofs() >= NDOF_STOP) done = true;

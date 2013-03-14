@@ -59,17 +59,17 @@ int main(int argc, char* argv[])
   if (bt.is_diagonally_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage diagonally implicit R-K method.", bt.get_size());
   if (bt.is_fully_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage fully implicit R-K method.", bt.get_size());
 
-  // Load the mesh.
-  Mesh mesh;
+  // Load the mesh->
+  MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
-  mloader.load("domain.mesh", &mesh);
+  mloader.load("domain.mesh", mesh);
 
   // Perform initial mesh refinemets.
-  for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
+  for (int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
 
   // Initialize solutions.
-  CustomInitialConditionWave E_sln(&mesh);
-  ZeroSolution<double> B_sln(&mesh);
+  CustomInitialConditionWave E_sln(mesh);
+  ZeroSolution<double> B_sln(mesh);
   Hermes::vector<Solution<double>*> slns(&E_sln, &B_sln);
 
   // Initialize the weak formulation.
@@ -81,8 +81,8 @@ int main(int argc, char* argv[])
   EssentialBCs<double> bcs_B;
 
   // Create x- and y- displacement space using the default H1 shapeset.
-  HcurlSpace<double> E_space(&mesh, &bcs_E, P_INIT);
-  H1Space<double> B_space(&mesh, &bcs_B, P_INIT);
+  HcurlSpace<double> E_space(mesh, &bcs_E, P_INIT);
+  H1Space<double> B_space(mesh, &bcs_B, P_INIT);
   Hermes::vector<const Space<double> *> spaces(&E_space, &B_space);
   Hermes::vector<Space<double> *> spaces_mutable(&E_space, &B_space);
   Hermes::Mixins::Loggable::Static::info("ndof = %d.", Space<double>::get_num_dofs(spaces));

@@ -70,15 +70,15 @@ const double B1 = 1., B2 = 1.;
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh.
-  Mesh mesh;
+  // Load the mesh->
+  MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
-  mloader.load("square_quad.mesh", &mesh);     
-  // mloader.load("square_tri.mesh", &mesh);  
+  mloader.load("square_quad.mesh", mesh);     
+  // mloader.load("square_tri.mesh", mesh);  
 
   // Perform initial mesh refinement.
-  for (int i=0; i<INIT_REF_NUM; i++) mesh.refine_all_elements();
-  mesh.refine_towards_boundary("Layer", INIT_REF_NUM_BDY);
+  for (int i=0; i<INIT_REF_NUM; i++) mesh->refine_all_elements();
+  mesh->refine_towards_boundary("Layer", INIT_REF_NUM_BDY);
 
    // Initialize the weak formulation.
   WeakFormLinearAdvectionDiffusion wf(STABILIZATION_ON, SHOCK_CAPTURING_ON, B1, B2, EPSILON);
@@ -90,7 +90,7 @@ int main(int argc, char* argv[])
   EssentialBCs<double> bcs(Hermes::vector<EssentialBoundaryCondition<double> *>(&bc_rest, &bc_layer));
 
   // Create an H1 space with default shapeset.
-  H1Space<double> space(&mesh, &bcs, P_INIT);
+  H1Space<double> space(mesh, &bcs, P_INIT);
 
   WinGeom* sln_win_geom = new WinGeom(0, 0, 440, 350);
   WinGeom* mesh_win_geom = new WinGeom(450, 0, 400, 350);
@@ -122,7 +122,7 @@ int main(int argc, char* argv[])
     Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d:", as);
 
     // Construct globally refined reference mesh and setup reference space.
-    Mesh::ReferenceMeshCreator refMeshCreator(&mesh);
+    Mesh::ReferenceMeshCreator refMeshCreator(mesh);
     Mesh* ref_mesh = refMeshCreator.create_ref_mesh();
 
     Space<double>::ReferenceSpaceCreator refSpaceCreator(&space, ref_mesh);
@@ -134,7 +134,7 @@ int main(int argc, char* argv[])
     LinearMatrixSolver<double>* solver = create_linear_solver<double>( matrix, rhs);
 
     // Assemble the reference problem.
-    Hermes::Mixins::Loggable::Static::info("Solving on reference mesh.");
+    Hermes::Mixins::Loggable::Static::info("Solving on reference mesh->");
     DiscreteProblem<double>* dp = new DiscreteProblem<double>(&wf, ref_space);
     dp->assemble(matrix, rhs);
 
@@ -146,8 +146,8 @@ int main(int argc, char* argv[])
     if(solver->solve()) Solution<double>::vector_to_solution(solver->get_sln_vector(), ref_space, &ref_sln);
     else throw Hermes::Exceptions::Exception("Matrix solver failed.\n");
 
-    // Project the fine mesh solution onto the coarse mesh.
-    Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
+    // Project the fine mesh solution onto the coarse mesh->
+    Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh->");
     OGProjection<double> ogProjection; ogProjection.project_global(&space, &ref_sln, &sln); 
 
     // Time measurement.
@@ -178,11 +178,11 @@ int main(int argc, char* argv[])
     graph_cpu.add_values(cpu_time.accumulated(), err_est_rel);
     graph_cpu.save("conv_cpu_est.dat");
 
-    // If err_est too large, adapt the mesh.
+    // If err_est too large, adapt the mesh->
     if (err_est_rel < ERR_STOP) done = true;
     else 
     {
-      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
+      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh->");
       done = adaptivity->adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
       
       // Increase the counter of performed adaptivity steps.

@@ -39,7 +39,7 @@ const int P_INIT_V = 1;
 // Number of initial boundary refinements
 const int INIT_REF_BDY = 5;                       
 // MULTI = true  ... use multi-mesh,
-// MULTI = false ... use single-mesh.
+// MULTI = false ... use single-mesh->
 // Note: In the single mesh option, the meshes are
 // forced to be geometrically the same but the
 // polynomial degrees can still vary.
@@ -93,28 +93,28 @@ int main(int argc, char* argv[])
   Hermes::Mixins::TimeMeasurable cpu_time;
   cpu_time.tick();
 
-  // Load the mesh.
+  // Load the mesh->
   Mesh u_mesh, v_mesh;
   MeshReaderH1DXML mloader;
   mloader.load("domain.xml", &u_mesh);
-  u_mesh.refine_all_elements();
+  u_mesh->refine_all_elements();
 
   if (MULTI == false) 
   {
-    u_mesh.refine_towards_boundary("Left", INIT_REF_BDY);
+    u_mesh->refine_towards_boundary("Left", INIT_REF_BDY);
     // Minus one for the sake of mesh symmetry.     
-    if (INIT_REF_BDY > 1) u_mesh.refine_towards_boundary("Right", INIT_REF_BDY - 1);  
+    if (INIT_REF_BDY > 1) u_mesh->refine_towards_boundary("Right", INIT_REF_BDY - 1);  
   }
 
   // Create initial mesh (master mesh).
-  v_mesh.copy(&u_mesh);
+  v_mesh->copy(&u_mesh);
 
   // Initial mesh refinements in the v_mesh towards the boundary.
   if (MULTI == true) 
   {
-    v_mesh.refine_towards_boundary("Left", INIT_REF_BDY);
+    v_mesh->refine_towards_boundary("Left", INIT_REF_BDY);
     // Minus one for the sake of mesh symmetry. 
-    if (INIT_REF_BDY > 1) v_mesh.refine_towards_boundary("Right", INIT_REF_BDY - 1);  
+    if (INIT_REF_BDY > 1) v_mesh->refine_towards_boundary("Right", INIT_REF_BDY - 1);  
   }
 
 #ifdef WITH_EXACT_SOLUTION
@@ -192,7 +192,7 @@ int main(int argc, char* argv[])
     int ndof_ref = Space<double>::get_num_dofs(ref_spaces_const);
 
     // Initialize reference problem.
-    Hermes::Mixins::Loggable::Static::info("Solving on reference mesh.");
+    Hermes::Mixins::Loggable::Static::info("Solving on reference mesh->");
     DiscreteProblem<double> dp(&wf, ref_spaces_const);
 
     NewtonSolver<double> newton(&dp);
@@ -216,7 +216,7 @@ int main(int argc, char* argv[])
     Solution<double>::vector_to_solutions(newton.get_sln_vector(), ref_spaces_const, 
         Hermes::vector<Solution<double> *>(&u_ref_sln, &v_ref_sln));
 
-    // Project the fine mesh solution onto the coarse mesh.
+    // Project the fine mesh solution onto the coarse mesh->
     Hermes::Mixins::Loggable::Static::info("Projecting reference solutions on coarse meshes.");
     OGProjection<double> ogProjection; ogProjection.project_global(Hermes::vector<const Space<double> *>(&u_space, &v_space), 
         Hermes::vector<Solution<double> *>(&u_ref_sln, &v_ref_sln), 
@@ -287,12 +287,12 @@ int main(int argc, char* argv[])
     graph_cpu_exact.save("conv_cpu_exact.dat");
 #endif
 
-    // If err_est too large, adapt the mesh.
+    // If err_est too large, adapt the mesh->
     if (err_est_rel_total < ERR_STOP) 
       done = true;
     else 
     {
-      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
+      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh->");
       done = adaptivity->adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&selector, &selector), 
           THRESHOLD, STRATEGY, MESH_REGULARITY);
     }

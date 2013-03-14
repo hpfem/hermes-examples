@@ -21,7 +21,7 @@
 // Initial polynomial degree of all mesh elements.
 const int P_INIT = 2;                             
 // MULTI = true  ... use multi-mesh,
-// MULTI = false ... use single-mesh.
+// MULTI = false ... use single-mesh->
 // Note: In the single mesh option, the meshes are
 // forced to be geometrically the same but the
 // polynomial degrees can still vary.
@@ -86,18 +86,18 @@ int main(int argc, char* argv[])
   Hermes::Mixins::TimeMeasurable cpu_time;
   cpu_time.tick();
 
-  // Load the mesh.
+  // Load the mesh->
   Mesh u1_mesh, u2_mesh;
   MeshReaderH2D mloader;
   mloader.load("domain.mesh", &u1_mesh);
 
   // Initial mesh refinements.
-  u1_mesh.refine_element_id(1);
-  u1_mesh.refine_element_id(4);
+  u1_mesh->refine_element_id(1);
+  u1_mesh->refine_element_id(4);
 
   // Create initial mesh for the vertical displacement component.
   // This also initializes the multimesh hp-FEM.
-  u2_mesh.copy(&u1_mesh);
+  u2_mesh->copy(&u1_mesh);
 
   // Initialize boundary conditions.
   DefaultEssentialBCConst<double> zero_disp("bdy_right", 0.0);
@@ -170,7 +170,7 @@ int main(int argc, char* argv[])
     cpu_time.tick();
 
     // Perform Newton's iteration.
-    Hermes::Mixins::Loggable::Static::info("Solving on reference mesh.");
+    Hermes::Mixins::Loggable::Static::info("Solving on reference mesh->");
     try
     {
       newton.set_newton_max_iter(NEWTON_MAX_ITER);
@@ -190,8 +190,8 @@ int main(int argc, char* argv[])
     Solution<double>::vector_to_solutions(newton.get_sln_vector(), ref_spaces_const, 
         Hermes::vector<Solution<double> *>(&u1_sln_ref, &u2_sln_ref));
 
-    // Project the fine mesh solution onto the coarse mesh.
-    Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
+    // Project the fine mesh solution onto the coarse mesh->
+    Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh->");
     OGProjection<double> ogProjection; ogProjection.project_global(Hermes::vector<const Space<double> *>(&u1_space, &u2_space), 
         Hermes::vector<Solution<double> *>(&u1_sln_ref, &u2_sln_ref), 
         Hermes::vector<Solution<double> *>(&u1_sln, &u2_sln)); 
@@ -247,12 +247,12 @@ int main(int argc, char* argv[])
     graph_cpu_est.add_values(cpu_time.accumulated(), err_est_rel_total);
     graph_cpu_est.save("conv_cpu_est.dat");
 
-    // If err_est too large, adapt the mesh.
+    // If err_est too large, adapt the mesh->
     if (err_est_rel_total < ERR_STOP) 
       done = true;
     else 
     {
-      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
+      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh->");
       done = adaptivity->adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&selector, &selector), 
                                MULTI == true ? THRESHOLD_MULTI : THRESHOLD_SINGLE, STRATEGY, MESH_REGULARITY);
     }

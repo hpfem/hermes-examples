@@ -23,7 +23,7 @@
 //                    zero Neumann on vetrical edges,
 //                    Newton (heat loss) (1 / Pr) * du/dn = ALPHA_AIR * (TEMP_EXT - u) on the top edge.
 //
-// Geometry: Rectangle (0, Lx) x (0, Ly)... see the file domain.mesh.
+// Geometry: Rectangle (0, Lx) x (0, Ly)... see the file domain.mesh->
 //
 // The following parameters can be changed:
 
@@ -71,15 +71,15 @@ const double ALPHA_AIR = 5.0;
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh.
-  Mesh mesh;
+  // Load the mesh->
+  MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
-  mloader.load("domain.mesh", &mesh);
+  mloader.load("domain.mesh", mesh);
 
   // Initial mesh refinements.
-  for (int i=0; i < 3; i++) mesh.refine_all_elements(2);
-  for (int i=0; i < 3; i++) mesh.refine_all_elements();
-  mesh.refine_towards_boundary(HERMES_ANY, 2);
+  for (int i=0; i < 3; i++) mesh->refine_all_elements(2);
+  for (int i=0; i < 3; i++) mesh->refine_all_elements();
+  mesh->refine_towards_boundary(HERMES_ANY, 2);
 
   // Initialize boundary conditions.
   DefaultEssentialBCConst<double> zero_vel_bc(Hermes::vector<std::string>("Bottom", "Right", "Top", "Left"), 0.0);
@@ -89,14 +89,14 @@ int main(int argc, char* argv[])
   EssentialBCs<double> bcs_temp(&bc_temp_bottom);
 
   // Spaces for velocity components and pressure.
-  H1Space<double> xvel_space(&mesh, &bcs_vel_x, P_INIT_VEL);
-  H1Space<double> yvel_space(&mesh, &bcs_vel_y, P_INIT_VEL);
+  H1Space<double> xvel_space(mesh, &bcs_vel_x, P_INIT_VEL);
+  H1Space<double> yvel_space(mesh, &bcs_vel_y, P_INIT_VEL);
 #ifdef PRESSURE_IN_L2
-  L2Space<double> p_space(&mesh, P_INIT_PRESSURE);
+  L2Space<double> p_space(mesh, P_INIT_PRESSURE);
 #else
-  H1Space<double> p_space(&mesh, P_INIT_PRESSURE);
+  H1Space<double> p_space(mesh, P_INIT_PRESSURE);
 #endif
-  H1Space<double> t_space(&mesh, &bcs_temp, P_INIT_TEMP);
+  H1Space<double> t_space(mesh, &bcs_temp, P_INIT_TEMP);
   Hermes::vector<const Space<double>*> spaces = Hermes::vector<const Space<double>*>(&xvel_space, &yvel_space, &p_space, &t_space);
 
   // Calculate and report the number of degrees of freedom.
@@ -114,10 +114,10 @@ int main(int argc, char* argv[])
 
   // Solutions for the Newton's iteration and time stepping.
   Hermes::Mixins::Loggable::Static::info("Setting initial conditions.");
-  ZeroSolution<double> xvel_prev_time(&mesh);
-  ZeroSolution<double> yvel_prev_time(&mesh);
-  ZeroSolution<double> p_prev_time(&mesh);
-  ConstantSolution<double> t_prev_time(&mesh, TEMP_INIT);
+  ZeroSolution<double> xvel_prev_time(mesh);
+  ZeroSolution<double> yvel_prev_time(mesh);
+  ZeroSolution<double> p_prev_time(mesh);
+  ConstantSolution<double> t_prev_time(mesh, TEMP_INIT);
   Hermes::vector<Solution<double>*> slns = Hermes::vector<Solution<double>*>(&xvel_prev_time, 
       &yvel_prev_time, &p_prev_time, &t_prev_time);
 

@@ -63,14 +63,14 @@ const double h = 0.1;
 
 int main(int argc, char* argv[])
 {
-    // Load the mesh.
-  Mesh mesh;
+    // Load the mesh->
+  MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
-  mloader.load("domain.mesh", &mesh);
+  mloader.load("domain.mesh", mesh);
 
   // Perform uniform mesh refinement.
   // 2 is for vertical split.
-  for(int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements(2); 
+  for(int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements(2); 
 
   // Initialize boundary conditions
   DefaultEssentialBCConst<double> bc1("Bdy_perfect", 0.0);
@@ -80,8 +80,8 @@ int main(int argc, char* argv[])
   EssentialBCs<double> bcs_im(Hermes::vector<EssentialBoundaryCondition<double> *>(&bc1, &bc3));
 
   // Create an H1 space with default shapeset.
-  H1Space<double> e_r_space(&mesh, &bcs, P_INIT);
-  H1Space<double> e_i_space(&mesh, &bcs_im, P_INIT);
+  H1Space<double> e_r_space(mesh, &bcs, P_INIT);
+  H1Space<double> e_i_space(mesh, &bcs_im, P_INIT);
   int ndof = Space<double>::get_num_dofs(&e_r_space);
   Hermes::Mixins::Loggable::Static::info("ndof = %d", ndof);
 
