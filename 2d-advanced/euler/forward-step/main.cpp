@@ -89,8 +89,8 @@ int main(int argc, char* argv[])
   // Load the mesh.
   MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
-  mloader.load("ffs.mesh", &mesh);
-  mesh.refine_by_criterion(refinement_criterion, INIT_REF_NUM_STEP);
+  mloader.load("ffs.mesh", mesh);
+  mesh->refine_by_criterion(refinement_criterion, INIT_REF_NUM_STEP);
 
   // Perform initial mesh refinements.
   for (int i = 0; i < INIT_REF_NUM; i++) 

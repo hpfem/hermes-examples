@@ -179,6 +179,8 @@ int main(int argc, char* argv[])
   CFLCalculation CFL(CFL_NUMBER, KAPPA);
 
   // Time stepping loop.
+  double t = 0.0;
+  int iteration = 0;
   for(; t < 14.5; t += time_step)
   {
     if(t > 0.3)
@@ -371,13 +373,6 @@ int main(int argc, char* argv[])
           ord.save_orders_vtk(ref_space_rho, filename);
           sprintf(filename, "Mesh-%i.vtk", iteration);
           ord.save_mesh_vtk(ref_space_rho, filename);
-        }
-
-        // Save the progress.
-        if(iteration > 1)
-        {
-          continuity.add_record(t, Hermes::vector<MeshSharedPtr>(mesh, mesh, mesh, mesh), Hermes::vector<SpaceSharedPtr<double> >(space_rho, space_rho_v_x, space_rho_v_y, space_e), 
-            Hermes::vector<MeshFunctionSharedPtr<double> >(rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e), time_step);
         }
       }
 

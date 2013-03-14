@@ -201,6 +201,8 @@ int main(int argc, char* argv[])
   LinearSolver<double> solver(&dp);
 
   // Time stepping loop.
+  double t = 0.0;
+  int iteration = 0;
   for(; t < T_END && iteration < 25; t += time_step)
   {
     CFL.set_number(CFL_NUMBER + (t/4.0) * 1.0);
