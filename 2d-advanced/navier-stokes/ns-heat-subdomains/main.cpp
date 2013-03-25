@@ -78,8 +78,8 @@ bool SIMPLE_TEMPERATURE_ADVECTION = false;
 int main(int argc, char* argv[])
 {
   // Load the mesh->
-  Mesh mesh_whole_domain, mesh_with_hole;
-  Hermes::vector<Mesh*> meshes (mesh_whole_domain, mesh_with_hole);
+  MeshSharedPtr mesh_whole_domain(new Mesh), mesh_with_hole(new Mesh);
+  Hermes::vector<MeshSharedPtr> meshes (mesh_whole_domain, mesh_with_hole);
   MeshReaderH2DXML mloader;
   mloader.load("domain.xml", meshes);
 
@@ -101,11 +101,6 @@ int main(int argc, char* argv[])
   for(unsigned int meshes_i = 0; meshes_i < meshes.size(); meshes_i++)
     meshes[meshes_i]->refine_towards_boundary("Outer Wall", INIT_REF_NUM_BDY_WALL);
 
-  /* View both meshes. */
-  MeshView m1("Mesh for temperature"), m2("Mesh for fluid");
-  m1.show(mesh_whole_domain);
-  m2.show(mesh_with_hole);
-
   // Initialize boundary conditions.
   EssentialBCNonConst bc_inlet_vel_x("Inlet", VEL_INLET, H, STARTUP_TIME);
   DefaultEssentialBCConst<double> bc_other_vel_x(Hermes::vector<std::string>("Outer Wall", "Inner Wall"), 0.0);
@@ -117,23 +112,19 @@ int main(int argc, char* argv[])
   EssentialBCs<double> bcs_temperature(&bc_temperature);
 
   // Spaces for velocity components, pressure and temperature.
-  H1Space<double> xvel_space(mesh_with_hole, &bcs_vel_x, P_INIT_VEL);
-  H1Space<double> yvel_space(mesh_with_hole, &bcs_vel_y, P_INIT_VEL);
+  SpaceSharedPtr<double> xvel_space(new H1Space<double>(mesh_with_hole, &bcs_vel_x, P_INIT_VEL));
+  SpaceSharedPtr<double> yvel_space(new H1Space<double>(mesh_with_hole, &bcs_vel_y, P_INIT_VEL));
 #ifdef PRESSURE_IN_L2
-  L2Space<double> p_space(mesh_with_hole, P_INIT_PRESSURE);
+  SpaceSharedPtr<double> p_space(new L2Space<double>(mesh_with_hole, P_INIT_PRESSURE));
 #else
-  H1Space<double> p_space(mesh_with_hole, &bcs_pressure, P_INIT_PRESSURE);
+  SpaceSharedPtr<double> p_space(new H1Space<double>(mesh_with_hole, &bcs_pressure, P_INIT_PRESSURE));
 #endif
-  H1Space<double> temperature_space(mesh_whole_domain, &bcs_temperature, P_INIT_TEMPERATURE);
-  Hermes::vector<const Space<double> *> all_spaces(&xvel_space, 
-      &yvel_space, &p_space, &temperature_space);
-  Hermes::vector<const Space<double> *> all_spaces_const(&xvel_space, 
-      &yvel_space, &p_space, &temperature_space);
+  SpaceSharedPtr<double> temperature_space(new H1Space<double> (mesh_whole_domain, &bcs_temperature, P_INIT_TEMPERATURE));
+  Hermes::vector<SpaceSharedPtr<double> > all_spaces(xvel_space, yvel_space, p_space, temperature_space);
 
   // Calculate and report the number of degrees of freedom.
-  int ndof = Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&xvel_space, 
-      &yvel_space, &p_space, &temperature_space));
-  //Hermes::Mixins::Loggable::Static::Hermes::Mixins::Loggable::Static::info("ndof = %d.", ndof);
+  int ndof = Space<double>::get_num_dofs(Hermes::vector<SpaceSharedPtr<double> >(xvel_space, 
+      yvel_space, p_space, temperature_space));
 
   // Define projection norms.
   ProjNormType vel_proj_norm = HERMES_H1_NORM;
@@ -148,14 +139,14 @@ int main(int argc, char* argv[])
 
   // Initial conditions and such.
   //Hermes::Mixins::Loggable::Static::Hermes::Mixins::Loggable::Static::info("Setting initial conditions.");
-  ZeroSolution<double> xvel_prev_time(mesh_with_hole), yvel_prev_time(mesh_with_hole), p_prev_time(mesh_with_hole);
-  CustomInitialConditionTemperature temperature_init_cond(mesh_whole_domain, HOLE_MID_X, HOLE_MID_Y, 
-      0.5*OBSTACLE_DIAMETER, TEMPERATURE_INIT_FLUID, TEMPERATURE_INIT_GRAPHITE); 
-  Solution<double> temperature_prev_time;
-  Hermes::vector<Solution<double> *> all_solutions = Hermes::vector<Solution<double> *>(&xvel_prev_time, 
-      &yvel_prev_time, &p_prev_time, &temperature_prev_time);
-  Hermes::vector<MeshFunction<double> *> all_meshfns = Hermes::vector<MeshFunction<double> *>(&xvel_prev_time, 
-      &yvel_prev_time, &p_prev_time, &temperature_init_cond);
+  MeshFunctionSharedPtr<double> xvel_prev_time(new ZeroSolution<double>(mesh_with_hole)), yvel_prev_time(new ZeroSolution<double>(mesh_with_hole)), p_prev_time(new ZeroSolution<double>(mesh_with_hole));
+  MeshFunctionSharedPtr<double> temperature_init_cond(new CustomInitialConditionTemperature (mesh_whole_domain, HOLE_MID_X, HOLE_MID_Y, 
+      0.5*OBSTACLE_DIAMETER, TEMPERATURE_INIT_FLUID, TEMPERATURE_INIT_GRAPHITE)); 
+  MeshFunctionSharedPtr<double> temperature_prev_time(new Solution<double>);
+  Hermes::vector<MeshFunctionSharedPtr<double> > initial_solutions = Hermes::vector<MeshFunctionSharedPtr<double> >(xvel_prev_time, 
+      yvel_prev_time, p_prev_time, temperature_init_cond);
+  Hermes::vector<MeshFunctionSharedPtr<double> > all_solutions = Hermes::vector<MeshFunctionSharedPtr<double> >(xvel_prev_time, 
+      yvel_prev_time, p_prev_time, temperature_prev_time);
 
   // Project all initial conditions on their FE spaces to obtain aninitial
   // coefficient vector for the Newton's method. We use local projection
@@ -166,23 +157,23 @@ int main(int argc, char* argv[])
   
   Hermes::Mixins::Loggable::Static::info("Projecting initial condition to obtain initial vector for the Newton's method.");
   OGProjection<double> ogProjection;
-  ogProjection.project_global(all_spaces, all_meshfns, coeff_vec, all_proj_norms);
+  ogProjection.project_global(all_spaces, initial_solutions, coeff_vec, all_proj_norms);
 
   // Translate the solution vector back to Solutions. This is needed to replace
   // the discontinuous initial condition for temperature_prev_time with its projection.
-  Solution<double>::vector_to_solutions(coeff_vec, all_spaces_const, all_solutions);
+  Solution<double>::vector_to_solutions(coeff_vec, all_spaces, all_solutions);
 
   // Calculate Reynolds number.
   double reynolds_number = VEL_INLET * OBSTACLE_DIAMETER / KINEMATIC_VISCOSITY_FLUID;
   //Hermes::Mixins::Loggable::Static::Hermes::Mixins::Loggable::Static::info("RE = %g", reynolds_number);
 
   // Initialize weak formulation.
-  CustomWeakFormHeatAndFlow wf(STOKES, reynolds_number, time_step, &xvel_prev_time, &yvel_prev_time, &temperature_prev_time, 
+  CustomWeakFormHeatAndFlow wf(STOKES, reynolds_number, time_step, xvel_prev_time, yvel_prev_time, temperature_prev_time, 
       HEAT_SOURCE_GRAPHITE, SPECIFIC_HEAT_GRAPHITE, SPECIFIC_HEAT_FLUID, RHO_GRAPHITE, RHO_FLUID, 
       THERMAL_CONDUCTIVITY_GRAPHITE, THERMAL_CONDUCTIVITY_FLUID, SIMPLE_TEMPERATURE_ADVECTION);
   
   // Initialize the FE problem.
-  DiscreteProblem<double> dp(&wf, all_spaces_const);
+  DiscreteProblem<double> dp(&wf, all_spaces);
 
   // Initialize the Newton solver.
   NewtonSolver<double> newton(&dp);
@@ -212,8 +203,7 @@ int main(int argc, char* argv[])
     if (current_time <= STARTUP_TIME) 
     {
       //Hermes::Mixins::Loggable::Static::Hermes::Mixins::Loggable::Static::info("Updating time-dependent essential BC.");
-      Space<double>::update_essential_bc_values(Hermes::vector<Space<double> *>(&xvel_space, &yvel_space, &p_space, 
-                                                &temperature_space), current_time);
+      Space<double>::update_essential_bc_values(all_spaces, current_time);
     }
 
     // Perform Newton's iteration.
@@ -230,9 +220,7 @@ int main(int argc, char* argv[])
       e.print_msg();
     };
     {
-      Hermes::vector<Solution<double> *> tmp(&xvel_prev_time, &yvel_prev_time, &p_prev_time, &temperature_prev_time);
-      Solution<double>::vector_to_solutions(newton.get_sln_vector(), Hermes::vector<const Space<double> *>(&xvel_space, 
-          &yvel_space, &p_space, &temperature_space), tmp);
+      Solution<double>::vector_to_solutions(newton.get_sln_vector(), all_spaces, all_solutions);
     }
     
     // Show the solution at the end of time step.
@@ -241,10 +229,10 @@ int main(int argc, char* argv[])
     //vview.show(&xvel_prev_time, &yvel_prev_time);
     sprintf(title, "Pressure [Pa], time %g s", current_time);
     pview.set_title(title);
-    pview.show(&p_prev_time);
+    pview.show(p_prev_time);
     sprintf(title, "Temperature [C], time %g s", current_time);
     tempview.set_title(title);
-    tempview.show(&temperature_prev_time,  Views::HERMES_EPS_HIGH);
+    tempview.show(temperature_prev_time,  Views::HERMES_EPS_HIGH);
   }
 
   delete [] coeff_vec;

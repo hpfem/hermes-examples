@@ -20,7 +20,7 @@ const double HOLE_MID_Y = 0.5;
 class CustomInitialConditionTemperature : public ExactSolutionScalar<double>
 {
 public:
-  CustomInitialConditionTemperature(const Mesh *mesh, double mid_x, double mid_y, double radius, double temp_fluid, double temp_graphite);
+  CustomInitialConditionTemperature(MeshSharedPtr mesh, double mid_x, double mid_y, double radius, double temp_fluid, double temp_graphite);
 
   virtual double value(double x, double y) const;
 
@@ -39,8 +39,8 @@ public:
 class CustomWeakFormHeatAndFlow : public WeakForm<double>
 {
 public:
-  CustomWeakFormHeatAndFlow(bool Stokes, double Reynolds, double time_step, Solution<double>* x_vel_previous_time, 
-    Solution<double>* y_vel_previous_time, Solution<double>* T_prev_time, double heat_source, double specific_heat_graphite, 
+  CustomWeakFormHeatAndFlow(bool Stokes, double Reynolds, double time_step, MeshFunctionSharedPtr<double> x_vel_previous_time, 
+    MeshFunctionSharedPtr<double> y_vel_previous_time, MeshFunctionSharedPtr<double> T_prev_time, double heat_source, double specific_heat_graphite, 
     double specific_heat_fluid, double rho_graphite, double rho_fluid, double thermal_conductivity_graphite, 
     double thermal_conductivity_fluid, bool simple_temp_advection);
 
@@ -672,8 +672,8 @@ protected:
   bool Stokes;
   double Reynolds;
   double time_step;
-  Solution<double>* x_vel_previous_time;
-  Solution<double>* y_vel_previous_time;
+  MeshFunctionSharedPtr<double> x_vel_previous_time;
+  MeshFunctionSharedPtr<double> y_vel_previous_time;
 };
 
 class EssentialBCNonConst : public EssentialBoundaryCondition<double>

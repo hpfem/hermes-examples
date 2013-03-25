@@ -2,7 +2,7 @@
 
 /* Custom initial condition for temperature*/
 
-CustomInitialConditionTemperature::CustomInitialConditionTemperature(const Mesh *mesh, double mid_x, double mid_y, double radius, double temp_fluid, double temp_graphite) 
+CustomInitialConditionTemperature::CustomInitialConditionTemperature(MeshSharedPtr mesh, double mid_x, double mid_y, double radius, double temp_fluid, double temp_graphite) 
   : ExactSolutionScalar<double>(mesh), mid_x(mid_x), mid_y(mid_y), radius(radius), temp_fluid(temp_fluid), temp_graphite(temp_graphite) {}
 
 double CustomInitialConditionTemperature::value(double x, double y) const 
@@ -31,14 +31,14 @@ MeshFunction<double>* CustomInitialConditionTemperature::clone() const
 
 /* Weak forms */
 
-CustomWeakFormHeatAndFlow::CustomWeakFormHeatAndFlow(bool Stokes, double Reynolds, double time_step, Solution<double>* x_vel_previous_time, 
-    Solution<double>* y_vel_previous_time, Solution<double>* T_prev_time, double heat_source, double specific_heat_graphite, 
+CustomWeakFormHeatAndFlow::CustomWeakFormHeatAndFlow(bool Stokes, double Reynolds, double time_step, MeshFunctionSharedPtr<double> x_vel_previous_time, 
+    MeshFunctionSharedPtr<double> y_vel_previous_time, MeshFunctionSharedPtr<double> T_prev_time, double heat_source, double specific_heat_graphite, 
     double specific_heat_fluid, double rho_graphite, double rho_fluid, double thermal_conductivity_graphite, double thermal_conductivity_fluid,
     bool simple_temp_advection) 
   : WeakForm<double>(4), Stokes(Stokes), Reynolds(Reynolds), time_step(time_step), x_vel_previous_time(x_vel_previous_time), y_vel_previous_time(y_vel_previous_time)
   {
     // For passing to forms.
-    Hermes::vector<MeshFunction<double>*> ext(x_vel_previous_time, y_vel_previous_time);
+    Hermes::vector<MeshFunctionSharedPtr<double> > ext(x_vel_previous_time, y_vel_previous_time);
 
     // Jacobian - flow part.
     add_matrix_form(new BilinearFormSymVel(0, 0, Stokes, Reynolds, time_step));
