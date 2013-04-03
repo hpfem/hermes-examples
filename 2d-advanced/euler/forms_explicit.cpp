@@ -976,19 +976,17 @@ class EulerEquationsWeakFormSemiImplicitCoupledWithHeat : public EulerEquationsW
 {
 public:
   MeshFunctionSharedPtr<double> prev_temp;
-  double lambda, c_p, heat_flux;
+  double lambda, c_p;
 
   EulerEquationsWeakFormSemiImplicitCoupledWithHeat(double kappa, 
     double rho_ext, double v1_ext, double v2_ext, double pressure_ext,
     Hermes::vector<std::string> solid_wall_markers, Hermes::vector<std::string> inlet_markers, Hermes::vector<std::string> outlet_markers, 
-    MeshFunctionSharedPtr<double> prev_density, MeshFunctionSharedPtr<double> prev_density_vel_x, MeshFunctionSharedPtr<double> prev_density_vel_y, MeshFunctionSharedPtr<double> prev_energy, MeshFunctionSharedPtr<double> prev_temp, double lambda, double c_p, double heat_flux): EulerEquationsWeakFormSemiImplicit(kappa, rho_ext, v1_ext, v2_ext, pressure_ext, solid_wall_markers, inlet_markers, outlet_markers, prev_density,
-    prev_density_vel_x, prev_density_vel_y, prev_energy, false, 5), prev_temp(prev_temp), lambda(lambda), c_p(c_p), heat_flux(heat_flux)
+    MeshFunctionSharedPtr<double> prev_density, MeshFunctionSharedPtr<double> prev_density_vel_x, MeshFunctionSharedPtr<double> prev_density_vel_y, MeshFunctionSharedPtr<double> prev_energy, MeshFunctionSharedPtr<double> prev_temp, double lambda, double c_p): EulerEquationsWeakFormSemiImplicit(kappa, rho_ext, v1_ext, v2_ext, pressure_ext, solid_wall_markers, inlet_markers, outlet_markers, prev_density,
+    prev_density_vel_x, prev_density_vel_y, prev_energy, false, 5), prev_temp(prev_temp), lambda(lambda), c_p(c_p)
   {
     add_matrix_form(new HeatBilinearFormTime(4, c_p, lambda));
 
     add_vector_form(new HeatLinearFormTime(4, c_p));
-
-    //this->add_vector_form_surf(new HeatLinearSurfForm(4, inlet_markers, heat_flux, lambda));
 
     this->ext.push_back(prev_temp);
   }
@@ -997,7 +995,7 @@ public:
   {
     EulerEquationsWeakFormSemiImplicitCoupledWithHeat* wf;
     wf = new EulerEquationsWeakFormSemiImplicitCoupledWithHeat(this->kappa, this->rho_ext[0], this->v1_ext[0], this->v2_ext[0], this->pressure_ext[0], 
-      this->solid_wall_markers, this->inlet_markers, this->outlet_markers, this->prev_density, this->prev_density_vel_x, this->prev_density_vel_y, this->prev_energy, this->prev_temp, this->lambda, this->c_p, this->heat_flux);
+      this->solid_wall_markers, this->inlet_markers, this->outlet_markers, this->prev_density, this->prev_density_vel_x, this->prev_density_vel_y, this->prev_energy, this->prev_temp, this->lambda, this->c_p);
 
     wf->ext.clear();
 
@@ -1077,34 +1075,5 @@ public:
     VectorFormVol<double>* clone() const { return new HeatLinearFormTime(*this); }
 
     double c_p;
-  };
-
-  class HeatLinearSurfForm : public VectorFormSurf<double>
-  {
-  public:
-    HeatLinearSurfForm(int i, Hermes::vector<std::string> areas, double heat_flux, double lambda)
-      : VectorFormSurf<double>(i), heat_flux(heat_flux), lambda(lambda) 
-    {
-      this->set_areas(areas);
-    }
-
-    double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e,
-      Func<double>* *ext) const 
-    {
-      double result = 0.;
-      for (int point_i = 0; point_i < n; point_i++)
-        result += wt[i] * v->val[point_i];
-      return result * heat_flux * lambda;
-    }
-
-    Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
-      Func<Ord>* *ext) const 
-    {
-      return wt[0] * v->val[0];
-    }
-
-    VectorFormSurf<double>* clone() const { return new HeatLinearSurfForm(*this); }
-
-    double heat_flux, lambda;
   };
 };
