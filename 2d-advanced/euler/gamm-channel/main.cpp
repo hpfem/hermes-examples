@@ -44,11 +44,11 @@ const double NU_1 = 0.1;
 const double NU_2 = 0.1;
 
 // Initial polynomial degree.
-const int P_INIT = 0;
+const int P_INIT = 1;
 // Number of initial uniform mesh refinements.    
 const int INIT_REF_NUM = 3;
 // CFL value.
-double CFL_NUMBER = 0.1;
+double CFL_NUMBER = 0.75;
 // Initial time step.
 double time_step = 1E-6;
 
@@ -135,7 +135,11 @@ int main(int argc, char* argv[])
   EulerEquationsWeakFormStabilization wf_stabilization(prev_rho);
 
   // Initialize the FE problem.
-  DiscreteProblem<double> dp(&wf, Hermes::vector<SpaceSharedPtr<double> >(space_rho, space_rho_v_x, space_rho_v_y, space_e));
+  Hermes::vector<SpaceSharedPtr<double> > spaces(space_rho, space_rho_v_x, space_rho_v_y, space_e);
+  Space<double>::assign_dofs(spaces);
+  DiscreteProblem<double> dp(&wf, spaces);
+  dp.set_linear();
+  
   DiscreteProblem<double> dp_stabilization(&wf_stabilization, space_stabilization);
 
   // Time stepping loop.
@@ -152,6 +156,12 @@ int main(int argc, char* argv[])
     Hermes::Mixins::Loggable::Static::info("Assembling the stiffness matrix and right-hand side vector.");
 
     dp.assemble(matrix, rhs);
+    FILE* fm = fopen("matrix", "w");
+    matrix->dump(fm, "A");
+    FILE* fv = fopen("vector", "w");
+    rhs->dump(fv, "b");
+    fclose(fm);
+    fclose(fv);
 
     // Solve the matrix problem.
     Hermes::Mixins::Loggable::Static::info("Solving the matrix problem.");

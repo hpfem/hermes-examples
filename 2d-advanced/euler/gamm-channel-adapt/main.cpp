@@ -33,7 +33,7 @@ enum shockCapturingType
   KUZMIN,
   KRIVODONOVA
 };
-bool SHOCK_CAPTURING = true;
+bool SHOCK_CAPTURING = false;
 shockCapturingType SHOCK_CAPTURING_TYPE = KUZMIN;
 // Quantitative parameter of the discontinuity detector in case of Krivodonova.
 double DISCONTINUITY_DETECTOR_PARAM = 1.0;
@@ -44,7 +44,7 @@ const double NU_2 = 0.1;
 // Initial polynomial degree. 
 const int P_INIT = 0;                                                  
 // Number of initial uniform mesh refinements.  
-const int INIT_REF_NUM = 1;
+const int INIT_REF_NUM = 2;
 // CFL value.
 double CFL_NUMBER = 0.5;                          
 // Initial time step.
@@ -52,7 +52,7 @@ double time_step_n = 1E-6;
 
 // Adaptivity.
 // Every UNREF_FREQth time step the mesh is unrefined.
-const int UNREF_FREQ = 5;
+const int UNREF_FREQ = 10;
 
 // Number of mesh refinements between two unrefinements.
 // The mesh is not unrefined unless there has been a refinement since
@@ -94,11 +94,11 @@ const int MESH_REGULARITY = -1;
 const double CONV_EXP = 1;                        
 
 // Stopping criterion for adaptivity.
-const double ERR_STOP = 1.0;                     
+const double ERR_STOP = 0.5;                     
 
 // Adaptivity process stops when the number of degrees of freedom grows over
 // this limit. This is mainly to prevent h-adaptivity to go on forever.
-const int NDOF_STOP = 10000;                   
+const int NDOF_STOP = 100000;                   
 
 // Matrix solver for orthogonal projections: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
@@ -106,7 +106,7 @@ MatrixSolverType matrix_solver = SOLVER_UMFPACK;
 
 // Equation parameters.
 // Exterior pressure (dimensionless).
-const double P_EXT = 2.5;                         
+const double P_EXT = 2.5;
 // Inlet density (dimensionless).   
 const double RHO_EXT = 1.0;                       
 // Inlet x-velocity (dimensionless).
@@ -145,7 +145,8 @@ int main(int argc, char* argv[])
   SpaceSharedPtr<double> space_rho_v_y(new L2Space<double>(mesh, P_INIT));
   SpaceSharedPtr<double> space_e(new L2Space<double>(mesh, P_INIT));
   SpaceSharedPtr<double> space_stabilization(new L2Space<double>(mesh, 0));
-  int ndof = Space<double>::get_num_dofs(Hermes::vector<SpaceSharedPtr<double>  >(space_rho, space_rho_v_x, space_rho_v_y, space_e));
+  Hermes::vector<SpaceSharedPtr<double> > spaces(space_rho, space_rho_v_x, space_rho_v_y, space_e);
+  int ndof = Space<double>::get_num_dofs(spaces);
   Hermes::Mixins::Loggable::Static::info("ndof: %d", ndof);
 
   // Initialize solutions, set initial conditions.
@@ -203,6 +204,7 @@ int main(int argc, char* argv[])
       space_rho_v_x->adjust_element_order(-1, P_INIT);
       space_rho_v_y->adjust_element_order(-1, P_INIT);
       space_e->adjust_element_order(-1, P_INIT);
+      Space<double>::assign_dofs(spaces);
     }
 
     // Adaptivity loop:
@@ -228,28 +230,23 @@ int main(int argc, char* argv[])
       Space<double>::ReferenceSpaceCreator refSpaceCreatorE(space_e, ref_mesh, order_increase);
       SpaceSharedPtr<double> ref_space_e = refSpaceCreatorE.create_ref_space();
 
-      Hermes::vector<SpaceSharedPtr<double>  > ref_spaces_const(ref_space_rho, ref_space_rho_v_x, ref_space_rho_v_y, ref_space_e);
+      Hermes::vector<SpaceSharedPtr<double>  > ref_spaces(ref_space_rho, ref_space_rho_v_x, ref_space_rho_v_y, ref_space_e);
 
       SpaceSharedPtr<double> refspace_stabilization(new L2Space<double>(ref_space_rho->get_mesh(), 0));
 
       if(ndofs_prev != 0)
-        if(Space<double>::get_num_dofs(ref_spaces_const) == ndofs_prev)
+        if(Space<double>::get_num_dofs(ref_spaces) == ndofs_prev)
           selector.set_error_weights(2.0 * selector.get_error_weight_h(), 1.0, 1.0);
         else
           selector.set_error_weights(1.0, 1.0, 1.0);
 
-      ndofs_prev = Space<double>::get_num_dofs(ref_spaces_const);
+      ndofs_prev = Space<double>::get_num_dofs(ref_spaces);
 
       // Project the previous time level solution onto the new fine mesh->
-      Hermes::Mixins::Loggable::Static::info("Projecting the previous time level solution onto the new fine mesh->");
-      OGProjection<double> ogProjection; ogProjection.project_global(ref_spaces_const, Hermes::vector<MeshFunctionSharedPtr<double> >(prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e), 
+      Hermes::Mixins::Loggable::Static::info("Projecting the previous time level solution onto the new fine mesh.");
+      OGProjection<double> ogProjection; ogProjection.project_global(ref_spaces, Hermes::vector<MeshFunctionSharedPtr<double> >(prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e), 
           Hermes::vector<MeshFunctionSharedPtr<double> >(prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e), Hermes::vector<Hermes::Hermes2D::ProjNormType>(), iteration > 1);
-
-      // Report NDOFs.
-      Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d.", 
-        Space<double>::get_num_dofs(Hermes::vector<SpaceSharedPtr<double> >(space_rho, space_rho_v_x, 
-        space_rho_v_y, space_e)), Space<double>::get_num_dofs(ref_spaces_const));
-
+      
       // Initialize weak formulation.
       Hermes::vector<std::string> solid_wall_markers(BDY_SOLID_WALL_BOTTOM, BDY_SOLID_WALL_TOP);
       Hermes::vector<std::string> inlet_markers;
@@ -257,14 +254,16 @@ int main(int argc, char* argv[])
       Hermes::vector<std::string> outlet_markers;
       outlet_markers.push_back(BDY_OUTLET);
 
-      EulerEquationsWeakFormSemiImplicit wf(KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT,solid_wall_markers, inlet_markers, outlet_markers, prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e, (P_INIT == 0));
+      EulerEquationsWeakFormSemiImplicit wf(KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT,solid_wall_markers, inlet_markers, outlet_markers, prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e);
 
       EulerEquationsWeakFormStabilization wf_stabilization(prev_rho);
 
       
       // Assemble the reference problem.
-      Hermes::Mixins::Loggable::Static::info("Solving on reference mesh->");
-      DiscreteProblem<double> dp(&wf, ref_spaces_const);
+      Hermes::Mixins::Loggable::Static::info("Solving on reference mesh.");
+      Space<double>::assign_dofs(ref_spaces);
+      DiscreteProblem<double> dp(&wf, ref_spaces);
+      dp.set_linear();
       DiscreteProblem<double> dp_stabilization(&wf_stabilization, refspace_stabilization);
       bool* discreteIndicator = NULL;
 
@@ -285,15 +284,15 @@ int main(int argc, char* argv[])
       {
         if(!SHOCK_CAPTURING)
         {
-          Solution<double>::vector_to_solutions(solver->get_sln_vector(), ref_spaces_const, 
+          Solution<double>::vector_to_solutions(solver->get_sln_vector(), ref_spaces, 
             Hermes::vector<MeshFunctionSharedPtr<double> >(rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e));
         }
         else
         {
           if(SHOCK_CAPTURING_TYPE == KUZMIN)
-            flux_limiter = new FluxLimiter(FluxLimiter::Kuzmin, solver->get_sln_vector(), ref_spaces_const);
+            flux_limiter = new FluxLimiter(FluxLimiter::Kuzmin, solver->get_sln_vector(), ref_spaces);
           else
-            flux_limiter = new FluxLimiter(FluxLimiter::Krivodonova, solver->get_sln_vector(), ref_spaces_const);
+            flux_limiter = new FluxLimiter(FluxLimiter::Krivodonova, solver->get_sln_vector(), ref_spaces);
           if(SHOCK_CAPTURING_TYPE == KUZMIN)
             flux_limiter->limit_second_orders_according_to_detector(Hermes::vector<SpaceSharedPtr<double> >(space_rho, space_rho_v_x, 
             space_rho_v_y, space_e));
@@ -321,7 +320,7 @@ int main(int argc, char* argv[])
       double err_est_rel_total = adaptivity->calc_err_est(Hermes::vector<MeshFunctionSharedPtr<double> >(sln_rho, sln_rho_v_x, sln_rho_v_y, sln_e),
         Hermes::vector<MeshFunctionSharedPtr<double> >(rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e)) * 100;
 
-      CFL.calculate(Hermes::vector<MeshFunctionSharedPtr<double> >(rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e), (ref_spaces_const)[0]->get_mesh(), time_step_n);
+      CFL.calculate(Hermes::vector<MeshFunctionSharedPtr<double> >(rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e), (ref_spaces)[0]->get_mesh(), time_step_n);
 
       // Report results.
       Hermes::Mixins::Loggable::Static::info("err_est_rel: %g%%", err_est_rel_total);

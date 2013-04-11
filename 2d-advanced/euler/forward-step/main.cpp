@@ -143,7 +143,8 @@ int main(int argc, char* argv[])
   EulerEquationsWeakFormStabilization wf_stabilization(prev_rho);
 
   // Initialize the FE problem.
-  DiscreteProblemLinear<double> dp(&wf, Hermes::vector<SpaceSharedPtr<double>  >(space_rho, space_rho_v_x, space_rho_v_y, space_e));
+  Hermes::vector<SpaceSharedPtr<double>  > spaces (space_rho, space_rho_v_x, space_rho_v_y, space_e);
+  DiscreteProblem<double> dp(&wf, spaces);
   DiscreteProblem<double> dp_stabilization(&wf_stabilization, space_stabilization);
   LinearSolver<double> solver(&dp);
 

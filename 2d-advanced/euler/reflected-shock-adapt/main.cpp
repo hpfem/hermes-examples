@@ -196,7 +196,7 @@ int main(int argc, char* argv[])
   // Set up CFL calculation class.
   CFLCalculation CFL(CFL_NUMBER, KAPPA);
 
-  DiscreteProblemLinear<double> dp(&wf, Hermes::vector<SpaceSharedPtr<double> >(space_rho, space_rho_v_x, 
+  DiscreteProblem<double> dp(&wf, Hermes::vector<SpaceSharedPtr<double> >(space_rho, space_rho_v_x, 
       space_rho_v_y, space_e));
   LinearSolver<double> solver(&dp);
 

@@ -192,10 +192,10 @@ int main(int argc, char* argv[])
   Hermes::vector<std::string> outlet_markers;
 
   EulerEquationsWeakFormSemiImplicitCoupledWithHeat wf(KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, solid_wall_markers, 
-    inlet_markers, outlet_markers, prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e, prev_temp, LAMBDA, C_P, HEAT_FLUX);
+    inlet_markers, outlet_markers, prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e, prev_temp, LAMBDA, C_P);
 
   // Initialize the FE problem.
-  DiscreteProblemLinear<double> dp(&wf, cspaces);
+  DiscreteProblem<double> dp(&wf, cspaces);
 
   // Time stepping loop.
   for(; t < 10.0; t += time_step)

@@ -147,7 +147,7 @@ int main(int argc, char* argv[])
     wf.set_stabilization(prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e, NU_1, NU_2);
 
   // Initialize the FE problem.
-  DiscreteProblemLinear<double> dp(&wf, Hermes::vector<SpaceSharedPtr<double>  >(space_rho, space_rho_v_x, space_rho_v_y, space_e));
+  DiscreteProblem<double> dp(&wf, Hermes::vector<SpaceSharedPtr<double>  >(space_rho, space_rho_v_x, space_rho_v_y, space_e));
   LinearSolver<double> solver(&dp);
   solver.output_matrix();
   solver.output_rhs();
