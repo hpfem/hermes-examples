@@ -114,10 +114,7 @@ int main(int argc, char* argv[])
   ScalarView s4("prev_e", new WinGeom(700, 400, 600, 300));
 
   // Set up the solver, matrix, and rhs according to the solver selection.
-  SparseMatrix<double>* matrix = create_matrix<double>();
-  Vector<double>* rhs = create_vector<double>();
   Vector<double>* rhs_stabilization = create_vector<double>();
-  LinearMatrixSolver<double>* solver = create_linear_solver<double>( matrix, rhs);
 
   // Set up CFL calculation class.
   CFLCalculation CFL(CFL_NUMBER, KAPPA);
@@ -137,8 +134,8 @@ int main(int argc, char* argv[])
   // Initialize the FE problem.
   Hermes::vector<SpaceSharedPtr<double> > spaces(space_rho, space_rho_v_x, space_rho_v_y, space_e);
   Space<double>::assign_dofs(spaces);
-  DiscreteProblem<double> dp(&wf, spaces);
-  dp.set_linear();
+
+  LinearSolver<double> solver(&wf, spaces);
   
   DiscreteProblem<double> dp_stabilization(&wf_stabilization, space_stabilization);
 
@@ -155,32 +152,24 @@ int main(int argc, char* argv[])
     // Assemble the stiffness matrix and rhs.
     Hermes::Mixins::Loggable::Static::info("Assembling the stiffness matrix and right-hand side vector.");
 
-    dp.assemble(matrix, rhs);
-    FILE* fm = fopen("matrix", "w");
-    matrix->dump(fm, "A");
-    FILE* fv = fopen("vector", "w");
-    rhs->dump(fv, "b");
-    fclose(fm);
-    fclose(fv);
-
     // Solve the matrix problem.
     Hermes::Mixins::Loggable::Static::info("Solving the matrix problem.");
     try
     {
-      solver->solve();
+      solver.solve();
       if(!SHOCK_CAPTURING)
       {
-        Solution<double>::vector_to_solutions(solver->get_sln_vector(), Hermes::vector<SpaceSharedPtr<double> >(space_rho, space_rho_v_x, 
+        Solution<double>::vector_to_solutions(solver.get_sln_vector(), Hermes::vector<SpaceSharedPtr<double> >(space_rho, space_rho_v_x, 
             space_rho_v_y, space_e), Hermes::vector<MeshFunctionSharedPtr<double> >(prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e));
         }
         else
         {
           FluxLimiter* flux_limiter;
           if(SHOCK_CAPTURING_TYPE == KUZMIN)
-          flux_limiter = new FluxLimiter(FluxLimiter::Kuzmin, solver->get_sln_vector(), Hermes::vector<SpaceSharedPtr<double> >(space_rho, space_rho_v_x, 
+          flux_limiter = new FluxLimiter(FluxLimiter::Kuzmin, solver.get_sln_vector(), Hermes::vector<SpaceSharedPtr<double> >(space_rho, space_rho_v_x, 
           space_rho_v_y, space_e), true);
           else
-          flux_limiter = new FluxLimiter(FluxLimiter::Krivodonova, solver->get_sln_vector(), Hermes::vector<SpaceSharedPtr<double> >(space_rho, space_rho_v_x, 
+          flux_limiter = new FluxLimiter(FluxLimiter::Krivodonova, solver.get_sln_vector(), Hermes::vector<SpaceSharedPtr<double> >(space_rho, space_rho_v_x, 
             space_rho_v_y, space_e));
 
           if(SHOCK_CAPTURING_TYPE == KUZMIN)
