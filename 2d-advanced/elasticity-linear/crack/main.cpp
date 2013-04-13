@@ -106,8 +106,8 @@ int main(int argc, char* argv[])
   EssentialBCs<double> bcs(&zero_disp);
 
   // Create x- and y- displacement space using the default H1 shapeset.
-  SpaceSharedPtr<double>  u1_space(new  H1Space<double>(u1_mesh, &bcs, P_INIT_U1));
-  SpaceSharedPtr<double>  u2_space(new  H1Space<double>(u2_mesh, &bcs, P_INIT_U2));
+  SpaceSharedPtr<double>  u1_space(new H1Space<double>(u1_mesh, &bcs, P_INIT_U1));
+  SpaceSharedPtr<double>  u2_space(new H1Space<double>(u2_mesh, &bcs, P_INIT_U2));
   Hermes::Mixins::Loggable::Static::info("ndof = %d.", Space<double>::get_num_dofs(Hermes::vector<SpaceSharedPtr<double> >(u1_space, u2_space)));
 
   // Initialize the weak formulation.
@@ -118,8 +118,8 @@ int main(int argc, char* argv[])
   DiscreteProblem<double> dp(&wf, Hermes::vector<SpaceSharedPtr<double> >(u1_space, u2_space));
 
   // Initialize coarse and reference mesh solutions.
-  Solution<double> u1_sln, u2_sln;
-  Solution<double> u1_sln_ref, u2_sln_ref;
+  MeshFunctionSharedPtr<double> u1_sln(new Solution<double>), u2_sln(new Solution<double>);
+  MeshFunctionSharedPtr<double> u1_sln_ref(new Solution<double>), u2_sln_ref(new Solution<double>);
 
   // Initialize refinement selector.
   H1ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
@@ -156,7 +156,6 @@ int main(int argc, char* argv[])
     Space<double>::ReferenceSpaceCreator refSpaceCreator2(u2_space, ref_u2_mesh);
     SpaceSharedPtr<double> ref_u2_space = refSpaceCreator2.create_ref_space();
 
-    Hermes::vector<SpaceSharedPtr<double> > ref_spaces(ref_u1_space, ref_u2_space);
     Hermes::vector<SpaceSharedPtr<double> > ref_spaces(ref_u1_space, ref_u2_space);
     
     int ndof_ref = Space<double>::get_num_dofs(ref_spaces);
@@ -206,7 +205,7 @@ int main(int argc, char* argv[])
     // For von Mises stress Filter.
     double lambda = (E * nu) / ((1 + nu) * (1 - 2*nu));
     double mu = E / (2*(1 + nu));
-    VonMisesFilter stress(Hermes::vector<MeshFunctionSharedPtr<double> >(u1_sln, u2_sln), lambda, mu);
+    MeshFunctionSharedPtr<double> stress(new VonMisesFilter(Hermes::vector<MeshFunctionSharedPtr<double> >(u1_sln, u2_sln), lambda, mu));
     mises_view.show(stress, HERMES_EPS_NORMAL, H2D_FN_VAL_0, u1_sln, u2_sln, 1e3);
 
     // Skip visualization time.
@@ -261,12 +260,6 @@ int main(int argc, char* argv[])
 
     // Clean up.
     delete adaptivity;
-    if(done == false)
-      for(unsigned int i = 0; i < ref_spaces.size(); i++)
-       {
-         delete (ref_spaces)[i]->get_mesh();
-         delete (ref_spaces)[i];
-      }
     
     // Increase counter.
     as++;
@@ -283,7 +276,7 @@ int main(int argc, char* argv[])
   // For von Mises stress Filter.
   double lambda = (E * nu) / ((1 + nu) * (1 - 2*nu));
   double mu = E / (2*(1 + nu));
-  VonMisesFilter stress(Hermes::vector<MeshFunctionSharedPtr<double> >(u1_sln_ref, u2_sln_ref), lambda, mu);
+  MeshFunctionSharedPtr<double> stress(new VonMisesFilter(Hermes::vector<MeshFunctionSharedPtr<double> >(u1_sln_ref, u2_sln_ref), lambda, mu));
   mises_view.show(stress, HERMES_EPS_NORMAL, H2D_FN_VAL_0, u1_sln_ref, u2_sln_ref, 1e3);
 
   // Wait for all views to be closed.

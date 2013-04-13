@@ -3,7 +3,7 @@
 class ScaledWeakFormPNPCranic : public WeakForm<double> {
 public:
   ScaledWeakFormPNPCranic(double* tau, double epsilon,
-        Solution<double>* C_prev_time, Solution<double>* phi_prev_time) : WeakForm<double>(2) {
+        MeshFunctionSharedPtr<double> C_prev_time, MeshFunctionSharedPtr<double> phi_prev_time) : WeakForm<double>(2) {
       for(unsigned int i = 0; i < 2; i++) {
         ScaledWeakFormPNPCranic::Residual* vector_form =
             new ScaledWeakFormPNPCranic::Residual(i, tau, epsilon);
@@ -154,7 +154,7 @@ class WeakFormPNPCranic : public WeakForm<double> {
 public:
 
   WeakFormPNPCranic(double* tau, double C0, double K, double L, double D,
-      Solution<double>* C_prev_time, Solution<double>* phi_prev_time) : WeakForm<double>(2) {
+      MeshFunctionSharedPtr<double> C_prev_time, MeshFunctionSharedPtr<double> phi_prev_time) : WeakForm<double>(2) {
     for(unsigned int i = 0; i < 2; i++) {
       WeakFormPNPCranic::Residual* vector_form =
           new WeakFormPNPCranic::Residual(i, tau, C0, K, L, D);
@@ -313,7 +313,7 @@ private:
 class WeakFormPNPEuler : public WeakForm<double>
 {
 public:
-  WeakFormPNPEuler(double* tau, double C0, double K, double L, double D, Solution<double>* C_prev_time)
+  WeakFormPNPEuler(double* tau, double C0, double K, double L, double D, MeshFunctionSharedPtr<double> C_prev_time)
     : WeakForm<double>(2) {
     for(unsigned int i = 0; i < 2; i++) {
       WeakFormPNPEuler::Residual* vector_form =

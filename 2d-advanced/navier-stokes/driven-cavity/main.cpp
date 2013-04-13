@@ -66,7 +66,7 @@ double integrate_over_wall(MeshFunction<double>* meshfn, int marker)
 
   double integral = 0.0;
   Element* e;
-  MeshSharedPtr mesh,= meshfn->get_mesh();
+  MeshSharedPtr mesh = meshfn->get_mesh();
 
   for_all_active_elements(e, mesh)
   {
@@ -113,15 +113,14 @@ int main(int argc, char* argv[])
   EssentialBCs<double> bcs_vel_x(&bc_vel_x);
   EssentialBCs<double> bcs_vel_y(&bc_vel_y);
 
-  // Spaces for velocity components and pressure.
-  H1Space<double> xvel_space(mesh, &bcs_vel_x, P_INIT_VEL);
-  H1Space<double> yvel_space(mesh, &bcs_vel_y, P_INIT_VEL);
+SpaceSharedPtr<double> xvel_space(new H1Space<double>(mesh, &bcs_vel_x, P_INIT_VEL));
+SpaceSharedPtr<double> yvel_space(new H1Space<double>(mesh, &bcs_vel_y, P_INIT_VEL));
 #ifdef PRESSURE_IN_L2
-  L2Space<double> p_space(mesh, P_INIT_PRESSURE);
+  SpaceSharedPtr<double> p_space(new L2Space<double>(mesh, P_INIT_PRESSURE));
 #else
-  H1Space<double> p_space(mesh, P_INIT_PRESSURE);
+  SpaceSharedPtr<double> p_space(new H1Space<double>(mesh, P_INIT_PRESSURE));
 #endif
-  Hermes::vector<SpaceSharedPtr<double> > spaces = Hermes::vector<SpaceSharedPtr<double> >(&xvel_space, &yvel_space, &p_space);
+  Hermes::vector<SpaceSharedPtr<double> > spaces(xvel_space, yvel_space, p_space);
 
   // Calculate and report the number of degrees of freedom.
   int ndof = Space<double>::get_num_dofs(spaces);
@@ -137,17 +136,17 @@ int main(int argc, char* argv[])
 
   // Solutions for the Newton's iteration and time stepping.
   Hermes::Mixins::Loggable::Static::info("Setting initial conditions.");
-  ZeroSolution<double> xvel_prev_time(mesh);
-  ZeroSolution<double> yvel_prev_time(mesh);
-  ZeroSolution<double> p_prev_time(mesh);
+  MeshFunctionSharedPtr<double>  xvel_prev_time(new ZeroSolution<double>(mesh));
+  MeshFunctionSharedPtr<double>  yvel_prev_time(new ZeroSolution<double>(mesh));
+  MeshFunctionSharedPtr<double>  p_prev_time(new ZeroSolution<double>(mesh));
   Hermes::vector<MeshFunctionSharedPtr<double> > slns_prev_time = 
       Hermes::vector<MeshFunctionSharedPtr<double> >(xvel_prev_time, yvel_prev_time, p_prev_time);
 
   // Initialize weak formulation.
-  WeakForm<double>* wf = new WeakFormNSNewton(STOKES, RE, TAU, xvel_prev_time, yvel_prev_time);
+  WeakFormNSNewton wf(STOKES, RE, TAU, xvel_prev_time, yvel_prev_time);
 
   // Initialize the FE problem.
-  DiscreteProblem<double> dp(wf, spaces);
+  DiscreteProblem<double> dp(&wf, spaces);
 
   // Initialize views.
   VectorView vview("velocity [m/s]", new WinGeom(0, 0, 600, 500));
@@ -168,7 +167,7 @@ int main(int argc, char* argv[])
 
     // Update time-dependent essential BCs.
     Hermes::Mixins::Loggable::Static::info("Updating time-dependent essential BC.");
-    Space<double>::update_essential_bc_values(Hermes::vector<SpaceSharedPtr<double> >(&xvel_space, &yvel_space), current_time);
+    Space<double>::update_essential_bc_values(Hermes::vector<SpaceSharedPtr<double> >(xvel_space, yvel_space), current_time);
 
     // Perform Newton's iteration.
     Hermes::Mixins::Loggable::Static::info("Solving nonlinear problem:");

@@ -147,7 +147,7 @@ int main(int argc, char* argv[])
   for(int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
 
   // Convert initial condition into a Solution<std::complex<double> >.
-  CustomInitialCondition psi_time_prev(mesh);
+  MeshFunctionSharedPtr<std::complex<double> > psi_time_prev(new CustomInitialCondition(mesh));
 
   // Initialize the weak formulation.
   double current_time = 0;
@@ -163,7 +163,7 @@ int main(int argc, char* argv[])
   SpaceSharedPtr<std::complex<double> > space(new H1Space<std::complex<double> > (mesh, &bcs, P_INIT));
   int ndof = space->get_num_dofs();
   Hermes::Mixins::Loggable::Static::info("ndof = %d", ndof);
- 
+
   // Initialize the FE problem.
   DiscreteProblem<std::complex<double> > dp(&wf, space);
 
@@ -187,8 +187,10 @@ int main(int argc, char* argv[])
   time_error_view.fix_scale_width(60);
   ScalarView space_error_view("Spatial error", new WinGeom(445, 400, 440, 350));
   space_error_view.fix_scale_width(50);
-  RealFilter real(&psi_time_prev);
-  ImagFilter imag(&psi_time_prev);
+  MeshFunctionSharedPtr<double> real(new RealFilter(psi_time_prev));
+
+  MeshFunctionSharedPtr<double> imag(new ImagFilter(psi_time_prev));
+
   sview_real.show(real);
   sview_imag.show(imag);
   ord_view.show(space);
@@ -196,12 +198,12 @@ int main(int argc, char* argv[])
   // Graph for time step history.
   SimpleGraph time_step_graph;
   if (ADAPTIVE_TIME_STEP_ON) Hermes::Mixins::Loggable::Static::info("Time step history will be saved to file time_step_history.dat.");
-  
+
   // Time stepping:
   int num_time_steps = (int)(T_FINAL/time_step + 0.5);
   for(int ts = 1; ts <= num_time_steps; ts++)
-  // Time stepping loop.
-  double current_time = 0.0; int ts = 1;
+    // Time stepping loop.
+      double current_time = 0.0; int ts = 1;
   do 
   {
     Hermes::Mixins::Loggable::Static::info("Begin time step %d.", ts);
@@ -210,16 +212,16 @@ int main(int argc, char* argv[])
     {
       Hermes::Mixins::Loggable::Static::info("Global mesh derefinement.");
       switch (UNREF_METHOD) {
-        case 1: mesh->copy(basemesh);
-                space->set_uniform_order(P_INIT);
-                break;
-        case 2: space->unrefine_all_mesh_elements();
-                space->set_uniform_order(P_INIT);
-                break;
-        case 3: space->unrefine_all_mesh_elements();
-                space->adjust_element_order(-1, -1, P_INIT, P_INIT);
-                break;
-        default: throw Hermes::Exceptions::Exception("Wrong global derefinement method.");
+      case 1: mesh->copy(basemesh);
+        space->set_uniform_order(P_INIT);
+        break;
+      case 2: space->unrefine_all_mesh_elements();
+        space->set_uniform_order(P_INIT);
+        break;
+      case 3: space->unrefine_all_mesh_elements();
+        space->adjust_element_order(-1, -1, P_INIT, P_INIT);
+        break;
+      default: throw Hermes::Exceptions::Exception("Wrong global derefinement method.");
       }
 
       ndof = Space<std::complex<double> >::get_num_dofs(space);
@@ -228,11 +230,10 @@ int main(int argc, char* argv[])
 
     // Spatial adaptivity loop. Note: psi_time_prev must not be 
     // changed during spatial adaptivity. 
-    Solution<std::complex<double> > ref_sln;
-    Solution<std::complex<double> >* time_error_fn;
-    if (bt.is_embedded() == true) time_error_fn = new Solution<std::complex<double> >(mesh);
-    else time_error_fn = NULL;
-    bool done = false; int as = 1;
+    MeshFunctionSharedPtr<std::complex<double> > ref_sln(new Solution<std::complex<double> >());
+    MeshFunctionSharedPtr<std::complex<double> > time_error_fn(new Solution<std::complex<double> >);
+    bool done = false;
+    int as = 1;
     double err_est;
     do {
       // Construct globally refined reference mesh and setup reference space->
@@ -244,12 +245,12 @@ int main(int argc, char* argv[])
 
       // Initialize discrete problem on reference mesh->
       DiscreteProblem<std::complex<double> >* ref_dp = new DiscreteProblem<std::complex<double> >(&wf, ref_space);
-      
+
       RungeKutta<std::complex<double> > runge_kutta(&wf, ref_space, &bt);
 
       // Runge-Kutta step on the fine mesh->
       Hermes::Mixins::Loggable::Static::info("Runge-Kutta time step on fine mesh (t = %g s, time step = %g s, stages: %d).", 
-         current_time, time_step, bt.get_size());
+        current_time, time_step, bt.get_size());
       bool verbose = true;
 
       try
@@ -258,7 +259,7 @@ int main(int argc, char* argv[])
         runge_kutta.set_time_step(time_step);
         runge_kutta.set_max_allowed_iterations(NEWTON_MAX_ITER);
         runge_kutta.set_tolerance(NEWTON_TOL_FINE);
-        runge_kutta.rk_time_step_newton(&psi_time_prev, ref_sln, time_error_fn);
+        runge_kutta.rk_time_step_newton(psi_time_prev, ref_sln, time_error_fn);
       }
       catch(Exceptions::Exception& e)
       {
@@ -267,7 +268,7 @@ int main(int argc, char* argv[])
       }
 
       /* If ADAPTIVE_TIME_STEP_ON == true, estimate temporal error. 
-         If too large or too small, then adjust it and restart the time step. */
+      If too large or too small, then adjust it and restart the time step. */
 
       double rel_err_time = 0;
       if (bt.is_embedded() == true) {
@@ -278,12 +279,14 @@ int main(int argc, char* argv[])
         sprintf(title, "Temporal error est, spatial adaptivity step %d", as);     
         time_error_view.set_title(title);
         time_error_view.show_mesh(false);
-        RealFilter abs_time(time_error_fn);
-        AbsFilter abs_tef(&abs_time);
+        MeshFunctionSharedPtr<double> abs_time(new RealFilter(time_error_fn));
+
+        MeshFunctionSharedPtr<double> abs_tef(new AbsFilter(abs_time));
+
         time_error_view.show(abs_tef);
 
-        rel_err_time = Global<std::complex<double> >::calc_norm(time_error_fn, HERMES_H1_NORM) / 
-                       Global<std::complex<double> >::calc_norm(ref_sln, HERMES_H1_NORM) * 100;
+        rel_err_time = Global<std::complex<double> >::calc_norm(time_error_fn.get(), HERMES_H1_NORM) / 
+          Global<std::complex<double> >::calc_norm(ref_sln.get(), HERMES_H1_NORM) * 100;
         if (ADAPTIVE_TIME_STEP_ON == false) Hermes::Mixins::Loggable::Static::info("rel_err_time: %g%%", rel_err_time);
       }
 
@@ -291,9 +294,9 @@ int main(int argc, char* argv[])
         if (rel_err_time > TIME_ERR_TOL_UPPER) {
           Hermes::Mixins::Loggable::Static::info("rel_err_time %g%% is above upper limit %g%%", rel_err_time, TIME_ERR_TOL_UPPER);
           Hermes::Mixins::Loggable::Static::info("Decreasing time step from %g to %g s and restarting time step.", 
-               time_step, time_step * TIME_STEP_DEC_RATIO);
+            time_step, time_step * TIME_STEP_DEC_RATIO);
           time_step *= TIME_STEP_DEC_RATIO;
-          
+
           delete ref_dp;
           continue;
         }
@@ -301,7 +304,7 @@ int main(int argc, char* argv[])
           Hermes::Mixins::Loggable::Static::info("rel_err_time = %g%% is below lower limit %g%%", rel_err_time, TIME_ERR_TOL_LOWER);
           Hermes::Mixins::Loggable::Static::info("Increasing time step from %g to %g s.", time_step, time_step * TIME_STEP_INC_RATIO);
           time_step *= TIME_STEP_INC_RATIO;
-          
+
           delete ref_dp;
           continue;
         }
@@ -320,17 +323,20 @@ int main(int argc, char* argv[])
       Hermes::Mixins::Loggable::Static::info("Spatial adaptivity step %d.", as);
 
       // Project the fine mesh solution onto the coarse mesh->
-      Solution<std::complex<double> > sln;
+      MeshFunctionSharedPtr<std::complex<double> > sln(new Solution<std::complex<double> >);
       Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh for error estimation.");
       OGProjection<std::complex<double> > ogProjection; ogProjection.project_global(space, ref_sln, sln); 
 
       // Show spatial error.
       sprintf(title, "Spatial error est, spatial adaptivity step %d", as);  
-      DiffFilter<std::complex<double> >* space_error_fn = new DiffFilter<std::complex<double> >(Hermes::vector<MeshFunction<std::complex<double> >*>(ref_sln, sln));   
+      MeshFunctionSharedPtr<std::complex<double> > space_error_fn(new DiffFilter<std::complex<double> >(Hermes::vector<MeshFunctionSharedPtr<std::complex<double> > >(ref_sln, sln)));
+
       space_error_view.set_title(title);
       space_error_view.show_mesh(false);
-      RealFilter abs_space(space_error_fn);
-      AbsFilter abs_sef(&abs_space);
+
+      MeshFunctionSharedPtr<double> abs_space(new RealFilter(space_error_fn));
+      MeshFunctionSharedPtr<double> abs_sef(new AbsFilter(abs_space));
+
       space_error_view.show(abs_sef);
 
       // Calculate element errors and spatial error estimate.
@@ -340,7 +346,7 @@ int main(int argc, char* argv[])
 
       // Report results.
       Hermes::Mixins::Loggable::Static::info("ndof: %d, ref_ndof: %d, err_rel_space: %g%%", 
-           Space<std::complex<double> >::get_num_dofs(space), Space<std::complex<double> >::get_num_dofs(ref_space), err_rel_space);
+        Space<std::complex<double> >::get_num_dofs(space), Space<std::complex<double> >::get_num_dofs(ref_space), err_rel_space);
 
       // If err_est too large, adapt the mesh->
       if (err_rel_space < SPACE_ERR_TOL) done = true;
@@ -355,21 +361,12 @@ int main(int argc, char* argv[])
           // Increase the counter of performed adaptivity steps.
           as++;
       }
-      
+
       // Clean up.
       delete adaptivity;
-      if(!done)
-      {
-        delete ref_space->get_mesh();
-        
-      }
       delete ref_dp;
-      delete space_error_fn;
     }
     while (done == false);
-
-    // Clean up.
-    if (time_error_fn != NULL) delete time_error_fn;
 
     // Visualize the solution and mesh->
     char title[100];
@@ -377,8 +374,8 @@ int main(int argc, char* argv[])
     sview_real.set_title(title);
     sprintf(title, "Solution - imaginary part, Time %3.2f s", current_time);
     sview_imag.set_title(title);
-    RealFilter real(ref_sln);
-    ImagFilter imag(ref_sln);
+    MeshFunctionSharedPtr<double> real(new RealFilter(ref_sln));
+    MeshFunctionSharedPtr<double> imag(new ImagFilter(ref_sln));
     sview_real.show(real);
     sview_imag.show(imag);
     sprintf(title, "Mesh, time %g s", current_time);

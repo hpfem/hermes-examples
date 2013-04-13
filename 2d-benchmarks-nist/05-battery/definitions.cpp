@@ -325,7 +325,7 @@ CustomWeakFormPoisson::CustomWeakFormPoisson(std::string omega_1, std::string om
                                              std::string omega_3, std::string omega_4, 
                                              std::string omega_5, std::string bdy_left, 
                                              std::string bdy_top, std::string bdy_right, 
-                                             std::string bdy_bottom, Mesh* mesh) : WeakForm<double>(1),
+                                             std::string bdy_bottom, MeshSharedPtr mesh) : WeakForm<double>(1),
   
   omega_1(omega_1), omega_2(omega_2), omega_3(omega_3), 
   omega_4(omega_4), omega_5(omega_5), mesh(mesh),

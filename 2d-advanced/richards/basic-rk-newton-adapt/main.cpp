@@ -144,7 +144,7 @@ int main(int argc, char* argv[])
   Hermes::Mixins::Loggable::Static::info("ndof_coarse = %d.", ndof_coarse);
 
   // Zero initial solution. This is why we use H_OFFSET.
-  ZeroSolution<double> h_time_prev(mesh), h_time_new(mesh);
+  MeshFunctionSharedPtr<double> h_time_prev(new ZeroSolution<double>(mesh)), h_time_new(new ZeroSolution<double>(mesh));
 
   // Initialize the constitutive relations.
   ConstitutiveRelations* constitutive_relations;
@@ -231,7 +231,7 @@ int main(int argc, char* argv[])
         runge_kutta.set_time_step(time_step);
         runge_kutta.set_max_allowed_iterations(NEWTON_MAX_ITER);
         runge_kutta.set_tolerance(NEWTON_TOL);
-        runge_kutta.rk_time_step_newton(&h_time_prev, &h_time_new);
+        runge_kutta.rk_time_step_newton(h_time_prev, h_time_new);
       }
       catch(Exceptions::Exception& e)
       {
@@ -240,14 +240,14 @@ int main(int argc, char* argv[])
       }
 
       // Project the fine mesh solution onto the coarse mesh->
-      Solution<double> sln_coarse;
+      MeshFunctionSharedPtr<double> sln_coarse(new Solution<double>);
       Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh for error estimation.");
-      OGProjection<double> ogProjection; ogProjection.project_global(space, &h_time_new, sln_coarse); 
+      OGProjection<double> ogProjection; ogProjection.project_global(space, h_time_new, sln_coarse); 
 
       // Calculate element errors and total error estimate.
       Hermes::Mixins::Loggable::Static::info("Calculating error estimate.");
       Adapt<double>* adaptivity = new Adapt<double>(space);
-      double err_est_rel_total = adaptivity->calc_err_est(sln_coarse, &h_time_new) * 100;
+      double err_est_rel_total = adaptivity->calc_err_est(sln_coarse, h_time_new) * 100;
 
       // Report results.
       Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_ref: %d, err_est_rel: %g%%", 
@@ -272,10 +272,6 @@ int main(int argc, char* argv[])
       
       // Clean up.
       delete adaptivity;
-      if(!done)
-      {
-        delete h_time_new.get_mesh();
-      }
     }
     while (done == false);
 
@@ -296,8 +292,6 @@ int main(int argc, char* argv[])
     ordview.show(space);
 
     // Copy last reference solution into h_time_prev.
-    if(ts > 1)
-      delete h_time_prev.get_mesh();
     h_time_prev->copy(h_time_new);
 
     // Increase current time and counter of time steps.

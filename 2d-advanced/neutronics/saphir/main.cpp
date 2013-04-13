@@ -246,13 +246,6 @@ int main(int argc, char* argv[])
     }
     if (space->get_num_dofs() >= NDOF_STOP) 
       done = true;
-
-    // Keep the mesh from final step to allow further work with the final fine mesh solution.
-    if(done == false)
-    {
-      delete ref_space->get_mesh(); 
-      
-    }
   }
   while (done == false);
 

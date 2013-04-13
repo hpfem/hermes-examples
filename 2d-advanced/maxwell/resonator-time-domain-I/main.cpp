@@ -68,23 +68,23 @@ int main(int argc, char* argv[])
   for (int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
 
   // Initialize solutions.
-  CustomInitialConditionWave E_sln(mesh);
-  ZeroSolution<double> B_sln(mesh);
-  Hermes::vector<MeshFunctionSharedPtr<double> > slns(&E_sln, &B_sln);
+  MeshFunctionSharedPtr<double> E_sln(new CustomInitialConditionWave(mesh));
+  MeshFunctionSharedPtr<double>  B_sln(new ZeroSolution<double>(mesh));
+  Hermes::vector<MeshFunctionSharedPtr<double> > slns(E_sln, B_sln);
 
   // Initialize the weak formulation.
   CustomWeakFormWave wf(C_SQUARED);
-  
+
   // Initialize boundary conditions
   DefaultEssentialBCConst<double> bc_essential("Perfect conductor", 0.0);
   EssentialBCs<double> bcs_E(&bc_essential);
+  SpaceSharedPtr<double> E_space(new HcurlSpace<double>(mesh, &bcs_E, P_INIT));
   EssentialBCs<double> bcs_B;
 
   // Create x- and y- displacement space using the default H1 shapeset.
-  HcurlSpace<double> E_space(mesh, &bcs_E, P_INIT));
-  H1Space<double> B_space(mesh, &bcs_B, P_INIT));
-  Hermes::vector<SpaceSharedPtr<double> > spaces(&E_space, &B_space);
-  Hermes::vector<SpaceSharedPtr<double> > spaces_mutable(&E_space, &B_space);
+  SpaceSharedPtr<double> B_space(new HcurlSpace<double>(mesh, &bcs_B, P_INIT));
+  Hermes::vector<SpaceSharedPtr<double> > spaces(E_space, B_space);
+  Hermes::vector<SpaceSharedPtr<double> > spaces_mutable(E_space, B_space);
   Hermes::Mixins::Loggable::Static::info("ndof = %d.", Space<double>::get_num_dofs(spaces));
 
   // Initialize views.
@@ -104,10 +104,10 @@ int main(int argc, char* argv[])
   {
     // Perform one Runge-Kutta time step according to the selected Butcher's table.
     Hermes::Mixins::Loggable::Static::info("Runge-Kutta time step (t = %g s, time_step = %g s, stages: %d).", 
-         current_time, time_step, bt.get_size());
+      current_time, time_step, bt.get_size());
     bool jacobian_changed = false;
     bool verbose = true;
-    
+
     try
     {
       runge_kutta.set_time(current_time);
@@ -134,7 +134,7 @@ int main(int argc, char* argv[])
 
     // Update time.
     current_time += time_step;
-  
+
   } while (current_time < T_FINAL);
 
   // Wait for the view to be closed.

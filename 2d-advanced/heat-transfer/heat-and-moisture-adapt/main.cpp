@@ -133,7 +133,7 @@ int main(int argc, char* argv[])
   if (bt.is_fully_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage fully implicit R-K method.", bt.get_size());
 
   // Load the mesh->
-  Mesh basemesh, T_mesh, w_mesh;
+  MeshSharedPtr basemesh(new Mesh), T_mesh(new Mesh), w_mesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("domain.mesh", basemesh);
 
@@ -146,23 +146,22 @@ int main(int argc, char* argv[])
   EssentialBCNonConst temp_reactor("bdy_react", REACTOR_START_TIME, T_INITIAL, T_REACTOR_MAX);
   EssentialBCs<double> bcs_T(&temp_reactor);
 
-  // Create H1 spaces with default shapesets.
-  H1Space<double> T_space(T_mesh, &bcs_T, P_INIT));
-  H1Space<double> w_space(MULTI ? &w_mesh : &T_mesh, P_INIT));
+  SpaceSharedPtr<double> T_space(new H1Space<double>(T_mesh, &bcs_T, P_INIT));
+  SpaceSharedPtr<double> w_space(new H1Space<double>(MULTI ? w_mesh : T_mesh, P_INIT));
 
   // Define constant initial conditions.
   Hermes::Mixins::Loggable::Static::info("Setting initial conditions.");
-  ConstantSolution<double> T_time_prev(&T_mesh, T_INITIAL);
-  ConstantSolution<double> w_time_prev(&w_mesh, W_INITIAL);
-  Solution<double> T_time_new(&T_mesh);
-  Solution<double> w_time_new(&w_mesh);
-  
+  MeshFunctionSharedPtr<double> T_time_prev(new ConstantSolution<double>(T_mesh, T_INITIAL));
+  MeshFunctionSharedPtr<double> w_time_prev(new ConstantSolution<double>(w_mesh, W_INITIAL));
+  MeshFunctionSharedPtr<double> T_time_new(new Solution<double>(T_mesh));
+  MeshFunctionSharedPtr<double> w_time_new(new Solution<double>(w_mesh));
+
   // Solutions.
-  Solution<double> T_coarse, w_coarse;
+  MeshFunctionSharedPtr<double> T_coarse(new Solution<double>), w_coarse(new Solution<double>);
 
   // Initialize the weak formulation.
-  const CustomWeakFormHeatMoistureRK wf(c_TT, c_ww, d_TT, d_Tw, d_wT, d_ww, 
-				  k_TT, k_ww, T_EXTERIOR, W_EXTERIOR, "bdy_ext");
+  CustomWeakFormHeatMoistureRK wf(c_TT, c_ww, d_TT, d_Tw, d_wT, d_ww, 
+    k_TT, k_ww, T_EXTERIOR, W_EXTERIOR, "bdy_ext");
 
   // Initialize refinement selector.
   H1ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
@@ -190,37 +189,37 @@ int main(int argc, char* argv[])
   while (current_time < SIMULATION_TIME)
   {
     Hermes::Mixins::Loggable::Static::info("Simulation time = %g s (%d h, %d d, %d y)",
-        current_time, (int) current_time / 3600,
-        (int) current_time / (3600*24), (int) current_time / (3600*24*364));
+      current_time, (int) current_time / 3600,
+      (int) current_time / (3600*24), (int) current_time / (3600*24*364));
 
     // Update time-dependent essential BCs.
     if (current_time <= REACTOR_START_TIME) {
       Hermes::Mixins::Loggable::Static::info("Updating time-dependent essential BC.");
-      Space<double>::update_essential_bc_values(Hermes::vector<SpaceSharedPtr<double> >(&T_space, &w_space), current_time);
+      Space<double>::update_essential_bc_values(Hermes::vector<SpaceSharedPtr<double> >(T_space, w_space), current_time);
     }
 
     // Uniform mesh derefinement.
     if (ts > 1 && ts % UNREF_FREQ == 0) {
       Hermes::Mixins::Loggable::Static::info("Global mesh derefinement.");
       switch (UNREF_METHOD) {
-        case 1: T_mesh->copy(basemesh);
-                w_mesh->copy(basemesh);
-                T_space->set_uniform_order(P_INIT);
-                w_space->set_uniform_order(P_INIT);
-                break;
-        case 2: T_mesh->unrefine_all_elements();
-                if(MULTI)
-                  w_mesh->unrefine_all_elements();
-                T_space->set_uniform_order(P_INIT);
-                w_space->set_uniform_order(P_INIT);
-                break;
-        case 3: T_mesh->unrefine_all_elements();
-                if(MULTI)
-                  w_mesh->unrefine_all_elements();
-                T_space->adjust_element_order(-1, -1, P_INIT, P_INIT);
-                w_space->adjust_element_order(-1, -1, P_INIT, P_INIT);
-                break;
-        default: throw Hermes::Exceptions::Exception("Wrong global derefinement method.");
+      case 1: T_mesh->copy(basemesh);
+        w_mesh->copy(basemesh);
+        T_space->set_uniform_order(P_INIT);
+        w_space->set_uniform_order(P_INIT);
+        break;
+      case 2: T_mesh->unrefine_all_elements();
+        if(MULTI)
+          w_mesh->unrefine_all_elements();
+        T_space->set_uniform_order(P_INIT);
+        w_space->set_uniform_order(P_INIT);
+        break;
+      case 3: T_mesh->unrefine_all_elements();
+        if(MULTI)
+          w_mesh->unrefine_all_elements();
+        T_space->adjust_element_order(-1, -1, P_INIT, P_INIT);
+        w_space->adjust_element_order(-1, -1, P_INIT, P_INIT);
+        break;
+      default: throw Hermes::Exceptions::Exception("Wrong global derefinement method.");
       }
       T_space->assign_dofs();
       w_space->assign_dofs();
@@ -234,16 +233,16 @@ int main(int argc, char* argv[])
       Hermes::Mixins::Loggable::Static::info("Time step %d, adaptivity step %d:", ts, as);
 
       // Construct globally refined reference mesh and setup reference space->
-      Mesh::ReferenceMeshCreator refMeshCreatorU(&T_mesh);
+      Mesh::ReferenceMeshCreator refMeshCreatorU(T_mesh);
       MeshSharedPtr ref_T_mesh = refMeshCreatorU.create_ref_mesh();
 
-      Space<double>::ReferenceSpaceCreator refSpaceCreatorT(&T_space, ref_T_mesh);
+      Space<double>::ReferenceSpaceCreator refSpaceCreatorT(T_space, ref_T_mesh);
       SpaceSharedPtr<double> ref_T_space = refSpaceCreatorT.create_ref_space();
 
-      Mesh::ReferenceMeshCreator refMeshCreatorW(&w_mesh);
+      Mesh::ReferenceMeshCreator refMeshCreatorW(w_mesh);
       MeshSharedPtr ref_w_mesh = refMeshCreatorW.create_ref_mesh();
 
-      Space<double>::ReferenceSpaceCreator refSpaceCreatorW(&w_space, ref_w_mesh);
+      Space<double>::ReferenceSpaceCreator refSpaceCreatorW(w_space, ref_w_mesh);
       SpaceSharedPtr<double> ref_w_space = refSpaceCreatorW.create_ref_space();
 
       Hermes::vector<SpaceSharedPtr<double> > ref_spaces(ref_T_space, ref_w_space);
@@ -256,15 +255,15 @@ int main(int argc, char* argv[])
 
       // Perform one Runge-Kutta time step according to the selected Butcher's table.
       Hermes::Mixins::Loggable::Static::info("Runge-Kutta time step (t = %g s, tau = %g s, stages: %d).",
-           current_time, time_step, bt.get_size());
+        current_time, time_step, bt.get_size());
       try
       {
         runge_kutta.set_time(current_time);
         runge_kutta.set_time_step(time_step);
         runge_kutta.set_max_allowed_iterations(NEWTON_MAX_ITER);
         runge_kutta.set_tolerance(NEWTON_TOL);
-        runge_kutta.rk_time_step_newton(Hermes::vector<MeshFunctionSharedPtr<double> >(&T_time_prev, &w_time_prev), 
-            Hermes::vector<MeshFunctionSharedPtr<double> >(&T_time_new, &w_time_new));
+        runge_kutta.rk_time_step_newton(Hermes::vector<MeshFunctionSharedPtr<double> >(T_time_prev, w_time_prev), 
+          Hermes::vector<MeshFunctionSharedPtr<double> >(T_time_new, w_time_new));
       }
       catch(Exceptions::Exception& e)
       {
@@ -274,13 +273,13 @@ int main(int argc, char* argv[])
 
       // Project the fine mesh solution onto the coarse meshes.
       Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solutions on coarse meshes for error estimation.");
-      OGProjection<double> ogProjection; ogProjection.project_global(Hermes::vector<SpaceSharedPtr<double> >(&T_space, &w_space), 
-          Hermes::vector<MeshFunctionSharedPtr<double> >(&T_time_new, &w_time_new), 
-	  Hermes::vector<MeshFunctionSharedPtr<double> >(&T_coarse, &w_coarse),
-          matrix_solver); 
+      OGProjection<double> ogProjection; ogProjection.project_global(Hermes::vector<SpaceSharedPtr<double> >(T_space, w_space), 
+        Hermes::vector<MeshFunctionSharedPtr<double> >(T_time_new, w_time_new), 
+        Hermes::vector<MeshFunctionSharedPtr<double> >(T_coarse, w_coarse),
+        matrix_solver); 
 
       // Initialize an instance of the Adapt class and register custom error forms.
-      Adapt<double>* adaptivity = new Adapt<double>(Hermes::vector<SpaceSharedPtr<double> >(&T_space, &w_space));
+      Adapt<double>* adaptivity = new Adapt<double>(Hermes::vector<SpaceSharedPtr<double> >(T_space, w_space));
       CustomErrorForm cef_0_0(d_TT, c_TT);
       CustomErrorForm cef_0_1(d_Tw, c_TT);
       CustomErrorForm cef_1_0(d_wT, c_ww);
@@ -292,13 +291,13 @@ int main(int argc, char* argv[])
 
       // Calculate element errors and total error estimate.
       Hermes::Mixins::Loggable::Static::info("Calculating error estimate."); 
-      double err_est_rel_total = adaptivity->calc_err_est(Hermes::vector<MeshFunctionSharedPtr<double> >(&T_coarse, &w_coarse), 
-                                 Hermes::vector<MeshFunctionSharedPtr<double> >(&T_time_new, &w_time_new)) * 100;
+      double err_est_rel_total = adaptivity->calc_err_est(Hermes::vector<MeshFunctionSharedPtr<double> >(T_coarse, w_coarse), 
+        Hermes::vector<MeshFunctionSharedPtr<double> >(T_time_new, w_time_new)) * 100;
 
       // Report results.
       Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d, err_est_rel: %g%%", 
-	   Space<double>::get_num_dofs(Hermes::vector<SpaceSharedPtr<double> >(&T_space, &w_space)), 
-           Space<double>::get_num_dofs(ref_spaces), err_est_rel_total);
+        Space<double>::get_num_dofs(Hermes::vector<SpaceSharedPtr<double> >(T_space, w_space)), 
+        Space<double>::get_num_dofs(ref_spaces), err_est_rel_total);
 
       // If err_est too large, adapt the meshes.
       if (err_est_rel_total < ERR_STOP)
@@ -308,13 +307,13 @@ int main(int argc, char* argv[])
         Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh->");
         done = adaptivity->adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&selector, &selector), THRESHOLD, STRATEGY, MESH_REGULARITY);
 
-        if (Space<double>::get_num_dofs(Hermes::vector<SpaceSharedPtr<double> >(&T_space, &w_space)) >= NDOF_STOP) 
+        if (Space<double>::get_num_dofs(Hermes::vector<SpaceSharedPtr<double> >(T_space, w_space)) >= NDOF_STOP) 
           done = true;
         else
           // Increase the counter of performed adaptivity steps.
           as++;
       }
- 
+
       // Clean up.
       delete adaptivity;
     }

@@ -159,7 +159,7 @@ int main(int argc, char* argv[])
     cpu_time.tick();
 
     // View the coarse mesh solution and polynomial orders.
-    RealFilter acoustic_pressure(sln);
+    MeshFunctionSharedPtr<double> acoustic_pressure(new RealFilter(sln));
     sview.show(acoustic_pressure);
     oview.show(space);
 
@@ -202,13 +202,13 @@ int main(int argc, char* argv[])
   // Show the reference solution - the final result.
   sview.set_title("Fine mesh solution magnitude");
 
-  RealFilter ref_mag(ref_sln);
+  MeshFunctionSharedPtr<double>  ref_mag(new RealFilter(ref_sln));
   sview.show(ref_mag);
 
   // Output solution in VTK format.
   Linearizer lin;
   bool mode_3D = true;
-  lin.save_solution_vtk(&ref_mag, "sln->vtk", "Acoustic pressure", mode_3D);
+  lin.save_solution_vtk(ref_mag, "sln->vtk", "Acoustic pressure", mode_3D);
   Hermes::Mixins::Loggable::Static::info("Solution in VTK format saved to file %s.", "sln->vtk");
 
   // Wait for all views to be closed.

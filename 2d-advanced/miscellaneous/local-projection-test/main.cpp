@@ -106,7 +106,7 @@ int main(int argc, char* argv[])
   MeshFunctionSharedPtr<double> sln(new Solution<double>());
   Solution<double>::vector_to_solution(newton.get_sln_vector(), space, sln);
 
-  Solution<double> sln_proj;
+  MeshFunctionSharedPtr<double> sln_proj(new Solution<double>);
   LocalProjection<double>::project_local(space, sln, sln_proj, HERMES_H1_NORM);
   ScalarView view1("Projection", new WinGeom(0, 0, 440, 350));
   view1.show(sln_proj);

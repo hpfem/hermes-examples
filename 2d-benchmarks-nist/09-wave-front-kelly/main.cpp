@@ -133,8 +133,8 @@ int main(int argc, char* argv[])
   DefaultEssentialBCNonConst<double> bc("Bdy", &exact);
   EssentialBCs<double> bcs(&bc);
 
-  // Create an H1 space with default shapeset.
-  H1Space<double> space(&mesh, &bcs, P_INIT);
+SpaceSharedPtr<double> space(new // Create an H1 space with default shapeset.
+  H1Space<double>(&mesh, &bcs, P_INIT));
   
   // Initialize approximate solution.
   Solution<double> sln;

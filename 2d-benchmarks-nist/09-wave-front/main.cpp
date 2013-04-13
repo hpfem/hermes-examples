@@ -121,7 +121,7 @@ int main(int argc, char* argv[])
   for (int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
   
   // Set exact solution.
-  CustomExactSolution exact_sln(mesh, alpha, x_loc, y_loc, r_zero);
+  MeshFunctionSharedPtr<double> exact_sln(new CustomExactSolution(mesh, alpha, x_loc, y_loc, r_zero));
 
   // Define right-hand side.
   CustomRightHandSide rhs(alpha, x_loc, y_loc, r_zero);
@@ -132,7 +132,7 @@ int main(int argc, char* argv[])
   // WeakFormsH1::DefaultWeakFormPoisson wf(HERMES_ANY, HERMES_ONE, &rhs);
 
   // Initialize boundary conditions.
-  DefaultEssentialBCNonConst<double> bc("Bdy", &exact_sln);
+  DefaultEssentialBCNonConst<double> bc("Bdy", exact_sln);
   EssentialBCs<double> bcs(&bc);
   
   // Create an H1 space with default shapeset.
@@ -207,7 +207,7 @@ int main(int argc, char* argv[])
     double err_est_rel = adaptivity.calc_err_est(sln, ref_sln) * 100;
 
     // Calculate exact error.
-    double err_exact_rel = Global<double>::calc_rel_error(sln, &exact_sln, HERMES_H1_NORM) * 100;
+    double err_exact_rel = Global<double>::calc_rel_error(sln.get(), exact_sln.get(), HERMES_H1_NORM) * 100;
 
     cpu_time.tick();
     Hermes::Mixins::Loggable::Static::info("Error calculation: %g s", cpu_time.last());
@@ -249,9 +249,6 @@ int main(int argc, char* argv[])
     // Increase the counter of adaptivity steps.
     if (done == false)  
       as++;
-    
-    delete ref_space->get_mesh();
-    
   }
   while (done == false);
   

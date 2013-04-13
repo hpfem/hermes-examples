@@ -84,23 +84,28 @@ int main(int argc, char* argv[])
   for (int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
 
   // Initialize solutions.
-  CustomInitialConditionWave E_time_prev(mesh);
-  ZeroSolutionVector<double> F_time_prev(mesh);
-  Hermes::vector<MeshFunctionSharedPtr<double> > slns_time_prev(&E_time_prev, &F_time_prev);
-  Solution<double> E_time_new, F_time_new;
-  Hermes::vector<MeshFunctionSharedPtr<double> > slns_time_new(&E_time_new, &F_time_new);
+  MeshFunctionSharedPtr<double> E_time_prev(new CustomInitialConditionWave(mesh));
+  MeshFunctionSharedPtr<double>  F_time_prev(new ZeroSolutionVector<double>(mesh));
+
+  Hermes::vector<MeshFunctionSharedPtr<double> > slns_time_prev(E_time_prev, F_time_prev);
+
+  MeshFunctionSharedPtr<double> E_time_new(new Solution<double>);
+
+  MeshFunctionSharedPtr<double> F_time_new(new Solution<double>);
+
+  Hermes::vector<MeshFunctionSharedPtr<double> > slns_time_new(E_time_new, F_time_new);
 
   // Initialize the weak formulation.
   CustomWeakFormWaveRK wf(C_SQUARED);
-  
+
   // Initialize boundary conditions
   DefaultEssentialBCConst<double> bc_essential("Perfect conductor", 0.0);
   EssentialBCs<double> bcs(&bc_essential);
 
-  // Create x- and y- displacement space using the default H1 shapeset.
-  HcurlSpace<double> E_space(mesh, &bcs, P_INIT));
-  HcurlSpace<double> F_space(mesh, &bcs, P_INIT));
-  Hermes::vector<SpaceSharedPtr<double> > spaces(&E_space, &F_space);
+  SpaceSharedPtr<double> E_space(new HcurlSpace<double>(mesh, &bcs, P_INIT));
+  SpaceSharedPtr<double> F_space(new HcurlSpace<double>(mesh, &bcs, P_INIT));
+  Hermes::vector<SpaceSharedPtr<double> > spaces(E_space, F_space);
+
   int ndof = HcurlSpace<double>::get_num_dofs(spaces);
   Hermes::Mixins::Loggable::Static::info("ndof = %d.", ndof);
 
@@ -123,7 +128,7 @@ int main(int argc, char* argv[])
   {
     // Perform one Runge-Kutta time step according to the selected Butcher's table.
     Hermes::Mixins::Loggable::Static::info("Runge-Kutta time step (t = %g s, time_step = %g s, stages: %d).", 
-         current_time, time_step, bt.get_size());
+      current_time, time_step, bt.get_size());
     try
     {
       runge_kutta.set_time(current_time);
@@ -162,7 +167,7 @@ int main(int argc, char* argv[])
 
     // Update time.
     current_time += time_step;
-  
+
   } while (current_time < T_FINAL);
 
   // Wait for the view to be closed.

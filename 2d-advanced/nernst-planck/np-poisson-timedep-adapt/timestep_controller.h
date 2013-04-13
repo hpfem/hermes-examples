@@ -82,7 +82,7 @@ bool PidTimestepController::end_step(Hermes::vector<MeshFunctionSharedPtr<double
     double max_rel_error = 0.0;
 
     for (unsigned int i = 0; i < neq; i++) {
-      double rel_error = Global<double>::calc_rel_error(solutions[i], prev_solutions[i], HERMES_H1_NORM);
+      double rel_error = Global<double>::calc_rel_error(solutions[i].get(), prev_solutions[i].get(), HERMES_H1_NORM);
       max_rel_error = (rel_error > max_rel_error) ? rel_error : max_rel_error;
 
      Hermes::Mixins::Loggable::Static::info("Solution[%i]: rel error %g, largest relative error %g",

@@ -218,10 +218,10 @@ int main(int argc, char* argv[])
 
         space_rho->unrefine_all_mesh_elements(true);
 
-        space_rho->adjust_element_order(-1, P_INIT));
-        space_rho_v_x->adjust_element_order(-1, P_INIT));
-        space_rho_v_y->adjust_element_order(-1, P_INIT));
-        space_e->adjust_element_order(-1, P_INIT));
+        space_rho->adjust_element_order(-1, P_INIT);
+        space_rho_v_x->adjust_element_order(-1, P_INIT);
+        space_rho_v_y->adjust_element_order(-1, P_INIT);
+        space_e->adjust_element_order(-1, P_INIT);
 
         Space<double>::assign_dofs(Hermes::vector<SpaceSharedPtr<double> >(space_rho, space_rho_v_x, space_rho_v_y, space_e));
       }
@@ -251,7 +251,6 @@ int main(int argc, char* argv[])
       SpaceSharedPtr<double> ref_space_e = refSpaceCreatorE.create_ref_space();
 
       Hermes::vector<SpaceSharedPtr<double> > ref_spaces(ref_space_rho, ref_space_rho_v_x, ref_space_rho_v_y, ref_space_e);
-      Hermes::vector<SpaceSharedPtr<double>  > ref_spaces(ref_space_rho, ref_space_rho_v_x, ref_space_rho_v_y, ref_space_e);
 
       if(ndofs_prev != 0)
         if(Space<double>::get_num_dofs(ref_spaces) == ndofs_prev)
@@ -353,7 +352,7 @@ int main(int argc, char* argv[])
           Linearizer lin;
           char filename[40];
           //sprintf(filename, "Pressure-%i.vtk", iteration - 1);
-          //lin.save_solution_vtk(&pressure, filename, "Pressure", false);
+          //lin.save_solution_vtk(pressure, filename, "Pressure", false);
           sprintf(filename, "Mach number-%i.vtk", iteration - 1);
           lin.save_solution_vtk(Mach_number, filename, "MachNumber", false);
           sprintf(filename, "Mesh-%i.vtk", iteration - 1);

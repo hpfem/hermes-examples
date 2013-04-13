@@ -97,13 +97,14 @@ int main(int argc, char* argv[])
   DiscreteProblem<double> dp(&wf, space);
   
   // Initialize the solution.
-  ConstantSolution<double> sln(mesh, INIT_COND);
+  MeshFunctionSharedPtr<double> sln(new ConstantSolution<double>(mesh, INIT_COND));
 
   // Project the initial condition on the FE space to obtain initial
   // coefficient vector for the Newton's method.
   Hermes::Mixins::Loggable::Static::info("Projecting to obtain initial vector for the Newton's method.");
   double* coeff_vec = new double[ndof] ;
-  OGProjection<double> ogProjection; ogProjection.project_global(space, sln, coeff_vec);
+  OGProjection<double> ogProjection;
+  ogProjection.project_global(space, sln, coeff_vec);
 
   // Perform Newton's iteration.
   Hermes::Hermes2D::NewtonSolver<double> newton(&dp);
@@ -129,20 +130,20 @@ int main(int argc, char* argv[])
 
   // Visualise the solution and mesh->
   ScalarView s_view1("Vector potential", new WinGeom(0, 0, 350, 450));
-  FilterVectorPotential vector_potential(Hermes::vector<MeshFunctionSharedPtr<double> >(sln, sln),
-      Hermes::vector<int>(H2D_FN_VAL, H2D_FN_VAL));
+  MeshFunctionSharedPtr<double> vector_potential(new FilterVectorPotential(Hermes::vector<MeshFunctionSharedPtr<double> >(sln, sln),
+      Hermes::vector<int>(H2D_FN_VAL, H2D_FN_VAL)));
   s_view1.show_mesh(false);
   s_view1.show(vector_potential);
 
   ScalarView s_view2("Flux density", new WinGeom(360, 0, 350, 450));
-  FilterFluxDensity flux_density(Hermes::vector<MeshFunctionSharedPtr<double> >(sln, sln));
+  MeshFunctionSharedPtr<double> flux_density(new FilterFluxDensity(Hermes::vector<MeshFunctionSharedPtr<double> >(sln, sln)));
   s_view2.show_mesh(false);
   s_view2.show(flux_density);
 
   // Output solution in VTK format.
   Linearizer lin;
   bool mode_3D = true;
-  lin.save_solution_vtk(&flux_density, "sln->vtk", "Flux density", mode_3D);
+  lin.save_solution_vtk(flux_density, "sln->vtk", "Flux density", mode_3D);
   Hermes::Mixins::Loggable::Static::info("Solution in VTK format saved to file %s.", "sln->vtk");
 
   OrderView o_view("Mesh", new WinGeom(720, 0, 350, 450));

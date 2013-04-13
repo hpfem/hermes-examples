@@ -75,8 +75,8 @@ int main(int argc, char* argv[])
   mesh->refine_towards_vertex(4, 1);
 
   // Initialize solutions.
-  CustomInitialConditionWave u_sln(mesh);
-  ZeroSolution<double> v_sln(mesh);
+  MeshFunctionSharedPtr<double>  u_sln(new CustomInitialConditionWave(mesh));
+  MeshFunctionSharedPtr<double>  v_sln(new ZeroSolution<double>(mesh));
   Hermes::vector<MeshFunctionSharedPtr<double> > slns(u_sln, v_sln);
 
   // Initialize the weak formulation.
@@ -86,9 +86,8 @@ int main(int argc, char* argv[])
   DefaultEssentialBCConst<double> bc_essential("Bdy", 0.0);
   EssentialBCs<double> bcs(&bc_essential);
 
-  // Create x- and y- displacement space using the default H1 shapeset.
-  H1Space<double> u_space(mesh, &bcs, P_INIT));
-  H1Space<double> v_space(mesh, &bcs, P_INIT));
+  SpaceSharedPtr<double> u_space(new H1Space<double>(mesh, &bcs, P_INIT));
+  SpaceSharedPtr<double> v_space(new H1Space<double>(mesh, &bcs, P_INIT));
   Hermes::Mixins::Loggable::Static::info("ndof = %d.", Space<double>::get_num_dofs(Hermes::vector<SpaceSharedPtr<double> >(u_space, v_space)));
 
   // Initialize views.

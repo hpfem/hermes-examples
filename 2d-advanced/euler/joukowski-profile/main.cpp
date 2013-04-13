@@ -97,12 +97,12 @@ int main(int argc, char* argv[])
   mesh.refine_towards_boundary(BDY_SOLID_WALL_PROFILE, INIT_REF_NUM_BOUNDARY_ANISO);
   mesh.refine_towards_vertex(0, INIT_REF_NUM_VERTEX);
 
-  // Initialize boundary condition types and spaces with default shapesets.
-  L2Space<double> space_rho(&mesh, P_INIT);
+SpaceSharedPtr<double> space_rho(&mesh, P_INIT);
   L2Space<double> space_rho_v_x(&mesh, P_INIT);
   L2Space<double> space_rho_v_y(&mesh, P_INIT);
   L2Space<double> space_e(&mesh, P_INIT);
-  L2Space<double> space_stabilization(&mesh, 0);
+  L2Space<double> space_stabilization(new // Initialize boundary condition types and spaces with default shapesets.
+  L2Space<double>(&mesh, 0));
   int ndof = Space<double>::get_num_dofs(Hermes::vector<const Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
   Hermes::Mixins::Loggable::Static::info("ndof: %d", ndof);
         
@@ -141,7 +141,7 @@ int main(int argc, char* argv[])
   if(REUSE_SOLUTION && continuity.have_record_available())
   {
     continuity.get_last_record()->load_mesh(&mesh);
-    Hermes::vector<Space<double> *> spaceVector = continuity.get_last_record()->load_spaces(Hermes::vector<Mesh *>(&mesh, &mesh, &mesh, &mesh));
+SpaceSharedPtr<double> *> spaceVector = continuity.get_last_record()->load_spaces(new   Hermes::vector<Space<double>(Hermes::vector<Mesh *>(&mesh, &mesh, &mesh, &mesh)));
     space_rho.copy(spaceVector[0], &mesh);
     space_rho_v_x.copy(spaceVector[1], &mesh);
     space_rho_v_y.copy(spaceVector[2], &mesh);
@@ -263,10 +263,10 @@ int main(int argc, char* argv[])
         Linearizer lin_pressure;
         char filename[40];
         sprintf(filename, "pressure-3D-%i.vtk", iteration - 1);
-        lin_pressure.save_solution_vtk(&pressure, filename, "Pressure", true);
+        lin_pressure.save_solution_vtk(pressure, filename, "Pressure", true);
         Linearizer lin_mach;
         sprintf(filename, "Mach number-3D-%i.vtk", iteration - 1);
-        lin_mach.save_solution_vtk(&Mach_number, filename, "MachNumber", true);
+        lin_mach.save_solution_vtk(Mach_number, filename, "MachNumber", true);
       }
     }
   }

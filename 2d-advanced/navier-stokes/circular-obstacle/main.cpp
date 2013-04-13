@@ -106,16 +106,14 @@ int main(int argc, char* argv[])
   DefaultEssentialBCConst<double> bc_vel_y(Hermes::vector<std::string>(BDY_LEFT, BDY_BOTTOM, BDY_TOP, BDY_OBSTACLE), 0.0);
   EssentialBCs<double> bcs_vel_y(&bc_vel_y);
 
-  // Spaces for velocity components and pressure.
-  H1Space<double> xvel_space(mesh, &bcs_vel_x, P_INIT_VEL);
-  H1Space<double> yvel_space(mesh, &bcs_vel_y, P_INIT_VEL);
+  SpaceSharedPtr<double> xvel_space(new H1Space<double>(mesh, &bcs_vel_x, P_INIT_VEL));
+  SpaceSharedPtr<double> yvel_space(new H1Space<double>(mesh, &bcs_vel_y, P_INIT_VEL));
 #ifdef PRESSURE_IN_L2
-  L2Space<double> p_space(mesh, P_INIT_PRESSURE);
+  SpaceSharedPtr<double> p_space(new L2Space<double>(mesh, P_INIT_PRESSURE));
 #else
-  H1Space<double> p_space(mesh, P_INIT_PRESSURE);
+  SpaceSharedPtr<double> p_space(new H1Space<double>(mesh, P_INIT_PRESSURE));
 #endif
-  Hermes::vector<Space<double>* > spaces(&xvel_space, &yvel_space, &p_space);
-  Hermes::vector<SpaceSharedPtr<double>  > spaces(&xvel_space, &yvel_space, &p_space);
+  Hermes::vector<SpaceSharedPtr<double> > spaces(xvel_space, yvel_space, p_space);
 
   // Calculate and report the number of degrees of freedom.
   int ndof = Space<double>::get_num_dofs(spaces);
@@ -131,17 +129,16 @@ int main(int argc, char* argv[])
 
   // Solutions for the Newton's iteration and time stepping.
   Hermes::Mixins::Loggable::Static::info("Setting zero initial conditions.");
-  ZeroSolution<double> xvel_prev_time(mesh);
-  ZeroSolution<double> yvel_prev_time(mesh);
-  ZeroSolution<double> p_prev_time(mesh);
+  MeshFunctionSharedPtr<double>  xvel_prev_time(new ZeroSolution<double>(mesh));
+  MeshFunctionSharedPtr<double>  yvel_prev_time(new ZeroSolution<double>(mesh));
+  MeshFunctionSharedPtr<double>  p_prev_time(new ZeroSolution<double>(mesh));
   Hermes::vector<MeshFunctionSharedPtr<double>  > slns_prev_time = Hermes::vector<MeshFunctionSharedPtr<double>  >(xvel_prev_time, yvel_prev_time, p_prev_time);
 
   // Initialize weak formulation.
-  WeakForm<double>* wf;
-  wf = new WeakFormNSNewton(STOKES, RE, TAU, xvel_prev_time, yvel_prev_time);
+  WeakFormNSNewton wf(STOKES, RE, TAU, xvel_prev_time, yvel_prev_time);
 
   // Initialize the FE problem.
-  DiscreteProblem<double> dp(wf, spaces);
+  DiscreteProblem<double> dp(&wf, spaces);
 
   // Initialize views.
   VectorView vview("velocity [m/s]", new WinGeom(0, 0, 750, 240));
@@ -199,11 +196,11 @@ int main(int argc, char* argv[])
     if(VTK_VISUALIZATION) 
     {
       Linearizer lin;
-      Hermes::vector<MeshFunction<double>* > slns_prev_time0 = Hermes::vector<MeshFunction<double>* >(xvel_prev_time, yvel_prev_time);
-      MagFilter<double> mag(slns_prev_time0, Hermes::vector<int>(H2D_FN_VAL, H2D_FN_VAL));
+      Hermes::vector<MeshFunctionSharedPtr<double> > slns_prev_time = Hermes::vector<MeshFunctionSharedPtr<double> >(xvel_prev_time, yvel_prev_time);
+      MeshFunctionSharedPtr<double> mag(new MagFilter<double>(slns_prev_time, Hermes::vector<int>(H2D_FN_VAL, H2D_FN_VAL)));
       std::stringstream ss_vel;
       ss_vel << "Velocity-" << ts << ".vtk";
-      lin.save_solution_vtk(&mag, ss_vel.str().c_str(), "VelocityMagnitude");
+      lin.save_solution_vtk(mag, ss_vel.str().c_str(), "VelocityMagnitude");
       std::stringstream ss_pres;
       ss_pres << "Pressure-" << ts << ".vtk";
       lin.save_solution_vtk(p_prev_time, ss_pres.str().c_str(), "Pressure");

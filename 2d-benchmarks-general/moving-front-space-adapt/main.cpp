@@ -140,7 +140,7 @@ int main(int argc, char* argv[])
   CustomWeakFormPoisson wf(HERMES_ANY, new Hermes::Hermes1DFunction<double>(-1.0), &f);
 
   // Previous and next time level solution.
-  ZeroSolution<double> sln_time_prev(mesh);
+  MeshFunctionSharedPtr<double>  sln_time_prev(new ZeroSolution<double>(mesh));
   MeshFunctionSharedPtr<double> sln_time_new(new Solution<double>(mesh));
 
   // Create a refinement selector.
@@ -217,7 +217,7 @@ int main(int argc, char* argv[])
       }
 
       // Project the fine mesh solution onto the coarse mesh->
-      Solution<double> sln_coarse;
+      MeshFunctionSharedPtr<double> sln_coarse(new Solution<double>);
       Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh for error estimation.");
       OGProjection<double> ogProjection;
       ogProjection.project_global(space, sln_time_new, sln_coarse); 
@@ -247,11 +247,6 @@ int main(int argc, char* argv[])
  
       // Clean up.
       delete adaptivity;
-      if(!done)
-      {
-        
-        delete sln_time_new.get_mesh();
-      }
     }
     while (done == false);
 
@@ -265,8 +260,8 @@ int main(int argc, char* argv[])
     oview.set_title(title);
     oview.show(space);
 
-    // Copy last reference solution into sln_time_prev.
-    sln_time_prev.copy(sln_time_new);
+    // Copy last reference solution into sln_time_prev->
+    sln_time_prev->copy(sln_time_new);
 
     // Add entry to DOF convergence graph.
     dof_history_graph.add_values(current_time, space->get_num_dofs());

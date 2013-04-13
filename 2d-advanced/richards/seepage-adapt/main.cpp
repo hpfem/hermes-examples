@@ -167,13 +167,12 @@ int main(int argc, char* argv[])
   BCValues bc_values(&TIME);
   bc_values.add_timedep_function(BDY_3, essential_bc_values);
 
-  // Create an H1 space with default shapeset.
-  H1Space<double> space(&mesh, &bc_types, &bc_values, P_INIT);
+SpaceSharedPtr<double> space(new // Create an H1 space with default shapeset.
+  H1Space<double>(&mesh, &bc_types, &bc_values, P_INIT));
   int ndof = Space<double>::get_num_dofs(&space);
   info("ndof = %d.", ndof);
 
-  // Create an H1 space for the initial coarse mesh solution.
-  H1Space<double> init_space(&basemesh, &bc_types, &bc_values, P_INIT);
+SpaceSharedPtr<double> init_space(&basemesh, &bc_types, &bc_values, P_INIT);
 
   // Create a selector which will select optimal candidate.
   H1ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
@@ -190,24 +189,25 @@ int main(int argc, char* argv[])
   view_init->fix_scale_width(80);
 
   // Adapt mesh to represent initial condition with given accuracy.
-  info("Mesh adaptivity to an exact function:");
+  info(new // Create an H1 space for the initial coarse mesh solution.
+  H1Space<double>("Mesh adaptivity to an exact function:"));
   int as = 1; bool done = false;
   do
   {
     // Setup space for the reference solution.
-    Space<double>*rspace = Space<double>::construct_refined_space(&init_space);
+    Space<double>*rspace = Space<double>::construct_refined_space(init_space);
 
     // Assign the function f() to the fine mesh.
     ref_sln.set_exact(rspace->get_mesh(), init_cond);
 
     // Project the function f() on the coarse mesh.
-    OGProjection<double>::project_global(&init_space, &ref_sln, &sln_prev_time, matrix_solver);
+    OGProjection<double>::project_global(init_space, ref_sln, &sln_prev_time, matrix_solver);
 
     // Calculate element errors and total error estimate.
-    Adapt adaptivity(&init_space);
-    double err_est_rel = adaptivity.calc_err_est(&sln_prev_time, &ref_sln) * 100;
+    Adapt adaptivity(init_space);
+    double err_est_rel = adaptivity.calc_err_est(sln_prev_time, &ref_sln) * 100;
 
-    info("Step %d, ndof %d, proj_error %g%%", as, Space<double>::get_num_dofs(&init_space), err_est_rel);
+    info("Step %d, ndof %d, proj_error %g%%", as, Space<double>::get_num_dofs(init_space), err_est_rel);
 
     // If err_est_rel too large, adapt the mesh.
     if (err_est_rel < ERR_STOP) done = true;
@@ -215,13 +215,13 @@ int main(int argc, char* argv[])
       double to_be_processed = 0;
       done = adaptivity.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY, to_be_processed);
 
-      if (Space<double>::get_num_dofs(&init_space) >= NDOF_STOP) done = true;
+      if (Space<double>::get_num_dofs(init_space) >= NDOF_STOP) done = true;
 
       view_init->show(&sln_prev_time);
       char title_init[100];
       sprintf(title_init, "Initial mesh, step %d", as);
       ordview_init->set_title(title_init);
-      ordview_init->show(&init_space);
+      ordview_init->show(init_space);
     }
     as++;
   }
@@ -319,7 +319,7 @@ int main(int argc, char* argv[])
       }
       else {
         info("Projecting previous fine mesh solution to obtain initial vector on new fine mesh.");
-        OGProjection<double>::project_global(ref_space, &ref_sln, coeff_vec, matrix_solver);
+        OGProjection<double>::project_global(ref_space, ref_sln, coeff_vec, matrix_solver);
         delete ref_sln.get_mesh();
       }
 
@@ -334,22 +334,22 @@ int main(int argc, char* argv[])
           NEWTON_TOL, NEWTON_MAX_ITER, verbose)) error("Newton's iteration failed.");
 
       // Translate the resulting coefficient vector into the actual solutions. 
-      Solution<double>::vector_to_solution(newton.get_sln_vector(), ref_space, &ref_sln);
+      Solution<double>::vector_to_solution(newton.get_sln_vector(), ref_space, ref_sln);
 
       // Project the fine mesh solution on the coarse mesh.
       info("Projecting fine mesh solution on coarse mesh for error calculation.");
-      OGProjection<double>::project_global(&space, &ref_sln, &sln, matrix_solver);
+      OGProjection<double>::project_global(space, &ref_sln, &sln, matrix_solver);
 
       // Calculate element errors.
       info("Calculating error estimate."); 
       Adapt<double>* adaptivity = new Adapt<double>(&space, HERMES_H1_NORM);
       
       // Calculate error estimate wrt. fine mesh solution.
-      double err_est_rel = adaptivity->calc_err_est(&sln, &ref_sln) * 100;
+      double err_est_rel = adaptivity->calc_err_est(sln, &ref_sln) * 100;
 
       // Report results.
       info("ndof_coarse: %d, ndof_fine: %d, space_err_est_rel: %g%%", 
-        Space<double>::get_num_dofs(&space), Space<double>::get_num_dofs(ref_space), err_est_rel);
+        Space<double>::get_num_dofs(space), Space<double>::get_num_dofs(ref_space), err_est_rel);
 
       // Add entries to convergence graphs.
       graph_time_err_est.add_values(ts*TAU, err_est_rel);
@@ -388,7 +388,7 @@ int main(int argc, char* argv[])
     ordview.show(&space);
 
     // Copy new time level solution into sln_prev_time.
-    sln_prev_time.copy(&ref_sln);
+    sln_prev_time.copy(ref_sln);
   }
 
   // Wait for all views to be closed.

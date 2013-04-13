@@ -137,8 +137,8 @@ int main(int argc, char* argv[])
   EssentialBCs<double> bcs_v(&bc_v);
 
   // Create H1 spaces with default shapeset for both displacement components.
-  SpaceSharedPtr<double>  u_space(new  H1Space<double>(u_mesh, &bcs_u, P_INIT_U));
-  SpaceSharedPtr<double>  v_space(new  H1Space<double>(MULTI ? v_mesh : u_mesh, &bcs_v, P_INIT_V));
+  SpaceSharedPtr<double>  u_space(new H1Space<double>(u_mesh, &bcs_u, P_INIT_U));
+  SpaceSharedPtr<double>  v_space(new H1Space<double>(MULTI ? v_mesh : u_mesh, &bcs_v, P_INIT_V));
 
   // Initialize coarse and reference mesh solutions.
   MeshFunctionSharedPtr<double> u_sln(new Solution<double>), v_sln(new Solution<double>), u_ref_sln(new Solution<double>), v_ref_sln(new Solution<double>);
@@ -186,8 +186,6 @@ int main(int argc, char* argv[])
     SpaceSharedPtr<double> ref_v_space = refSpaceCreator2.create_ref_space();
 
     Hermes::vector<SpaceSharedPtr<double> > ref_spaces(ref_u_space, ref_v_space);
-    Hermes::vector<SpaceSharedPtr<double> > ref_spaces(ref_u_space, ref_v_space);
-
 
     int ndof_ref = Space<double>::get_num_dofs(ref_spaces);
 

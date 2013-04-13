@@ -195,10 +195,8 @@ int main(int argc, char* argv[])
     delete matrix;
     delete rhs;
     delete adaptivity;
-    if(done == false) delete ref_space->get_mesh();
     
     delete dp;
-    
   }
   while (done == false);
   

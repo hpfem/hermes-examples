@@ -78,8 +78,8 @@ int main(int argc, char* argv[])
   for(int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
 
   // Convert initial condition into a Solution<std::complex<double> >.
-  CustomInitialCondition psi_time_prev(mesh);
-  Solution<std::complex<double> > psi_time_new(mesh);
+  MeshFunctionSharedPtr<std::complex<double> > psi_time_prev(new CustomInitialCondition(mesh));
+  MeshFunctionSharedPtr<std::complex<double> > psi_time_new(new Solution<std::complex<double> >(mesh));
 
   // Initialize the weak formulation.
   double current_time = 0;
@@ -120,7 +120,7 @@ int main(int argc, char* argv[])
     {
       runge_kutta.set_time(current_time);
       runge_kutta.set_time_step(time_step);
-      runge_kutta.rk_time_step_newton(&psi_time_prev, &psi_time_new);
+      runge_kutta.rk_time_step_newton(psi_time_prev, psi_time_new);
     }
     catch(Exceptions::Exception& e)
     {
@@ -134,8 +134,8 @@ int main(int argc, char* argv[])
     sview_real.set_title(title);
     sprintf(title, "Solution - imaginary part, Time %3.2f s", current_time);
     sview_imag.set_title(title);
-    RealFilter real(&psi_time_new);
-    ImagFilter imag(&psi_time_new);
+    MeshFunctionSharedPtr<double> real(new RealFilter(psi_time_new));
+    MeshFunctionSharedPtr<double> imag(new ImagFilter(psi_time_new));
     sview_real.show(real);
     sview_imag.show(imag);
 

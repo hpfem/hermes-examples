@@ -60,21 +60,21 @@ int main(int argc, char* argv[])
   for (int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
 
   // Initialize solutions.
-  CustomInitialConditionWave E_sln(mesh);
-  ZeroSolutionVector<double> F_sln(mesh);
-  Hermes::vector<MeshFunctionSharedPtr<double> > slns(&E_sln, &F_sln);
+  MeshFunctionSharedPtr<double> E_sln(new CustomInitialConditionWave(mesh));
+  MeshFunctionSharedPtr<double>  F_sln(new ZeroSolutionVector<double>(mesh));
+  Hermes::vector<MeshFunctionSharedPtr<double> > slns(E_sln, F_sln);
 
   // Initialize the weak formulation.
-  CustomWeakFormWaveIE wf(time_step, C_SQUARED, &E_sln, &F_sln);
-  
+  CustomWeakFormWaveIE wf(time_step, C_SQUARED, E_sln, F_sln);
+
   // Initialize boundary conditions
   DefaultEssentialBCConst<double> bc_essential("Perfect conductor", 0.0);
   EssentialBCs<double> bcs(&bc_essential);
 
-  // Create x- and y- displacement space using the default H1 shapeset.
-  HcurlSpace<double> E_space(mesh, &bcs, P_INIT));
-  HcurlSpace<double> F_space(mesh, &bcs, P_INIT));
-  Hermes::vector<SpaceSharedPtr<double> > spaces = Hermes::vector<SpaceSharedPtr<double> >(&E_space, &F_space);
+  SpaceSharedPtr<double> E_space(new HcurlSpace<double>(mesh, &bcs, P_INIT));
+  SpaceSharedPtr<double> F_space(new HcurlSpace<double>(mesh, &bcs, P_INIT));
+
+  Hermes::vector<SpaceSharedPtr<double> > spaces = Hermes::vector<SpaceSharedPtr<double> >(E_space, F_space);
   int ndof = HcurlSpace<double>::get_num_dofs(spaces);
   Hermes::Mixins::Loggable::Static::info("ndof = %d.", ndof);
 
@@ -114,7 +114,7 @@ int main(int argc, char* argv[])
     {
       newton.set_max_allowed_iterations(NEWTON_MAX_ITER);
       newton.set_tolerance(NEWTON_TOL);
-      newton.solve_keep_jacobian(coeff_vec);
+      newton.solve(coeff_vec);
     }
     catch(Hermes::Exceptions::Exception e)
     {

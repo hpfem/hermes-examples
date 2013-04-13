@@ -56,7 +56,7 @@ double integrate(MeshFunction<double>* sln, std::string area)
   
   double integral = 0.0;
   Element* e;
-  Mesh* mesh = const_cast<Mesh*>(sln->get_mesh());
+  MeshSharedPtr mesh = const_cast<Mesh*>(sln->get_mesh());
   int marker = mesh->get_element_markers_conversion().get_internal_marker(area).marker;
   
   for_all_active_elements(e, mesh)
@@ -86,7 +86,7 @@ int get_num_of_neg(MeshFunction<double> *sln)
   Quad2D* quad = &g_quad_2d_std;
   sln->set_quad_2d(quad);
   Element* e;
-  const Mesh* mesh = sln->get_mesh();
+  const MeshSharedPtr mesh = sln->get_mesh();
   
   int n = 0;
   
@@ -122,7 +122,7 @@ int power_iteration(const MaterialPropertyMaps& matprop,
   int G = spaces.size();
   
   // Initialize the discrete problem.
-  DiscreteProblem<double> dp(wf, spaces);
+  DiscreteProblem<double> dp(&wf, spaces);
   int ndof = Space<double>::get_num_dofs(spaces);
     
   // The following variables will store pointers to solutions obtained at each iteration and will be needed for 

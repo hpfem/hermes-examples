@@ -149,16 +149,16 @@ int main(int argc, char* argv[])
   {
     coarse_solutions.push_back(new Solution<double>());
     fine_solutions.push_back(new Solution<double>());
-    power_iterates.push_back(new ConstantSolution<double>(meshes[g], 1.0));   
+    power_iterates.push_back(new ConstantSolution<double>(meshes[g], 1.0));SpaceSharedPtr<double> space1(meshes[0], P_INIT[0]);
+  H1Space<double> space2(meshes[1], P_INIT[1]);
+  H1Space<double> space3(meshes[2], P_INIT[2]);
+  H1Space<double> space4(new  
   }
   
   // Create the approximation spaces with the default shapeset.
-  H1Space<double> space1(meshes[0], P_INIT[0]);
-  H1Space<double> space2(meshes[1], P_INIT[1]);
-  H1Space<double> space3(meshes[2], P_INIT[2]);
-  H1Space<double> space4(meshes[3], P_INIT[3]);
-  Hermes::vector<const Space<double>*> const_spaces(&space1, &space2, &space3, &space4);
-  Hermes::vector<Space<double>*> spaces(&space1, &space2, &space3, &space4);
+  H1Space<double>(meshes[3], P_INIT[3]));
+SpaceSharedPtr<double>*> const_spaces(new Hermes::vector<const Space<double>(&space1, &space2, &space3, &space4));
+SpaceSharedPtr<double>*> spaces(&space1, &space2, &space3, &space4);
 
   // Initialize the weak formulation.
   CustomWeakForm wf(matprop, power_iterates, k_eff, bdy_vacuum);
@@ -190,7 +190,7 @@ int main(int argc, char* argv[])
   OrderView oview1("Mesh for group 1", new WinGeom(1300, 500, 340, 500));
   OrderView oview2("Mesh for group 2", new WinGeom(1650, 500, 340, 500));
   OrderView oview3("Mesh for group 3", new WinGeom(2000, 500, 340, 500));
-  OrderView oview4("Mesh for group 4", new WinGeom(2350, 500, 340, 500));
+  OrderView oview4("Mesh for group 4", new WinGeom(new Hermes::vector<Space<double>(2350, 500, 340, 500)));
   */
 
   Hermes::vector<ScalarView *> sviews(&view1, &view2, &view3, &view4);

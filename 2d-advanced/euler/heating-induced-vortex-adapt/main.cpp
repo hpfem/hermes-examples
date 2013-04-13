@@ -209,10 +209,10 @@ int main(int argc, char* argv[])
       
       space_rho->unrefine_all_mesh_elements(true);
       
-      space_rho->adjust_element_order(-1, P_INIT));
-      space_rho_v_x->adjust_element_order(-1, P_INIT));
-      space_rho_v_y->adjust_element_order(-1, P_INIT));
-      space_e->adjust_element_order(-1, P_INIT));
+      space_rho->adjust_element_order(-1, P_INIT);
+      space_rho_v_x->adjust_element_order(-1, P_INIT);
+      space_rho_v_y->adjust_element_order(-1, P_INIT);
+      space_e->adjust_element_order(-1, P_INIT);
     }
 
     // Adaptivity loop:
@@ -239,7 +239,6 @@ int main(int argc, char* argv[])
       SpaceSharedPtr<double> ref_space_e = refSpaceCreatorE.create_ref_space();
 
       Hermes::vector<SpaceSharedPtr<double> > ref_spaces(ref_space_rho, ref_space_rho_v_x, ref_space_rho_v_y, ref_space_e);
-      Hermes::vector<SpaceSharedPtr<double>  > ref_spaces(ref_space_rho, ref_space_rho_v_x, ref_space_rho_v_y, ref_space_e);
 
       if(ndofs_prev != 0)
         if(Space<double>::get_num_dofs(ref_spaces) == ndofs_prev)
@@ -313,7 +312,7 @@ int main(int argc, char* argv[])
       Hermes::Mixins::Loggable::Static::info("err_est_rel: %g%%", err_est_rel_total);
 
       // If err_est too large, adapt the mesh->
-      if (err_est_rel_total < ERR_STOP && Space<double>::get_num_dofs(ref_spaces) > NDOFS_MIN)
+      if (err_est_rel_total < ERR_STOP & Space<double>::get_num_dofs(ref_spaces) > NDOFS_MIN)
         done = true;
       else
       {

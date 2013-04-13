@@ -88,16 +88,15 @@ int main(int argc, char* argv[])
   DefaultEssentialBCConst<double> bc_temp_bottom("Bottom", TEMP_BOTTOM);
   EssentialBCs<double> bcs_temp(&bc_temp_bottom);
 
-  // Spaces for velocity components and pressure.
-  H1Space<double> xvel_space(mesh, &bcs_vel_x, P_INIT_VEL);
-  H1Space<double> yvel_space(mesh, &bcs_vel_y, P_INIT_VEL);
+SpaceSharedPtr<double> xvel_space(new H1Space<double>(mesh, &bcs_vel_x, P_INIT_VEL));
+  SpaceSharedPtr<double> yvel_space(new H1Space<double>(mesh, &bcs_vel_y, P_INIT_VEL));
 #ifdef PRESSURE_IN_L2
-  L2Space<double> p_space(mesh, P_INIT_PRESSURE);
+  SpaceSharedPtr<double> p_space(new L2Space<double>(mesh, P_INIT_PRESSURE));
 #else
-  H1Space<double> p_space(mesh, P_INIT_PRESSURE);
+  SpaceSharedPtr<double> p_space(new H1Space<double>(mesh, P_INIT_PRESSURE));
 #endif
-  H1Space<double> t_space(mesh, &bcs_temp, P_INIT_TEMP);
-  Hermes::vector<SpaceSharedPtr<double> > spaces = Hermes::vector<SpaceSharedPtr<double> >(&xvel_space, &yvel_space, &p_space, &t_space);
+  SpaceSharedPtr<double> t_space(new H1Space<double>(mesh, &bcs_temp, P_INIT_TEMP));
+  Hermes::vector<SpaceSharedPtr<double> > spaces(xvel_space, yvel_space, p_space, t_space);
 
   // Calculate and report the number of degrees of freedom.
   int ndof = Space<double>::get_num_dofs(spaces);
@@ -114,19 +113,19 @@ int main(int argc, char* argv[])
 
   // Solutions for the Newton's iteration and time stepping.
   Hermes::Mixins::Loggable::Static::info("Setting initial conditions.");
-  ZeroSolution<double> xvel_prev_time(mesh);
-  ZeroSolution<double> yvel_prev_time(mesh);
-  ZeroSolution<double> p_prev_time(mesh);
-  ConstantSolution<double> t_prev_time(mesh, TEMP_INIT);
+  MeshFunctionSharedPtr<double> xvel_prev_time(new ZeroSolution<double>(mesh));
+  MeshFunctionSharedPtr<double> yvel_prev_time(new ZeroSolution<double>(mesh));
+  MeshFunctionSharedPtr<double> p_prev_time(new ZeroSolution<double>(mesh));
+  MeshFunctionSharedPtr<double> t_prev_time(new ConstantSolution<double>(mesh, TEMP_INIT));
   Hermes::vector<MeshFunctionSharedPtr<double> > slns = Hermes::vector<MeshFunctionSharedPtr<double> >(xvel_prev_time, 
-      yvel_prev_time, p_prev_time, &t_prev_time);
+      yvel_prev_time, p_prev_time, t_prev_time);
 
   // Initialize weak formulation.
-  WeakForm<double>* wf = new WeakFormRayleighBenard(Pr, Ra, "Top", TEMP_EXT, ALPHA_AIR, time_step, 
-      xvel_prev_time, yvel_prev_time, &t_prev_time);
+  WeakFormRayleighBenard wf(Pr, Ra, "Top", TEMP_EXT, ALPHA_AIR, time_step, 
+      xvel_prev_time, yvel_prev_time, t_prev_time);
 
   // Initialize the FE problem.
-  DiscreteProblem<double> dp(wf, spaces);
+  DiscreteProblem<double> dp(&wf, spaces);
 
   // Initialize views.
   VectorView vview("velocity", new WinGeom(0, 0, 1000, 200));

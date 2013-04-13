@@ -133,7 +133,7 @@ int main(int argc, char* argv[])
     };
 
     // Translate the resulting coefficient vector into the Solution<double> sln->
-    Solution<double>::vector_to_solution(newton.get_sln_vector(), space, &h_time_prev);
+    Solution<double>::vector_to_solution(newton.get_sln_vector(), space, h_time_prev);
 
     // Visualize the solution.
     char title[100];

@@ -309,7 +309,7 @@ int main(int argc, char* argv[])
                 space->set_uniform_order(P_INIT);
                 break;
         case 3: mesh->unrefine_all_elements();
-                //space->adjust_element_order(-1, P_INIT));
+                //space->adjust_element_order(-1, P_INIT);
                 space->adjust_element_order(-1, -1, P_INIT, P_INIT);
                 break;
         default: throw Hermes::Exceptions::Exception("Wrong global derefinement method.");
@@ -349,8 +349,6 @@ int main(int argc, char* argv[])
         else {
           Hermes::Mixins::Loggable::Static::info("Projecting previous fine mesh solution to obtain initial vector on new fine mesh->");
           OGProjection<double> ogProjection; ogProjection.project_global(ref_space, ref_sln, coeff_vec);
-          if(as > 1)
-            delete ref_sln->get_mesh();
         }
 
         // Initialize the FE problem.
@@ -516,12 +514,10 @@ int main(int argc, char* argv[])
     // Save complete Solution.
     char* filename = new char[100];
     sprintf(filename, "outputs/tsln_%f.dat", current_time);
-    sln->save(filename);
-    Hermes::Mixins::Loggable::Static::info("Solution at time %g saved to file %s.", current_time, filename);
 
     // Copy new reference level solution into sln_prev_time
     // This starts new time step.
-    sln_prev_timecopy(ref_sln);
+    sln_prev_time->copy(ref_sln);
 
     // Updating time step. Note that time_step might have been reduced during adaptivity.
     current_time += time_step;

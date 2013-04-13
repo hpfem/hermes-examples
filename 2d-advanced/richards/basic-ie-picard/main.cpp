@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
   Hermes::Mixins::Loggable::Static::info("ndof = %d.", ndof);
 
   // Zero initial solutions. This is why we use H_OFFSET.
-  ZeroSolution<double> h_time_prev(mesh), h_iter_prev(mesh);
+  MeshFunctionSharedPtr<double> h_time_prev(new ZeroSolution<double>(mesh)), h_iter_prev(new ZeroSolution<double>(mesh));
 
   // Initialize views.
   ScalarView view("Initial condition", new WinGeom(0, 0, 600, 500));
@@ -103,7 +103,7 @@ int main(int argc, char* argv[])
 
   // Initialize the weak formulation.
   double current_time = 0;
-  CustomWeakFormRichardsIEPicard wf(time_step, &h_time_prev, &h_iter_prev, constitutive_relations);
+  CustomWeakFormRichardsIEPicard wf(time_step, h_time_prev, h_iter_prev, constitutive_relations);
 
   // Initialize the FE problem.
   DiscreteProblem<double> dp(&wf, space);
@@ -135,7 +135,7 @@ int main(int argc, char* argv[])
     }
 
     // Translate the coefficient vector into a Solution. 
-    Solution<double>::vector_to_solution(picard.get_sln_vector(), space, &h_iter_prev);
+    Solution<double>::vector_to_solution(picard.get_sln_vector(), space, h_iter_prev);
 
     // Increase current time and time step counter.
     current_time += time_step;

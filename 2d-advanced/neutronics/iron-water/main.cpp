@@ -108,9 +108,9 @@ int main(int argc, char* argv[])
   // Set essential boundary conditions.
   DefaultEssentialBCConst<double> bc_essential(ZERO_FLUX_BOUNDARY, 0.0);
   EssentialBCs<double> bcs(&bc_essential);
-  
+SpaceSharedPtr<double> space(new 
   // Create an H1 space with default shapeset.
-  H1Space<double> space(&mesh, &bcs, P_INIT);
+  H1Space<double>(&mesh, &bcs, P_INIT));
   
   // Initialize coarse and fine mesh solution.
   Solution<double> sln, ref_sln;
@@ -149,7 +149,7 @@ int main(int argc, char* argv[])
 		Mesh::ReferenceMeshCreator refMeshCreator(&mesh);
 		Mesh* ref_mesh = refMeshCreator.create_ref_mesh();
 
-		Space<double>::ReferenceSpaceCreator refSpaceCreator(&space, ref_mesh);
+		Space<double>::ReferenceSpaceCreator refSpaceCreator(space, ref_mesh);
 		Space<double>* ref_space = refSpaceCreator.create_ref_space();
     int ndof_ref = ref_space->get_num_dofs();
 
@@ -171,12 +171,12 @@ int main(int argc, char* argv[])
     }
 
     // Translate the resulting coefficient vector into the instance of Solution.
-    Solution<double>::vector_to_solution(newton.get_sln_vector(), ref_space, &ref_sln);
+    Solution<double>::vector_to_solution(newton.get_sln_vector(), ref_space, ref_sln);
     
     // Project the fine mesh solution onto the coarse mesh.
     Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh.");
     OGProjection<double> ogProjection;
-		ogProjection.project_global(&space, &ref_sln, &sln);
+		ogProjection.project_global(space, &ref_sln, &sln);
 
     // Visualize the solution and mesh.
     sview.show(&sln);
@@ -186,7 +186,7 @@ int main(int argc, char* argv[])
     Hermes::Mixins::Loggable::Static::info("Calculating error estimate.");
     Adapt<double> adaptivity(&space);
     bool solutions_for_adapt = true;
-    double err_est_rel = adaptivity.calc_err_est(&sln, &ref_sln, solutions_for_adapt,
+    double err_est_rel = adaptivity.calc_err_est(sln, &ref_sln, solutions_for_adapt,
                          HERMES_TOTAL_ERROR_REL | HERMES_ELEMENT_ERROR_REL) * 100;
 
     // Report results.
@@ -218,7 +218,7 @@ int main(int argc, char* argv[])
   // Show the fine mesh solution - final result.
   sview.set_title("Fine mesh solution");
   sview.show_mesh(false);
-  sview.show(&ref_sln);
+  sview.show(ref_sln);
 
   // Wait for all views to be closed.
   Views::View::wait();

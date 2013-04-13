@@ -65,7 +65,7 @@ int main(int argc, char* argv[])
   mloader.load("domain.mesh", mesh);
 
   // Define exact solution.
-  CustomExactSolution exact_sln(mesh);
+  MeshFunctionSharedPtr<double> exact_sln(new CustomExactSolution(mesh));
 
   // Initialize the weak formulation.
   CustomWeakForm wf("Right");
@@ -112,7 +112,7 @@ int main(int argc, char* argv[])
 
     Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d (%d DOF):", as, ndof_ref);
     cpu_time.tick();
-    
+
     Hermes::Mixins::Loggable::Static::info("Solving on reference mesh->");
 
     // Assemble the discrete problem.
@@ -120,7 +120,7 @@ int main(int argc, char* argv[])
 
     NewtonSolver<double> newton(&dp);
     //newton.set_verbose_output(false);
-    
+
     MeshFunctionSharedPtr<double> ref_sln(new Solution<double>());
     try
     {
@@ -133,7 +133,7 @@ int main(int argc, char* argv[])
     };
     // Translate the resulting coefficient vector into the instance of Solution.
     Solution<double>::vector_to_solution(newton.get_sln_vector(), ref_space, ref_sln);
-    
+
     cpu_time.tick();
     Hermes::Mixins::Loggable::Static::info("Solution: %g s", cpu_time.last());
 
@@ -146,11 +146,11 @@ int main(int argc, char* argv[])
     double err_est_rel = adaptivity.calc_err_est(sln, ref_sln) * 100;
 
     // Calculate exact error.
-    double err_exact_rel = Global<double>::calc_rel_error(sln, &exact_sln, HERMES_H1_NORM) * 100;
+    double err_exact_rel = Global<double>::calc_rel_error(sln.get(), exact_sln.get(), HERMES_H1_NORM) * 100;
 
     cpu_time.tick();
     Hermes::Mixins::Loggable::Static::info("Error calculation: %g s", cpu_time.last());
-    
+
     // Report results.
     Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d", space->get_num_dofs(), ref_space->get_num_dofs());
     Hermes::Mixins::Loggable::Static::info("err_est_rel: %g%%, err_exact_rel: %g%%", err_est_rel, err_exact_rel);
@@ -158,7 +158,7 @@ int main(int argc, char* argv[])
     // Time measurement.
     cpu_time.tick();
     double accum_time = cpu_time.accumulated();
-    
+
     // View the coarse mesh solution and polynomial orders.
     sview.show(sln);
     oview.show(space);
@@ -172,7 +172,7 @@ int main(int argc, char* argv[])
     graph_dof_exact.save("conv_dof_exact.dat");
     graph_cpu_exact.add_values(accum_time, err_exact_rel);
     graph_cpu_exact.save("conv_cpu_exact.dat");
-    
+
     cpu_time.tick(Hermes::Mixins::TimeMeasurable::HERMES_SKIP);
 
     // If err_est too large, adapt the mesh-> The NDOF test must be here, so that the solution may be visualized
@@ -181,22 +181,18 @@ int main(int argc, char* argv[])
       done = true;
     else
       done = adaptivity.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
-   
+
     cpu_time.tick();
     Hermes::Mixins::Loggable::Static::info("Adaptation: %g s", cpu_time.last());
-    
+
     // Increase the counter of adaptivity steps.
     if (done == false)  
       as++;
-   
-    if(done == false) 
-      delete ref_space->get_mesh();
-    
-    }
-    while (done == false);
+  }
+  while (done == false);
 
-    Hermes::Mixins::Loggable::Static::info("Total running time: %g s", cpu_time.accumulated());
+  Hermes::Mixins::Loggable::Static::info("Total running time: %g s", cpu_time.accumulated());
 
-    // Wait for all views to be closed.
-    Views::View::wait();
+  // Wait for all views to be closed.
+  Views::View::wait();
 }

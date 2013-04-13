@@ -183,13 +183,13 @@ int main(int argc, char* argv[])
   bcs_concentration.add_boundary_condition(new ConcentrationTimedepEssentialBC(BDY_SOLID_WALL_TOP, 0.0, CONCENTRATION_EXT_STARTUP_TIME));
   bcs_concentration.add_boundary_condition(new ConcentrationTimedepEssentialBC(BDY_INLET, 0.0, CONCENTRATION_EXT_STARTUP_TIME));
 
-  L2Space<double>space_rho(&mesh_flow, P_INIT_FLOW);
+SpaceSharedPtr<double>space_rho(&mesh_flow, P_INIT_FLOW);
   L2Space<double>space_rho_v_x(&mesh_flow, P_INIT_FLOW);
   L2Space<double>space_rho_v_y(&mesh_flow, P_INIT_FLOW);
   L2Space<double>space_e(&mesh_flow, P_INIT_FLOW);
 
   // Space<double> for concentration.
-  H1Space<double> space_c(&mesh_concentration, &bcs_concentration, P_INIT_CONCENTRATION);
+  H1Space<double> space_c(new L2Space<double>(&mesh_concentration, &bcs_concentration, P_INIT_CONCENTRATION));
 
   int ndof = Space<double>::get_num_dofs(Hermes::vector<const Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e, &space_c));
   Hermes::Mixins::Loggable::Static::info("ndof: %d", ndof);
@@ -307,15 +307,15 @@ int main(int argc, char* argv[])
       Mesh* ref_mesh_concentration = refMeshCreatorConcentration.create_ref_mesh();
 
       Space<double>::ReferenceSpaceCreator refSpaceCreatorRho(&space_rho, &mesh_flow);
-      Space<double>* ref_space_rho = refSpaceCreatorRho.create_ref_space();
+SpaceSharedPtr<double>* ref_space_rho = refSpaceCreatorRho.create_ref_space(new     Space<double>());
       Space<double>::ReferenceSpaceCreator refSpaceCreatorRhoVx(&space_rho_v_x, &mesh_flow);
-      Space<double>* ref_space_rho_v_x = refSpaceCreatorRhoVx.create_ref_space();
+SpaceSharedPtr<double>* ref_space_rho_v_x = refSpaceCreatorRhoVx.create_ref_space(new     Space<double>());
       Space<double>::ReferenceSpaceCreator refSpaceCreatorRhoVy(&space_rho_v_y, &mesh_flow);
-      Space<double>* ref_space_rho_v_y = refSpaceCreatorRhoVy.create_ref_space();
+SpaceSharedPtr<double>* ref_space_rho_v_y = refSpaceCreatorRhoVy.create_ref_space(new     Space<double>());
       Space<double>::ReferenceSpaceCreator refSpaceCreatorE(&space_e, &mesh_flow);
-      Space<double>* ref_space_e = refSpaceCreatorE.create_ref_space();
+SpaceSharedPtr<double>* ref_space_e = refSpaceCreatorE.create_ref_space(new     Space<double>());
       Space<double>::ReferenceSpaceCreator refSpaceCreatorConcentration(&space_c, &mesh_concentration);
-      Space<double>* ref_space_c = refSpaceCreatorConcentration.create_ref_space();
+SpaceSharedPtr<double>* ref_space_c = refSpaceCreatorConcentration.create_ref_space();
 
       char filename[40];
       sprintf(filename, "Flow-mesh-%i-%i.xml", iteration - 1, as - 1);
@@ -327,7 +327,7 @@ int main(int argc, char* argv[])
       ref_space_stabilization->set_uniform_order(0);
 
       if(CAND_LIST_FLOW != H2D_HP_ANISO)
-        ref_space_c->adjust_element_order(+1, P_INIT_CONCENTRATION);
+        ref_space_c->adjust_element_order(new     Space<double>(+1, P_INIT_CONCENTRATION));
 
       Hermes::vector<const Space<double> *> ref_spaces_const(ref_space_rho, ref_space_rho_v_x, 
         ref_space_rho_v_y, ref_space_e, ref_space_c);
@@ -342,7 +342,7 @@ int main(int argc, char* argv[])
       // Report NDOFs.
       Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d.", 
         Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
-        &space_rho_v_y, &space_e, &space_c)), Space<double>::get_num_dofs(ref_spaces_const));
+        space_rho_v_y, &space_e, &space_c)), Space<double>::get_num_dofs(ref_spaces_const));
 
       // Very important, set the meshes for the flow as the same.
       ref_space_rho_v_x->get_mesh()->set_seq(ref_space_rho->get_mesh()->get_seq());
@@ -356,8 +356,8 @@ int main(int argc, char* argv[])
       LinearMatrixSolver<double>* solver = create_linear_solver<double>( matrix, rhs);
 
       // Initialize the FE problem.
-      DiscreteProblem<double> dp(wf, ref_spaces_const);
-      DiscreteProblem<double> dp_stabilization(&wf_stabilization, ref_space_stabilization);
+      DiscreteProblem<double> dp(&wf, ref_spaces_const);
+      DiscreteProblem<double> dp_stabilization(wf_stabilization, ref_space_stabilization);
       bool* discreteIndicator = NULL;
 
       if(SEMI_IMPLICIT)
@@ -399,10 +399,10 @@ int main(int argc, char* argv[])
         {
           Solution<double>::vector_to_solutions(solver->get_sln_vector(), ref_spaces_const, 
             Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e, &rsln_c));
-        }
+SpaceSharedPtr<double>*> flow_spaces(new       }
         else
         {
-          Hermes::vector<const Space<double>*> flow_spaces(ref_space_rho, ref_space_rho_v_x, ref_space_rho_v_y, ref_space_e);
+          Hermes::vector<const Space<double>(ref_space_rho, ref_space_rho_v_x, ref_space_rho_v_y, ref_space_e));
 
           double* flow_solution_vector = new double[Space<double>::get_num_dofs(flow_spaces)];
 
@@ -423,11 +423,11 @@ int main(int argc, char* argv[])
       char filenamea[40];
       Linearizer lin_mach;
       sprintf(filenamea, "Mach number-3D-%i-%i.vtk", iteration - 1, as);
-      lin_mach.save_solution_vtk(&Mach_number, filenamea, "MachNumber", true);
+      lin_mach.save_solution_vtk(Mach_number, filenamea, "MachNumber", true);
       
       Linearizer lin_concentration;
       sprintf(filenamea, "Concentration-%i-%i.vtk", iteration - 1, as);
-      lin_concentration.save_solution_vtk(&prev_c, filenamea, "Concentration", true);
+      lin_concentration.save_solution_vtk(prev_c, filenamea, "Concentration", true);
 
       // Project the fine mesh solution onto the coarse mesh.
       Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
@@ -438,17 +438,17 @@ int main(int argc, char* argv[])
 
       util_time_step = time_step_n;
       if(SEMI_IMPLICIT)
-        CFL.calculate_semi_implicit(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), const_cast<Mesh*>(rsln_rho.get_mesh()), util_time_step);
+        CFL.calculate_semi_implicit(Hermes::vector<Solution<double>*>(rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), const_cast<Mesh*>(rsln_rho.get_mesh()), util_time_step);
       else
-        CFL.calculate(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), const_cast<Mesh*>(rsln_rho.get_mesh()), util_time_step);
+        CFL.calculate(Hermes::vector<Solution<double>*>(rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), const_cast<Mesh*>(rsln_rho.get_mesh()), util_time_step);
       
       time_step_after_adaptivity = util_time_step;
       
-      ADES.calculate(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y), const_cast<Mesh*>(rsln_rho.get_mesh()), util_time_step);
+      ADES.calculate(Hermes::vector<Solution<double>*>(rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y), const_cast<Mesh*>(rsln_rho.get_mesh()), util_time_step);
       if(time_step_after_adaptivity > util_time_step)
         time_step_after_adaptivity = util_time_step;
 
-      ADES.calculate(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y), const_cast<Mesh*>(rsln_c.get_mesh()), util_time_step);
+      ADES.calculate(Hermes::vector<Solution<double>*>(rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y), const_cast<Mesh*>(rsln_c.get_mesh()), util_time_step);
       if(time_step_after_adaptivity > util_time_step)
         time_step_after_adaptivity = util_time_step;
 

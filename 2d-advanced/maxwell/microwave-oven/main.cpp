@@ -113,7 +113,7 @@ int main(int argc, char* argv[])
   EssentialBCs<std::complex<double> > bcs(&bc_essential);
 
   // Create an Hcurl space with default shapeset.
-  HcurlSpace<std::complex<double> > space(mesh, &bcs, P_INIT));
+  SpaceSharedPtr<std::complex<double> > space(new HcurlSpace<std::complex<double> > (mesh, &bcs, P_INIT));
   int ndof = space->get_num_dofs();
   Hermes::Mixins::Loggable::Static::info("ndof = %d", ndof);
 
@@ -129,10 +129,10 @@ int main(int argc, char* argv[])
   // Initialize views.
   ScalarView eview("Electric field", new WinGeom(0, 0, 580, 400));
   OrderView  oview("Polynomial orders", new WinGeom(590, 0, 550, 400));
-  
+
   // DOF and CPU convergence graphs initialization.
   SimpleGraph graph_dof, graph_cpu;
-  
+
   // Time measurement.
   Hermes::Mixins::TimeMeasurable cpu_time;
   cpu_time.tick();
@@ -173,15 +173,15 @@ int main(int argc, char* argv[])
     };
     // Translate the resulting coefficient vector into the Solution<std::complex<double> > sln->
     Hermes::Hermes2D::Solution<std::complex<double> >::vector_to_solution(newton.get_sln_vector(), ref_space, ref_sln);
-  
+
     // Project the fine mesh solution onto the coarse mesh->
     Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh->");
     OGProjection<std::complex<double> > ogProjection; ogProjection.project_global(space, ref_sln, sln); 
-   
+
     // View the coarse mesh solution and polynomial orders.
-    RealFilter real(sln);
-    MagFilter<double> magn(&real);
-    ValFilter limited_magn(&magn, 0.0, 4e3);
+    MeshFunctionSharedPtr<double> real(new RealFilter(sln));
+    MeshFunctionSharedPtr<double> magn(new MagFilter<double>(real));
+    MeshFunctionSharedPtr<double> limited_magn(new ValFilter(magn, 0.0, 4e3));
     char title[100];
     sprintf(title, "Electric field, adaptivity step %d", as);
     eview.set_title(title);
@@ -224,29 +224,24 @@ int main(int argc, char* argv[])
     if (space->get_num_dofs() >= NDOF_STOP) done = true;
 
     delete adaptivity;
-    if(!done)
-    {
-      delete ref_space->get_mesh();
-      
-    }
-    
+
     // Increase counter.
     as++;
   }
   while (done == false);
-  
+
   Hermes::Mixins::Loggable::Static::info("Total running time: %g s", cpu_time.accumulated());
 
-  RealFilter ref_real(sln);
-  MagFilter<double> ref_magn(&ref_real);
-  ValFilter ref_limited_magn(&ref_magn, 0.0, 4e3);
+  MeshFunctionSharedPtr<double> ref_real(new RealFilter(sln));
+  MeshFunctionSharedPtr<double> ref_magn(new MagFilter<double>(ref_real));
+  MeshFunctionSharedPtr<double> ref_limited_magn(new ValFilter(ref_magn, 0.0, 4e3));
   eview.set_title("Fine mesh solution - magnitude");
   eview.show(ref_limited_magn);
 
   // Output solution in VTK format.
   Linearizer lin;
   bool mode_3D = true;
-  lin.save_solution_vtk(&ref_limited_magn, "sln->vtk", "Magnitude of E", mode_3D);
+  lin.save_solution_vtk(ref_limited_magn, "sln->vtk", "Magnitude of E", mode_3D);
   Hermes::Mixins::Loggable::Static::info("Solution in VTK format saved to file %s.", "sln->vtk");
 
   // Wait for all views to be closed.

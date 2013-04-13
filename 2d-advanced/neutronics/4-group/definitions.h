@@ -16,7 +16,7 @@ class CustomWeakForm : public DefaultWeakFormSourceIteration<double>
   public:
     CustomWeakForm(
         const Hermes::Hermes2D::WeakFormsNeutronics::Multigroup::MaterialProperties::Diffusion::MaterialPropertyMaps& matprop,
-        Hermes::vector<MeshFunction<double>* >& iterates,
+        Hermes::vector<MeshFunctionSharedPtr<double> >& iterates,
         double init_keff, std::string bdy_vacuum);
 };
 

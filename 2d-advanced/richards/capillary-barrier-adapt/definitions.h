@@ -70,7 +70,7 @@ public:
 class WeakFormRichardsNewtonEuler : public WeakForm<double>
 {
 public:
-  WeakFormRichardsNewtonEuler(ConstitutiveRelationsGenuchtenWithLayer* relations, double tau, MeshFunctionSharedPtr<double>  prev_time_sln, Mesh* mesh) 
+  WeakFormRichardsNewtonEuler(ConstitutiveRelationsGenuchtenWithLayer* relations, double tau, MeshFunctionSharedPtr<double>  prev_time_sln, MeshSharedPtr mesh) 
                : WeakForm<double>(1), mesh(mesh), relations(relations) {
     JacobianFormNewtonEuler* jac_form = new JacobianFormNewtonEuler(0, 0, relations, tau);
     jac_form->set_ext(prev_time_sln);
@@ -182,7 +182,7 @@ private:
     ConstitutiveRelationsGenuchtenWithLayer* relations;
   };
 
-  Mesh* mesh;
+  MeshSharedPtr mesh;
 
   ConstitutiveRelationsGenuchtenWithLayer* relations;
 
@@ -198,7 +198,7 @@ private:
 class WeakFormRichardsNewtonCrankNicolson : public WeakForm<double>
 {
 public:
-  WeakFormRichardsNewtonCrankNicolson(ConstitutiveRelationsGenuchtenWithLayer* relations, double tau, MeshFunctionSharedPtr<double>  prev_time_sln, Mesh* mesh) : WeakForm<double>(1), relations(relations), mesh(mesh) {
+  WeakFormRichardsNewtonCrankNicolson(ConstitutiveRelationsGenuchtenWithLayer* relations, double tau, MeshFunctionSharedPtr<double>  prev_time_sln, MeshSharedPtr mesh) : WeakForm<double>(1), relations(relations), mesh(mesh) {
     JacobianFormNewtonCrankNicolson* jac_form = new JacobianFormNewtonCrankNicolson(0, 0, relations, tau);
     jac_form->set_ext(prev_time_sln);
     add_matrix_form(jac_form);
@@ -305,7 +305,7 @@ private:
     ConstitutiveRelationsGenuchtenWithLayer* relations;
   };
 
-  Mesh* mesh;
+  MeshSharedPtr mesh;
 
   ConstitutiveRelationsGenuchtenWithLayer* relations;
 
@@ -321,7 +321,7 @@ private:
 class WeakFormRichardsPicardEuler : public WeakForm<double>
 {
 public:
-  WeakFormRichardsPicardEuler(ConstitutiveRelationsGenuchtenWithLayer* relations, double tau, MeshFunctionSharedPtr<double>  prev_picard_sln, MeshFunctionSharedPtr<double>  prev_time_sln, Mesh* mesh) : WeakForm<double>(1), relations(relations), mesh(mesh) {
+  WeakFormRichardsPicardEuler(ConstitutiveRelationsGenuchtenWithLayer* relations, double tau, MeshFunctionSharedPtr<double>  prev_picard_sln, MeshFunctionSharedPtr<double>  prev_time_sln, MeshSharedPtr mesh) : WeakForm<double>(1), relations(relations), mesh(mesh) {
     JacobianFormPicardEuler* jac_form = new JacobianFormPicardEuler(0, 0, relations, tau);
     jac_form->set_ext(prev_picard_sln);
     add_matrix_form(jac_form);
@@ -410,7 +410,7 @@ private:
     ConstitutiveRelationsGenuchtenWithLayer* relations;
   };
 
-  Mesh* mesh;
+  MeshSharedPtr mesh;
 
   ConstitutiveRelationsGenuchtenWithLayer* relations;
 

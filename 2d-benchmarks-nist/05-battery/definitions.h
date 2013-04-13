@@ -10,7 +10,7 @@ using namespace Hermes::Hermes2D::RefinementSelectors;
 class CustomMatrixFormVol : public MatrixFormVol<double>
 {
 public:
-  CustomMatrixFormVol(int i, int j, Mesh* mesh) 
+  CustomMatrixFormVol(int i, int j, MeshSharedPtr mesh) 
       : MatrixFormVol<double>(i, j), mesh(mesh) {};
 
   template<typename Real, typename Scalar>
@@ -25,13 +25,13 @@ public:
 
   MatrixFormVol<double>* clone() const;
 
-  Mesh* mesh;
+  MeshSharedPtr mesh;
 };
 
 class CustomVectorFormVol : public VectorFormVol<double>
 {
 public:
-  CustomVectorFormVol(int i, Mesh* mesh) : VectorFormVol<double>(i), mesh(mesh) {};
+  CustomVectorFormVol(int i, MeshSharedPtr mesh) : VectorFormVol<double>(i), mesh(mesh) {};
 
   template<typename Real, typename Scalar>
   Scalar vector_form(int n, double *wt, Func<Scalar> *u_ext[],
@@ -45,7 +45,7 @@ public:
 
   VectorFormVol<double>* clone() const;
 
-  Mesh* mesh;
+  MeshSharedPtr mesh;
 };
 
 class CustomMatrixFormSurf : public MatrixFormSurf<double>
@@ -94,9 +94,9 @@ public:
                         std::string omega_3, std::string omega_4, 
                         std::string omega_5, std::string bdy_left, 
                         std::string bdy_top, std::string bdy_right, 
-                        std::string bdy_bottom, Mesh* mesh);
+                        std::string bdy_bottom, MeshSharedPtr mesh);
 
-  Mesh* mesh;
+  MeshSharedPtr mesh;
 
   const std::string omega_1;
   const std::string omega_2;

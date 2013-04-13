@@ -5,45 +5,45 @@
 #include "timestep_controller.h"
 
 /** \addtogroup e_newton_np_timedep_adapt_system Newton Time-dependant System with Adaptivity
- \{
- \brief This example shows how to combine the automatic adaptivity with the Newton's method for a nonlinear time-dependent PDE system.
+\{
+\brief This example shows how to combine the automatic adaptivity with the Newton's method for a nonlinear time-dependent PDE system.
 
- This example shows how to combine the automatic adaptivity with the
- Newton's method for a nonlinear time-dependent PDE system.
- The time discretization is done using implicit Euler or
- Crank Nicholson method (see parameter TIME_DISCR).
- The following PDE's are solved:
- Nernst-Planck (describes the diffusion and migration of charged particles):
- \f[dC/dt - D*div[grad(C)] - K*C*div[grad(\phi)]=0,\f]
- where D and K are constants and C is the cation concentration variable,
- phi is the voltage variable in the Poisson equation:
- \f[ - div[grad(\phi)] = L*(C - C_0),\f]
- where \f$C_0\f$, and L are constant (anion concentration). \f$C_0\f$ is constant
- anion concentration in the domain and L is material parameter.
- So, the equation variables are phi and C and the system describes the
- migration/diffusion of charged particles due to applied voltage.
- The simulation domain looks as follows:
- \verbatim
-      Top
-     +----------+
-     |          |
- Side|          |Side
-     |          |
-     +----------+
-      Bottom
- \endverbatim
- For the Nernst-Planck equation, all the boundaries are natural i.e. Neumann.
- Which basically means that the normal derivative is 0:
- \f[ BC: -D*dC/dn - K*C*d\phi/dn = 0 \f]
- For Poisson equation, boundary 1 has a natural boundary condition
- (electric field derivative is 0).
- The voltage is applied to the boundaries 2 and 3 (Dirichlet boundaries)
- It is possible to adjust system paramter VOLT_BOUNDARY to apply
- Neumann boundary condition to 2 (instead of Dirichlet). But by default:
-  - BC 2: \f$\phi = VOLTAGE\f$
-  - BC 3: \f$\phi = 0\f$
-  - BC 1: \f$\frac{d\phi}{dn} = 0\f$
- */
+This example shows how to combine the automatic adaptivity with the
+Newton's method for a nonlinear time-dependent PDE system.
+The time discretization is done using implicit Euler or
+Crank Nicholson method (see parameter TIME_DISCR).
+The following PDE's are solved:
+Nernst-Planck (describes the diffusion and migration of charged particles):
+\f[dC/dt - D*div[grad(C)] - K*C*div[grad(\phi)]=0,\f]
+where D and K are constants and C is the cation concentration variable,
+phi is the voltage variable in the Poisson equation:
+\f[ - div[grad(\phi)] = L*(C - C_0),\f]
+where \f$C_0\f$, and L are constant (anion concentration). \f$C_0\f$ is constant
+anion concentration in the domain and L is material parameter.
+So, the equation variables are phi and C and the system describes the
+migration/diffusion of charged particles due to applied voltage.
+The simulation domain looks as follows:
+\verbatim
+Top
++----------+
+|          |
+Side|          |Side
+|          |
++----------+
+Bottom
+\endverbatim
+For the Nernst-Planck equation, all the boundaries are natural i.e. Neumann.
+Which basically means that the normal derivative is 0:
+\f[ BC: -D*dC/dn - K*C*d\phi/dn = 0 \f]
+For Poisson equation, boundary 1 has a natural boundary condition
+(electric field derivative is 0).
+The voltage is applied to the boundaries 2 and 3 (Dirichlet boundaries)
+It is possible to adjust system paramter VOLT_BOUNDARY to apply
+Neumann boundary condition to 2 (instead of Dirichlet). But by default:
+- BC 2: \f$\phi = VOLTAGE\f$
+- BC 3: \f$\phi = 0\f$
+- BC 1: \f$\frac{d\phi}{dn} = 0\f$
+*/
 
 // Parameters to tweak the amount of output to the console.
 #define NOSCREENSHOT
@@ -190,10 +190,10 @@ int main (int argc, char* argv[]) {
 
 
   // Load the mesh file.
-  Mesh C_mesh, phi_mesh, basemesh;
+  MeshSharedPtr C_mesh(new Mesh), phi_mesh(new Mesh), basemesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("small.mesh", basemesh);
-  
+
   if (SCALED) {
     bool ret = basemesh->rescale(l, l);
     if (ret) {
@@ -215,18 +215,17 @@ int main (int argc, char* argv[]) {
   DefaultEssentialBCConst<double> bc_phi_zero(BDY_BOT, scaleVoltage(0.0));
 
   EssentialBCs<double> bcs_phi(
-      Hermes::vector<EssentialBoundaryCondition<double>* >(&bc_phi_voltage, &bc_phi_zero));
+    Hermes::vector<EssentialBoundaryCondition<double>* >(&bc_phi_voltage, &bc_phi_zero));
 
-  // Spaces for concentration and the voltage.
-  H1Space<double> C_space(C_mesh, P_INIT));
-  H1Space<double> phi_space(MULTIMESH ? &phi_mesh : &C_mesh, &bcs_phi, P_INIT));
+  SpaceSharedPtr<double> C_space(new H1Space<double>(C_mesh, P_INIT));
+  SpaceSharedPtr<double> phi_space(new  H1Space<double>(MULTIMESH ? phi_mesh : C_mesh, &bcs_phi, P_INIT));
 
-  Solution<double> C_sln, C_ref_sln;
-  Solution<double> phi_sln, phi_ref_sln;
+  MeshFunctionSharedPtr<double> C_sln(new Solution<double>), C_ref_sln(new Solution<double>);
+  MeshFunctionSharedPtr<double> phi_sln(new Solution<double>), phi_ref_sln(new Solution<double>);
 
   // Assign initial condition to mesh->
-  ConstantSolution<double> C_prev_time(&C_mesh, scaleConc(C0));
-  ConstantSolution<double> phi_prev_time(MULTIMESH ? &phi_mesh : &C_mesh, 0.0);
+  MeshFunctionSharedPtr<double> C_prev_time(new ConstantSolution<double>(C_mesh, scaleConc(C0)));
+  MeshFunctionSharedPtr<double> phi_prev_time(new ConstantSolution<double>(MULTIMESH ? phi_mesh : C_mesh, 0.0));
 
   // XXX not necessary probably
   if (SCALED) {
@@ -237,30 +236,30 @@ int main (int argc, char* argv[]) {
   WeakForm<double> *wf;
   if (TIME_DISCR == 2) {
     if (SCALED) {
-      wf = new ScaledWeakFormPNPCranic(TAU, epsilon, &C_prev_time, &phi_prev_time);
+      wf = new ScaledWeakFormPNPCranic(TAU, epsilon, C_prev_time, phi_prev_time);
       Hermes::Mixins::Loggable::Static::info("Scaled weak form, with time step %g and epsilon %g", *TAU, epsilon);
     } else {
-      wf = new WeakFormPNPCranic(TAU, C0, K, L, D, &C_prev_time, &phi_prev_time);
+      wf = new WeakFormPNPCranic(TAU, C0, K, L, D, C_prev_time, phi_prev_time);
     }
   } else {
     if (SCALED)
       throw Hermes::Exceptions::Exception("Forward Euler is not implemented for scaled problem");
-    wf = new WeakFormPNPEuler(TAU, C0, K, L, D, &C_prev_time);
+    wf = new WeakFormPNPEuler(TAU, C0, K, L, D, C_prev_time);
   }
 
-  DiscreteProblem<double> dp_coarse(wf, Hermes::vector<SpaceSharedPtr<double> >(&C_space, &phi_space));
+  DiscreteProblem<double> dp_coarse(wf, Hermes::vector<SpaceSharedPtr<double> >(C_space, phi_space));
 
   NewtonSolver<double>* solver_coarse = new NewtonSolver<double>(&dp_coarse);
 
   // Project the initial condition on the FE space to obtain initial
   // coefficient vector for the Newton's method.
   Hermes::Mixins::Loggable::Static::info("Projecting to obtain initial vector for the Newton's method.");
-  int ndof = Space<double>::get_num_dofs(Hermes::vector<SpaceSharedPtr<double> >(&C_space, &phi_space));
+  int ndof = Space<double>::get_num_dofs(Hermes::vector<SpaceSharedPtr<double> >(C_space, phi_space));
   double* coeff_vec_coarse = new double[ndof] ;
 
-  OGProjection<double> ogProjection; ogProjection.project_global(Hermes::vector<SpaceSharedPtr<double> >(&C_space, &phi_space),
-      Hermes::vector<MeshFunctionSharedPtr<double> >(&C_prev_time, &phi_prev_time),
-      coeff_vec_coarse);
+  OGProjection<double> ogProjection; ogProjection.project_global(Hermes::vector<SpaceSharedPtr<double> >(C_space, phi_space),
+    Hermes::vector<MeshFunctionSharedPtr<double> >(C_prev_time, phi_prev_time),
+    coeff_vec_coarse);
 
   // Create a selector which will select optimal candidate.
   H1ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
@@ -294,8 +293,8 @@ int main (int argc, char* argv[]) {
   //View::wait(HERMES_WAIT_KEYPRESS);
 
   // Translate the resulting coefficient vector into the Solution<double> sln->
-  Solution<double>::vector_to_solutions(solver_coarse->get_sln_vector(), Hermes::vector<SpaceSharedPtr<double> >(&C_space, &phi_space),
-      Hermes::vector<MeshFunctionSharedPtr<double> >(&C_sln, &phi_sln));
+  Solution<double>::vector_to_solutions(solver_coarse->get_sln_vector(), Hermes::vector<SpaceSharedPtr<double> >(C_space, phi_space),
+    Hermes::vector<MeshFunctionSharedPtr<double> >(C_sln, phi_sln));
 
   Cview.show(C_sln);
   phiview.show(phi_sln);
@@ -303,7 +302,7 @@ int main (int argc, char* argv[]) {
   // Cleanup after the Newton loop on the coarse mesh->
   delete solver_coarse;
   delete[] coeff_vec_coarse;
-  
+
   // Time stepping loop.
   PidTimestepController pid(scaleTime(T_FINAL), true, scaleTime(INIT_TAU));
   TAU = pid.timestep;
@@ -334,19 +333,18 @@ int main (int argc, char* argv[]) {
 
       // Construct globally refined reference mesh
       // and setup reference space->
-      Mesh::ReferenceMeshCreator refMeshCreatorC(&C_mesh);
+      Mesh::ReferenceMeshCreator refMeshCreatorC(C_mesh);
       MeshSharedPtr ref_C_mesh = refMeshCreatorC.create_ref_mesh();
 
-      Space<double>::ReferenceSpaceCreator refSpaceCreatorC(&C_space, ref_C_mesh);
+      Space<double>::ReferenceSpaceCreator refSpaceCreatorC(C_space, ref_C_mesh);
       SpaceSharedPtr<double> ref_C_space = refSpaceCreatorC.create_ref_space();
 
-      Mesh::ReferenceMeshCreator refMeshCreatorPhi(&phi_mesh);
+      Mesh::ReferenceMeshCreator refMeshCreatorPhi(phi_mesh);
       MeshSharedPtr ref_phi_mesh = refMeshCreatorPhi.create_ref_mesh();
 
-      Space<double>::ReferenceSpaceCreator refSpaceCreatorPhi(&phi_space, ref_phi_mesh);
+      Space<double>::ReferenceSpaceCreator refSpaceCreatorPhi(phi_space, ref_phi_mesh);
       SpaceSharedPtr<double> ref_phi_space = refSpaceCreatorPhi.create_ref_space();
 
-      Hermes::vector<SpaceSharedPtr<double> > ref_spaces(ref_C_space, ref_phi_space);
       Hermes::vector<SpaceSharedPtr<double> > ref_spaces(ref_C_space, ref_phi_space);
 
       DiscreteProblem<double>* dp = new DiscreteProblem<double>(wf, ref_spaces);
@@ -360,20 +358,14 @@ int main (int argc, char* argv[]) {
       if (as == 1 && pid.get_timestep_number() == 1) {
         Hermes::Mixins::Loggable::Static::info("Projecting coarse mesh solution to obtain coefficient vector on new fine mesh->");
         OGProjection<double> ogProjection; ogProjection.project_global(ref_spaces,
-              Hermes::vector<MeshFunctionSharedPtr<double> >(&C_sln, &phi_sln),
-              coeff_vec);
+          Hermes::vector<MeshFunctionSharedPtr<double> >(C_sln, phi_sln),
+          coeff_vec);
       }
       else {
         Hermes::Mixins::Loggable::Static::info("Projecting previous fine mesh solution to obtain coefficient vector on new fine mesh->");
         OGProjection<double> ogProjection; ogProjection.project_global(ref_spaces,
-              Hermes::vector<MeshFunctionSharedPtr<double> >(&C_ref_sln, &phi_ref_sln),
-              coeff_vec);
-      }
-      if (as > 1) {
-        // Now deallocate the previous mesh
-        Hermes::Mixins::Loggable::Static::info("Delallocating the previous mesh");
-        delete C_ref_sln->get_mesh();
-        delete phi_ref_sln->get_mesh();
+          Hermes::vector<MeshFunctionSharedPtr<double> >(C_ref_sln, phi_ref_sln),
+          coeff_vec);
       }
 
       // Newton's loop on the fine mesh->
@@ -392,33 +384,33 @@ int main (int argc, char* argv[]) {
 
       // Store the result in ref_sln->
       Solution<double>::vector_to_solutions(solver->get_sln_vector(), ref_spaces,
-          Hermes::vector<MeshFunctionSharedPtr<double> >(&C_ref_sln, &phi_ref_sln));
+        Hermes::vector<MeshFunctionSharedPtr<double> >(C_ref_sln, phi_ref_sln));
 
       // Projecting reference solution onto the coarse mesh
       Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh->");
-      OGProjection<double> ogProjection; ogProjection.project_global(Hermes::vector<SpaceSharedPtr<double> >(&C_space, &phi_space),
-          Hermes::vector<MeshFunctionSharedPtr<double> >(&C_ref_sln, &phi_ref_sln),
-          Hermes::vector<MeshFunctionSharedPtr<double> >(&C_sln, &phi_sln),
-          matrix_solver);
+      OGProjection<double> ogProjection; ogProjection.project_global(Hermes::vector<SpaceSharedPtr<double> >(C_space, phi_space),
+        Hermes::vector<MeshFunctionSharedPtr<double> >(C_ref_sln, phi_ref_sln),
+        Hermes::vector<MeshFunctionSharedPtr<double> >(C_sln, phi_sln),
+        matrix_solver);
 
       // Calculate element errors and total error estimate.
       Hermes::Mixins::Loggable::Static::info("Calculating error estimate.");
-      Adapt<double>* adaptivity = new Adapt<double>(Hermes::vector<SpaceSharedPtr<double> >(&C_space, &phi_space));
+      Adapt<double>* adaptivity = new Adapt<double>(Hermes::vector<SpaceSharedPtr<double> >(C_space, phi_space));
       Hermes::vector<double> err_est_rel;
-      double err_est_rel_total = adaptivity->calc_err_est(Hermes::vector<MeshFunctionSharedPtr<double> >(&C_sln, &phi_sln),
-                                 Hermes::vector<MeshFunctionSharedPtr<double> >(&C_ref_sln, &phi_ref_sln), &err_est_rel) * 100;
+      double err_est_rel_total = adaptivity->calc_err_est(Hermes::vector<MeshFunctionSharedPtr<double> >(C_sln, phi_sln),
+        Hermes::vector<MeshFunctionSharedPtr<double> >(C_ref_sln, phi_ref_sln), &err_est_rel) * 100;
 
       // Report results.
       Hermes::Mixins::Loggable::Static::info("ndof_coarse[0]: %d, ndof_fine[0]: %d",
-           C_space->get_num_dofs(), ref_C_space->get_num_dofs());
+        C_space->get_num_dofs(), ref_C_space->get_num_dofs());
       Hermes::Mixins::Loggable::Static::info("err_est_rel[0]: %g%%", err_est_rel[0]*100);
       Hermes::Mixins::Loggable::Static::info("ndof_coarse[1]: %d, ndof_fine[1]: %d",
-           phi_space->get_num_dofs(), ref_phi_space->get_num_dofs());
+        phi_space->get_num_dofs(), ref_phi_space->get_num_dofs());
       Hermes::Mixins::Loggable::Static::info("err_est_rel[1]: %g%%", err_est_rel[1]*100);
       // Report results.
       Hermes::Mixins::Loggable::Static::info("ndof_coarse_total: %d, ndof_fine_total: %d, err_est_rel: %g%%", 
-           Space<double>::get_num_dofs(Hermes::vector<SpaceSharedPtr<double> >(&C_space, &phi_space)),
-               Space<double>::get_num_dofs(ref_spaces), err_est_rel_total);
+        Space<double>::get_num_dofs(Hermes::vector<SpaceSharedPtr<double> >(C_space, phi_space)),
+        Space<double>::get_num_dofs(ref_spaces), err_est_rel_total);
 
       // If err_est too large, adapt the mesh->
       if (err_est_rel_total < ERR_STOP) done = true;
@@ -427,10 +419,10 @@ int main (int argc, char* argv[]) {
         Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh->");
         done = adaptivity->adapt(Hermes::vector<Selector<double> *>(&selector, &selector),
           THRESHOLD, STRATEGY, MESH_REGULARITY);
-        
+
         Hermes::Mixins::Loggable::Static::info("Adapted...");
 
-        if (Space<double>::get_num_dofs(Hermes::vector<SpaceSharedPtr<double> >(&C_space, &phi_space)) >= NDOF_STOP)
+        if (Space<double>::get_num_dofs(Hermes::vector<SpaceSharedPtr<double> >(C_space, phi_space)) >= NDOF_STOP)
           done = true;
         else as++;
       }
@@ -439,21 +431,21 @@ int main (int argc, char* argv[]) {
       Hermes::Mixins::Loggable::Static::info("Visualization procedures: C");
       char title[100];
       sprintf(title, "Solution[C], step# %d, step size %g, time %g, phys time %g",
-          pid.get_timestep_number(), *TAU, pid.get_time(), physTime(pid.get_time()));
+        pid.get_timestep_number(), *TAU, pid.get_time(), physTime(pid.get_time()));
       Cview.set_title(title);
       Cview.show(C_ref_sln);
       sprintf(title, "Mesh[C], step# %d, step size %g, time %g, phys time %g",
-          pid.get_timestep_number(), *TAU, pid.get_time(), physTime(pid.get_time()));
+        pid.get_timestep_number(), *TAU, pid.get_time(), physTime(pid.get_time()));
       Cordview.set_title(title);
       Cordview.show(C_space);
-      
+
       Hermes::Mixins::Loggable::Static::info("Visualization procedures: phi");
       sprintf(title, "Solution[phi], step# %d, step size %g, time %g, phys time %g",
-          pid.get_timestep_number(), *TAU, pid.get_time(), physTime(pid.get_time()));
+        pid.get_timestep_number(), *TAU, pid.get_time(), physTime(pid.get_time()));
       phiview.set_title(title);
       phiview.show(phi_ref_sln);
       sprintf(title, "Mesh[phi], step# %d, step size %g, time %g, phys time %g",
-          pid.get_timestep_number(), *TAU, pid.get_time(), physTime(pid.get_time()));
+        pid.get_timestep_number(), *TAU, pid.get_time(), physTime(pid.get_time()));
       phiordview.set_title(title);
       phiordview.show(phi_space);
       //View::wait(HERMES_WAIT_KEYPRESS);
@@ -461,15 +453,13 @@ int main (int argc, char* argv[]) {
       // Clean up.
       delete solver;
       delete adaptivity;
-      delete ref_C_space;
-      delete ref_phi_space;
       delete dp;
       delete [] coeff_vec;
     }
     while (done == false);
 
-    pid.end_step(Hermes::vector<MeshFunctionSharedPtr<double> > (&C_ref_sln, &phi_ref_sln),
-        Hermes::vector<MeshFunctionSharedPtr<double> > (&C_prev_time, &phi_prev_time));
+    pid.end_step(Hermes::vector<MeshFunctionSharedPtr<double> > (C_ref_sln, phi_ref_sln),
+      Hermes::vector<MeshFunctionSharedPtr<double> > (C_prev_time, phi_prev_time));
     // TODO! Time step reduction when necessary.
 
     // Copy last reference solution into sln_prev_time

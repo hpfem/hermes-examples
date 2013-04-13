@@ -132,14 +132,14 @@ int main(int argc, char* argv[])
   bcs_concentration.add_boundary_condition(new ConcentrationTimedepEssentialBC(BDY_SOLID_WALL_TOP, 0.0, CONCENTRATION_EXT_STARTUP_TIME));
   bcs_concentration.add_boundary_condition(new ConcentrationTimedepEssentialBC(BDY_INLET, 0.0, CONCENTRATION_EXT_STARTUP_TIME));
 
-  L2Space<double>space_rho(&mesh_flow, P_FLOW);
+SpaceSharedPtr<double>space_rho(&mesh_flow, P_FLOW);
   L2Space<double>space_rho_v_x(&mesh_flow, P_FLOW);
   L2Space<double>space_rho_v_y(&mesh_flow, P_FLOW);
   L2Space<double>space_e(&mesh_flow, P_FLOW);
   L2Space<double> space_stabilization(&mesh_flow, 0);
   
   // Space<double> for concentration.
-  H1Space<double> space_c(&mesh_concentration, &bcs_concentration, P_CONCENTRATION);
+  H1Space<double> space_c(new L2Space<double>(&mesh_concentration, &bcs_concentration, P_CONCENTRATION));
 
   int ndof = Space<double>::get_num_dofs(Hermes::vector<const Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e, &space_c));
   Hermes::Mixins::Loggable::Static::info("ndof: %d", ndof);
@@ -174,7 +174,7 @@ int main(int argc, char* argv[])
   EulerEquationsWeakFormStabilization wf_stabilization(&prev_rho);
   
   // Initialize the FE problem.
-  DiscreteProblem<double> dp(wf, Hermes::vector<const Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e, &space_c));
+  DiscreteProblem<double> dp(&wf, Hermes::vector<const Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e, &space_c));
   DiscreteProblem<double> dp_stabilization(&wf_stabilization, &space_stabilization);
   bool* discreteIndicator = NULL;
  
@@ -316,13 +316,13 @@ int main(int argc, char* argv[])
         Linearizer lin_pressure;
         char filename[40];
         sprintf(filename, "pressure-3D-%i.vtk", iteration - 1);
-        lin_pressure.save_solution_vtk(&pressure, filename, "Pressure", true);
+        lin_pressure.save_solution_vtk(pressure, filename, "Pressure", true);
         Linearizer lin_mach;
         sprintf(filename, "Mach number-3D-%i.vtk", iteration - 1);
-        lin_mach.save_solution_vtk(&Mach_number, filename, "MachNumber", true);
+        lin_mach.save_solution_vtk(Mach_number, filename, "MachNumber", true);
         Linearizer lin_concentration;
         sprintf(filename, "Concentration-%i.vtk", iteration - 1);
-        lin_concentration.save_solution_vtk(&prev_c, filename, "Concentration", true);
+        lin_concentration.save_solution_vtk(prev_c, filename, "Concentration", true);
 
       }
     }

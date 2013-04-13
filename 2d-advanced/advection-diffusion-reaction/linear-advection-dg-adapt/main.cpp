@@ -68,7 +68,7 @@ int main(int argc, char* args[])
   for (int i=0; i<INIT_REF; i++) mesh->refine_all_elements();
 
   // Create an L2 space->
-  L2Space<double> space(mesh, P_INIT));
+  SpaceSharedPtr<double>  space(new L2Space<double>(mesh, P_INIT));
 
   // Initialize refinement selector.
   L2ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
@@ -121,7 +121,7 @@ int main(int argc, char* args[])
     OGProjection<double> ogProjection;
     ogProjection.project_global(space, ref_sln, sln, HERMES_L2_NORM);
 
-    ValFilter val_filter(ref_sln, 0.0, 1.0);
+    MeshFunctionSharedPtr<double> val_filter(new ValFilter(ref_sln, 0.0, 1.0));
 
     // View the coarse mesh solution.
     view1.show(val_filter);
@@ -153,7 +153,6 @@ int main(int argc, char* args[])
     // Clean up.
     delete adaptivity;
    
-
     as++;
   }
   while (done == false);

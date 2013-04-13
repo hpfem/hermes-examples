@@ -78,7 +78,7 @@ int main(int argc, char* argv[])
   mesh->refine_towards_boundary("Right", INIT_REF_NUM_BDY);
 
   // Define exact solution.
-  CustomExactSolution exact_sln(mesh, K);
+  MeshFunctionSharedPtr<double> exact_sln(new CustomExactSolution(mesh, K));
 
   // Define right side vector.
   CustomFunction f(K);
@@ -166,7 +166,7 @@ int main(int argc, char* argv[])
     double err_est_rel = adaptivity.calc_err_est(sln, ref_sln) * 100;
 
     // Calculate exact error.
-    double err_exact_rel = Global<double>::calc_rel_error(sln, exact_sln, HERMES_H1_NORM) * 100;
+    double err_exact_rel = Global<double>::calc_rel_error(sln.get(), exact_sln.get(), HERMES_H1_NORM) * 100;
 
     cpu_time.tick();
     Hermes::Mixins::Loggable::Static::info("Error calculation: %g s", cpu_time.last());

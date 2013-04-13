@@ -216,7 +216,7 @@ int main(int argc, char* argv[])
   Hermes::Mixins::Loggable::Static::info("ndof = %d.", ndof);
 
   // Convert initial condition into a Solution.
-  ZeroSolution<double> h_time_prev(mesh), h_time_new(mesh), time_error_fn(mesh);
+  MeshFunctionSharedPtr<double>  h_time_prev(new ZeroSolution<double>(mesh)), h_time_new(new ZeroSolution<double>(mesh)), time_error_fn(new ZeroSolution<double>(mesh));
 
   // Initialize views.
   ScalarView view("Initial condition", new WinGeom(0, 0, 600, 500));
@@ -263,8 +263,7 @@ int main(int argc, char* argv[])
       runge_kutta.set_time_step(time_step);
       runge_kutta.set_max_allowed_iterations(NEWTON_MAX_ITER);
       runge_kutta.set_tolerance(NEWTON_TOL);
-      runge_kutta.rk_time_step_newton(&h_time_prev, 
-          &h_time_new, &time_error_fn);
+      runge_kutta.rk_time_step_newton(h_time_prev, h_time_new, time_error_fn);
     }
     catch(Exceptions::Exception& e)
     {
@@ -290,7 +289,7 @@ int main(int argc, char* argv[])
     // reduced and the entire time step repeated. If yes, then another
     // check is run, and if the relative error is very low, time step 
     // is increased.
-    double rel_err_time = Global<double>::calc_norm(&time_error_fn, HERMES_H1_NORM) / Global<double>::calc_norm(&h_time_new, HERMES_H1_NORM) * 100;
+    double rel_err_time = Global<double>::calc_norm(time_error_fn.get(), HERMES_H1_NORM) / Global<double>::calc_norm(h_time_new.get(), HERMES_H1_NORM) * 100;
     Hermes::Mixins::Loggable::Static::info("rel_err_time = %g%%", rel_err_time);
     if (rel_err_time > time_tol_upper) {
       Hermes::Mixins::Loggable::Static::info("rel_err_time above upper limit %g%% -> decreasing time step from %g to %g days and repeating time step.", 
@@ -320,8 +319,6 @@ int main(int argc, char* argv[])
     // Save complete Solution.
     char filename[100];
     sprintf(filename, "outputs/tsln_%f.dat", current_time);
-    h_time_new.save(filename);
-    Hermes::Mixins::Loggable::Static::info("Solution at time %g saved to file %s.", current_time, filename);
 
     // Save solution for the next time step.
     h_time_prev->copy(h_time_new);

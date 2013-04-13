@@ -176,12 +176,12 @@ int main(int argc, char* argv[])
   Hermes::Mixins::Loggable::Static::info("ndof = %d.", ndof);
 
   // Convert initial condition into a Solution.
-  ConstantSolution<double> sln_prev_time(mesh, TEMP_INIT);
+  MeshFunctionSharedPtr<double> sln_prev_time(new ConstantSolution<double> (mesh, TEMP_INIT));
 
   // Initialize the weak formulation.
   double current_time = 0;
   CustomWeakFormHeatRK wf(BDY_FIRE, BDY_AIR, ALPHA_FIRE, ALPHA_AIR,
-                          RHO, HEATCAP, TEMP_EXT_AIR, TEMP_INIT, &current_time);
+    RHO, HEATCAP, TEMP_EXT_AIR, TEMP_INIT, &current_time);
 
   // Initialize the FE problem.
   DiscreteProblem<double> dp(&wf, space);
@@ -203,7 +203,7 @@ int main(int argc, char* argv[])
   // Graph for time step history.
   SimpleGraph time_step_graph;
   if (ADAPTIVE_TIME_STEP_ON) Hermes::Mixins::Loggable::Static::info("Time step history will be saved to file time_step_history.dat.");
-  
+
   // Class for projections.
   OGProjection<double> ogProjection;
 
@@ -217,17 +217,17 @@ int main(int argc, char* argv[])
     {
       Hermes::Mixins::Loggable::Static::info("Global mesh derefinement.");
       switch (UNREF_METHOD) {
-        case 1: mesh->copy(basemesh);
-                space->set_uniform_order(P_INIT);
-                break;
-        case 2: space->unrefine_all_mesh_elements();
-                space->set_uniform_order(P_INIT);
-                break;
-        case 3: space->unrefine_all_mesh_elements();
-                //space->adjust_element_order(-1, P_INIT));
-                space->adjust_element_order(-1, -1, P_INIT, P_INIT);
-                break;
-        default: throw Hermes::Exceptions::Exception("Wrong global derefinement method.");
+      case 1: mesh->copy(basemesh);
+        space->set_uniform_order(P_INIT);
+        break;
+      case 2: space->unrefine_all_mesh_elements();
+        space->set_uniform_order(P_INIT);
+        break;
+      case 3: space->unrefine_all_mesh_elements();
+        //space->adjust_element_order(-1, P_INIT);
+        space->adjust_element_order(-1, -1, P_INIT, P_INIT);
+        break;
+      default: throw Hermes::Exceptions::Exception("Wrong global derefinement method.");
       }
 
       space->assign_dofs();
@@ -237,7 +237,7 @@ int main(int argc, char* argv[])
     // Spatial adaptivity loop. Note: sln_prev_time must not be 
     // changed during spatial adaptivity. 
     MeshFunctionSharedPtr<double> ref_sln(new Solution<double>());
-    Solution<double> time_error_fn(mesh);
+    MeshFunctionSharedPtr<double> time_error_fn(new Solution<double>(mesh));
     bool done = false; int as = 1;
     double err_est;
     do {
@@ -254,22 +254,19 @@ int main(int argc, char* argv[])
       try
       {
         ogProjection.project_global(ref_space, sln_prev_time, 
-                                   sln_prev_time);
-        if(ts > 1)
-          delete sln_prev_time->get_mesh();
+          sln_prev_time);
       }
       catch(Exceptions::Exception& e)
       {
         std::cout << e.what() << std::endl;
         Hermes::Mixins::Loggable::Static::error("Projection failed.");
-        delete ref_space->get_mesh();
-        
+
         return -1;
       }
 
       // Runge-Kutta step on the fine mesh->
       Hermes::Mixins::Loggable::Static::info("Runge-Kutta time step on fine mesh (t = %g s, tau = %g s, stages: %d).", 
-           current_time, time_step, bt.get_size());
+        current_time, time_step, bt.get_size());
       bool verbose = true;
       bool jacobian_changed = false;
 
@@ -279,19 +276,18 @@ int main(int argc, char* argv[])
         runge_kutta.set_time_step(time_step);
         runge_kutta.set_max_allowed_iterations(NEWTON_MAX_ITER);
         runge_kutta.set_tolerance(NEWTON_TOL_FINE);
-        runge_kutta.rk_time_step_newton(sln_prev_time, ref_sln, bt.is_embedded() ? &time_error_fn : NULL);
+        runge_kutta.rk_time_step_newton(sln_prev_time, ref_sln, bt.is_embedded() ? time_error_fn : NULL);
       }
       catch(Exceptions::Exception& e)
       {
         std::cout << e.what() << std::endl;
         Hermes::Mixins::Loggable::Static::error("Runge-Kutta time step failed");
-        delete ref_space->get_mesh();
-        
+
         return -1;
       }
 
       /* If ADAPTIVE_TIME_STEP_ON == true, estimate temporal error. 
-         If too large or too small, then adjust it and restart the time step. */
+      If too large or too small, then adjust it and restart the time step. */
 
       double rel_err_time = 0;
       if (bt.is_embedded() == true) 
@@ -305,8 +301,8 @@ int main(int argc, char* argv[])
         //time_error_view.show_mesh(false);
         time_error_view.show(time_error_fn);
 
-        rel_err_time = Global<double>::calc_norm(&time_error_fn, HERMES_H1_NORM) 
-                       / Global<double>::calc_norm(ref_sln, HERMES_H1_NORM) * 100;
+        rel_err_time = Global<double>::calc_norm(time_error_fn.get(), HERMES_H1_NORM) 
+          / Global<double>::calc_norm(ref_sln.get(), HERMES_H1_NORM) * 100;
         if (ADAPTIVE_TIME_STEP_ON == false) Hermes::Mixins::Loggable::Static::info("rel_err_time: %g%%", rel_err_time);
       }
 
@@ -316,7 +312,7 @@ int main(int argc, char* argv[])
         {
           Hermes::Mixins::Loggable::Static::info("rel_err_time %g%% is above upper limit %g%%", rel_err_time, TIME_ERR_TOL_UPPER);
           Hermes::Mixins::Loggable::Static::info("Decreasing tau from %g to %g s and restarting time step.", 
-               time_step, time_step * TIME_STEP_DEC_RATIO);
+            time_step, time_step * TIME_STEP_DEC_RATIO);
           time_step *= TIME_STEP_DEC_RATIO;
           continue;
         }
@@ -348,10 +344,11 @@ int main(int argc, char* argv[])
 
       // Show spatial error.
       sprintf(title, "Spatial error est, spatial adaptivity step %d", as);  
-      DiffFilter<double> space_error_fn(Hermes::vector<MeshFunctionSharedPtr<double> >(ref_sln, sln));   
+      MeshFunctionSharedPtr<double> space_error_fn(new DiffFilter<double>(Hermes::vector<MeshFunctionSharedPtr<double> >(ref_sln, sln)));
       space_error_view.set_title(title);
       //space_error_view.show_mesh(false);
-      AbsFilter abs_sef(space_error_fn);
+      MeshFunctionSharedPtr<double> abs_sef(new AbsFilter(space_error_fn));
+
       space_error_view.show(abs_sef);
 
       // Calculate element errors and spatial error estimate.
@@ -361,7 +358,7 @@ int main(int argc, char* argv[])
 
       // Report results.
       Hermes::Mixins::Loggable::Static::info("ndof: %d, ref_ndof: %d, err_rel_space: %g%%", 
-           Space<double>::get_num_dofs(space), Space<double>::get_num_dofs(ref_space), err_rel_space);
+        Space<double>::get_num_dofs(space), Space<double>::get_num_dofs(ref_space), err_rel_space);
 
       // If err_est too large, adapt the mesh->
       if (err_rel_space < SPACE_ERR_TOL) done = true;
@@ -376,11 +373,11 @@ int main(int argc, char* argv[])
           // Increase the counter of performed adaptivity steps.
           as++;
       }
-      
+
       // Clean up.
       if(!done)
-        
-      delete adaptivity;
+
+        delete adaptivity;
     }
     while (done == false);
 
@@ -395,7 +392,7 @@ int main(int argc, char* argv[])
     ordview.show(space);
 
     // Copy last reference solution into sln_prev_time
-    sln_prev_timecopy(ref_sln);
+    sln_prev_time->copy(ref_sln);
 
     // Increase current time and counter of time steps.
     current_time += time_step;

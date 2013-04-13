@@ -166,16 +166,16 @@ int main(int argc, char* argv[])
 
 		// Initialize solutions.
 		double current_time = 0;
-		MeshFunctionSharedPtr<double> E_time_prev(new CustomInitialConditionE(&E_mesh, current_time, OMEGA, K_x, K_y));
-		MeshFunctionSharedPtr<double> H_time_prev(new CustomInitialConditionH(&H_mesh, current_time, OMEGA, K_x, K_y));
-		MeshFunctionSharedPtr<double> P_time_prev(new CustomInitialConditionP(&P_mesh, current_time, OMEGA, K_x, K_y));
-		Hermes::vector<MeshFunctionSharedPtr<double> > slns_time_prev(&E_time_prev, &H_time_prev, &P_time_prev);
+		MeshFunctionSharedPtr<double> E_time_prev(new CustomInitialConditionE(E_mesh, current_time, OMEGA, K_x, K_y));
+		MeshFunctionSharedPtr<double> H_time_prev(new CustomInitialConditionH(H_mesh, current_time, OMEGA, K_x, K_y));
+		MeshFunctionSharedPtr<double> P_time_prev(new CustomInitialConditionP(P_mesh, current_time, OMEGA, K_x, K_y));
+		Hermes::vector<MeshFunctionSharedPtr<double> > slns_time_prev(E_time_prev, H_time_prev, P_time_prev);
 		MeshFunctionSharedPtr<double> E_time_new(new Solution<double>(E_mesh)), H_time_new(new Solution<double>(H_mesh)), P_time_new(new Solution<double>(P_mesh));
 		MeshFunctionSharedPtr<double> E_time_new_coarse(new Solution<double>(E_mesh)), H_time_new_coarse(new Solution<double>(H_mesh)), P_time_new_coarse(new Solution<double>(P_mesh));
-		Hermes::vector<MeshFunctionSharedPtr<double> > slns_time_new(&E_time_new, &H_time_new, &P_time_new);
+		Hermes::vector<MeshFunctionSharedPtr<double> > slns_time_new(E_time_new, H_time_new, P_time_new);
 
 		// Initialize the weak formulation.
-		const CustomWeakFormMD wf(OMEGA, K_x, K_y, MU_0, EPS_0, EPS_INF, EPS_Q, TAU);
+		CustomWeakFormMD wf(OMEGA, K_x, K_y, MU_0, EPS_0, EPS_INF, EPS_Q, TAU);
 
 		// Initialize boundary conditions
 		DefaultEssentialBCConst<double> bc_essential("Bdy", 0.0);
@@ -248,9 +248,9 @@ int main(int argc, char* argv[])
 				H_space->unrefine_all_mesh_elements(true);
 				P_space->unrefine_all_mesh_elements(true);
 
-				E_space->adjust_element_order(-1, P_INIT));
-				H_space->adjust_element_order(-1, P_INIT));
-				P_space->adjust_element_order(-1, P_INIT));
+				E_space->adjust_element_order(-1, P_INIT);
+				H_space->adjust_element_order(-1, P_INIT);
+				P_space->adjust_element_order(-1, P_INIT);
 			}
 
 			// Adaptivity loop:
@@ -263,18 +263,18 @@ int main(int argc, char* argv[])
 				// Construct globally refined reference mesh and setup reference space->
 				int order_increase = 1;
 
-				Mesh::ReferenceMeshCreator refMeshCreatorE(&E_mesh);
-				Mesh::ReferenceMeshCreator refMeshCreatorH(&H_mesh);
-				Mesh::ReferenceMeshCreator refMeshCreatorP(&P_mesh);
+				Mesh::ReferenceMeshCreator refMeshCreatorE(E_mesh);
+				Mesh::ReferenceMeshCreator refMeshCreatorH(H_mesh);
+				Mesh::ReferenceMeshCreator refMeshCreatorP(P_mesh);
 				MeshSharedPtr ref_mesh_E = refMeshCreatorE.create_ref_mesh();
 				MeshSharedPtr ref_mesh_H = refMeshCreatorH.create_ref_mesh();
 				MeshSharedPtr ref_mesh_P = refMeshCreatorP.create_ref_mesh();
 
-				Space<double>::ReferenceSpaceCreator refSpaceCreatorE(&E_space, ref_mesh_E, order_increase);
+				Space<double>::ReferenceSpaceCreator refSpaceCreatorE(E_space, ref_mesh_E, order_increase);
 				SpaceSharedPtr<double> ref_space_E = refSpaceCreatorE.create_ref_space();
-				Space<double>::ReferenceSpaceCreator refSpaceCreatorH(&H_space, ref_mesh_H, order_increase);
+				Space<double>::ReferenceSpaceCreator refSpaceCreatorH(H_space, ref_mesh_H, order_increase);
 				SpaceSharedPtr<double> ref_space_H = refSpaceCreatorH.create_ref_space();
-				Space<double>::ReferenceSpaceCreator refSpaceCreatorP(&P_space, ref_mesh_P, order_increase);
+				Space<double>::ReferenceSpaceCreator refSpaceCreatorP(P_space, ref_mesh_P, order_increase);
 				SpaceSharedPtr<double> ref_space_P = refSpaceCreatorP.create_ref_space();
 
         int ndof = Space<double>::get_num_dofs(Hermes::vector<SpaceSharedPtr<double> >(ref_space_E, ref_space_H, ref_space_P));

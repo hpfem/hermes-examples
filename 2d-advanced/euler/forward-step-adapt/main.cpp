@@ -208,10 +208,10 @@ int main(int argc, char* argv[])
 
         space_rho->unrefine_all_mesh_elements(true);
 
-        space_rho->adjust_element_order(-1, P_INIT));
-        space_rho_v_x->adjust_element_order(-1, P_INIT));
-        space_rho_v_y->adjust_element_order(-1, P_INIT));
-        space_e->adjust_element_order(-1, P_INIT));
+				space_rho->adjust_element_order(-1, P_INIT);
+        space_rho_v_x->adjust_element_order(-1, P_INIT);
+        space_rho_v_y->adjust_element_order(-1, P_INIT);
+        space_e->adjust_element_order(-1, P_INIT);
       }
 
       Mesh::ReferenceMeshCreator refMeshCreatorFlow(mesh);

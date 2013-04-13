@@ -22,7 +22,7 @@ double integrate(MeshFunction<double>* sln, std::string area)
   
   double integral = 0.0;
   Element* e;
-  Mesh* mesh = const_cast<Mesh*>(sln->get_mesh());
+  MeshSharedPtr mesh = const_cast<Mesh*>(sln->get_mesh());
   int marker = mesh->get_element_markers_conversion().get_internal_marker(area).marker;
   
   for_all_active_elements(e, mesh)

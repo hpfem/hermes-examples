@@ -73,7 +73,7 @@ double integrate_over_wall(MeshFunction<double>* meshfn, int marker)
 
   double integral = 0.0;
   Element* e;
-  MeshSharedPtr mesh,= meshfn->get_mesh();
+  MeshSharedPtr mesh = meshfn->get_mesh();
 
   for_all_active_elements(e, mesh)
   {
@@ -130,7 +130,7 @@ int main(int argc, char* argv[])
 #else
   SpaceSharedPtr<double> p_space(new H1Space<double>(mesh, P_INIT_PRESSURE));
 #endif
-  Hermes::vector<SpaceSharedPtr<double> > spaces(&xvel_space, &yvel_space, &p_space);
+  Hermes::vector<SpaceSharedPtr<double> > spaces(xvel_space, yvel_space, p_space);
 
   // Calculate and report the number of degrees of freedom.
   int ndof = Space<double>::get_num_dofs(spaces);
@@ -154,7 +154,7 @@ int main(int argc, char* argv[])
       p_prev_time);
 
   // Initialize weak formulation.
-  WeakForm<double>* wf = new WeakFormNSNewton(STOKES, RE, TAU, xvel_prev_time, yvel_prev_time);
+  WeakFormNSNewton wf(STOKES, RE, TAU, xvel_prev_time, yvel_prev_time);
 
   // Initialize views.
   VectorView vview("velocity [m/s]", new WinGeom(0, 0, 600, 500));
@@ -170,9 +170,8 @@ int main(int argc, char* argv[])
   int num_time_steps = T_FINAL / TAU;
   for (int ts = 1; ts <= num_time_steps; ts++)
   {
-    
     // Initialize the FE problem.
-    DiscreteProblem<double> dp(wf, spaces);
+    DiscreteProblem<double> dp(&wf, spaces);
 
     Hermes::Hermes2D::NewtonSolver<double> newton(&dp);
 

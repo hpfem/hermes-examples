@@ -78,12 +78,12 @@ int main(int argc, char* argv[])
 
   Hermes::vector<MeshFunctionSharedPtr<double> > iterates(&iter1, &iter2, &iter3, &iter4);
 
-  // Create H1 spaces with default shapesets.
-  H1Space<double> space1(&mesh, P_INIT_1);
+SpaceSharedPtr<double> space1(&mesh, P_INIT_1);
   H1Space<double> space2(&mesh, P_INIT_2);
   H1Space<double> space3(&mesh, P_INIT_3);
-  H1Space<double> space4(&mesh, P_INIT_4);
-  Hermes::vector<const Space<double>* > spaces(&space1, &space2, &space3, &space4);
+  H1Space<double> space4(new // Create H1 spaces with default shapesets.
+  H1Space<double>(&mesh, P_INIT_4));
+SpaceSharedPtr<double>* > spaces(new Hermes::vector<const Space<double>(&space1, &space2, &space3, &space4));
   int ndof = Space<double>::get_num_dofs(spaces);
   Hermes::Mixins::Loggable::Static::info("ndof = %d", ndof);
 
