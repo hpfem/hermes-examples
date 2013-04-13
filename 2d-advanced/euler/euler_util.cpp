@@ -215,7 +215,7 @@ DiscontinuityDetector::DiscontinuityDetector(Hermes::vector<SpaceSharedPtr<doubl
   Hermes::vector<MeshFunctionSharedPtr<double> > solutions) : spaces(spaces), solutions(solutions)
 {
   for(int i = 0; i < solutions.size(); i++)
-    this->solutionsInternal.push_back((MeshFunctionSharedPtr<double> )solutions[i].get());
+    this->solutionsInternal.push_back((Solution<double>*)solutions[i].get());
 };
 
 DiscontinuityDetector::~DiscontinuityDetector()
