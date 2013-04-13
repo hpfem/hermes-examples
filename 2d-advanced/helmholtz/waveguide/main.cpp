@@ -80,28 +80,28 @@ int main(int argc, char* argv[])
   EssentialBCs<double> bcs_im(Hermes::vector<EssentialBoundaryCondition<double> *>(&bc1, &bc3));
 
   // Create an H1 space with default shapeset.
-  H1Space<double> e_r_space(mesh, &bcs, P_INIT);
-  H1Space<double> e_i_space(mesh, &bcs_im, P_INIT);
-  int ndof = Space<double>::get_num_dofs(&e_r_space);
+  SpaceSharedPtr<double> e_r_space(new H1Space<double> (mesh, &bcs, P_INIT));
+  SpaceSharedPtr<double> e_i_space(new H1Space<double>(mesh, &bcs_im, P_INIT));
+  int ndof = Space<double>::get_num_dofs(e_r_space);
   Hermes::Mixins::Loggable::Static::info("ndof = %d", ndof);
 
   // Initialize the weak formulation.
   WeakFormHelmholtz wf(eps, mu, omega, sigma, beta, E0, h);
 
   // Initialize the FE problem.
-  DiscreteProblem<double> dp(&wf, Hermes::vector<const Space<double>*>(&e_r_space, &e_i_space));
+  DiscreteProblem<double> dp(&wf, Hermes::vector<SpaceSharedPtr<double> >(e_r_space, e_i_space));
 
   // Initialize the solutions.
-  Solution<double> e_r_sln, e_i_sln;
+  MeshFunctionSharedPtr<double> e_r_sln(new Solution<double>), e_i_sln(new Solution<double>);
 
   // Initial coefficient vector for the Newton's method.  
-  ndof = Space<double>::get_num_dofs(Hermes::vector<const Space<double>*>(&e_r_space, &e_i_space));
+  ndof = Space<double>::get_num_dofs(Hermes::vector<SpaceSharedPtr<double> >(e_r_space, e_i_space));
 
   Hermes::Hermes2D::NewtonSolver<double> newton(&dp);
   try
   {
-    newton.set_newton_tol(NEWTON_TOL);
-    newton.set_newton_max_iter(NEWTON_MAX_ITER);
+    newton.set_tolerance(NEWTON_TOL);
+    newton.set_max_allowed_iterations(NEWTON_MAX_ITER);
     newton.solve();
   }
   catch(Hermes::Exceptions::Exception e)
@@ -111,16 +111,16 @@ int main(int argc, char* argv[])
   };
 
   // Translate the resulting coefficient vector into Solutions.
-  Solution<double>::vector_to_solutions(newton.get_sln_vector(), Hermes::vector<const Space<double>*>(&e_r_space, &e_i_space), 
-      Hermes::vector<Solution<double>*>(&e_r_sln, &e_i_sln));
+  Solution<double>::vector_to_solutions(newton.get_sln_vector(), Hermes::vector<SpaceSharedPtr<double> >(e_r_space, e_i_space), 
+      Hermes::vector<MeshFunctionSharedPtr<double> >(e_r_sln, e_i_sln));
 
   // Visualize the solution.
   ScalarView viewEr("Er [V/m]", new WinGeom(0, 0, 800, 400));
-  viewEr.show(&e_r_sln);
+  viewEr.show(e_r_sln);
   // viewEr.save_screenshot("real_part.bmp");
 
   ScalarView viewEi("Ei [V/m]", new WinGeom(0, 450, 800, 400));
-  viewEi.show(&e_i_sln);
+  viewEi.show(e_i_sln);
   // viewEi.save_screenshot("imaginary_part.bmp");
 
   // Wait for the view to be closed.

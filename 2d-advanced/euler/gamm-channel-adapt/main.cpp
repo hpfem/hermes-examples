@@ -200,10 +200,10 @@ int main(int argc, char* argv[])
 
       space_rho->unrefine_all_mesh_elements(true);
 
-      space_rho->adjust_element_order(-1, P_INIT);
-      space_rho_v_x->adjust_element_order(-1, P_INIT);
-      space_rho_v_y->adjust_element_order(-1, P_INIT);
-      space_e->adjust_element_order(-1, P_INIT);
+      space_rho->adjust_element_order(-1, P_INIT));
+      space_rho_v_x->adjust_element_order(-1, P_INIT));
+      space_rho_v_y->adjust_element_order(-1, P_INIT));
+      space_e->adjust_element_order(-1, P_INIT));
       Space<double>::assign_dofs(spaces);
     }
 
@@ -215,7 +215,7 @@ int main(int argc, char* argv[])
     {
       Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d:", as);
 
-      // Construct globally refined reference mesh and setup reference space.
+      // Construct globally refined reference mesh and setup reference space->
       int order_increase = CAND_LIST == H2D_HP_ANISO ? 1 : 0;
 
       Mesh::ReferenceMeshCreator refMeshCreatorFlow(mesh);
@@ -243,7 +243,7 @@ int main(int argc, char* argv[])
       ndofs_prev = Space<double>::get_num_dofs(ref_spaces);
 
       // Project the previous time level solution onto the new fine mesh->
-      Hermes::Mixins::Loggable::Static::info("Projecting the previous time level solution onto the new fine mesh.");
+      Hermes::Mixins::Loggable::Static::info("Projecting the previous time level solution onto the new fine mesh->");
       OGProjection<double> ogProjection; ogProjection.project_global(ref_spaces, Hermes::vector<MeshFunctionSharedPtr<double> >(prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e), 
           Hermes::vector<MeshFunctionSharedPtr<double> >(prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e), Hermes::vector<Hermes::Hermes2D::ProjNormType>(), iteration > 1);
       
@@ -260,7 +260,7 @@ int main(int argc, char* argv[])
 
       
       // Assemble the reference problem.
-      Hermes::Mixins::Loggable::Static::info("Solving on reference mesh.");
+      Hermes::Mixins::Loggable::Static::info("Solving on reference mesh->");
       Space<double>::assign_dofs(ref_spaces);
       DiscreteProblem<double> dp(&wf, ref_spaces);
       dp.set_linear();
@@ -306,8 +306,8 @@ int main(int argc, char* argv[])
       else
         throw Hermes::Exceptions::Exception("Matrix solver failed.\n");
 
-      // Project the fine mesh solution onto the coarse mesh.
-      Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
+      // Project the fine mesh solution onto the coarse mesh->
+      Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh->");
       ogProjection.project_global(Hermes::vector<SpaceSharedPtr<double> >(space_rho, space_rho_v_x, 
         space_rho_v_y, space_e), Hermes::vector<MeshFunctionSharedPtr<double> >(rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e), 
         Hermes::vector<MeshFunctionSharedPtr<double> >(sln_rho, sln_rho_v_x, sln_rho_v_y, sln_e), 
@@ -330,7 +330,7 @@ int main(int argc, char* argv[])
         done = true;
       else
       {
-        Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
+        Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh->");
         done = adaptivity->adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&selector, &selector, &selector, &selector), 
           THRESHOLD, STRATEGY, MESH_REGULARITY);
 

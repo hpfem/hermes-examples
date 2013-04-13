@@ -1,7 +1,7 @@
 #include "definitions.h"
 
-WeakFormNSNewton::WeakFormNSNewton(bool Stokes, double Reynolds, double time_step, Solution<double>* x_vel_previous_time, 
-                                   Solution<double>* y_vel_previous_time) : WeakForm<double>(3), Stokes(Stokes), 
+WeakFormNSNewton::WeakFormNSNewton(bool Stokes, double Reynolds, double time_step, MeshFunctionSharedPtr<double>  x_vel_previous_time, 
+                                   MeshFunctionSharedPtr<double>  y_vel_previous_time) : WeakForm<double>(3), Stokes(Stokes), 
                                    Reynolds(Reynolds), time_step(time_step), x_vel_previous_time(x_vel_previous_time), 
                                    y_vel_previous_time(y_vel_previous_time) 
 {

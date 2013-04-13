@@ -59,19 +59,19 @@ int main(int argc, char* argv[])
   EssentialBCs<double> bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.
-  H1Space<double> space(mesh, &bcs, P_INIT);
-  int ndof = space.get_num_dofs();
+  SpaceSharedPtr<double> space(new H1Space<double>(mesh, &bcs, P_INIT));
+  int ndof = space->get_num_dofs();
   Hermes::Mixins::Loggable::Static::info("ndof = %d", ndof);
   
   // Show the mesh and poly degrees.
   Views::OrderView oview("Mesh", new Views::WinGeom(0, 0, 900, 250));
-  if (HERMES_VISUALIZATION) oview.show(&space);
+  if (HERMES_VISUALIZATION) oview.show(space);
 
   // Initialize the FE problem.
-  DiscreteProblem<double> dp(&wf, &space);
+  DiscreteProblem<double> dp(&wf, space);
 
   // Perform Newton's iteration and translate the resulting coefficient vector into a Solution.
-  Solution<double> sln;
+  MeshFunctionSharedPtr<double> sln(new Solution<double>());
   NewtonSolver<double> newton(&dp);
   try
   {
@@ -82,7 +82,7 @@ int main(int argc, char* argv[])
     e.print_msg();
     throw Hermes::Exceptions::Exception("Newton's iteration failed.");
   };
-  Solution<double>::vector_to_solution(newton.get_sln_vector(), &space, &sln);
+  Solution<double>::vector_to_solution(newton.get_sln_vector(), space, sln);
 
   // Get info about time spent during assembling in its respective parts.
   //dp.get_all_profiling_output(std::cout);
@@ -93,12 +93,12 @@ int main(int argc, char* argv[])
     // Output solution in VTK format.
     Views::Linearizer lin;
     bool mode_3D = true;
-    lin.save_solution_vtk(&sln, "sln.vtk", "Temperature", mode_3D);
-    Hermes::Mixins::Loggable::Static::info("Solution in VTK format saved to file %s.", "sln.vtk");
+    lin.save_solution_vtk(sln, "sln->vtk", "Temperature", mode_3D);
+    Hermes::Mixins::Loggable::Static::info("Solution in VTK format saved to file %s.", "sln->vtk");
 
     // Output mesh and element orders in VTK format.
     Views::Orderizer ord;
-    ord.save_orders_vtk(&space, "ord.vtk");
+    ord.save_orders_vtk(space, "ord.vtk");
     Hermes::Mixins::Loggable::Static::info("Element orders in VTK format saved to file %s.", "ord.vtk");
   }
 
@@ -111,7 +111,7 @@ int main(int argc, char* argv[])
     // tolerance for that. Options are HERMES_EPS_LOW, HERMES_EPS_NORMAL (default), 
     // HERMES_EPS_HIGH and HERMES_EPS_VERYHIGH. The size of the graphics file grows 
     // considerably with more accurate representation, so use it wisely.
-    view.show(&sln, Views::HERMES_EPS_HIGH);
+    view.show(sln, Views::HERMES_EPS_HIGH);
     Views::View::wait();
   }
 

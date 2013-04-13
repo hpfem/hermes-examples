@@ -226,7 +226,7 @@ int main(int argc, char* argv[])
     // Show the solution at the end of time step.
     sprintf(title, "Velocity [m/s], time %g s", current_time);
     vview.set_title(title);
-    //vview.show(&xvel_prev_time, &yvel_prev_time);
+    //vview.show(xvel_prev_time, yvel_prev_time);
     sprintf(title, "Pressure [Pa], time %g s", current_time);
     pview.set_title(title);
     pview.show(p_prev_time);

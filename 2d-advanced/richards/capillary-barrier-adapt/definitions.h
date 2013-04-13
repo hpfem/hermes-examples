@@ -16,7 +16,7 @@ using namespace Hermes::Hermes2D::RefinementSelectors;
 class InitialSolutionRichards : public ExactSolutionScalar<double>
 {
 public:
-  InitialSolutionRichards(const Mesh* mesh, double constant) 
+  InitialSolutionRichards(MeshSharedPtr mesh,double constant) 
          : ExactSolutionScalar<double>(mesh), constant(constant) {};
 
   virtual double value (double x, double y) const {
@@ -44,7 +44,7 @@ public:
 class ExactSolutionPoisson : public ExactSolutionScalar<double>
 {
 public:
-  ExactSolutionPoisson(const Mesh* mesh) : ExactSolutionScalar<double>(mesh) {};
+  ExactSolutionPoisson(MeshSharedPtr mesh) : ExactSolutionScalar<double>(mesh) {};
 
   virtual double value (double x, double y) const {
     return x*x +y*y;
@@ -70,7 +70,7 @@ public:
 class WeakFormRichardsNewtonEuler : public WeakForm<double>
 {
 public:
-  WeakFormRichardsNewtonEuler(ConstitutiveRelationsGenuchtenWithLayer* relations, double tau, Solution<double>* prev_time_sln, Mesh* mesh) 
+  WeakFormRichardsNewtonEuler(ConstitutiveRelationsGenuchtenWithLayer* relations, double tau, MeshFunctionSharedPtr<double>  prev_time_sln, Mesh* mesh) 
                : WeakForm<double>(1), mesh(mesh), relations(relations) {
     JacobianFormNewtonEuler* jac_form = new JacobianFormNewtonEuler(0, 0, relations, tau);
     jac_form->set_ext(prev_time_sln);
@@ -198,7 +198,7 @@ private:
 class WeakFormRichardsNewtonCrankNicolson : public WeakForm<double>
 {
 public:
-  WeakFormRichardsNewtonCrankNicolson(ConstitutiveRelationsGenuchtenWithLayer* relations, double tau, Solution<double>* prev_time_sln, Mesh* mesh) : WeakForm<double>(1), relations(relations), mesh(mesh) {
+  WeakFormRichardsNewtonCrankNicolson(ConstitutiveRelationsGenuchtenWithLayer* relations, double tau, MeshFunctionSharedPtr<double>  prev_time_sln, Mesh* mesh) : WeakForm<double>(1), relations(relations), mesh(mesh) {
     JacobianFormNewtonCrankNicolson* jac_form = new JacobianFormNewtonCrankNicolson(0, 0, relations, tau);
     jac_form->set_ext(prev_time_sln);
     add_matrix_form(jac_form);
@@ -321,7 +321,7 @@ private:
 class WeakFormRichardsPicardEuler : public WeakForm<double>
 {
 public:
-  WeakFormRichardsPicardEuler(ConstitutiveRelationsGenuchtenWithLayer* relations, double tau, Solution<double>* prev_picard_sln, Solution<double>* prev_time_sln, Mesh* mesh) : WeakForm<double>(1), relations(relations), mesh(mesh) {
+  WeakFormRichardsPicardEuler(ConstitutiveRelationsGenuchtenWithLayer* relations, double tau, MeshFunctionSharedPtr<double>  prev_picard_sln, MeshFunctionSharedPtr<double>  prev_time_sln, Mesh* mesh) : WeakForm<double>(1), relations(relations), mesh(mesh) {
     JacobianFormPicardEuler* jac_form = new JacobianFormPicardEuler(0, 0, relations, tau);
     jac_form->set_ext(prev_picard_sln);
     add_matrix_form(jac_form);

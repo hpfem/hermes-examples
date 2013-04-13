@@ -23,7 +23,7 @@ public:
 class FilterVectorPotential : public Hermes::Hermes2D::MagFilter<double>
 {
 public:
-  FilterVectorPotential(Hermes::vector<MeshFunction<double>*> solutions, Hermes::vector<int> items);
+  FilterVectorPotential(Hermes::vector<MeshFunctionSharedPtr<double> > solutions, Hermes::vector<int> items);
 
   virtual MeshFunction<double>* clone() const;
 protected:
@@ -33,7 +33,7 @@ protected:
 class FilterFluxDensity : public Hermes::Hermes2D::Filter<double>
 {
 public:
-  FilterFluxDensity(Hermes::vector<MeshFunction<double>*> solutions);
+  FilterFluxDensity(Hermes::vector<MeshFunctionSharedPtr<double> > solutions);
 
   virtual Func<double>* get_pt_value(double x, double y, Element* e = NULL);
   virtual MeshFunction<double>* clone() const;

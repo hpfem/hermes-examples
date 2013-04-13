@@ -229,7 +229,7 @@ int main(int argc, char* argv[])
     {
       Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d:", as);
 
-      // Construct globally refined reference mesh and setup reference space.
+      // Construct globally refined reference mesh and setup reference space->
       int order_increase = 1;
 
       Mesh::ReferenceMeshCreator refMeshCreatorFlow(mesh);
@@ -299,8 +299,8 @@ int main(int argc, char* argv[])
       else
         throw Hermes::Exceptions::Exception("Matrix solver failed.\n");
 
-      // Project the fine mesh solution onto the coarse mesh.
-      Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
+      // Project the fine mesh solution onto the coarse mesh->
+      Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh->");
       ogProjection.project_global(cspaces, rslns, slns, Hermes::vector<ProjNormType>(HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_H1_NORM)); 
 
       // Calculate element errors and total error estimate.
@@ -341,7 +341,7 @@ int main(int argc, char* argv[])
         done = true;
       else
       {
-        Hermes::Mixins::Loggable::Static::info("Adapting coarse space.");
+        Hermes::Mixins::Loggable::Static::info("Adapting coarse space->");
         done = adaptivity->adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&l2_selector, &l2_selector, &l2_selector, &l2_selector, &h1_selector), 
           THRESHOLD, STRATEGY, MESH_REGULARITY);
       }

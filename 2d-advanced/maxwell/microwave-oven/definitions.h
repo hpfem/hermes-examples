@@ -112,7 +112,7 @@ class CustomWeakForm : public WeakForm<std::complex<double> >
 {
 public:
   CustomWeakForm(double e_0, double mu_0, double mu_r, double kappa, double omega, 
-                 double J, bool align_mesh, Mesh* mesh, std::string current_bdy);
+                 double J, bool align_mesh, MeshSharedPtr mesh, std::string current_bdy);
   int get_marker();
 
 private:

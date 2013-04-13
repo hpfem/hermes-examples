@@ -81,19 +81,19 @@ int main(int argc, char* argv[])
   EssentialBCs<double> bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.
-  H1Space<double> space(mesh, &bcs, P_INIT);
-  int ndof = space.get_num_dofs();
+  SpaceSharedPtr<double> space(new H1Space<double>(mesh, &bcs, P_INIT));
+  int ndof = space->get_num_dofs();
   Hermes::Mixins::Loggable::Static::info("ndof = %d.", ndof);
 
   // Zero initial solutions. This is why we use H_OFFSET.
-  ZeroSolution<double> h_time_prev(mesh);
+  MeshFunctionSharedPtr<double> h_time_prev(new ZeroSolution<double>(mesh));
 
   // Initialize views.
   ScalarView view("Initial condition", new WinGeom(0, 0, 600, 500));
   view.fix_scale_width(80);
 
   // Visualize the initial condition.
-  view.show(&h_time_prev);
+  view.show(h_time_prev);
 
   // Initialize the constitutive relations.
   ConstitutiveRelations* constitutive_relations;
@@ -104,10 +104,10 @@ int main(int argc, char* argv[])
 
   // Initialize the weak formulation.
   double current_time = 0;
-  CustomWeakFormRichardsIE wf(time_step, &h_time_prev, constitutive_relations);
+  CustomWeakFormRichardsIE wf(time_step, h_time_prev, constitutive_relations);
 
   // Initialize the FE problem.
-  DiscreteProblem<double> dp(&wf, &space);
+  DiscreteProblem<double> dp(&wf, space);
 
   // Initialize Newton solver.
   NewtonSolver<double> newton(&dp);
@@ -122,8 +122,8 @@ int main(int argc, char* argv[])
     // Perform Newton's iteration.
     try
     {
-      newton.set_newton_max_iter(NEWTON_MAX_ITER);
-      newton.set_newton_tol(NEWTON_TOL);
+      newton.set_max_allowed_iterations(NEWTON_MAX_ITER);
+      newton.set_tolerance(NEWTON_TOL);
       newton.solve();
     }
     catch(Hermes::Exceptions::Exception e)
@@ -132,14 +132,14 @@ int main(int argc, char* argv[])
       throw Hermes::Exceptions::Exception("Newton's iteration failed.");
     };
 
-    // Translate the resulting coefficient vector into the Solution<double> sln.
-    Solution<double>::vector_to_solution(newton.get_sln_vector(), &space, &h_time_prev);
+    // Translate the resulting coefficient vector into the Solution<double> sln->
+    Solution<double>::vector_to_solution(newton.get_sln_vector(), space, &h_time_prev);
 
     // Visualize the solution.
     char title[100];
     sprintf(title, "Time %g s", current_time);
     view.set_title(title);
-    view.show(&h_time_prev);
+    view.show(h_time_prev);
 
     // Increase current time and time step counter.
     current_time += time_step;

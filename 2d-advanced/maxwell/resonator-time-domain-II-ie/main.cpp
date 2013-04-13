@@ -62,7 +62,7 @@ int main(int argc, char* argv[])
   // Initialize solutions.
   CustomInitialConditionWave E_sln(mesh);
   ZeroSolutionVector<double> F_sln(mesh);
-  Hermes::vector<Solution<double>*> slns(&E_sln, &F_sln);
+  Hermes::vector<MeshFunctionSharedPtr<double> > slns(&E_sln, &F_sln);
 
   // Initialize the weak formulation.
   CustomWeakFormWaveIE wf(time_step, C_SQUARED, &E_sln, &F_sln);
@@ -72,9 +72,9 @@ int main(int argc, char* argv[])
   EssentialBCs<double> bcs(&bc_essential);
 
   // Create x- and y- displacement space using the default H1 shapeset.
-  HcurlSpace<double> E_space(mesh, &bcs, P_INIT);
-  HcurlSpace<double> F_space(mesh, &bcs, P_INIT);
-  Hermes::vector<const Space<double> *> spaces = Hermes::vector<const Space<double> *>(&E_space, &F_space);
+  HcurlSpace<double> E_space(mesh, &bcs, P_INIT));
+  HcurlSpace<double> F_space(mesh, &bcs, P_INIT));
+  Hermes::vector<SpaceSharedPtr<double> > spaces = Hermes::vector<SpaceSharedPtr<double> >(&E_space, &F_space);
   int ndof = HcurlSpace<double>::get_num_dofs(spaces);
   Hermes::Mixins::Loggable::Static::info("ndof = %d.", ndof);
 
@@ -112,8 +112,8 @@ int main(int argc, char* argv[])
     // Perform Newton's iteration.
     try
     {
-      newton.set_newton_max_iter(NEWTON_MAX_ITER);
-      newton.set_newton_tol(NEWTON_TOL);
+      newton.set_max_allowed_iterations(NEWTON_MAX_ITER);
+      newton.set_tolerance(NEWTON_TOL);
       newton.solve_keep_jacobian(coeff_vec);
     }
     catch(Hermes::Exceptions::Exception e)
@@ -129,17 +129,17 @@ int main(int argc, char* argv[])
     char title[100];
     sprintf(title, "E1, t = %g", current_time + time_step);
     E1_view.set_title(title);
-    E1_view.show(&E_sln, HERMES_EPS_NORMAL, H2D_FN_VAL_0);
+    E1_view.show(E_sln, HERMES_EPS_NORMAL, H2D_FN_VAL_0);
     sprintf(title, "E2, t = %g", current_time + time_step);
     E2_view.set_title(title);
-    E2_view.show(&E_sln, HERMES_EPS_NORMAL, H2D_FN_VAL_1);
+    E2_view.show(E_sln, HERMES_EPS_NORMAL, H2D_FN_VAL_1);
 
     sprintf(title, "F1, t = %g", current_time + time_step);
     F1_view.set_title(title);
-    F1_view.show(&F_sln, HERMES_EPS_NORMAL, H2D_FN_VAL_0);
+    F1_view.show(F_sln, HERMES_EPS_NORMAL, H2D_FN_VAL_0);
     sprintf(title, "F2, t = %g", current_time + time_step);
     F2_view.set_title(title);
-    F2_view.show(&F_sln, HERMES_EPS_NORMAL, H2D_FN_VAL_1);
+    F2_view.show(F_sln, HERMES_EPS_NORMAL, H2D_FN_VAL_1);
 
     //View::wait();
 

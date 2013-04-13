@@ -9,7 +9,7 @@ using namespace Hermes::Hermes2D;
 class CustomExactSolution : public ExactSolutionScalar<double>
 {
 public:
-  CustomExactSolution(Mesh* mesh, double x0, double x1, double y0, double y1, 
+  CustomExactSolution(MeshSharedPtr mesh, double x0, double x1, double y0, double y1, 
                       double* t_ptr, double s, double c)
     : ExactSolutionScalar<double>(mesh), x0(x0), x1(x1), y0(y0), y1(y1), t_ptr(t_ptr), s(s), c(c) {};
 

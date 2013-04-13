@@ -6,8 +6,8 @@ class WeakFormRayleighBenard : public WeakForm<double>
 {
 public:
   WeakFormRayleighBenard(double Pr, double Ra, std::string bdy_top, double temp_ext, double alpha_air,
-                         double time_step, Solution<double>* x_vel_previous_time,
-                         Solution<double>* y_vel_previous_time, Solution<double>* temp_previous_time)
+                         double time_step, MeshFunctionSharedPtr<double>  x_vel_previous_time,
+                         MeshFunctionSharedPtr<double>  y_vel_previous_time, MeshFunctionSharedPtr<double>  temp_previous_time)
     : WeakForm<double>(4), Pr(Pr), Ra(Ra), time_step(time_step), x_vel_previous_time(x_vel_previous_time),
                 y_vel_previous_time(y_vel_previous_time), temp_previous_time(temp_previous_time) {
     /* Jacobian terms - first velocity equation */
@@ -526,8 +526,8 @@ public:
   };
 protected:
   double Pr, Ra, time_step;
-  Solution<double>* x_vel_previous_time;
-  Solution<double>* y_vel_previous_time;
-  Solution<double>* temp_previous_time;
+  MeshFunctionSharedPtr<double>  x_vel_previous_time;
+  MeshFunctionSharedPtr<double>  y_vel_previous_time;
+  MeshFunctionSharedPtr<double>  temp_previous_time;
 };
 

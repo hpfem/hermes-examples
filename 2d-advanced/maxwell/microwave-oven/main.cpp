@@ -113,15 +113,15 @@ int main(int argc, char* argv[])
   EssentialBCs<std::complex<double> > bcs(&bc_essential);
 
   // Create an Hcurl space with default shapeset.
-  HcurlSpace<std::complex<double> > space(mesh, &bcs, P_INIT);
-  int ndof = space.get_num_dofs();
+  HcurlSpace<std::complex<double> > space(mesh, &bcs, P_INIT));
+  int ndof = space->get_num_dofs();
   Hermes::Mixins::Loggable::Static::info("ndof = %d", ndof);
 
   // Initialize the weak formulation.
   CustomWeakForm wf(e_0, mu_0, mu_r, kappa, omega, J, ALIGN_MESH, mesh, BDY_CURRENT);
 
   // Initialize coarse and reference mesh solution.
-  Solution<std::complex<double> > sln, ref_sln;
+  MeshFunctionSharedPtr<std::complex<double> >  sln(new Solution<std::complex<double> >), ref_sln(new Solution<std::complex<double> >);
 
   // Initialize refinements selector.
   HcurlProjBasedSelector<std::complex<double> > selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
@@ -143,12 +143,12 @@ int main(int argc, char* argv[])
   {
     Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d:", as);
 
-    // Construct globally refined reference mesh and setup reference space.
+    // Construct globally refined reference mesh and setup reference space->
     Mesh::ReferenceMeshCreator refMeshCreator(mesh);
-    Mesh* ref_mesh = refMeshCreator.create_ref_mesh();
+    MeshSharedPtr ref_mesh = refMeshCreator.create_ref_mesh();
 
-    Space<std::complex<double> >::ReferenceSpaceCreator refSpaceCreator(&space, ref_mesh);
-    Space<std::complex<double> >* ref_space = refSpaceCreator.create_ref_space();
+    Space<std::complex<double> >::ReferenceSpaceCreator refSpaceCreator(space, ref_mesh);
+    SpaceSharedPtr<std::complex<double> > ref_space = refSpaceCreator.create_ref_space();
     int ndof_ref = Space<std::complex<double> >::get_num_dofs(ref_space);
 
     // Initialize reference problem.
@@ -162,8 +162,8 @@ int main(int argc, char* argv[])
     Hermes::Hermes2D::NewtonSolver<std::complex<double> > newton(&dp);
     try
     {
-      newton.set_newton_max_iter(NEWTON_MAX_ITER);
-      newton.set_newton_tol(NEWTON_TOL);
+      newton.set_max_allowed_iterations(NEWTON_MAX_ITER);
+      newton.set_tolerance(NEWTON_TOL);
       newton.solve();
     }
     catch(Hermes::Exceptions::Exception e)
@@ -171,45 +171,45 @@ int main(int argc, char* argv[])
       e.print_msg();
       throw Hermes::Exceptions::Exception("Newton's iteration failed.");
     };
-    // Translate the resulting coefficient vector into the Solution<std::complex<double> > sln.
-    Hermes::Hermes2D::Solution<std::complex<double> >::vector_to_solution(newton.get_sln_vector(), ref_space, &ref_sln);
+    // Translate the resulting coefficient vector into the Solution<std::complex<double> > sln->
+    Hermes::Hermes2D::Solution<std::complex<double> >::vector_to_solution(newton.get_sln_vector(), ref_space, ref_sln);
   
     // Project the fine mesh solution onto the coarse mesh->
     Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh->");
-    OGProjection<std::complex<double> > ogProjection; ogProjection.project_global(&space, &ref_sln, &sln); 
+    OGProjection<std::complex<double> > ogProjection; ogProjection.project_global(space, ref_sln, sln); 
    
     // View the coarse mesh solution and polynomial orders.
-    RealFilter real(&sln);
+    RealFilter real(sln);
     MagFilter<double> magn(&real);
     ValFilter limited_magn(&magn, 0.0, 4e3);
     char title[100];
     sprintf(title, "Electric field, adaptivity step %d", as);
     eview.set_title(title);
     //eview.set_min_max_range(0.0, 4e3);
-    eview.show(&limited_magn);
+    eview.show(limited_magn);
     sprintf(title, "Polynomial orders, adaptivity step %d", as);
     oview.set_title(title);
-    oview.show(&space);
+    oview.show(space);
 
     // Calculate element errors and total error estimate.
     Hermes::Mixins::Loggable::Static::info("Calculating error estimate."); 
-    Adapt<std::complex<double> >* adaptivity = new Adapt<std::complex<double> >(&space);
+    Adapt<std::complex<double> >* adaptivity = new Adapt<std::complex<double> >(space);
 
     // Set custom error form and calculate error estimate.
     CustomErrorForm cef(kappa);
     adaptivity->set_error_form(0, 0, &cef);
-    double err_est_rel = adaptivity->calc_err_est(&sln, &ref_sln) * 100;
+    double err_est_rel = adaptivity->calc_err_est(sln, ref_sln) * 100;
 
     // Report results.
     Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d, err_est_rel: %g%%", 
-      Space<std::complex<double> >::get_num_dofs(&space), 
+      Space<std::complex<double> >::get_num_dofs(space), 
       Space<std::complex<double> >::get_num_dofs(ref_space), err_est_rel);
 
     // Time measurement.
     cpu_time.tick();
 
     // Add entry to DOF and CPU convergence graphs.
-    graph_dof.add_values(Space<std::complex<double> >::get_num_dofs(&space), err_est_rel);
+    graph_dof.add_values(Space<std::complex<double> >::get_num_dofs(space), err_est_rel);
     graph_dof.save("conv_dof_est.dat");
     graph_cpu.add_values(cpu_time.accumulated(), err_est_rel);
     graph_cpu.save("conv_cpu_est.dat");
@@ -221,13 +221,13 @@ int main(int argc, char* argv[])
       Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh->");
       done = adaptivity->adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
     }
-    if (space.get_num_dofs() >= NDOF_STOP) done = true;
+    if (space->get_num_dofs() >= NDOF_STOP) done = true;
 
     delete adaptivity;
     if(!done)
     {
       delete ref_space->get_mesh();
-      delete ref_space;
+      
     }
     
     // Increase counter.
@@ -237,17 +237,17 @@ int main(int argc, char* argv[])
   
   Hermes::Mixins::Loggable::Static::info("Total running time: %g s", cpu_time.accumulated());
 
-  RealFilter ref_real(&sln);
+  RealFilter ref_real(sln);
   MagFilter<double> ref_magn(&ref_real);
   ValFilter ref_limited_magn(&ref_magn, 0.0, 4e3);
   eview.set_title("Fine mesh solution - magnitude");
-  eview.show(&ref_limited_magn);
+  eview.show(ref_limited_magn);
 
   // Output solution in VTK format.
   Linearizer lin;
   bool mode_3D = true;
-  lin.save_solution_vtk(&ref_limited_magn, "sln.vtk", "Magnitude of E", mode_3D);
-  Hermes::Mixins::Loggable::Static::info("Solution in VTK format saved to file %s.", "sln.vtk");
+  lin.save_solution_vtk(&ref_limited_magn, "sln->vtk", "Magnitude of E", mode_3D);
+  Hermes::Mixins::Loggable::Static::info("Solution in VTK format saved to file %s.", "sln->vtk");
 
   // Wait for all views to be closed.
   View::wait();

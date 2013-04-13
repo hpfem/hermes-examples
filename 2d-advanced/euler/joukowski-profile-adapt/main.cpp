@@ -174,9 +174,9 @@ int main(int argc, char* argv[])
     inlet_markers, outlet_markers, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e);
 
   // Filters for visualization of Mach number, pressure and entropy.
-  MachNumberFilter Mach_number(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA);
-  PressureFilter pressure(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA);
-  EntropyFilter entropy(Hermes::vector<MeshFunction<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA, RHO_EXT, P_EXT);
+  MachNumberFilter Mach_number(Hermes::vector<MeshFunctionSharedPtr<double> >(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA);
+  PressureFilter pressure(Hermes::vector<MeshFunctionSharedPtr<double> >(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA);
+  EntropyFilter entropy(Hermes::vector<MeshFunctionSharedPtr<double> >(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA, RHO_EXT, P_EXT);
 
   ScalarView pressure_view("Pressure", new WinGeom(0, 0, 600, 300));
   ScalarView Mach_number_view("Mach number", new WinGeom(700, 0, 600, 300));

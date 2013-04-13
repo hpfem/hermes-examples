@@ -74,14 +74,14 @@ int main(int argc, char* argv[])
   for (int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
 
   // Create an H1 space with default shapeset.
-  H1Space<double> space(mesh, P_INIT);
+  SpaceSharedPtr<double> space(new H1Space<double>(mesh, P_INIT));
 
   // Initialize weak formulation.
   CustomWeakFormPoisson wf("e1", "e2", "e3", "e4", "e5", 
                            "Bdy_left", "Bdy_top", "Bdy_right", "Bdy_bottom", mesh);
 
   // Initialize coarse and fine mesh solution.
-  Solution<double> sln, ref_sln;
+  MeshFunctionSharedPtr<double> sln(new Solution<double>), ref_sln(new Solution<double>);
   
   // Initialize refinement selector.
   H1ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
@@ -107,12 +107,12 @@ int main(int argc, char* argv[])
     // Time measurement.
     cpu_time.tick();
 
-    // Construct globally refined mesh and setup fine mesh space.
+    // Construct globally refined mesh and setup fine mesh space->
     Mesh::ReferenceMeshCreator refMeshCreator(mesh);
-    Mesh* ref_mesh = refMeshCreator.create_ref_mesh();
+    MeshSharedPtr ref_mesh = refMeshCreator.create_ref_mesh();
 
-    Space<double>::ReferenceSpaceCreator refSpaceCreator(&space, ref_mesh);
-    Space<double>* ref_space = refSpaceCreator.create_ref_space();
+    Space<double>::ReferenceSpaceCreator refSpaceCreator(space, ref_mesh);
+    SpaceSharedPtr<double> ref_space = refSpaceCreator.create_ref_space();
     int ndof_ref = ref_space->get_num_dofs();
 
     // Initialize fine mesh problem.
@@ -134,11 +134,11 @@ int main(int argc, char* argv[])
     }
 
     // Translate the resulting coefficient vector into the instance of Solution.
-    Solution<double>::vector_to_solution(newton.get_sln_vector(), ref_space, &ref_sln);
+    Solution<double>::vector_to_solution(newton.get_sln_vector(), ref_space, ref_sln);
     
     // Project the fine mesh solution onto the coarse mesh->
     Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh->");
-    OGProjection<double> ogProjection; ogProjection.project_global(&space, &ref_sln, &sln);
+    OGProjection<double> ogProjection; ogProjection.project_global(space, ref_sln, sln);
 
     // Time measurement.
     cpu_time.tick();
@@ -150,21 +150,21 @@ int main(int argc, char* argv[])
       Views::Linearizer lin;
       char* title = new char[100];
       sprintf(title, "sln-%d.vtk", as);
-      lin.save_solution_vtk(&sln, title, "Potential", false);
+      lin.save_solution_vtk(sln, title, "Potential", false);
       Hermes::Mixins::Loggable::Static::info("Solution in VTK format saved to file %s.", title);
 
       // Output mesh and element orders in VTK format.
       Views::Orderizer ord;
       sprintf(title, "ord-%d.vtk", as);
-      ord.save_orders_vtk(&space, title);
+      ord.save_orders_vtk(space, title);
       Hermes::Mixins::Loggable::Static::info("Element orders in VTK format saved to file %s.", title);
     }
 
     // View the coarse mesh solution and polynomial orders.
     if (HERMES_VISUALIZATION) 
     {
-      sview.show(&sln);
-      oview.show(&space);
+      sview.show(sln);
+      oview.show(space);
     }
 
     // Skip visualization time.
@@ -172,7 +172,7 @@ int main(int argc, char* argv[])
 
     // Calculate element errors and total error estimate.
     Hermes::Mixins::Loggable::Static::info("Calculating error estimate.");
-    Adapt<double> adaptivity(&space);
+    Adapt<double> adaptivity(space);
     bool solutions_for_adapt = true;
     // In the following function, the Boolean parameter "solutions_for_adapt" determines whether
     // the calculated errors are intended for use with adaptivity (this may not be the case, for example,
@@ -181,18 +181,18 @@ int main(int argc, char* argv[])
     // absolute or relative. Its default value is error_flags = HERMES_TOTAL_ERROR_REL | HERMES_ELEMENT_ERROR_REL.
     // In subsequent examples and benchmarks, these two parameters will be often used with
     // their default values, and thus they will not be present in the code explicitly.
-    double err_est_rel = adaptivity.calc_err_est(&sln, &ref_sln, solutions_for_adapt,
+    double err_est_rel = adaptivity.calc_err_est(sln, ref_sln, solutions_for_adapt,
                          HERMES_TOTAL_ERROR_REL | HERMES_ELEMENT_ERROR_REL) * 100;
 
     // Report results.
     Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d, err_est_rel: %g%%",
-      space.get_num_dofs(), ref_space->get_num_dofs(), err_est_rel);
+      space->get_num_dofs(), ref_space->get_num_dofs(), err_est_rel);
 
     // Add entry to DOF and CPU convergence graphs.
     cpu_time.tick();    
     graph_cpu.add_values(cpu_time.accumulated(), err_est_rel);
     graph_cpu.save("conv_cpu_est.dat");
-    graph_dof.add_values(space.get_num_dofs(), err_est_rel);
+    graph_dof.add_values(space->get_num_dofs(), err_est_rel);
     graph_dof.save("conv_dof_est.dat");
     
     // Skip the time spent to save the convergence graphs.
@@ -210,14 +210,14 @@ int main(int argc, char* argv[])
       if (done == false)  
         as++;
     }
-    if (space.get_num_dofs() >= NDOF_STOP) 
+    if (space->get_num_dofs() >= NDOF_STOP) 
       done = true;
 
     // Keep the mesh from final step to allow further work with the final fine mesh solution.
     if(done == false)
     {
       delete ref_space->get_mesh(); 
-      delete ref_space;
+      
     }
   }
   while (done == false);
@@ -227,7 +227,7 @@ int main(int argc, char* argv[])
   // Show the fine mesh solution - final result.
   sview.set_title("Fine mesh solution");
   sview.show_mesh(false);
-  sview.show(&ref_sln);
+  sview.show(ref_sln);
 
   // Wait for all views to be closed.
   Views::View::wait();

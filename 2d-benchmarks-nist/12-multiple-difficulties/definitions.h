@@ -34,7 +34,7 @@ public:
 class CustomExactSolution : public ExactSolutionScalar<double>
 {
 public:
-  CustomExactSolution(Mesh* mesh, double alpha_w, double alpha_p, double x_w, double y_w, 
+  CustomExactSolution(MeshSharedPtr mesh, double alpha_w, double alpha_p, double x_w, double y_w, 
       double r_0, double omega_c, double epsilon, double x_p, double y_p)
       : ExactSolutionScalar<double>(mesh), alpha_w(alpha_w), alpha_p(alpha_p), 
       x_w(x_w), y_w(y_w), r_0(r_0), omega_c(omega_c), epsilon(epsilon), x_p(x_p), y_p(y_p) {};

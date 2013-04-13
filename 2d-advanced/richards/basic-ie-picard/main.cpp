@@ -80,8 +80,8 @@ int main(int argc, char* argv[])
   EssentialBCs<double> bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.
-  H1Space<double> space(mesh, &bcs, P_INIT);
-  int ndof = space.get_num_dofs();
+  SpaceSharedPtr<double> space(new H1Space<double>(mesh, &bcs, P_INIT));
+  int ndof = space->get_num_dofs();
   Hermes::Mixins::Loggable::Static::info("ndof = %d.", ndof);
 
   // Zero initial solutions. This is why we use H_OFFSET.
@@ -92,7 +92,7 @@ int main(int argc, char* argv[])
   view.fix_scale_width(80);
 
   // Visualize the initial condition.
-  view.show(&h_time_prev);
+  view.show(h_time_prev);
 
   // Initialize the constitutive relations.
   ConstitutiveRelations* constitutive_relations;
@@ -106,7 +106,8 @@ int main(int argc, char* argv[])
   CustomWeakFormRichardsIEPicard wf(time_step, &h_time_prev, &h_iter_prev, constitutive_relations);
 
   // Initialize the FE problem.
-  DiscreteProblemLinear<double> dp(&wf, &space);
+  DiscreteProblem<double> dp(&wf, space);
+  dp.set_linear();
 
   // Initialize the Picard solver.
   PicardSolver<double> picard(&dp);
@@ -119,8 +120,8 @@ int main(int argc, char* argv[])
     Hermes::Mixins::Loggable::Static::info("---- Time step %d, time %3.5f s", ts, current_time);
 
     // Perform the Picard's iteration (Anderson acceleration on by default).
-    picard.set_picard_tol(PICARD_TOL);
-    picard.set_picard_max_iter(PICARD_MAX_ITER);
+    picard.set_tolerance(PICARD_TOL);
+    picard.set_max_allowed_iterations(PICARD_MAX_ITER);
     picard.set_num_last_vector_used(PICARD_NUM_LAST_ITER_USED);
     picard.set_anderson_beta(PICARD_ANDERSON_BETA);
 
@@ -134,7 +135,7 @@ int main(int argc, char* argv[])
     }
 
     // Translate the coefficient vector into a Solution. 
-    Solution<double>::vector_to_solution(picard.get_sln_vector(), &space, &h_iter_prev);
+    Solution<double>::vector_to_solution(picard.get_sln_vector(), space, &h_iter_prev);
 
     // Increase current time and time step counter.
     current_time += time_step;
@@ -144,10 +145,10 @@ int main(int argc, char* argv[])
     char title[100];
     sprintf(title, "Time %g s", current_time);
     view.set_title(title);
-    view.show(&h_iter_prev);
+    view.show(h_iter_prev);
 
     // Save the next time level solution.
-    h_time_prev.copy(&h_iter_prev);
+    h_time_prev->copy(h_iter_prev);
   }
   while (current_time < T_FINAL);
 

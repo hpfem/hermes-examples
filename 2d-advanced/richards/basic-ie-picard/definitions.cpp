@@ -22,16 +22,16 @@ double CustomEssentialBCNonConst::value(double x, double y, double n_x, double n
 
 /* Custom weak forms */
 
-CustomWeakFormRichardsIEPicard::CustomWeakFormRichardsIEPicard(double time_step, Solution<double>* h_time_prev, Solution<double>* h_iter_prev, ConstitutiveRelations* constitutive) : WeakForm<double>(1), constitutive(constitutive) 
+CustomWeakFormRichardsIEPicard::CustomWeakFormRichardsIEPicard(double time_step, MeshFunctionSharedPtr<double>  h_time_prev, MeshFunctionSharedPtr<double>  h_iter_prev, ConstitutiveRelations* constitutive) : WeakForm<double>(1), constitutive(constitutive) 
 {
   // Jacobian.
   CustomJacobian* matrix_form = new CustomJacobian(0, 0, time_step);
-  matrix_form->set_ext(Hermes::vector<MeshFunction<double>*>(h_time_prev, h_iter_prev));
+  matrix_form->set_ext(Hermes::vector<MeshFunctionSharedPtr<double> >(h_time_prev, h_iter_prev));
   add_matrix_form(matrix_form);
 
   // Residual.
   CustomResidual* vector_form = new CustomResidual(0, time_step);
-  vector_form->set_ext(Hermes::vector<MeshFunction<double>*>(h_time_prev, h_iter_prev));
+  vector_form->set_ext(Hermes::vector<MeshFunctionSharedPtr<double> >(h_time_prev, h_iter_prev));
   add_vector_form(vector_form);
 }
 

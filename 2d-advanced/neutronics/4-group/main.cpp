@@ -76,7 +76,7 @@ int main(int argc, char* argv[])
   Hermes::Mixins::Loggable::Static::info("Setting initial conditions.");
   ConstantSolution<double> iter1(&mesh, 1.00), iter2(&mesh, 1.00), iter3(&mesh, 1.00), iter4(&mesh, 1.00);
 
-  Hermes::vector<MeshFunction<double>*> iterates(&iter1, &iter2, &iter3, &iter4);
+  Hermes::vector<MeshFunctionSharedPtr<double> > iterates(&iter1, &iter2, &iter3, &iter4);
 
   // Create H1 spaces with default shapesets.
   H1Space<double> space1(&mesh, P_INIT_1);

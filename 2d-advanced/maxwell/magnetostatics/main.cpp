@@ -82,8 +82,8 @@ int main(int argc, char* argv[])
   EssentialBCs<double> bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.
-  H1Space<double> space(mesh, &bcs, P_INIT);
-  int ndof = space.get_num_dofs();
+  SpaceSharedPtr<double> space(new H1Space<double>(mesh, &bcs, P_INIT));
+  int ndof = space->get_num_dofs();
   Hermes::Mixins::Loggable::Static::info("ndof: %d", ndof);
 
   // Initialize the weak formulation
@@ -94,7 +94,7 @@ int main(int argc, char* argv[])
       MAT_COPPER, MU_VACUUM, CURRENT_DENSITY, order_inc);
 
   // Initialize the FE problem.
-  DiscreteProblem<double> dp(&wf, &space);
+  DiscreteProblem<double> dp(&wf, space);
   
   // Initialize the solution.
   ConstantSolution<double> sln(mesh, INIT_COND);
@@ -103,7 +103,7 @@ int main(int argc, char* argv[])
   // coefficient vector for the Newton's method.
   Hermes::Mixins::Loggable::Static::info("Projecting to obtain initial vector for the Newton's method.");
   double* coeff_vec = new double[ndof] ;
-  OGProjection<double> ogProjection; ogProjection.project_global(&space, &sln, coeff_vec);
+  OGProjection<double> ogProjection; ogProjection.project_global(space, sln, coeff_vec);
 
   // Perform Newton's iteration.
   Hermes::Hermes2D::NewtonSolver<double> newton(&dp);
@@ -111,8 +111,8 @@ int main(int argc, char* argv[])
   newton.set_verbose_output(verbose);
   try
   {
-    newton.set_newton_max_iter(NEWTON_MAX_ITER);
-    newton.set_newton_tol(NEWTON_TOL);
+    newton.set_max_allowed_iterations(NEWTON_MAX_ITER);
+    newton.set_tolerance(NEWTON_TOL);
     newton.solve(coeff_vec);
   }
   catch(Hermes::Exceptions::Exception e)
@@ -121,32 +121,32 @@ int main(int argc, char* argv[])
     throw Hermes::Exceptions::Exception("Newton's iteration failed.");
   };
 
-  // Translate the resulting coefficient vector into the Solution sln.
-  Solution<double>::vector_to_solution(newton.get_sln_vector(), &space, &sln);
+  // Translate the resulting coefficient vector into the Solution sln->
+  Solution<double>::vector_to_solution(newton.get_sln_vector(), space, sln);
 
   // Cleanup.
   delete [] coeff_vec;
 
   // Visualise the solution and mesh->
   ScalarView s_view1("Vector potential", new WinGeom(0, 0, 350, 450));
-  FilterVectorPotential vector_potential(Hermes::vector<MeshFunction<double> *>(&sln, &sln),
+  FilterVectorPotential vector_potential(Hermes::vector<MeshFunctionSharedPtr<double> >(sln, sln),
       Hermes::vector<int>(H2D_FN_VAL, H2D_FN_VAL));
   s_view1.show_mesh(false);
-  s_view1.show(&vector_potential);
+  s_view1.show(vector_potential);
 
   ScalarView s_view2("Flux density", new WinGeom(360, 0, 350, 450));
-  FilterFluxDensity flux_density(Hermes::vector<MeshFunction<double> *>(&sln, &sln));
+  FilterFluxDensity flux_density(Hermes::vector<MeshFunctionSharedPtr<double> >(sln, sln));
   s_view2.show_mesh(false);
-  s_view2.show(&flux_density);
+  s_view2.show(flux_density);
 
   // Output solution in VTK format.
   Linearizer lin;
   bool mode_3D = true;
-  lin.save_solution_vtk(&flux_density, "sln.vtk", "Flux density", mode_3D);
-  Hermes::Mixins::Loggable::Static::info("Solution in VTK format saved to file %s.", "sln.vtk");
+  lin.save_solution_vtk(&flux_density, "sln->vtk", "Flux density", mode_3D);
+  Hermes::Mixins::Loggable::Static::info("Solution in VTK format saved to file %s.", "sln->vtk");
 
   OrderView o_view("Mesh", new WinGeom(720, 0, 350, 450));
-  o_view.show(&space);
+  o_view.show(space);
 
   // Wait for all views to be closed.
   View::wait();

@@ -197,12 +197,12 @@ int main(int argc, char* argv[])
   if (bt.is_fully_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage fully implicit R-K method.", bt.get_size());
 
   // Load the mesh->
-  Mesh mesh, basemesh;
+  MeshSharedPtr mesh(new Mesh), basemesh(new Mesh);
   MeshReaderH2D mloader;
-  mloader.load(mesh_file, &basemesh);
+  mloader.load(mesh_file, basemesh);
   
   // Perform initial mesh refinements.
-  mesh->copy(&basemesh);
+  mesh->copy(basemesh);
   for(int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
   mesh->refine_towards_boundary("Top", INIT_REF_NUM_BDY_TOP);
 
@@ -211,8 +211,8 @@ int main(int argc, char* argv[])
   EssentialBCs<double> bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.
-  H1Space<double> space(mesh, &bcs, P_INIT);
-  int ndof = space.get_num_dofs();
+  SpaceSharedPtr<double> space(new H1Space<double>(mesh, &bcs, P_INIT));
+  int ndof = space->get_num_dofs();
   Hermes::Mixins::Loggable::Static::info("ndof = %d.", ndof);
 
   // Convert initial condition into a Solution.
@@ -223,7 +223,7 @@ int main(int argc, char* argv[])
   view.fix_scale_width(80);
 
   // Visualize the initial condition.
-  view.show(&h_time_prev);
+  view.show(h_time_prev);
 
   // Initialize the weak formulation.
   CustomWeakFormRichardsRK wf(&constitutive_relations);
@@ -231,19 +231,19 @@ int main(int argc, char* argv[])
    // Visualize the projection and mesh->
   ScalarView sview("Initial condition", new WinGeom(0, 0, 400, 350));
   sview.fix_scale_width(50);
-  sview.show(&h_time_prev);
+  sview.show(h_time_prev);
   ScalarView eview("Temporal error", new WinGeom(405, 0, 400, 350));
   eview.fix_scale_width(50);
-  eview.show(&time_error_fn);
+  eview.show(time_error_fn);
   OrderView oview("Initial mesh", new WinGeom(810, 0, 350, 350));
-  oview.show(&space);
+  oview.show(space);
 
   // Graph for time step history.
   SimpleGraph time_step_graph;
   Hermes::Mixins::Loggable::Static::info("Time step history will be saved to file time_step_history.dat.");
 
   // Initialize Runge-Kutta time stepping.
-  RungeKutta<double> runge_kutta(&wf, &space, &bt);
+  RungeKutta<double> runge_kutta(&wf, space, &bt);
 
   // Time stepping:
   double current_time = 0;
@@ -252,7 +252,7 @@ int main(int argc, char* argv[])
   {
     Hermes::Mixins::Loggable::Static::info("---- Time step %d, time %3.5f s", ts, current_time);
 
-    Space<double>::update_essential_bc_values(&space, current_time);
+    Space<double>::update_essential_bc_values(space, current_time);
 
     // Perform one Runge-Kutta time step according to the selected Butcher's table.
     Hermes::Mixins::Loggable::Static::info("Runge-Kutta time step (t = %g s, time step = %g s, stages: %d).", 
@@ -261,8 +261,8 @@ int main(int argc, char* argv[])
     {
       runge_kutta.set_time(current_time);
       runge_kutta.set_time_step(time_step);
-      runge_kutta.set_newton_max_iter(NEWTON_MAX_ITER);
-      runge_kutta.set_newton_tol(NEWTON_TOL);
+      runge_kutta.set_max_allowed_iterations(NEWTON_MAX_ITER);
+      runge_kutta.set_tolerance(NEWTON_TOL);
       runge_kutta.rk_time_step_newton(&h_time_prev, 
           &h_time_new, &time_error_fn);
     }
@@ -277,13 +277,13 @@ int main(int argc, char* argv[])
     }
     
     // Copy solution for the new time step.
-    h_time_prev.copy(&h_time_new);
+    h_time_prev->copy(h_time_new);
 
     // Show error function.
     char title[100];
     sprintf(title, "Temporal error, t = %g", current_time);
     eview.set_title(title);
-    eview.show(&time_error_fn);
+    eview.show(time_error_fn);
 
     // Calculate relative time stepping error and decide whether the 
     // time step can be accepted. If not, then the time step size is 
@@ -314,8 +314,8 @@ int main(int argc, char* argv[])
     // Show the new time level solution.
     sprintf(title, "Solution, t = %g", current_time);
     sview.set_title(title);
-    sview.show(&h_time_new);
-    oview.show(&space);
+    sview.show(h_time_new);
+    oview.show(space);
 
     // Save complete Solution.
     char filename[100];
@@ -324,7 +324,7 @@ int main(int argc, char* argv[])
     Hermes::Mixins::Loggable::Static::info("Solution at time %g saved to file %s.", current_time, filename);
 
     // Save solution for the next time step.
-    h_time_prev.copy(&h_time_new);
+    h_time_prev->copy(h_time_new);
 
     // Increase time step counter.
     ts++;

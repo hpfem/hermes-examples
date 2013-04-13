@@ -34,7 +34,7 @@ void FilterVectorPotential::filter_fn(int n, Hermes::vector<double*> values, dou
 
 MeshFunction<double>* FilterVectorPotential::clone() const 
 {
-  Hermes::vector<MeshFunction<double>*> fns;
+  Hermes::vector<MeshFunctionSharedPtr<double> > fns;
   Hermes::vector<int> items;
   for(int i = 0; i < this->num; i++)
   {
@@ -44,12 +44,12 @@ MeshFunction<double>* FilterVectorPotential::clone() const
   return new FilterVectorPotential(fns, items);
 }
 
-FilterVectorPotential::FilterVectorPotential(Hermes::vector<MeshFunction<double>*> solutions, Hermes::vector<int> items) 
+FilterVectorPotential::FilterVectorPotential(Hermes::vector<MeshFunctionSharedPtr<double> > solutions, Hermes::vector<int> items) 
   : MagFilter<double>(solutions, items) 
 {
 }
 
-FilterFluxDensity::FilterFluxDensity(Hermes::vector<MeshFunction<double>*> solutions)
+FilterFluxDensity::FilterFluxDensity(Hermes::vector<MeshFunctionSharedPtr<double> > solutions)
   : Filter<double>(solutions) 
 {
 }
@@ -61,7 +61,7 @@ Func<double>* FilterFluxDensity::get_pt_value(double x, double y, Element* e)
 
 MeshFunction<double>* FilterFluxDensity::clone() const 
 {
-  Hermes::vector<MeshFunction<double>*> fns;
+  Hermes::vector<MeshFunctionSharedPtr<double> > fns;
   for(int i = 0; i < this->num; i++)
     fns.push_back(this->sln[i]->clone());
   return new FilterFluxDensity(fns);

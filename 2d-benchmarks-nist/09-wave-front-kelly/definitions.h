@@ -61,7 +61,7 @@ public:
 class CustomExactSolution : public ExactSolutionScalar<double>
 {
 public:
-  CustomExactSolution(const Mesh* mesh, double alpha, double x_loc, double y_loc, double r_zero)
+  CustomExactSolution(MeshSharedPtr mesh, double alpha, double x_loc, double y_loc, double r_zero)
     : ExactSolutionScalar<double>(mesh), alpha(alpha), x_loc(x_loc), y_loc(y_loc), r_zero(r_zero) 
   { };
 

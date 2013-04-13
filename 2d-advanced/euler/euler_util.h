@@ -71,7 +71,7 @@ protected:
   /// Members.
   Hermes::vector<SpaceSharedPtr<double> > spaces;
   Hermes::vector<MeshFunctionSharedPtr<double> > solutions;
-  Hermes::vector<Solution<double>*> solutionsInternal;
+  Hermes::vector<MeshFunctionSharedPtr<double> > solutionsInternal;
   std::set<int> discontinuous_element_ids;
   std::set<std::pair<int, double> > oscillatory_element_idsRho;
   std::set<std::pair<int, double> > oscillatory_element_idsRhoVX;

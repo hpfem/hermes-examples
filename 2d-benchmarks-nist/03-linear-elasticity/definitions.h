@@ -9,7 +9,7 @@ using namespace Hermes::Hermes2D::Views;
 class CustomExactSolutionU : public ExactSolutionScalar<double>
 {
 public:
-  CustomExactSolutionU(const Mesh* mesh, double E, double nu, double lambda, double Q) 
+  CustomExactSolutionU(MeshSharedPtr mesh, double E, double nu, double lambda, double Q) 
       : ExactSolutionScalar<double>(mesh), E(E), nu(nu), lambda(lambda), Q(Q) {};
 
   double get_angle(double y, double x) const;
@@ -91,7 +91,7 @@ public:
 class CustomExactSolutionV : public ExactSolutionScalar<double>
 {
 public:
-  CustomExactSolutionV(const Mesh* mesh, double E, double nu, double lambda, double Q) 
+  CustomExactSolutionV(MeshSharedPtr mesh, double E, double nu, double lambda, double Q) 
       : ExactSolutionScalar<double>(mesh), E(E), nu(nu), lambda(lambda), Q(Q) {};
 
   double get_angle(double y, double x) const;

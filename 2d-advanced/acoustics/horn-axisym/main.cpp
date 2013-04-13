@@ -92,15 +92,15 @@ int main(int argc, char* argv[])
   EssentialBCs<std::complex<double> > bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.
-  H1Space<std::complex<double> > space(mesh, &bcs, P_INIT);
-  int ndof = Space<std::complex<double> >::get_num_dofs(&space);
+  SpaceSharedPtr<std::complex<double> > space(new H1Space<std::complex<double> > (mesh, &bcs, P_INIT));
+  int ndof = Space<std::complex<double> >::get_num_dofs(space);
   Hermes::Mixins::Loggable::Static::info("ndof = %d", ndof);
 
   // Initialize the weak formulation.
   CustomWeakFormAcoustics wf("Outlet", RHO, SOUND_SPEED, OMEGA);
 
   // Initialize coarse and reference mesh solution.
-  Solution<std::complex<double> > sln, ref_sln;
+  MeshFunctionSharedPtr<std::complex<double> >  sln(new Solution<std::complex<double> >), ref_sln(new Solution<std::complex<double> >);
 
   // Initialize refinement selector.
   H1ProjBasedSelector<std::complex<double> > selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
@@ -124,12 +124,12 @@ int main(int argc, char* argv[])
   {
     Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d:", as);
 
-    // Construct globally refined reference mesh and setup reference space.
+    // Construct globally refined reference mesh and setup reference space->
     Mesh::ReferenceMeshCreator refMeshCreator(mesh);
-    Mesh* ref_mesh = refMeshCreator.create_ref_mesh();
+    MeshSharedPtr ref_mesh = refMeshCreator.create_ref_mesh();
 
-    Space<std::complex<double> >::ReferenceSpaceCreator refSpaceCreator(&space, ref_mesh);
-    Space<std::complex<double> >* ref_space = refSpaceCreator.create_ref_space();
+    Space<std::complex<double> >::ReferenceSpaceCreator refSpaceCreator(space, ref_mesh);
+    SpaceSharedPtr<std::complex<double> > ref_space = refSpaceCreator.create_ref_space();
     int ndof_ref = Space<std::complex<double> >::get_num_dofs(ref_space);
 
     // Assemble the reference problem.
@@ -150,35 +150,35 @@ int main(int argc, char* argv[])
       e.print_msg();
       throw Hermes::Exceptions::Exception("Newton's iteration failed.");
     };
-    // Translate the resulting coefficient vector into the Solution<std::complex<double> > sln.
-    Hermes::Hermes2D::Solution<std::complex<double> >::vector_to_solution(newton.get_sln_vector(), ref_space, &ref_sln);
+    // Translate the resulting coefficient vector into the Solution<std::complex<double> > sln->
+    Hermes::Hermes2D::Solution<std::complex<double> >::vector_to_solution(newton.get_sln_vector(), ref_space, ref_sln);
 
     // Project the fine mesh solution onto the coarse mesh->
     Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh->");
-    OGProjection<std::complex<double> > ogProjection; ogProjection.project_global(&space, &ref_sln, &sln);
+    OGProjection<std::complex<double> > ogProjection; ogProjection.project_global(space, ref_sln, sln);
 
     // Time measurement.
     cpu_time.tick();
 
     // View the coarse mesh solution and polynomial orders.
-    RealFilter mag(&ref_sln);
-    sview_real.show(&mag);
-    oview.show(&space);
+    MeshFunctionSharedPtr<double> mag(new RealFilter(ref_sln));
+    sview_real.show(mag);
+    oview.show(space);
 
     // Calculate element errors and total error estimate.
     Hermes::Mixins::Loggable::Static::info("Calculating error estimate.");
-    Adapt<std::complex<double> >* adaptivity = new Adapt<std::complex<double> >(&space);
-    double err_est_rel = adaptivity->calc_err_est(&sln, &ref_sln) * 100;
+    Adapt<std::complex<double> >* adaptivity = new Adapt<std::complex<double> >(space);
+    double err_est_rel = adaptivity->calc_err_est(sln, ref_sln) * 100;
 
     // Report results.
     Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d, err_est_rel: %g%%",
-      Space<std::complex<double> >::get_num_dofs(&space), Space<std::complex<double> >::get_num_dofs(ref_space), err_est_rel);
+      Space<std::complex<double> >::get_num_dofs(space), Space<std::complex<double> >::get_num_dofs(ref_space), err_est_rel);
 
     // Time measurement.
     cpu_time.tick();
 
     // Add entry to DOF and CPU convergence graphs.
-    graph_dof.add_values(Space<std::complex<double> >::get_num_dofs(&space), err_est_rel);
+    graph_dof.add_values(Space<std::complex<double> >::get_num_dofs(space), err_est_rel);
     graph_dof.save("conv_dof_est.dat");
     graph_cpu.add_values(cpu_time.accumulated(), err_est_rel);
     graph_cpu.save("conv_cpu_est.dat");
@@ -190,12 +190,9 @@ int main(int argc, char* argv[])
       Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh->");
       done = adaptivity->adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
     }
-    if (Space<std::complex<double> >::get_num_dofs(&space) >= NDOF_STOP) done = true;
+    if (Space<std::complex<double> >::get_num_dofs(space) >= NDOF_STOP) done = true;
 
     delete adaptivity;
-    if (done == false)
-      delete ref_space->get_mesh();
-    delete ref_space;
 
     // Increase counter.
     as++;
@@ -205,15 +202,15 @@ int main(int argc, char* argv[])
   Hermes::Mixins::Loggable::Static::info("Total running time: %g s", cpu_time.accumulated());
 
   // Show the reference solution - the final result.
-  RealFilter ref_mag(&ref_sln);
-  sview_real.show(&ref_mag);
-  oview.show(&space);
+  MeshFunctionSharedPtr<double> ref_mag(new RealFilter(ref_sln));
+  sview_real.show(ref_mag);
+  oview.show(space);
 
   // Output solution in VTK format.
   Linearizer lin;
   bool mode_3D = true;
-  lin.save_solution_vtk(&ref_mag, "sln.vtk", "Acoustic pressure", mode_3D);
-  Hermes::Mixins::Loggable::Static::info("Solution in VTK format saved to file %s.", "sln.vtk");
+  lin.save_solution_vtk(&ref_mag, "sln->vtk", "Acoustic pressure", mode_3D);
+  Hermes::Mixins::Loggable::Static::info("Solution in VTK format saved to file %s.", "sln->vtk");
 
   // Wait for all views to be closed.
   View::wait();

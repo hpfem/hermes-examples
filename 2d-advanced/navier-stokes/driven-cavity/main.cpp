@@ -66,7 +66,7 @@ double integrate_over_wall(MeshFunction<double>* meshfn, int marker)
 
   double integral = 0.0;
   Element* e;
-  const Mesh* mesh = meshfn->get_mesh();
+  MeshSharedPtr mesh,= meshfn->get_mesh();
 
   for_all_active_elements(e, mesh)
   {
@@ -121,7 +121,7 @@ int main(int argc, char* argv[])
 #else
   H1Space<double> p_space(mesh, P_INIT_PRESSURE);
 #endif
-  Hermes::vector<const Space<double>*> spaces = Hermes::vector<const Space<double>*>(&xvel_space, &yvel_space, &p_space);
+  Hermes::vector<SpaceSharedPtr<double> > spaces = Hermes::vector<SpaceSharedPtr<double> >(&xvel_space, &yvel_space, &p_space);
 
   // Calculate and report the number of degrees of freedom.
   int ndof = Space<double>::get_num_dofs(spaces);
@@ -140,11 +140,11 @@ int main(int argc, char* argv[])
   ZeroSolution<double> xvel_prev_time(mesh);
   ZeroSolution<double> yvel_prev_time(mesh);
   ZeroSolution<double> p_prev_time(mesh);
-  Hermes::vector<Solution<double>*> slns_prev_time = 
-      Hermes::vector<Solution<double>*>(&xvel_prev_time, &yvel_prev_time, &p_prev_time);
+  Hermes::vector<MeshFunctionSharedPtr<double> > slns_prev_time = 
+      Hermes::vector<MeshFunctionSharedPtr<double> >(xvel_prev_time, yvel_prev_time, p_prev_time);
 
   // Initialize weak formulation.
-  WeakForm<double>* wf = new WeakFormNSNewton(STOKES, RE, TAU, &xvel_prev_time, &yvel_prev_time);
+  WeakForm<double>* wf = new WeakFormNSNewton(STOKES, RE, TAU, xvel_prev_time, yvel_prev_time);
 
   // Initialize the FE problem.
   DiscreteProblem<double> dp(wf, spaces);
@@ -168,15 +168,15 @@ int main(int argc, char* argv[])
 
     // Update time-dependent essential BCs.
     Hermes::Mixins::Loggable::Static::info("Updating time-dependent essential BC.");
-    Space<double>::update_essential_bc_values(Hermes::vector<Space<double>*>(&xvel_space, &yvel_space), current_time);
+    Space<double>::update_essential_bc_values(Hermes::vector<SpaceSharedPtr<double> >(&xvel_space, &yvel_space), current_time);
 
     // Perform Newton's iteration.
     Hermes::Mixins::Loggable::Static::info("Solving nonlinear problem:");
     Hermes::Hermes2D::NewtonSolver<double> newton(&dp);
     try
     {
-      newton.set_newton_max_iter(NEWTON_MAX_ITER);
-      newton.set_newton_tol(NEWTON_TOL);
+      newton.set_max_allowed_iterations(NEWTON_MAX_ITER);
+      newton.set_tolerance(NEWTON_TOL);
       newton.solve();
     }
     catch(Hermes::Exceptions::Exception e)
@@ -191,10 +191,10 @@ int main(int argc, char* argv[])
     // Show the solution at the end of time step.
     sprintf(title, "Pressure, time %g", current_time);
     pview.set_title(title);
-    pview.show(&p_prev_time);
+    pview.show(p_prev_time);
     sprintf(title, "Velocity, time %g", current_time);
     vview.set_title(title);
-    vview.show(&xvel_prev_time, &yvel_prev_time, HERMES_EPS_LOW*10);
+    vview.show(xvel_prev_time, yvel_prev_time, HERMES_EPS_LOW*10);
     
  }
 

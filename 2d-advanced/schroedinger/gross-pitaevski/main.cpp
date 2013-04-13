@@ -91,12 +91,12 @@ int main(int argc, char* argv[])
   EssentialBCs<std::complex<double> > bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.
-  H1Space<std::complex<double> > space(mesh, &bcs, P_INIT);
-  int ndof = space.get_num_dofs();
+  SpaceSharedPtr<std::complex<double> > space(new H1Space<std::complex<double> > (mesh, &bcs, P_INIT));
+  int ndof = space->get_num_dofs();
   Hermes::Mixins::Loggable::Static::info("ndof = %d", ndof);
  
   // Initialize the FE problem.
-  DiscreteProblem<std::complex<double> > dp(&wf, &space);
+  DiscreteProblem<std::complex<double> > dp(&wf, space);
 
   // Initialize views.
   ScalarView sview_real("Solution - real part", new WinGeom(0, 0, 600, 500));
@@ -105,7 +105,7 @@ int main(int argc, char* argv[])
   sview_imag.fix_scale_width(80);
 
   // Initialize Runge-Kutta time stepping.
-  RungeKutta<std::complex<double> > runge_kutta(&wf, &space, &bt);
+  RungeKutta<std::complex<double> > runge_kutta(&wf, space, &bt);
   
   // Time stepping:
   int ts = 1;
@@ -136,11 +136,11 @@ int main(int argc, char* argv[])
     sview_imag.set_title(title);
     RealFilter real(&psi_time_new);
     ImagFilter imag(&psi_time_new);
-    sview_real.show(&real);
-    sview_imag.show(&imag);
+    sview_real.show(real);
+    sview_imag.show(imag);
 
     // Copy solution for the new time step.
-    psi_time_prev.copy(&psi_time_new);
+    psi_time_prev->copy(psi_time_new);
 
     // Increase current time and time step counter.
     current_time += time_step;

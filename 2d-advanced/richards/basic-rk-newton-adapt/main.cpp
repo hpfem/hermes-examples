@@ -125,10 +125,10 @@ int main(int argc, char* argv[])
   if (bt.is_fully_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage fully implicit R-K method.", bt.get_size());
 
   // Load the mesh->
-  Mesh mesh, basemesh;
+  MeshSharedPtr mesh(new Mesh), basemesh(new Mesh);
   MeshReaderH2D mloader;
-  mloader.load("square.mesh", &basemesh);
-  mesh->copy(&basemesh);
+  mloader.load("square.mesh", basemesh);
+  mesh->copy(basemesh);
 
   // Initial mesh refinements.
   for(int i = 0; i < INIT_GLOB_REF_NUM; i++) mesh->refine_all_elements();
@@ -139,8 +139,8 @@ int main(int argc, char* argv[])
   EssentialBCs<double> bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.
-  H1Space<double> space(mesh, &bcs, P_INIT);
-  int ndof_coarse = Space<double>::get_num_dofs(&space);
+  SpaceSharedPtr<double> space(new H1Space<double>(mesh, &bcs, P_INIT));
+  int ndof_coarse = Space<double>::get_num_dofs(space);
   Hermes::Mixins::Loggable::Static::info("ndof_coarse = %d.", ndof_coarse);
 
   // Zero initial solution. This is why we use H_OFFSET.
@@ -157,7 +157,7 @@ int main(int argc, char* argv[])
   CustomWeakFormRichardsRK wf(constitutive_relations);
 
   // Initialize the FE problem.
-  DiscreteProblem<double> dp(&wf, &space);
+  DiscreteProblem<double> dp(&wf, space);
 
   // Create a refinement selector.
   H1ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
@@ -166,8 +166,8 @@ int main(int argc, char* argv[])
   char title[100];
   ScalarView view("Initial condition", new WinGeom(0, 0, 440, 350));
   OrderView ordview("Initial mesh", new WinGeom(445, 0, 440, 350));
-  view.show(&h_time_prev);
-  ordview.show(&space);
+  view.show(h_time_prev);
+  ordview.show(space);
 
   // DOF and CPU convergence graphs initialization.
   SimpleGraph graph_dof, graph_cpu;
@@ -185,20 +185,20 @@ int main(int argc, char* argv[])
     {
       Hermes::Mixins::Loggable::Static::info("Global mesh derefinement.");
       switch (UNREF_METHOD) {
-        case 1: mesh->copy(&basemesh);
-                space.set_uniform_order(P_INIT);
+        case 1: mesh->copy(basemesh);
+                space->set_uniform_order(P_INIT);
                 break;
         case 2: mesh->unrefine_all_elements();
-                space.set_uniform_order(P_INIT);
+                space->set_uniform_order(P_INIT);
                 break;
-        case 3: space.unrefine_all_mesh_elements();
-                space.adjust_element_order(-1, -1, P_INIT, P_INIT);
+        case 3: space->unrefine_all_mesh_elements();
+                space->adjust_element_order(-1, -1, P_INIT, P_INIT);
                 break;
         default: throw Hermes::Exceptions::Exception("Wrong global derefinement method.");
       }
 
-      space.assign_dofs();
-      ndof_coarse = Space<double>::get_num_dofs(&space);
+      space->assign_dofs();
+      ndof_coarse = Space<double>::get_num_dofs(space);
     }
 
     // Spatial adaptivity loop. Note: h_time_prev must not be changed 
@@ -208,12 +208,12 @@ int main(int argc, char* argv[])
     do {
       Hermes::Mixins::Loggable::Static::info("Time step %d, adaptivity step %d:", ts, as);
 
-      // Construct globally refined reference mesh and setup reference space.
+      // Construct globally refined reference mesh and setup reference space->
       Mesh::ReferenceMeshCreator refMeshCreator(mesh);
-      Mesh* ref_mesh = refMeshCreator.create_ref_mesh();
+      MeshSharedPtr ref_mesh = refMeshCreator.create_ref_mesh();
 
-      Space<double>::ReferenceSpaceCreator refSpaceCreator(&space, ref_mesh);
-      Space<double>* ref_space = refSpaceCreator.create_ref_space();
+      Space<double>::ReferenceSpaceCreator refSpaceCreator(space, ref_mesh);
+      SpaceSharedPtr<double> ref_space = refSpaceCreator.create_ref_space();
       int ndof_ref = Space<double>::get_num_dofs(ref_space);
 
       // Time measurement.
@@ -229,8 +229,8 @@ int main(int argc, char* argv[])
       {
         runge_kutta.set_time(current_time);
         runge_kutta.set_time_step(time_step);
-        runge_kutta.set_newton_max_iter(NEWTON_MAX_ITER);
-        runge_kutta.set_newton_tol(NEWTON_TOL);
+        runge_kutta.set_max_allowed_iterations(NEWTON_MAX_ITER);
+        runge_kutta.set_tolerance(NEWTON_TOL);
         runge_kutta.rk_time_step_newton(&h_time_prev, &h_time_new);
       }
       catch(Exceptions::Exception& e)
@@ -242,16 +242,16 @@ int main(int argc, char* argv[])
       // Project the fine mesh solution onto the coarse mesh->
       Solution<double> sln_coarse;
       Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh for error estimation.");
-      OGProjection<double> ogProjection; ogProjection.project_global(&space, &h_time_new, &sln_coarse); 
+      OGProjection<double> ogProjection; ogProjection.project_global(space, &h_time_new, sln_coarse); 
 
       // Calculate element errors and total error estimate.
       Hermes::Mixins::Loggable::Static::info("Calculating error estimate.");
-      Adapt<double>* adaptivity = new Adapt<double>(&space);
-      double err_est_rel_total = adaptivity->calc_err_est(&sln_coarse, &h_time_new) * 100;
+      Adapt<double>* adaptivity = new Adapt<double>(space);
+      double err_est_rel_total = adaptivity->calc_err_est(sln_coarse, &h_time_new) * 100;
 
       // Report results.
       Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_ref: %d, err_est_rel: %g%%", 
-           Space<double>::get_num_dofs(&space), Space<double>::get_num_dofs(ref_space), err_est_rel_total);
+           Space<double>::get_num_dofs(space), Space<double>::get_num_dofs(ref_space), err_est_rel_total);
 
       // Time measurement.
       cpu_time.tick();
@@ -263,7 +263,7 @@ int main(int argc, char* argv[])
         Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh->");
         done = adaptivity->adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
 
-        if (Space<double>::get_num_dofs(&space) >= NDOF_STOP) 
+        if (Space<double>::get_num_dofs(space) >= NDOF_STOP) 
           done = true;
         else
           // Increase the counter of performed adaptivity steps.
@@ -280,7 +280,7 @@ int main(int argc, char* argv[])
     while (done == false);
 
     // Add entry to DOF and CPU convergence graphs.
-    graph_dof.add_values(current_time, Space<double>::get_num_dofs(&space));
+    graph_dof.add_values(current_time, Space<double>::get_num_dofs(space));
     graph_dof.save("conv_dof_est.dat");
     graph_cpu.add_values(current_time, cpu_time.accumulated());
     graph_cpu.save("conv_cpu_est.dat");
@@ -290,15 +290,15 @@ int main(int argc, char* argv[])
     sprintf(title, "Solution, time %g", current_time);
     view.set_title(title);
     view.show_mesh(false);
-    view.show(&h_time_new);
+    view.show(h_time_new);
     sprintf(title, "Mesh, time %g", current_time);
     ordview.set_title(title);
-    ordview.show(&space);
+    ordview.show(space);
 
     // Copy last reference solution into h_time_prev.
     if(ts > 1)
       delete h_time_prev.get_mesh();
-    h_time_prev.copy(&h_time_new);
+    h_time_prev->copy(h_time_new);
 
     // Increase current time and counter of time steps.
     current_time += time_step;

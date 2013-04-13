@@ -15,7 +15,7 @@ double CustomExactFunction::dduhat_dxx(double x)
   return -K*K * (exp(K*x) + exp(-K*x)) / (exp(K) + exp(-K));
 }
 
-CustomExactSolution::CustomExactSolution(const Mesh* mesh, double K) : ExactSolutionScalar<double>(mesh)
+CustomExactSolution::CustomExactSolution(MeshSharedPtr mesh, double K) : ExactSolutionScalar<double>(mesh)
 {
   cef = new CustomExactFunction(K);
 }

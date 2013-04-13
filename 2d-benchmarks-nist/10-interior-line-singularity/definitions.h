@@ -39,7 +39,7 @@ public:
 class CustomExactSolution : public ExactSolutionScalar<double>
 {
 public:
-  CustomExactSolution(Mesh* mesh, double k, double alpha);
+  CustomExactSolution(MeshSharedPtr mesh, double k, double alpha);
 
   virtual double value(double x, double y) const;
 

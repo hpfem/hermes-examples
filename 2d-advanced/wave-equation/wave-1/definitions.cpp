@@ -21,8 +21,8 @@ MeshFunction<double>* CustomInitialConditionWave::clone() const
   return new CustomInitialConditionWave(this->mesh);
 }
 
-CustomWeakFormWave::CustomWeakFormWave(double tau, double c_squared, Solution<double>* u_prev_sln,
-                                       Solution<double>* v_prev_sln) : WeakForm<double>(2) 
+CustomWeakFormWave::CustomWeakFormWave(double tau, double c_squared, MeshFunctionSharedPtr<double>  u_prev_sln,
+                                       MeshFunctionSharedPtr<double>  v_prev_sln) : WeakForm<double>(2) 
 {
   // Volumetric matrix forms.
   add_matrix_form(new WeakFormsH1::DefaultMatrixFormVol<double>(0, 1, HERMES_ANY, new Hermes2DFunction<double>(1.0), HERMES_NONSYM));

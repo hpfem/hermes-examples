@@ -97,7 +97,7 @@ int main(int argc, char* argv[])
   H1Space<double> p_space(mesh, P_INIT_PRESSURE);
 #endif
   H1Space<double> t_space(mesh, &bcs_temp, P_INIT_TEMP);
-  Hermes::vector<const Space<double>*> spaces = Hermes::vector<const Space<double>*>(&xvel_space, &yvel_space, &p_space, &t_space);
+  Hermes::vector<SpaceSharedPtr<double> > spaces = Hermes::vector<SpaceSharedPtr<double> >(&xvel_space, &yvel_space, &p_space, &t_space);
 
   // Calculate and report the number of degrees of freedom.
   int ndof = Space<double>::get_num_dofs(spaces);
@@ -118,12 +118,12 @@ int main(int argc, char* argv[])
   ZeroSolution<double> yvel_prev_time(mesh);
   ZeroSolution<double> p_prev_time(mesh);
   ConstantSolution<double> t_prev_time(mesh, TEMP_INIT);
-  Hermes::vector<Solution<double>*> slns = Hermes::vector<Solution<double>*>(&xvel_prev_time, 
-      &yvel_prev_time, &p_prev_time, &t_prev_time);
+  Hermes::vector<MeshFunctionSharedPtr<double> > slns = Hermes::vector<MeshFunctionSharedPtr<double> >(xvel_prev_time, 
+      yvel_prev_time, p_prev_time, &t_prev_time);
 
   // Initialize weak formulation.
   WeakForm<double>* wf = new WeakFormRayleighBenard(Pr, Ra, "Top", TEMP_EXT, ALPHA_AIR, time_step, 
-      &xvel_prev_time, &yvel_prev_time, &t_prev_time);
+      xvel_prev_time, yvel_prev_time, &t_prev_time);
 
   // Initialize the FE problem.
   DiscreteProblem<double> dp(wf, spaces);
@@ -158,8 +158,8 @@ int main(int argc, char* argv[])
     newton.set_verbose_output(true);
     try
     {
-      newton.set_newton_max_iter(NEWTON_MAX_ITER);
-      newton.set_newton_tol(NEWTON_TOL);
+      newton.set_max_allowed_iterations(NEWTON_MAX_ITER);
+      newton.set_tolerance(NEWTON_TOL);
       newton.solve(coeff_vec);
     }
     catch(Hermes::Exceptions::Exception e)
@@ -174,11 +174,11 @@ int main(int argc, char* argv[])
     // Show the solution at the end of time step.
     sprintf(title, "Velocity, time %g", current_time);
     vview.set_title(title);
-    vview.show(&xvel_prev_time, &yvel_prev_time);
+    vview.show(xvel_prev_time, yvel_prev_time);
     sprintf(title, "Pressure, time %g", current_time);
     pview.set_title(title);
-    pview.show(&p_prev_time);
-    tview.show(&t_prev_time);
+    pview.show(p_prev_time);
+    tview.show(t_prev_time);
 
     // Update current time.
     current_time += time_step;

@@ -13,7 +13,7 @@ class CustomWeakFormWaveIE : public WeakForm<double>
 {
 public:
 
-  CustomWeakFormWaveIE(double tau, double c_squared, Solution<double>* E_prev_sln, Solution<double>* F_prev_sln);
+  CustomWeakFormWaveIE(double tau, double c_squared, MeshFunctionSharedPtr<double>  E_prev_sln, MeshFunctionSharedPtr<double>  F_prev_sln);
 
 private:
   class MatrixFormVolWave_0_0 : public MatrixFormVol<double>
@@ -112,7 +112,7 @@ private:
 class CustomInitialConditionWave : public ExactSolutionVector<double>
 {
 public:
-  CustomInitialConditionWave(const Mesh* mesh) : ExactSolutionVector<double>(mesh) {};
+  CustomInitialConditionWave(MeshSharedPtr mesh) : ExactSolutionVector<double>(mesh) {};
 
   virtual Scalar2<double> value (double x, double y) const;
 

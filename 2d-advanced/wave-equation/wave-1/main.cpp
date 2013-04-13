@@ -77,19 +77,19 @@ int main(int argc, char* argv[])
   // Initialize solutions.
   CustomInitialConditionWave u_sln(mesh);
   ZeroSolution<double> v_sln(mesh);
-  Hermes::vector<Solution<double>*> slns(&u_sln, &v_sln);
+  Hermes::vector<MeshFunctionSharedPtr<double> > slns(u_sln, v_sln);
 
   // Initialize the weak formulation.
-  CustomWeakFormWave wf(time_step, C_SQUARED, &u_sln, &v_sln);
+  CustomWeakFormWave wf(time_step, C_SQUARED, u_sln, v_sln);
   
   // Initialize boundary conditions
   DefaultEssentialBCConst<double> bc_essential("Bdy", 0.0);
   EssentialBCs<double> bcs(&bc_essential);
 
   // Create x- and y- displacement space using the default H1 shapeset.
-  H1Space<double> u_space(mesh, &bcs, P_INIT);
-  H1Space<double> v_space(mesh, &bcs, P_INIT);
-  Hermes::Mixins::Loggable::Static::info("ndof = %d.", Space<double>::get_num_dofs(Hermes::vector<const Space<double>*>(&u_space, &v_space)));
+  H1Space<double> u_space(mesh, &bcs, P_INIT));
+  H1Space<double> v_space(mesh, &bcs, P_INIT));
+  Hermes::Mixins::Loggable::Static::info("ndof = %d.", Space<double>::get_num_dofs(Hermes::vector<SpaceSharedPtr<double> >(u_space, v_space)));
 
   // Initialize views.
   ScalarView u_view("Solution u", new WinGeom(0, 0, 500, 400));
@@ -100,7 +100,7 @@ int main(int argc, char* argv[])
   v_view.fix_scale_width(50);
 
   // Initialize Runge-Kutta time stepping.
-  RungeKutta<double> runge_kutta(&wf, Hermes::vector<const Space<double>*>(&u_space, &v_space), &bt);
+  RungeKutta<double> runge_kutta(&wf, Hermes::vector<SpaceSharedPtr<double> >(u_space, v_space), &bt);
 
   // Time stepping loop.
   double current_time = 0; int ts = 1;
@@ -128,10 +128,10 @@ int main(int argc, char* argv[])
     char title[100];
     sprintf(title, "Solution u, t = %g", current_time);
     u_view.set_title(title);
-    u_view.show(&u_sln);
+    u_view.show(u_sln);
     sprintf(title, "Solution v, t = %g", current_time);
     v_view.set_title(title);
-    v_view.show(&v_sln);
+    v_view.show(v_sln);
 
     // Update time.
     current_time += time_step;

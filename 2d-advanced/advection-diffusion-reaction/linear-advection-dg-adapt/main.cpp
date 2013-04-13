@@ -67,8 +67,8 @@ int main(int argc, char* args[])
   // Perform initial mesh refinement.
   for (int i=0; i<INIT_REF; i++) mesh->refine_all_elements();
 
-  // Create an L2 space.
-  L2Space<double> space(mesh, P_INIT);
+  // Create an L2 space->
+  L2Space<double> space(mesh, P_INIT));
 
   // Initialize refinement selector.
   L2ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
@@ -81,10 +81,10 @@ int main(int argc, char* args[])
 
   // Display the mesh->
   OrderView oview("Coarse mesh", new WinGeom(0, 0, 440, 350));
-  oview.show(&space);
+  oview.show(space);
 
-  Solution<double> sln;
-  Solution<double> ref_sln;
+  MeshFunctionSharedPtr<double> sln(new Solution<double>());
+  MeshFunctionSharedPtr<double> ref_sln(new Solution<double>());
 
   // Initialize the weak formulation.
   CustomWeakForm wf("Bdy_bottom_left", mesh);
@@ -93,17 +93,17 @@ int main(int argc, char* args[])
   view1.fix_scale_width(60);
 
   // Initialize linear solver.
-  Hermes::Hermes2D::LinearSolver<double> linear_solver(&wf, &space);
+  Hermes::Hermes2D::LinearSolver<double> linear_solver(&wf, space);
 
   int as = 1; bool done = false;
   do
   {
     // Construct globally refined reference mesh
-    // and setup reference space.
+    // and setup reference space->
     Mesh::ReferenceMeshCreator ref_mesh_creator(mesh);
-    Mesh* ref_mesh = ref_mesh_creator.create_ref_mesh();
-    Space<double>::ReferenceSpaceCreator ref_space_creator(&space, ref_mesh);
-    Space<double>* ref_space = ref_space_creator.create_ref_space();
+    MeshSharedPtr ref_mesh = ref_mesh_creator.create_ref_mesh();
+    Space<double>::ReferenceSpaceCreator ref_space_creator(space, ref_mesh);
+    SpaceSharedPtr<double> ref_space = ref_space_creator.create_ref_space();
 
     linear_solver.set_space(ref_space);
 
@@ -111,7 +111,7 @@ int main(int argc, char* args[])
     try
     {
       linear_solver.solve();
-      Solution<double>::vector_to_solution(linear_solver.get_sln_vector(), ref_space, &ref_sln);
+      Solution<double>::vector_to_solution(linear_solver.get_sln_vector(), ref_space, ref_sln);
     }
     catch(std::exception& e)
     {
@@ -119,22 +119,22 @@ int main(int argc, char* args[])
     }
     // Project the fine mesh solution onto the coarse mesh->
     OGProjection<double> ogProjection;
-    ogProjection.project_global(&space, &ref_sln, &sln, HERMES_L2_NORM);
+    ogProjection.project_global(space, ref_sln, sln, HERMES_L2_NORM);
 
-    ValFilter val_filter(&ref_sln, 0.0, 1.0);
+    ValFilter val_filter(ref_sln, 0.0, 1.0);
 
     // View the coarse mesh solution.
-    view1.show(&val_filter);
-    oview.show(&space);
+    view1.show(val_filter);
+    oview.show(space);
 
     // Calculate element errors and total error estimate.
-    Adapt<double>* adaptivity = new Adapt<double>(&space);
-    double err_est_rel = adaptivity->calc_err_est(&sln, &ref_sln) * 100;
+    Adapt<double>* adaptivity = new Adapt<double>(space);
+    double err_est_rel = adaptivity->calc_err_est(sln, ref_sln) * 100;
 
     std::cout << "Error: " << err_est_rel << "%." << std::endl;
 
     // Add entry to DOF and CPU convergence graphs.
-    graph_dof_est.add_values(Space<double>::get_num_dofs(&space), err_est_rel);
+    graph_dof_est.add_values(Space<double>::get_num_dofs(space), err_est_rel);
     graph_dof_est.save("conv_dof_est.dat");
 
     // If err_est_rel too large, adapt the mesh->
@@ -143,7 +143,7 @@ int main(int argc, char* args[])
     {
       done = adaptivity->adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
 
-      if(Space<double>::get_num_dofs(&space) >= NDOF_STOP)
+      if(Space<double>::get_num_dofs(space) >= NDOF_STOP)
       {
         done = true;
         break;

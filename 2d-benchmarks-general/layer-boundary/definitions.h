@@ -25,7 +25,7 @@ protected:
 class CustomExactSolution : public ExactSolutionScalar<double>
 {
 public:
-  CustomExactSolution(const Mesh* mesh, double K);
+  CustomExactSolution(MeshSharedPtr mesh, double K);
 
   virtual double value (double x, double y) const;
 

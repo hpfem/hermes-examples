@@ -24,7 +24,7 @@ public:
 class CustomExactSolution : public ExactSolutionScalar<double>
 {
 public:
-  CustomExactSolution(Mesh* mesh, double epsilon)
+  CustomExactSolution(MeshSharedPtr mesh, double epsilon)
       : ExactSolutionScalar<double>(mesh), epsilon(epsilon) {};
 
   virtual double value(double x, double y) const;

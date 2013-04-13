@@ -107,9 +107,9 @@ const int ADAPTIVITY_STEPS = 5;
 const int NDOF_STOP = 6200;  
 
 // Problem parameters.
-// Permeability of free space.
+// Permeability of free space->
 const double MU_0 = 1.0;
-// Permittivity of free space.
+// Permittivity of free space->
 const double EPS_0 = 1.0;
 // Permittivity at infinite frequency.
 const double EPS_INF = 1.0;
@@ -150,11 +150,11 @@ int main(int argc, char* argv[])
 		if (bt.is_fully_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage fully implicit R-K method.", bt.get_size());
 
 		// Load the mesh->
-		Mesh E_mesh, H_mesh, P_mesh;
+		MeshSharedPtr E_mesh(new Mesh), H_mesh(new Mesh), P_mesh(new Mesh);
 		MeshReaderH2D mloader;
-		mloader.load("domain.mesh", &E_mesh);
-		mloader.load("domain.mesh", &H_mesh);
-		mloader.load("domain.mesh", &P_mesh);
+		mloader.load("domain.mesh", E_mesh);
+		mloader.load("domain.mesh", H_mesh);
+		mloader.load("domain.mesh", P_mesh);
 
 		// Perform initial mesh refinemets.
 		for (int i = 0; i < INIT_REF_NUM; i++)
@@ -166,13 +166,13 @@ int main(int argc, char* argv[])
 
 		// Initialize solutions.
 		double current_time = 0;
-		CustomInitialConditionE E_time_prev(&E_mesh, current_time, OMEGA, K_x, K_y);
-		CustomInitialConditionH H_time_prev(&H_mesh, current_time, OMEGA, K_x, K_y);
-		CustomInitialConditionP P_time_prev(&P_mesh, current_time, OMEGA, K_x, K_y);
-		Hermes::vector<Solution<double>*> slns_time_prev(&E_time_prev, &H_time_prev, &P_time_prev);
-		Solution<double> E_time_new(&E_mesh), H_time_new(&H_mesh), P_time_new(&P_mesh);
-		Solution<double> E_time_new_coarse, H_time_new_coarse, P_time_new_coarse;
-		Hermes::vector<Solution<double>*> slns_time_new(&E_time_new, &H_time_new, &P_time_new);
+		MeshFunctionSharedPtr<double> E_time_prev(new CustomInitialConditionE(&E_mesh, current_time, OMEGA, K_x, K_y));
+		MeshFunctionSharedPtr<double> H_time_prev(new CustomInitialConditionH(&H_mesh, current_time, OMEGA, K_x, K_y));
+		MeshFunctionSharedPtr<double> P_time_prev(new CustomInitialConditionP(&P_mesh, current_time, OMEGA, K_x, K_y));
+		Hermes::vector<MeshFunctionSharedPtr<double> > slns_time_prev(&E_time_prev, &H_time_prev, &P_time_prev);
+		MeshFunctionSharedPtr<double> E_time_new(new Solution<double>(E_mesh)), H_time_new(new Solution<double>(H_mesh)), P_time_new(new Solution<double>(P_mesh));
+		MeshFunctionSharedPtr<double> E_time_new_coarse(new Solution<double>(E_mesh)), H_time_new_coarse(new Solution<double>(H_mesh)), P_time_new_coarse(new Solution<double>(P_mesh));
+		Hermes::vector<MeshFunctionSharedPtr<double> > slns_time_new(&E_time_new, &H_time_new, &P_time_new);
 
 		// Initialize the weak formulation.
 		const CustomWeakFormMD wf(OMEGA, K_x, K_y, MU_0, EPS_0, EPS_INF, EPS_Q, TAU);
@@ -181,13 +181,12 @@ int main(int argc, char* argv[])
 		DefaultEssentialBCConst<double> bc_essential("Bdy", 0.0);
 		EssentialBCs<double> bcs(&bc_essential);
 
-		HcurlSpace<double> E_space(&E_mesh, &bcs, P_INIT);
-		H1Space<double> H_space(&H_mesh, NULL, P_INIT);
-		//L2Space<double> H_space(mesh, P_INIT);
-		HcurlSpace<double> P_space(&P_mesh, &bcs, P_INIT);
+		SpaceSharedPtr<double> E_space(new HcurlSpace<double> (E_mesh, &bcs, P_INIT));
+		SpaceSharedPtr<double> H_space(new H1Space<double> (H_mesh, NULL, P_INIT));
+		//L2Space<double> H_space(mesh, P_INIT));
+		SpaceSharedPtr<double> P_space(new HcurlSpace<double>(P_mesh, &bcs, P_INIT));
 
-		Hermes::vector<Space<double> *> spaces = Hermes::vector<Space<double> *>(&E_space, &H_space, &P_space);
-		Hermes::vector<const Space<double> *> spaces_const = Hermes::vector<const Space<double> *>(&E_space, &H_space, &P_space);
+		Hermes::vector<SpaceSharedPtr<double> > spaces = Hermes::vector<SpaceSharedPtr<double> >(E_space, H_space, P_space);
 		
 		// Initialize views.
 		ScalarView E1_view("Solution E1", new WinGeom(0, 0, 400, 350));
@@ -205,26 +204,26 @@ int main(int argc, char* argv[])
 		char title[100];
 		sprintf(title, "E1 - Initial Condition");
 		E1_view.set_title(title);
-		E1_view.show(&E_time_prev, H2D_FN_VAL_0);
+		E1_view.show(E_time_prev, H2D_FN_VAL_0);
 		sprintf(title, "E2 - Initial Condition");
 		E2_view.set_title(title);
-		E2_view.show(&E_time_prev, H2D_FN_VAL_1);
+		E2_view.show(E_time_prev, H2D_FN_VAL_1);
 
 		sprintf(title, "H - Initial Condition");
 		H_view.set_title(title);
-		H_view.show(&H_time_prev);
+		H_view.show(H_time_prev);
 
 		sprintf(title, "P1 - Initial Condition");
 		P1_view.set_title(title);
-		P1_view.show(&P_time_prev, H2D_FN_VAL_0);
+		P1_view.show(P_time_prev, H2D_FN_VAL_0);
 		sprintf(title, "P2 - Initial Condition");
 		P2_view.set_title(title);
-		P2_view.show(&P_time_prev, H2D_FN_VAL_1);
+		P2_view.show(P_time_prev, H2D_FN_VAL_1);
 
 		// Initialize Runge-Kutta time stepping.
-		RungeKutta<double> runge_kutta(&wf, spaces_const, &bt);
-    runge_kutta.set_newton_max_iter(NEWTON_MAX_ITER);
-		runge_kutta.set_newton_tol(NEWTON_TOL);
+		RungeKutta<double> runge_kutta(&wf, spaces, &bt);
+    runge_kutta.set_max_allowed_iterations(NEWTON_MAX_ITER);
+		runge_kutta.set_tolerance(NEWTON_TOL);
 		runge_kutta.set_verbose_output(true);
 
 		// Initialize refinement selector.
@@ -245,13 +244,13 @@ int main(int argc, char* argv[])
 				Hermes::Mixins::Loggable::Static::info("Global mesh derefinement.");
 				REFINEMENT_COUNT = 0;
 
-				E_space.unrefine_all_mesh_elements(true);
-				H_space.unrefine_all_mesh_elements(true);
-				P_space.unrefine_all_mesh_elements(true);
+				E_space->unrefine_all_mesh_elements(true);
+				H_space->unrefine_all_mesh_elements(true);
+				P_space->unrefine_all_mesh_elements(true);
 
-				E_space.adjust_element_order(-1, P_INIT);
-				H_space.adjust_element_order(-1, P_INIT);
-				P_space.adjust_element_order(-1, P_INIT);
+				E_space->adjust_element_order(-1, P_INIT));
+				H_space->adjust_element_order(-1, P_INIT));
+				P_space->adjust_element_order(-1, P_INIT));
 			}
 
 			// Adaptivity loop:
@@ -261,29 +260,29 @@ int main(int argc, char* argv[])
 			{
 				Hermes::Mixins::Loggable::Static::info("Adaptivity step %d:", as);
 
-				// Construct globally refined reference mesh and setup reference space.
+				// Construct globally refined reference mesh and setup reference space->
 				int order_increase = 1;
 
 				Mesh::ReferenceMeshCreator refMeshCreatorE(&E_mesh);
 				Mesh::ReferenceMeshCreator refMeshCreatorH(&H_mesh);
 				Mesh::ReferenceMeshCreator refMeshCreatorP(&P_mesh);
-				Mesh* ref_mesh_E = refMeshCreatorE.create_ref_mesh();
-				Mesh* ref_mesh_H = refMeshCreatorH.create_ref_mesh();
-				Mesh* ref_mesh_P = refMeshCreatorP.create_ref_mesh();
+				MeshSharedPtr ref_mesh_E = refMeshCreatorE.create_ref_mesh();
+				MeshSharedPtr ref_mesh_H = refMeshCreatorH.create_ref_mesh();
+				MeshSharedPtr ref_mesh_P = refMeshCreatorP.create_ref_mesh();
 
 				Space<double>::ReferenceSpaceCreator refSpaceCreatorE(&E_space, ref_mesh_E, order_increase);
-				Space<double>* ref_space_E = refSpaceCreatorE.create_ref_space();
+				SpaceSharedPtr<double> ref_space_E = refSpaceCreatorE.create_ref_space();
 				Space<double>::ReferenceSpaceCreator refSpaceCreatorH(&H_space, ref_mesh_H, order_increase);
-				Space<double>* ref_space_H = refSpaceCreatorH.create_ref_space();
+				SpaceSharedPtr<double> ref_space_H = refSpaceCreatorH.create_ref_space();
 				Space<double>::ReferenceSpaceCreator refSpaceCreatorP(&P_space, ref_mesh_P, order_increase);
-				Space<double>* ref_space_P = refSpaceCreatorP.create_ref_space();
+				SpaceSharedPtr<double> ref_space_P = refSpaceCreatorP.create_ref_space();
 
-        int ndof = Space<double>::get_num_dofs(Hermes::vector<const Space<double>*>(ref_space_E, ref_space_H, ref_space_P));
+        int ndof = Space<double>::get_num_dofs(Hermes::vector<SpaceSharedPtr<double> >(ref_space_E, ref_space_H, ref_space_P));
 		    Hermes::Mixins::Loggable::Static::info("ndof = %d.", ndof);
 
 				try
 				{
-          runge_kutta.set_spaces(Hermes::vector<const Space<double>*>(ref_space_E, ref_space_H, ref_space_P));
+          runge_kutta.set_spaces(Hermes::vector<SpaceSharedPtr<double> >(ref_space_E, ref_space_H, ref_space_P));
 					runge_kutta.set_time(current_time);
 					runge_kutta.set_time_step(time_step);
 					runge_kutta.rk_time_step_newton(slns_time_prev, slns_time_new);
@@ -298,33 +297,33 @@ int main(int argc, char* argv[])
 			  char title[100];
 			  sprintf(title, "E1, t = %g", current_time + time_step);
 			  E1_view.set_title(title);
-			  E1_view.show(&E_time_new, H2D_FN_VAL_0);
+			  E1_view.show(E_time_new, H2D_FN_VAL_0);
 			  sprintf(title, "E2, t = %g", current_time + time_step);
 			  E2_view.set_title(title);
-			  E2_view.show(&E_time_new, H2D_FN_VAL_1);
+			  E2_view.show(E_time_new, H2D_FN_VAL_1);
 
 			  sprintf(title, "H, t = %g", current_time + time_step);
 			  H_view.set_title(title);
-			  H_view.show(&H_time_new);
+			  H_view.show(H_time_new);
 
 			  sprintf(title, "P1, t = %g", current_time + time_step);
 			  P1_view.set_title(title);
-			  P1_view.show(&P_time_new, H2D_FN_VAL_0);
+			  P1_view.show(P_time_new, H2D_FN_VAL_0);
 			  sprintf(title, "P2, t = %g", current_time + time_step);
 			  P2_view.set_title(title);
-			  P2_view.show(&P_time_new, H2D_FN_VAL_1);
+			  P2_view.show(P_time_new, H2D_FN_VAL_1);
 
 				// Project the fine mesh solution onto the coarse mesh->
 				Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh->");
-				OGProjection<double> ogProjection; ogProjection.project_global(Hermes::vector<const Space<double> *>(&E_space, &H_space, 
-					&P_space), Hermes::vector<Solution<double>*>(&E_time_new, &H_time_new, &P_time_new), Hermes::vector<Solution<double>*>(&E_time_new_coarse, &H_time_new_coarse, &P_time_new_coarse));
+				OGProjection<double> ogProjection; ogProjection.project_global(Hermes::vector<SpaceSharedPtr<double> >(E_space, H_space, 
+					P_space), Hermes::vector<MeshFunctionSharedPtr<double> >(E_time_new, H_time_new, P_time_new), Hermes::vector<MeshFunctionSharedPtr<double> >(E_time_new_coarse, H_time_new_coarse, P_time_new_coarse));
 
 				// Calculate element errors and total error estimate.
 				Hermes::Mixins::Loggable::Static::info("Calculating error estimate.");
-				Adapt<double>* adaptivity = new Adapt<double>(Hermes::vector<Space<double> *>(&E_space, &H_space, &P_space));
+				Adapt<double>* adaptivity = new Adapt<double>(Hermes::vector<SpaceSharedPtr<double> >(E_space, H_space, P_space));
 
-				double err_est_rel_total = adaptivity->calc_err_est(Hermes::vector<Solution<double>*>(&E_time_new_coarse, &H_time_new_coarse, &P_time_new_coarse),
-					Hermes::vector<Solution<double>*>(&E_time_new, &H_time_new, &P_time_new)) * 100;
+				double err_est_rel_total = adaptivity->calc_err_est(Hermes::vector<MeshFunctionSharedPtr<double> >(E_time_new_coarse, H_time_new_coarse, P_time_new_coarse),
+					Hermes::vector<MeshFunctionSharedPtr<double> >(E_time_new, H_time_new, P_time_new)) * 100;
 
 				// Report results.
 				Hermes::Mixins::Loggable::Static::info("Error estimate: %g%%", err_est_rel_total);
@@ -345,34 +344,18 @@ int main(int argc, char* argv[])
 					done = adaptivity->adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&HcurlSelector, &H1selector, &HcurlSelector), 
 						THRESHOLD, STRATEGY, MESH_REGULARITY);
 
-          delete ref_mesh_E;
-          delete ref_mesh_H;
-          delete ref_mesh_P;
-
           if(!done)
 						as++;
 				}
-          
-        delete ref_space_E;
-        delete ref_space_H;
-        delete ref_space_P;
 
         delete adaptivity;
-			} while(!done);
+			} 
+      while(!done);
 
 			//View::wait();
-
-			// Update solutions.
-      if(ts > 1)
-      {
-        delete E_time_prev.get_mesh();
-        delete H_time_prev.get_mesh();
-        delete P_time_prev.get_mesh();
-      }
-
-			E_time_prev.copy(&E_time_new);
-			H_time_prev.copy(&H_time_new);
-			P_time_prev.copy(&P_time_new);
+			E_time_prev->copy(E_time_new);
+			H_time_prev->copy(H_time_new);
+			P_time_prev->copy(P_time_new);
 
 			// Update time.
 			current_time += time_step;

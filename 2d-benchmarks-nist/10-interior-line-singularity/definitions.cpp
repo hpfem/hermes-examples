@@ -29,7 +29,7 @@ Ord CustomRightHandSide::value(Ord x, Ord y) const
   return Ord(16);
 }
 
-CustomExactSolution::CustomExactSolution(Mesh* mesh, double k, double alpha) : ExactSolutionScalar<double>(mesh), k(k), alpha(alpha)
+CustomExactSolution::CustomExactSolution(MeshSharedPtr mesh, double k, double alpha) : ExactSolutionScalar<double>(mesh), k(k), alpha(alpha)
 {
   cef = new CustomExactFunction(k, alpha);
 }

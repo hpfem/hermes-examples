@@ -74,10 +74,10 @@ int main(int argc, char* argv[])
   EssentialBCs<double> bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.
-  H1Space<double> space(mesh, &bcs, P_INIT);
+  SpaceSharedPtr<double> space(new H1Space<double>(mesh, &bcs, P_INIT));
 
   // Initialize approximate solution.
-  Solution<double> sln;
+  MeshFunctionSharedPtr<double> sln(new Solution<double>());
 
   // Initialize refinement selector.
   H1ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
@@ -100,12 +100,12 @@ int main(int argc, char* argv[])
   {
     cpu_time.tick();
 
-    // Construct globally refined reference mesh and setup reference space.
+    // Construct globally refined reference mesh and setup reference space->
     Mesh::ReferenceMeshCreator refMeshCreator(mesh);
-    Mesh* ref_mesh = refMeshCreator.create_ref_mesh();
+    MeshSharedPtr ref_mesh = refMeshCreator.create_ref_mesh();
 
-    Space<double>::ReferenceSpaceCreator refSpaceCreator(&space, ref_mesh);
-    Space<double>* ref_space = refSpaceCreator.create_ref_space();
+    Space<double>::ReferenceSpaceCreator refSpaceCreator(space, ref_mesh);
+    SpaceSharedPtr<double> ref_space = refSpaceCreator.create_ref_space();
     int ndof_ref = ref_space->get_num_dofs();
 
     Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d (%d DOF):", as, ndof_ref);
@@ -119,7 +119,7 @@ int main(int argc, char* argv[])
     NewtonSolver<double> newton(&dp);
     //newton.set_verbose_output(false);
     
-    Solution<double> ref_sln;
+    MeshFunctionSharedPtr<double> ref_sln(new Solution<double>());
     try
     {
       newton.solve();
@@ -130,27 +130,27 @@ int main(int argc, char* argv[])
       throw Hermes::Exceptions::Exception("Newton's iteration failed.");
     };
     // Translate the resulting coefficient vector into the instance of Solution.
-    Solution<double>::vector_to_solution(newton.get_sln_vector(), ref_space, &ref_sln);
+    Solution<double>::vector_to_solution(newton.get_sln_vector(), ref_space, ref_sln);
     
     cpu_time.tick();
     Hermes::Mixins::Loggable::Static::info("Solution: %g s", cpu_time.last());
 
     // Project the fine mesh solution onto the coarse mesh->
     Hermes::Mixins::Loggable::Static::info("Calculating error estimate and exact error.");
-    OGProjection<double> ogProjection; ogProjection.project_global(&space, &ref_sln, &sln);
+    OGProjection<double> ogProjection; ogProjection.project_global(space, ref_sln, sln);
 
     // Calculate element errors and total error estimate.
-    Adapt<double> adaptivity(&space);
-    double err_est_rel = adaptivity.calc_err_est(&sln, &ref_sln) * 100;
+    Adapt<double> adaptivity(space);
+    double err_est_rel = adaptivity.calc_err_est(sln, ref_sln) * 100;
 
     // Calculate exact error.
-    double err_exact_rel = Global<double>::calc_rel_error(&sln, &exact_sln, HERMES_H1_NORM) * 100;
+    double err_exact_rel = Global<double>::calc_rel_error(sln, &exact_sln, HERMES_H1_NORM) * 100;
 
     cpu_time.tick();
     Hermes::Mixins::Loggable::Static::info("Error calculation: %g s", cpu_time.last());
     
     // Report results.
-    Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d", space.get_num_dofs(), ref_space->get_num_dofs());
+    Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d", space->get_num_dofs(), ref_space->get_num_dofs());
     Hermes::Mixins::Loggable::Static::info("err_est_rel: %g%%, err_exact_rel: %g%%", err_est_rel, err_exact_rel);
 
     // Time measurement.
@@ -158,15 +158,15 @@ int main(int argc, char* argv[])
     double accum_time = cpu_time.accumulated();
     
     // View the coarse mesh solution and polynomial orders.
-    sview.show(&sln);
-    oview.show(&space);
+    sview.show(sln);
+    oview.show(space);
 
     // Add entry to DOF and CPU convergence graphs.
-    graph_dof_est.add_values(space.get_num_dofs(), err_est_rel);
+    graph_dof_est.add_values(space->get_num_dofs(), err_est_rel);
     graph_dof_est.save("conv_dof_est.dat");
     graph_cpu_est.add_values(accum_time, err_est_rel);
     graph_cpu_est.save("conv_cpu_est.dat");
-    graph_dof_exact.add_values(space.get_num_dofs(), err_exact_rel);
+    graph_dof_exact.add_values(space->get_num_dofs(), err_exact_rel);
     graph_dof_exact.save("conv_dof_exact.dat");
     graph_cpu_exact.add_values(accum_time, err_exact_rel);
     graph_cpu_exact.save("conv_cpu_exact.dat");
@@ -175,7 +175,7 @@ int main(int argc, char* argv[])
 
     // If err_est too large, adapt the mesh-> The NDOF test must be here, so that the solution may be visualized
     // after ending due to this criterion.
-    if (err_exact_rel < ERR_STOP || space.get_num_dofs() >= NDOF_STOP) 
+    if (err_exact_rel < ERR_STOP || space->get_num_dofs() >= NDOF_STOP) 
       done = true;
     else
       done = adaptivity.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
@@ -188,7 +188,7 @@ int main(int argc, char* argv[])
       as++;
     
     delete ref_space->get_mesh();
-    delete ref_space;
+    
   }
   while (done == false);
 

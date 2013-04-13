@@ -12,7 +12,7 @@ using namespace Hermes::Hermes2D::RefinementSelectors;
 class CustomInitialConditionWave : public ExactSolutionScalar<double>
 {
 public:
-  CustomInitialConditionWave(const Mesh* mesh) : ExactSolutionScalar<double>(mesh) {};
+  CustomInitialConditionWave(MeshSharedPtr mesh) : ExactSolutionScalar<double>(mesh) {};
 
   virtual double value (double x, double y) const;
 
@@ -29,7 +29,7 @@ class CustomWeakFormWave : public WeakForm<double>
 {
 public:
 
-  CustomWeakFormWave(double tau, double c_squared, Solution<double>* u_prev_sln, Solution<double>* v_prev_sln);
+  CustomWeakFormWave(double tau, double c_squared, MeshFunctionSharedPtr<double>  u_prev_sln, MeshFunctionSharedPtr<double>  v_prev_sln);
 
 private:
   class VectorFormVolWave_0 : public VectorFormVol<double>

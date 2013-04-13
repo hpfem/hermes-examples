@@ -9,7 +9,7 @@ using namespace Hermes::Hermes2D::Views;
 class CustomExactSolution : public ExactSolutionScalar<double>
 {
 public:
-  CustomExactSolution(Mesh* mesh, double alpha)
+  CustomExactSolution(MeshSharedPtr mesh, double alpha)
       : ExactSolutionScalar<double>(mesh), alpha(alpha) {};
 
   virtual double value(double x, double y) const;

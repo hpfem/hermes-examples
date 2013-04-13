@@ -90,13 +90,13 @@ int main(int argc, char* argv[])
   EssentialBCs<double> bcs(Hermes::vector<EssentialBoundaryCondition<double> *>(&bc_rest, &bc_layer));
 
   // Create an H1 space with default shapeset.
-  H1Space<double> space(mesh, &bcs, P_INIT);
+  SpaceSharedPtr<double> space(new H1Space<double>(mesh, &bcs, P_INIT));
 
   WinGeom* sln_win_geom = new WinGeom(0, 0, 440, 350);
   WinGeom* mesh_win_geom = new WinGeom(450, 0, 400, 350);
 
   // Initialize coarse and reference mesh solution.
-  Solution<double> sln, ref_sln;
+  MeshFunctionSharedPtr<double> sln(new Solution<double>), ref_sln(new Solution<double>);
   
   // Initialize refinement selector.
   H1ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
@@ -121,12 +121,12 @@ int main(int argc, char* argv[])
   {
     Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d:", as);
 
-    // Construct globally refined reference mesh and setup reference space.
+    // Construct globally refined reference mesh and setup reference space->
     Mesh::ReferenceMeshCreator refMeshCreator(mesh);
-    Mesh* ref_mesh = refMeshCreator.create_ref_mesh();
+    MeshSharedPtr ref_mesh = refMeshCreator.create_ref_mesh();
 
-    Space<double>::ReferenceSpaceCreator refSpaceCreator(&space, ref_mesh);
-    Space<double>* ref_space = refSpaceCreator.create_ref_space();
+    Space<double>::ReferenceSpaceCreator refSpaceCreator(space, ref_mesh);
+    SpaceSharedPtr<double> ref_space = refSpaceCreator.create_ref_space();
 
     // Initialize matrix solver.
     SparseMatrix<double>* matrix = create_matrix<double>();
@@ -143,37 +143,37 @@ int main(int argc, char* argv[])
     
     // Solve the linear system of the reference problem. 
     // If successful, obtain the solution.
-    if(solver->solve()) Solution<double>::vector_to_solution(solver->get_sln_vector(), ref_space, &ref_sln);
+    if(solver->solve()) Solution<double>::vector_to_solution(solver->get_sln_vector(), ref_space, ref_sln);
     else throw Hermes::Exceptions::Exception("Matrix solver failed.\n");
 
     // Project the fine mesh solution onto the coarse mesh->
     Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh->");
-    OGProjection<double> ogProjection; ogProjection.project_global(&space, &ref_sln, &sln); 
+    OGProjection<double> ogProjection; ogProjection.project_global(space, ref_sln, sln); 
 
     // Time measurement.
     cpu_time.tick();
    
     // View the coarse mesh solution and polynomial orders.
-    sview.show(&sln);
-    oview.show(&space);
+    sview.show(sln);
+    oview.show(space);
 
     // Skip visualization time.
     cpu_time.tick(Hermes::Mixins::TimeMeasurable::HERMES_SKIP);
 
     // Calculate element errors and total error estimate.
     Hermes::Mixins::Loggable::Static::info("Calculating error estimate."); 
-    Adapt<double>* adaptivity = new Adapt<double>(&space);
-    double err_est_rel = adaptivity->calc_err_est(&sln, &ref_sln) * 100;
+    Adapt<double>* adaptivity = new Adapt<double>(space);
+    double err_est_rel = adaptivity->calc_err_est(sln, ref_sln) * 100;
 
     // Report results.
     Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d, err_est_rel: %g%%", 
-      Space<double>::get_num_dofs(&space), Space<double>::get_num_dofs(ref_space), err_est_rel);
+      Space<double>::get_num_dofs(space), Space<double>::get_num_dofs(ref_space), err_est_rel);
 
     // Time measurement.
     cpu_time.tick();
 
     // Add entry to DOF and CPU convergence graphs.
-    graph_dof.add_values(Space<double>::get_num_dofs(&space), err_est_rel);
+    graph_dof.add_values(Space<double>::get_num_dofs(space), err_est_rel);
     graph_dof.save("conv_dof_est.dat");
     graph_cpu.add_values(cpu_time.accumulated(), err_est_rel);
     graph_cpu.save("conv_cpu_est.dat");
@@ -188,7 +188,7 @@ int main(int argc, char* argv[])
       // Increase the counter of performed adaptivity steps.
       if (done == false)  as++;
     }
-    if (Space<double>::get_num_dofs(&space) >= NDOF_STOP) done = true;
+    if (Space<double>::get_num_dofs(space) >= NDOF_STOP) done = true;
 
     // Clean up.
     delete solver;
@@ -196,7 +196,7 @@ int main(int argc, char* argv[])
     delete rhs;
     delete adaptivity;
     if(done == false) delete ref_space->get_mesh();
-    delete ref_space;
+    
     delete dp;
     
   }
@@ -207,7 +207,7 @@ int main(int argc, char* argv[])
   // Show the reference solution - the final result.
   sview.set_title("Fine mesh solution");
   sview.show_mesh(false);
-  sview.show(&ref_sln);
+  sview.show(ref_sln);
 
   // Wait for all views to be closed.
   View::wait();

@@ -142,7 +142,7 @@ int main(int argc, char* argv[])
   
   // Create pointers to solutions on coarse and fine meshes and from the latest power iteration, respectively.
   Hermes::vector<Solution<double>*> coarse_solutions, fine_solutions;
-  Hermes::vector<MeshFunction<double>*> power_iterates;
+  Hermes::vector<MeshFunctionSharedPtr<double> > power_iterates;
 
   // Initialize all the new solution variables.
   for (unsigned int g = 0; g < matprop.get_G(); g++) 

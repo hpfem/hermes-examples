@@ -10,8 +10,8 @@ using namespace Hermes::Hermes2D::RefinementSelectors;
 class WeakFormNSNewton : public WeakForm<double>
 {
 public:
-  WeakFormNSNewton(bool Stokes, double Reynolds, double time_step, Solution<double>* x_vel_previous_time, 
-                   Solution<double>* y_vel_previous_time);
+  WeakFormNSNewton(bool Stokes, double Reynolds, double time_step, MeshFunctionSharedPtr<double>  x_vel_previous_time, 
+                   MeshFunctionSharedPtr<double>  y_vel_previous_time);
 
   class BilinearFormSymVel : public MatrixFormVol<double>
   {
@@ -181,8 +181,8 @@ protected:
   bool Stokes;
   double Reynolds;
   double time_step;
-  Solution<double>* x_vel_previous_time;
-  Solution<double>* y_vel_previous_time;
+  MeshFunctionSharedPtr<double>  x_vel_previous_time;
+  MeshFunctionSharedPtr<double>  y_vel_previous_time;
 };
 
 /* Essential boundary conditions */

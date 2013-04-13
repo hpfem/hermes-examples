@@ -5,7 +5,7 @@
 #include "definitions.h"
 
 CustomWeakForm::CustomWeakForm(const MaterialPropertyMaps& matprop,
-                                Hermes::vector<MeshFunction<double>*>& iterates,
+                                Hermes::vector<MeshFunctionSharedPtr<double> >& iterates,
                                 double init_keff, std::string bdy_vacuum)
                                 : DefaultWeakFormSourceIteration<double>(matprop, const_cast<Mesh*>(iterates[0]->get_mesh()), iterates, init_keff, HERMES_AXISYM_Y)
 {

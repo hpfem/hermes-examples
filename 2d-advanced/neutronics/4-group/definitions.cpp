@@ -3,7 +3,7 @@
 #include "definitions.h"
 
 CustomWeakForm::CustomWeakForm( const Hermes::Hermes2D::WeakFormsNeutronics::Multigroup::MaterialProperties::Diffusion::MaterialPropertyMaps& matprop,
-                                Hermes::vector<MeshFunction<double>*>& iterates,
+                                Hermes::vector<MeshFunctionSharedPtr<double> >& iterates,
                                 double init_keff, std::string bdy_vacuum )
   :  Hermes::Hermes2D::WeakFormsNeutronics::Multigroup::CompleteWeakForms::Diffusion::DefaultWeakFormSourceIteration<double>(matprop, const_cast<Mesh*>(iterates[0]->get_mesh()), iterates, init_keff, HERMES_AXISYM_Y)
 {

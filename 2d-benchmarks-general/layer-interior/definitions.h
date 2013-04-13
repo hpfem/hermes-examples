@@ -10,7 +10,7 @@ using Hermes::Ord;
 class CustomExactSolution : public ExactSolutionScalar<double>
 {
 public:
-  CustomExactSolution(Mesh* mesh, double slope)
+  CustomExactSolution(MeshSharedPtr mesh, double slope)
             : ExactSolutionScalar<double>(mesh), slope(slope) {};
 
   virtual double value (double x, double y) const;

@@ -13,7 +13,7 @@ using namespace Hermes::Hermes2D::RefinementSelectors;
 class CustomInitialCondition : public ExactSolutionScalar<std::complex<double> >
 {
 public:
-  CustomInitialCondition(const Mesh* mesh) : ExactSolutionScalar<std::complex<double> >(mesh) {};
+  CustomInitialCondition(MeshSharedPtr mesh) : ExactSolutionScalar<std::complex<double> >(mesh) {};
 
   virtual void derivatives (double x, double y, std::complex<double> & dx, std::complex<double> & dy) const;
 

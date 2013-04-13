@@ -73,7 +73,7 @@ double integrate_over_wall(MeshFunction<double>* meshfn, int marker)
 
   double integral = 0.0;
   Element* e;
-  const Mesh* mesh = meshfn->get_mesh();
+  MeshSharedPtr mesh,= meshfn->get_mesh();
 
   for_all_active_elements(e, mesh)
   {
@@ -123,18 +123,17 @@ int main(int argc, char* argv[])
   EssentialBCs<double> bcs_vel_y(Hermes::vector<EssentialBoundaryCondition<double> *>(&bc_inner_vel_y, &bc_outer_vel));
 
   // Spaces for velocity components and pressure.
-  H1Space<double> xvel_space(mesh, &bcs_vel_x, P_INIT_VEL);
-  H1Space<double> yvel_space(mesh, &bcs_vel_y, P_INIT_VEL);
+  SpaceSharedPtr<double> xvel_space(new H1Space<double>(mesh, &bcs_vel_x, P_INIT_VEL));
+  SpaceSharedPtr<double> yvel_space(new H1Space<double>(mesh, &bcs_vel_y, P_INIT_VEL));
 #ifdef PRESSURE_IN_L2
-  L2Space<double> p_space(mesh, P_INIT_PRESSURE);
+  SpaceSharedPtr<double> p_space(new L2Space<double>(mesh, P_INIT_PRESSURE));
 #else
-  H1Space<double> p_space(mesh, P_INIT_PRESSURE);
+  SpaceSharedPtr<double> p_space(new H1Space<double>(mesh, P_INIT_PRESSURE));
 #endif
-  Hermes::vector<Space<double>*> spaces(&xvel_space, &yvel_space, &p_space);
-  Hermes::vector<const Space<double>*> spaces_const(&xvel_space, &yvel_space, &p_space);
+  Hermes::vector<SpaceSharedPtr<double> > spaces(&xvel_space, &yvel_space, &p_space);
 
   // Calculate and report the number of degrees of freedom.
-  int ndof = Space<double>::get_num_dofs(spaces_const);
+  int ndof = Space<double>::get_num_dofs(spaces);
   Hermes::Mixins::Loggable::Static::info("ndof = %d.", ndof);
 
   // Define projection norms.
@@ -147,15 +146,15 @@ int main(int argc, char* argv[])
 
   // Solutions for the Newton's iteration and time stepping.
   Hermes::Mixins::Loggable::Static::info("Setting initial conditions.");
-  ZeroSolution<double> xvel_prev_time(mesh);
-  ZeroSolution<double> yvel_prev_time(mesh);
-  ZeroSolution<double> p_prev_time(mesh);
+  MeshFunctionSharedPtr<double> xvel_prev_time(new ZeroSolution<double> (mesh));
+  MeshFunctionSharedPtr<double> yvel_prev_time(new ZeroSolution<double> (mesh));
+  MeshFunctionSharedPtr<double> p_prev_time(new ZeroSolution<double> (mesh));
  
-  Hermes::vector<Solution<double>*> slns = Hermes::vector<Solution<double>*>(&xvel_prev_time, &yvel_prev_time, 
-      &p_prev_time);
+  Hermes::vector<MeshFunctionSharedPtr<double> > slns = Hermes::vector<MeshFunctionSharedPtr<double> >(xvel_prev_time, yvel_prev_time, 
+      p_prev_time);
 
   // Initialize weak formulation.
-  WeakForm<double>* wf = new WeakFormNSNewton(STOKES, RE, TAU, &xvel_prev_time, &yvel_prev_time);
+  WeakForm<double>* wf = new WeakFormNSNewton(STOKES, RE, TAU, xvel_prev_time, yvel_prev_time);
 
   // Initialize views.
   VectorView vview("velocity [m/s]", new WinGeom(0, 0, 600, 500));
@@ -173,7 +172,7 @@ int main(int argc, char* argv[])
   {
     
     // Initialize the FE problem.
-    DiscreteProblem<double> dp(wf, spaces_const);
+    DiscreteProblem<double> dp(wf, spaces);
 
     Hermes::Hermes2D::NewtonSolver<double> newton(&dp);
 
@@ -182,14 +181,14 @@ int main(int argc, char* argv[])
 
     // Update time-dependent essential BCs.
     Hermes::Mixins::Loggable::Static::info("Updating time-dependent essential BC.");
-    Space<double>::update_essential_bc_values(Hermes::vector<Space<double>*>(&xvel_space, &yvel_space, &p_space), current_time);
+    Space<double>::update_essential_bc_values(Hermes::vector<SpaceSharedPtr<double> >(xvel_space, yvel_space, p_space), current_time);
 
     // Perform Newton's iteration.
     Hermes::Mixins::Loggable::Static::info("Solving nonlinear problem:");
     try
     {
-      newton.set_newton_max_iter(NEWTON_MAX_ITER);
-      newton.set_newton_tol(NEWTON_TOL);
+      newton.set_max_allowed_iterations(NEWTON_MAX_ITER);
+      newton.set_tolerance(NEWTON_TOL);
       newton.solve();
     }
     catch(Hermes::Exceptions::Exception e)
@@ -199,15 +198,15 @@ int main(int argc, char* argv[])
     };
 
     // Update previous time level solutions.
-    Solution<double>::vector_to_solutions(newton.get_sln_vector(), spaces_const, slns);
+    Solution<double>::vector_to_solutions(newton.get_sln_vector(), spaces, slns);
 
     // Show the solution at the end of time step.
     sprintf(title, "Velocity, time %g", current_time);
     vview.set_title(title);
-    vview.show(&xvel_prev_time, &yvel_prev_time);
+    vview.show(xvel_prev_time, yvel_prev_time);
     sprintf(title, "Pressure, time %g", current_time);
     pview.set_title(title);
-    pview.show(&p_prev_time);
+    pview.show(p_prev_time);
   }
 
   // Wait for all views to be closed.

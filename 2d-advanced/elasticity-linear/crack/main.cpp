@@ -90,32 +90,32 @@ int main(int argc, char* argv[])
   cpu_time.tick();
 
   // Load the mesh->
-  Mesh u1_mesh, u2_mesh;
+  MeshSharedPtr u1_mesh(new Mesh), u2_mesh(new Mesh);
   MeshReaderH2D mloader;
-  mloader.load("domain.mesh", &u1_mesh);
+  mloader.load("domain.mesh", u1_mesh);
 
   // Perform initial uniform mesh refinement.
   for (int i=0; i < INIT_REF_NUM; i++) u1_mesh->refine_all_elements();
 
   // Create initial mesh for the vertical displacement component.
   // This also initializes the multimesh hp-FEM.
-  u2_mesh->copy(&u1_mesh);
+  u2_mesh->copy(u1_mesh);
 
   // Initialize boundary conditions.
   DefaultEssentialBCConst<double> zero_disp("bdy left", 0.0);
   EssentialBCs<double> bcs(&zero_disp);
 
   // Create x- and y- displacement space using the default H1 shapeset.
-  H1Space<double> u1_space(&u1_mesh, &bcs, P_INIT_U1);
-  H1Space<double> u2_space(&u2_mesh, &bcs, P_INIT_U2);
-  Hermes::Mixins::Loggable::Static::info("ndof = %d.", Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&u1_space, &u2_space)));
+  SpaceSharedPtr<double>  u1_space(new  H1Space<double>(u1_mesh, &bcs, P_INIT_U1));
+  SpaceSharedPtr<double>  u2_space(new  H1Space<double>(u2_mesh, &bcs, P_INIT_U2));
+  Hermes::Mixins::Loggable::Static::info("ndof = %d.", Space<double>::get_num_dofs(Hermes::vector<SpaceSharedPtr<double> >(u1_space, u2_space)));
 
   // Initialize the weak formulation.
   // NOTE; These weak forms are identical to those in example P01-linear/08-system.
   CustomWeakFormLinearElasticity wf(E, nu, rho*g1, "bdy_top", f0, f1);
 
   // Initialize the FE problem.
-  DiscreteProblem<double> dp(&wf, Hermes::vector<const Space<double> *>(&u1_space, &u2_space));
+  DiscreteProblem<double> dp(&wf, Hermes::vector<SpaceSharedPtr<double> >(u1_space, u2_space));
 
   // Initialize coarse and reference mesh solutions.
   Solution<double> u1_sln, u2_sln;
@@ -143,26 +143,26 @@ int main(int argc, char* argv[])
   {
     Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d:", as);
 
-    // Construct globally refined reference mesh and setup reference space.
-    Mesh::ReferenceMeshCreator refMeshCreator1(&u1_mesh);
-    Mesh* ref_u1_mesh = refMeshCreator1.create_ref_mesh();
+    // Construct globally refined reference mesh and setup reference space->
+    Mesh::ReferenceMeshCreator refMeshCreator1(u1_mesh);
+    MeshSharedPtr ref_u1_mesh = refMeshCreator1.create_ref_mesh();
 
-    Space<double>::ReferenceSpaceCreator refSpaceCreator1(&u1_space, ref_u1_mesh);
-    Space<double>* ref_u1_space = refSpaceCreator1.create_ref_space();
+    Space<double>::ReferenceSpaceCreator refSpaceCreator1(u1_space, ref_u1_mesh);
+    SpaceSharedPtr<double> ref_u1_space = refSpaceCreator1.create_ref_space();
 
-    Mesh::ReferenceMeshCreator refMeshCreator2(&u2_mesh);
-    Mesh* ref_u2_mesh = refMeshCreator2.create_ref_mesh();
+    Mesh::ReferenceMeshCreator refMeshCreator2(u2_mesh);
+    MeshSharedPtr ref_u2_mesh = refMeshCreator2.create_ref_mesh();
 
-    Space<double>::ReferenceSpaceCreator refSpaceCreator2(&u2_space, ref_u2_mesh);
-    Space<double>* ref_u2_space = refSpaceCreator2.create_ref_space();
+    Space<double>::ReferenceSpaceCreator refSpaceCreator2(u2_space, ref_u2_mesh);
+    SpaceSharedPtr<double> ref_u2_space = refSpaceCreator2.create_ref_space();
 
-    Hermes::vector<Space<double> *> ref_spaces(ref_u1_space, ref_u2_space);
-    Hermes::vector<const Space<double> *> ref_spaces_const(ref_u1_space, ref_u2_space);
+    Hermes::vector<SpaceSharedPtr<double> > ref_spaces(ref_u1_space, ref_u2_space);
+    Hermes::vector<SpaceSharedPtr<double> > ref_spaces(ref_u1_space, ref_u2_space);
     
-    int ndof_ref = Space<double>::get_num_dofs(ref_spaces_const);
+    int ndof_ref = Space<double>::get_num_dofs(ref_spaces);
 
     // Initialize the FE problem.
-    DiscreteProblem<double> dp(&wf, ref_spaces_const);
+    DiscreteProblem<double> dp(&wf, ref_spaces);
 
     // Initialize Newton solver.
     NewtonSolver<double> newton(&dp);
@@ -175,8 +175,8 @@ int main(int argc, char* argv[])
     Hermes::Mixins::Loggable::Static::info("Solving on reference mesh->");
     try
     {
-      newton.set_newton_max_iter(NEWTON_MAX_ITER);
-      newton.set_newton_tol(NEWTON_TOL);
+      newton.set_max_allowed_iterations(NEWTON_MAX_ITER);
+      newton.set_tolerance(NEWTON_TOL);
       newton.solve();
     }
     catch(Hermes::Exceptions::Exception e)
@@ -188,32 +188,32 @@ int main(int argc, char* argv[])
     // Time measurement.
     cpu_time.tick();
 
-    // Translate the resulting coefficient vector into the Solution sln.
-    Solution<double>::vector_to_solutions(newton.get_sln_vector(), ref_spaces_const, 
-        Hermes::vector<Solution<double> *>(&u1_sln_ref, &u2_sln_ref));
+    // Translate the resulting coefficient vector into the Solution sln->
+    Solution<double>::vector_to_solutions(newton.get_sln_vector(), ref_spaces, 
+        Hermes::vector<MeshFunctionSharedPtr<double> >(u1_sln_ref, u2_sln_ref));
 
     // Project the fine mesh solution onto the coarse mesh->
     Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh->");
-    OGProjection<double> ogProjection; ogProjection.project_global(Hermes::vector<const Space<double> *>(&u1_space, &u2_space), 
-        Hermes::vector<Solution<double> *>(&u1_sln_ref, &u2_sln_ref), 
-        Hermes::vector<Solution<double> *>(&u1_sln, &u2_sln)); 
+    OGProjection<double> ogProjection; ogProjection.project_global(Hermes::vector<SpaceSharedPtr<double> >(u1_space, u2_space), 
+        Hermes::vector<MeshFunctionSharedPtr<double> >(u1_sln_ref, u2_sln_ref), 
+        Hermes::vector<MeshFunctionSharedPtr<double> >(u1_sln, u2_sln)); 
    
     // View the coarse mesh solution and polynomial orders.
-    s_view_0.show(&u1_sln); 
-    o_view_0.show(&u1_space);
-    s_view_1.show(&u2_sln); 
-    o_view_1.show(&u2_space);
+    s_view_0.show(u1_sln); 
+    o_view_0.show(u1_space);
+    s_view_1.show(u2_sln); 
+    o_view_1.show(u2_space);
     // For von Mises stress Filter.
     double lambda = (E * nu) / ((1 + nu) * (1 - 2*nu));
     double mu = E / (2*(1 + nu));
-    VonMisesFilter stress(Hermes::vector<MeshFunction<double> *>(&u1_sln, &u2_sln), lambda, mu);
-    mises_view.show(&stress, HERMES_EPS_NORMAL, H2D_FN_VAL_0, &u1_sln, &u2_sln, 1e3);
+    VonMisesFilter stress(Hermes::vector<MeshFunctionSharedPtr<double> >(u1_sln, u2_sln), lambda, mu);
+    mises_view.show(stress, HERMES_EPS_NORMAL, H2D_FN_VAL_0, u1_sln, u2_sln, 1e3);
 
     // Skip visualization time.
     cpu_time.tick(Hermes::Mixins::TimeMeasurable::HERMES_SKIP);
 
     // Initialize adaptivity.
-    Adapt<double>* adaptivity = new Adapt<double>(Hermes::vector<Space<double> *>(&u1_space, &u2_space));
+    Adapt<double>* adaptivity = new Adapt<double>(Hermes::vector<SpaceSharedPtr<double> >(u1_space, u2_space));
 
     /* 
     // Register custom forms for error calculation.
@@ -226,23 +226,23 @@ int main(int argc, char* argv[])
     // Calculate error estimate for each solution component and the total error estimate.
     Hermes::Mixins::Loggable::Static::info("Calculating error estimate and exact error."); 
     Hermes::vector<double> err_est_rel;
-    double err_est_rel_total = adaptivity->calc_err_est(Hermes::vector<Solution<double> *>(&u1_sln, &u2_sln), 
-                               Hermes::vector<Solution<double> *>(&u1_sln_ref, &u2_sln_ref), &err_est_rel) * 100;
+    double err_est_rel_total = adaptivity->calc_err_est(Hermes::vector<MeshFunctionSharedPtr<double> >(u1_sln, u2_sln), 
+                               Hermes::vector<MeshFunctionSharedPtr<double> >(u1_sln_ref, u2_sln_ref), &err_est_rel) * 100;
 
     // Time measurement.
     cpu_time.tick();
 
     // Report results.
     Hermes::Mixins::Loggable::Static::info("ndof_coarse[0]: %d, ndof_fine[0]: %d, err_est_rel[0]: %g%%", 
-         u1_space.Space<double>::get_num_dofs(), Space<double>::get_num_dofs((ref_spaces)[0]), err_est_rel[0]*100);
+         u1_space->Space<double>::get_num_dofs(), Space<double>::get_num_dofs((ref_spaces)[0]), err_est_rel[0]*100);
     Hermes::Mixins::Loggable::Static::info("ndof_coarse[1]: %d, ndof_fine[1]: %d, err_est_rel[1]: %g%%",
-         u2_space.Space<double>::get_num_dofs(), Space<double>::get_num_dofs((ref_spaces)[1]), err_est_rel[1]*100);
+         u2_space->Space<double>::get_num_dofs(), Space<double>::get_num_dofs((ref_spaces)[1]), err_est_rel[1]*100);
     Hermes::Mixins::Loggable::Static::info("ndof_coarse_total: %d, ndof_fine_total: %d, err_est_rel_total: %g%%",
-         Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&u1_space, &u2_space)), 
-         Space<double>::get_num_dofs(ref_spaces_const), err_est_rel_total);
+         Space<double>::get_num_dofs(Hermes::vector<SpaceSharedPtr<double> >(u1_space, u2_space)), 
+         Space<double>::get_num_dofs(ref_spaces), err_est_rel_total);
 
     // Add entry to DOF and CPU convergence graphs.
-    graph_dof_est.add_values(Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&u1_space, &u2_space)), 
+    graph_dof_est.add_values(Space<double>::get_num_dofs(Hermes::vector<SpaceSharedPtr<double> >(u1_space, u2_space)), 
                              err_est_rel_total);
     graph_dof_est.save("conv_dof_est.dat");
     graph_cpu_est.add_values(cpu_time.accumulated(), err_est_rel_total);
@@ -257,7 +257,7 @@ int main(int argc, char* argv[])
       done = adaptivity->adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&selector, &selector), 
                                MULTI == true ? THRESHOLD_MULTI : THRESHOLD_SINGLE, STRATEGY, MESH_REGULARITY);
     }
-    if (Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&u1_space, &u2_space)) >= NDOF_STOP) done = true;
+    if (Space<double>::get_num_dofs(Hermes::vector<SpaceSharedPtr<double> >(u1_space, u2_space)) >= NDOF_STOP) done = true;
 
     // Clean up.
     delete adaptivity;
@@ -277,14 +277,14 @@ int main(int argc, char* argv[])
 
   // Show the reference solution - the final result.
   s_view_0.set_title("Fine mesh solution (x-displacement)");
-  s_view_0.show(&u1_sln_ref);
+  s_view_0.show(u1_sln_ref);
   s_view_1.set_title("Fine mesh solution (y-displacement)");
-  s_view_1.show(&u2_sln_ref);
+  s_view_1.show(u2_sln_ref);
   // For von Mises stress Filter.
   double lambda = (E * nu) / ((1 + nu) * (1 - 2*nu));
   double mu = E / (2*(1 + nu));
-  VonMisesFilter stress(Hermes::vector<MeshFunction<double> *>(&u1_sln_ref, &u2_sln_ref), lambda, mu);
-  mises_view.show(&stress, HERMES_EPS_NORMAL, H2D_FN_VAL_0, &u1_sln_ref, &u2_sln_ref, 1e3);
+  VonMisesFilter stress(Hermes::vector<MeshFunctionSharedPtr<double> >(u1_sln_ref, u2_sln_ref), lambda, mu);
+  mises_view.show(stress, HERMES_EPS_NORMAL, H2D_FN_VAL_0, u1_sln_ref, u2_sln_ref, 1e3);
 
   // Wait for all views to be closed.
   View::wait();

@@ -70,7 +70,7 @@ int main(int argc, char* argv[])
   // Initialize solutions.
   CustomInitialConditionWave E_sln(mesh);
   ZeroSolution<double> B_sln(mesh);
-  Hermes::vector<Solution<double>*> slns(&E_sln, &B_sln);
+  Hermes::vector<MeshFunctionSharedPtr<double> > slns(&E_sln, &B_sln);
 
   // Initialize the weak formulation.
   CustomWeakFormWave wf(C_SQUARED);
@@ -81,10 +81,10 @@ int main(int argc, char* argv[])
   EssentialBCs<double> bcs_B;
 
   // Create x- and y- displacement space using the default H1 shapeset.
-  HcurlSpace<double> E_space(mesh, &bcs_E, P_INIT);
-  H1Space<double> B_space(mesh, &bcs_B, P_INIT);
-  Hermes::vector<const Space<double> *> spaces(&E_space, &B_space);
-  Hermes::vector<Space<double> *> spaces_mutable(&E_space, &B_space);
+  HcurlSpace<double> E_space(mesh, &bcs_E, P_INIT));
+  H1Space<double> B_space(mesh, &bcs_B, P_INIT));
+  Hermes::vector<SpaceSharedPtr<double> > spaces(&E_space, &B_space);
+  Hermes::vector<SpaceSharedPtr<double> > spaces_mutable(&E_space, &B_space);
   Hermes::Mixins::Loggable::Static::info("ndof = %d.", Space<double>::get_num_dofs(spaces));
 
   // Initialize views.
@@ -124,13 +124,13 @@ int main(int argc, char* argv[])
     char title[100];
     sprintf(title, "E1, t = %g", current_time);
     E1_view.set_title(title);
-    E1_view.show(&E_sln, HERMES_EPS_NORMAL, H2D_FN_VAL_0);
+    E1_view.show(E_sln, HERMES_EPS_NORMAL, H2D_FN_VAL_0);
     sprintf(title, "E2, t = %g", current_time);
     E2_view.set_title(title);
-    E2_view.show(&E_sln, HERMES_EPS_NORMAL, H2D_FN_VAL_1);
+    E2_view.show(E_sln, HERMES_EPS_NORMAL, H2D_FN_VAL_1);
     sprintf(title, "B, t = %g", current_time);
     B_view.set_title(title);
-    B_view.show(&B_sln, HERMES_EPS_NORMAL, H2D_FN_VAL_0);
+    B_view.show(B_sln, HERMES_EPS_NORMAL, H2D_FN_VAL_0);
 
     // Update time.
     current_time += time_step;

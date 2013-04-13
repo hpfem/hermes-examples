@@ -28,7 +28,7 @@ public:
 class CustomWeakFormRichardsIE : public WeakForm<double>
 {
 public:
-  CustomWeakFormRichardsIE(double time_step, Solution<double>* h_time_prev, ConstitutiveRelations* constitutive);
+  CustomWeakFormRichardsIE(double time_step, MeshFunctionSharedPtr<double>  h_time_prev, ConstitutiveRelations* constitutive);
 
 private:
 

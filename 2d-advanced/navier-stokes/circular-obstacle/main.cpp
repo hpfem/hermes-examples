@@ -115,10 +115,10 @@ int main(int argc, char* argv[])
   H1Space<double> p_space(mesh, P_INIT_PRESSURE);
 #endif
   Hermes::vector<Space<double>* > spaces(&xvel_space, &yvel_space, &p_space);
-  Hermes::vector<const Space<double>* > spaces_const(&xvel_space, &yvel_space, &p_space);
+  Hermes::vector<SpaceSharedPtr<double>  > spaces(&xvel_space, &yvel_space, &p_space);
 
   // Calculate and report the number of degrees of freedom.
-  int ndof = Space<double>::get_num_dofs(spaces_const);
+  int ndof = Space<double>::get_num_dofs(spaces);
   Hermes::Mixins::Loggable::Static::info("ndof = %d.", ndof);
 
   // Define projection norms.
@@ -134,14 +134,14 @@ int main(int argc, char* argv[])
   ZeroSolution<double> xvel_prev_time(mesh);
   ZeroSolution<double> yvel_prev_time(mesh);
   ZeroSolution<double> p_prev_time(mesh);
-  Hermes::vector<Solution<double>* > slns_prev_time = Hermes::vector<Solution<double>* >(&xvel_prev_time, &yvel_prev_time, &p_prev_time);
+  Hermes::vector<MeshFunctionSharedPtr<double>  > slns_prev_time = Hermes::vector<MeshFunctionSharedPtr<double>  >(xvel_prev_time, yvel_prev_time, p_prev_time);
 
   // Initialize weak formulation.
   WeakForm<double>* wf;
-  wf = new WeakFormNSNewton(STOKES, RE, TAU, &xvel_prev_time, &yvel_prev_time);
+  wf = new WeakFormNSNewton(STOKES, RE, TAU, xvel_prev_time, yvel_prev_time);
 
   // Initialize the FE problem.
-  DiscreteProblem<double> dp(wf, spaces_const);
+  DiscreteProblem<double> dp(wf, spaces);
 
   // Initialize views.
   VectorView vview("velocity [m/s]", new WinGeom(0, 0, 750, 240));
@@ -169,8 +169,8 @@ int main(int argc, char* argv[])
     // Perform Newton's iteration.
     Hermes::Hermes2D::NewtonSolver<double> newton(&dp);
     Hermes::Mixins::Loggable::Static::info("Solving nonlinear problem:");
-    newton.set_newton_max_iter(NEWTON_MAX_ITER);
-    newton.set_newton_tol(NEWTON_TOL);
+    newton.set_max_allowed_iterations(NEWTON_MAX_ITER);
+    newton.set_tolerance(NEWTON_TOL);
     try
     {
       newton.solve();
@@ -181,7 +181,7 @@ int main(int argc, char* argv[])
     };
 
     // Update previous time level solutions.
-    Solution<double>::vector_to_solutions(newton.get_sln_vector(), spaces_const, slns_prev_time);
+    Solution<double>::vector_to_solutions(newton.get_sln_vector(), spaces, slns_prev_time);
 
     // Visualization.
     // Hermes visualization.
@@ -190,23 +190,23 @@ int main(int argc, char* argv[])
       // Show the solution at the end of time step.
       sprintf(title, "Velocity, time %g", current_time);
       vview.set_title(title);
-      vview.show(&xvel_prev_time, &yvel_prev_time, HERMES_EPS_LOW);
+      vview.show(xvel_prev_time, yvel_prev_time, HERMES_EPS_LOW);
       sprintf(title, "Pressure, time %g", current_time);
       pview.set_title(title);
-      pview.show(&p_prev_time);
+      pview.show(p_prev_time);
     }
     // Output solution in VTK format.
     if(VTK_VISUALIZATION) 
     {
       Linearizer lin;
-      Hermes::vector<MeshFunction<double>* > slns_prev_time0 = Hermes::vector<MeshFunction<double>* >(&xvel_prev_time, &yvel_prev_time);
+      Hermes::vector<MeshFunction<double>* > slns_prev_time0 = Hermes::vector<MeshFunction<double>* >(xvel_prev_time, yvel_prev_time);
       MagFilter<double> mag(slns_prev_time0, Hermes::vector<int>(H2D_FN_VAL, H2D_FN_VAL));
       std::stringstream ss_vel;
       ss_vel << "Velocity-" << ts << ".vtk";
       lin.save_solution_vtk(&mag, ss_vel.str().c_str(), "VelocityMagnitude");
       std::stringstream ss_pres;
       ss_pres << "Pressure-" << ts << ".vtk";
-      lin.save_solution_vtk(&p_prev_time, ss_pres.str().c_str(), "Pressure");
+      lin.save_solution_vtk(p_prev_time, ss_pres.str().c_str(), "Pressure");
     }
   }
 

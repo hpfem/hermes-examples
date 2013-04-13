@@ -86,9 +86,9 @@ int main(int argc, char* argv[])
   // Initialize solutions.
   CustomInitialConditionWave E_time_prev(mesh);
   ZeroSolutionVector<double> F_time_prev(mesh);
-  Hermes::vector<Solution<double>*> slns_time_prev(&E_time_prev, &F_time_prev);
+  Hermes::vector<MeshFunctionSharedPtr<double> > slns_time_prev(&E_time_prev, &F_time_prev);
   Solution<double> E_time_new, F_time_new;
-  Hermes::vector<Solution<double>*> slns_time_new(&E_time_new, &F_time_new);
+  Hermes::vector<MeshFunctionSharedPtr<double> > slns_time_new(&E_time_new, &F_time_new);
 
   // Initialize the weak formulation.
   CustomWeakFormWaveRK wf(C_SQUARED);
@@ -98,9 +98,9 @@ int main(int argc, char* argv[])
   EssentialBCs<double> bcs(&bc_essential);
 
   // Create x- and y- displacement space using the default H1 shapeset.
-  HcurlSpace<double> E_space(mesh, &bcs, P_INIT);
-  HcurlSpace<double> F_space(mesh, &bcs, P_INIT);
-  Hermes::vector<const Space<double> *> spaces(&E_space, &F_space);
+  HcurlSpace<double> E_space(mesh, &bcs, P_INIT));
+  HcurlSpace<double> F_space(mesh, &bcs, P_INIT));
+  Hermes::vector<SpaceSharedPtr<double> > spaces(&E_space, &F_space);
   int ndof = HcurlSpace<double>::get_num_dofs(spaces);
   Hermes::Mixins::Loggable::Static::info("ndof = %d.", ndof);
 
@@ -128,8 +128,8 @@ int main(int argc, char* argv[])
     {
       runge_kutta.set_time(current_time);
       runge_kutta.set_time_step(time_step);
-      runge_kutta.set_newton_max_iter(NEWTON_MAX_ITER);
-      runge_kutta.set_newton_tol(NEWTON_TOL);
+      runge_kutta.set_max_allowed_iterations(NEWTON_MAX_ITER);
+      runge_kutta.set_tolerance(NEWTON_TOL);
       runge_kutta.rk_time_step_newton(slns_time_prev, slns_time_new);
     }
     catch(Exceptions::Exception& e)
@@ -142,23 +142,23 @@ int main(int argc, char* argv[])
     char title[100];
     sprintf(title, "E1, t = %g", current_time + time_step);
     E1_view.set_title(title);
-    E1_view.show(&E_time_new, HERMES_EPS_NORMAL, H2D_FN_VAL_0);
+    E1_view.show(E_time_new, HERMES_EPS_NORMAL, H2D_FN_VAL_0);
     sprintf(title, "E2, t = %g", current_time + time_step);
     E2_view.set_title(title);
-    E2_view.show(&E_time_new, HERMES_EPS_NORMAL, H2D_FN_VAL_1);
+    E2_view.show(E_time_new, HERMES_EPS_NORMAL, H2D_FN_VAL_1);
 
     sprintf(title, "F1, t = %g", current_time + time_step);
     F1_view.set_title(title);
-    F1_view.show(&F_time_new, HERMES_EPS_NORMAL, H2D_FN_VAL_0);
+    F1_view.show(F_time_new, HERMES_EPS_NORMAL, H2D_FN_VAL_0);
     sprintf(title, "F2, t = %g", current_time + time_step);
     F2_view.set_title(title);
-    F2_view.show(&F_time_new, HERMES_EPS_NORMAL, H2D_FN_VAL_1);
+    F2_view.show(F_time_new, HERMES_EPS_NORMAL, H2D_FN_VAL_1);
 
     //View::wait();
 
     // Update solutions.
-    E_time_prev.copy(&E_time_new);
-    F_time_prev.copy(&F_time_new);
+    E_time_prev->copy(E_time_new);
+    F_time_prev->copy(F_time_new);
 
     // Update time.
     current_time += time_step;

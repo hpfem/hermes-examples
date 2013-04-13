@@ -135,20 +135,20 @@ int main(int argc, char* argv[])
   // Load the mesh->
   Mesh basemesh, T_mesh, w_mesh;
   MeshReaderH2D mloader;
-  mloader.load("domain.mesh", &basemesh);
+  mloader.load("domain.mesh", basemesh);
 
   // Create temperature and moisture meshes.
   // This also initializes the multimesh hp-FEM.
-  T_mesh->copy(&basemesh);
-  w_mesh->copy(&basemesh);
+  T_mesh->copy(basemesh);
+  w_mesh->copy(basemesh);
 
   // Initialize boundary conditions.
   EssentialBCNonConst temp_reactor("bdy_react", REACTOR_START_TIME, T_INITIAL, T_REACTOR_MAX);
   EssentialBCs<double> bcs_T(&temp_reactor);
 
   // Create H1 spaces with default shapesets.
-  H1Space<double> T_space(&T_mesh, &bcs_T, P_INIT);
-  H1Space<double> w_space(MULTI ? &w_mesh : &T_mesh, P_INIT);
+  H1Space<double> T_space(T_mesh, &bcs_T, P_INIT));
+  H1Space<double> w_space(MULTI ? &w_mesh : &T_mesh, P_INIT));
 
   // Define constant initial conditions.
   Hermes::Mixins::Loggable::Static::info("Setting initial conditions.");
@@ -180,10 +180,10 @@ int main(int argc, char* argv[])
   OrderView w_order_view("Moisture mesh", w_mesh_win_geom);
 
   // Show initial conditions.
-  T_sln_view.show(&T_time_prev);
-  w_sln_view.show(&w_time_prev);
-  T_order_view.show(&T_space);
-  w_order_view.show(&w_space);
+  T_sln_view.show(T_time_prev);
+  w_sln_view.show(w_time_prev);
+  T_order_view.show(T_space);
+  w_order_view.show(w_space);
 
   // Time stepping loop:
   int ts = 1;
@@ -196,34 +196,34 @@ int main(int argc, char* argv[])
     // Update time-dependent essential BCs.
     if (current_time <= REACTOR_START_TIME) {
       Hermes::Mixins::Loggable::Static::info("Updating time-dependent essential BC.");
-      Space<double>::update_essential_bc_values(Hermes::vector<Space<double>*>(&T_space, &w_space), current_time);
+      Space<double>::update_essential_bc_values(Hermes::vector<SpaceSharedPtr<double> >(&T_space, &w_space), current_time);
     }
 
     // Uniform mesh derefinement.
     if (ts > 1 && ts % UNREF_FREQ == 0) {
       Hermes::Mixins::Loggable::Static::info("Global mesh derefinement.");
       switch (UNREF_METHOD) {
-        case 1: T_mesh->copy(&basemesh);
-                w_mesh->copy(&basemesh);
-                T_space.set_uniform_order(P_INIT);
-                w_space.set_uniform_order(P_INIT);
+        case 1: T_mesh->copy(basemesh);
+                w_mesh->copy(basemesh);
+                T_space->set_uniform_order(P_INIT);
+                w_space->set_uniform_order(P_INIT);
                 break;
         case 2: T_mesh->unrefine_all_elements();
                 if(MULTI)
                   w_mesh->unrefine_all_elements();
-                T_space.set_uniform_order(P_INIT);
-                w_space.set_uniform_order(P_INIT);
+                T_space->set_uniform_order(P_INIT);
+                w_space->set_uniform_order(P_INIT);
                 break;
         case 3: T_mesh->unrefine_all_elements();
                 if(MULTI)
                   w_mesh->unrefine_all_elements();
-                T_space.adjust_element_order(-1, -1, P_INIT, P_INIT);
-                w_space.adjust_element_order(-1, -1, P_INIT, P_INIT);
+                T_space->adjust_element_order(-1, -1, P_INIT, P_INIT);
+                w_space->adjust_element_order(-1, -1, P_INIT, P_INIT);
                 break;
         default: throw Hermes::Exceptions::Exception("Wrong global derefinement method.");
       }
-      T_space.assign_dofs();
-      w_space.assign_dofs();
+      T_space->assign_dofs();
+      w_space->assign_dofs();
     }
 
     // Spatial adaptivity loop. Note: T_time_prev and w_time_prev must not be changed during 
@@ -233,27 +233,26 @@ int main(int argc, char* argv[])
     {
       Hermes::Mixins::Loggable::Static::info("Time step %d, adaptivity step %d:", ts, as);
 
-      // Construct globally refined reference mesh and setup reference space.
+      // Construct globally refined reference mesh and setup reference space->
       Mesh::ReferenceMeshCreator refMeshCreatorU(&T_mesh);
-      Mesh* ref_T_mesh = refMeshCreatorU.create_ref_mesh();
+      MeshSharedPtr ref_T_mesh = refMeshCreatorU.create_ref_mesh();
 
       Space<double>::ReferenceSpaceCreator refSpaceCreatorT(&T_space, ref_T_mesh);
-      Space<double>* ref_T_space = refSpaceCreatorT.create_ref_space();
+      SpaceSharedPtr<double> ref_T_space = refSpaceCreatorT.create_ref_space();
 
       Mesh::ReferenceMeshCreator refMeshCreatorW(&w_mesh);
-      Mesh* ref_w_mesh = refMeshCreatorW.create_ref_mesh();
+      MeshSharedPtr ref_w_mesh = refMeshCreatorW.create_ref_mesh();
 
       Space<double>::ReferenceSpaceCreator refSpaceCreatorW(&w_space, ref_w_mesh);
-      Space<double>* ref_w_space = refSpaceCreatorW.create_ref_space();
+      SpaceSharedPtr<double> ref_w_space = refSpaceCreatorW.create_ref_space();
 
-      Hermes::vector<Space<double>*> ref_spaces(ref_T_space, ref_w_space);
-      Hermes::vector<const Space<double>*> ref_spaces_const(ref_T_space, ref_w_space);
+      Hermes::vector<SpaceSharedPtr<double> > ref_spaces(ref_T_space, ref_w_space);
 
       // Initialize discrete problem on reference meshes.
-      DiscreteProblem<double> dp(&wf, ref_spaces_const);
+      DiscreteProblem<double> dp(&wf, ref_spaces);
 
       // Initialize Runge-Kutta time stepping.
-      RungeKutta<double> runge_kutta(&wf, ref_spaces_const, &bt);
+      RungeKutta<double> runge_kutta(&wf, ref_spaces, &bt);
 
       // Perform one Runge-Kutta time step according to the selected Butcher's table.
       Hermes::Mixins::Loggable::Static::info("Runge-Kutta time step (t = %g s, tau = %g s, stages: %d).",
@@ -262,10 +261,10 @@ int main(int argc, char* argv[])
       {
         runge_kutta.set_time(current_time);
         runge_kutta.set_time_step(time_step);
-        runge_kutta.set_newton_max_iter(NEWTON_MAX_ITER);
-        runge_kutta.set_newton_tol(NEWTON_TOL);
-        runge_kutta.rk_time_step_newton(Hermes::vector<Solution<double> *>(&T_time_prev, &w_time_prev), 
-            Hermes::vector<Solution<double> *>(&T_time_new, &w_time_new));
+        runge_kutta.set_max_allowed_iterations(NEWTON_MAX_ITER);
+        runge_kutta.set_tolerance(NEWTON_TOL);
+        runge_kutta.rk_time_step_newton(Hermes::vector<MeshFunctionSharedPtr<double> >(&T_time_prev, &w_time_prev), 
+            Hermes::vector<MeshFunctionSharedPtr<double> >(&T_time_new, &w_time_new));
       }
       catch(Exceptions::Exception& e)
       {
@@ -275,13 +274,13 @@ int main(int argc, char* argv[])
 
       // Project the fine mesh solution onto the coarse meshes.
       Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solutions on coarse meshes for error estimation.");
-      OGProjection<double> ogProjection; ogProjection.project_global(Hermes::vector<const Space<double> *>(&T_space, &w_space), 
-          Hermes::vector<Solution<double> *>(&T_time_new, &w_time_new), 
-	  Hermes::vector<Solution<double> *>(&T_coarse, &w_coarse),
+      OGProjection<double> ogProjection; ogProjection.project_global(Hermes::vector<SpaceSharedPtr<double> >(&T_space, &w_space), 
+          Hermes::vector<MeshFunctionSharedPtr<double> >(&T_time_new, &w_time_new), 
+	  Hermes::vector<MeshFunctionSharedPtr<double> >(&T_coarse, &w_coarse),
           matrix_solver); 
 
       // Initialize an instance of the Adapt class and register custom error forms.
-      Adapt<double>* adaptivity = new Adapt<double>(Hermes::vector<Space<double> *>(&T_space, &w_space));
+      Adapt<double>* adaptivity = new Adapt<double>(Hermes::vector<SpaceSharedPtr<double> >(&T_space, &w_space));
       CustomErrorForm cef_0_0(d_TT, c_TT);
       CustomErrorForm cef_0_1(d_Tw, c_TT);
       CustomErrorForm cef_1_0(d_wT, c_ww);
@@ -293,13 +292,13 @@ int main(int argc, char* argv[])
 
       // Calculate element errors and total error estimate.
       Hermes::Mixins::Loggable::Static::info("Calculating error estimate."); 
-      double err_est_rel_total = adaptivity->calc_err_est(Hermes::vector<Solution<double> *>(&T_coarse, &w_coarse), 
-                                 Hermes::vector<Solution<double> *>(&T_time_new, &w_time_new)) * 100;
+      double err_est_rel_total = adaptivity->calc_err_est(Hermes::vector<MeshFunctionSharedPtr<double> >(&T_coarse, &w_coarse), 
+                                 Hermes::vector<MeshFunctionSharedPtr<double> >(&T_time_new, &w_time_new)) * 100;
 
       // Report results.
       Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d, err_est_rel: %g%%", 
-	   Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&T_space, &w_space)), 
-           Space<double>::get_num_dofs(ref_spaces_const), err_est_rel_total);
+	   Space<double>::get_num_dofs(Hermes::vector<SpaceSharedPtr<double> >(&T_space, &w_space)), 
+           Space<double>::get_num_dofs(ref_spaces), err_est_rel_total);
 
       // If err_est too large, adapt the meshes.
       if (err_est_rel_total < ERR_STOP)
@@ -309,7 +308,7 @@ int main(int argc, char* argv[])
         Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh->");
         done = adaptivity->adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&selector, &selector), THRESHOLD, STRATEGY, MESH_REGULARITY);
 
-        if (Space<double>::get_num_dofs(Hermes::vector<Space<double> *>(&T_space, &w_space)) >= NDOF_STOP) 
+        if (Space<double>::get_num_dofs(Hermes::vector<SpaceSharedPtr<double> >(&T_space, &w_space)) >= NDOF_STOP) 
           done = true;
         else
           // Increase the counter of performed adaptivity steps.
@@ -318,13 +317,6 @@ int main(int argc, char* argv[])
  
       // Clean up.
       delete adaptivity;
-      if(!done)
-      {
-        delete ref_T_space;
-        delete ref_w_space;
-        delete T_time_new.get_mesh();
-        delete w_time_new.get_mesh();
-      }
     }
     while (done == false);
 
@@ -335,16 +327,16 @@ int main(int argc, char* argv[])
     char title[100];
     sprintf(title, "Temperature, t = %g days", current_time/3600./24);
     T_sln_view.set_title(title);
-    T_sln_view.show(&T_coarse);
+    T_sln_view.show(T_coarse);
     sprintf(title, "Moisture (scaled), t = %g days", current_time/3600./24);
     w_sln_view.set_title(title);
-    w_sln_view.show(&w_coarse);
-    T_order_view.show(&T_space);
-    w_order_view.show(&w_space);
+    w_sln_view.show(w_coarse);
+    T_order_view.show(T_space);
+    w_order_view.show(w_space);
 
     // Save fine mesh solutions for the next time step.
-    T_time_prev.copy(&T_time_new);
-    w_time_prev.copy(&w_time_new);
+    T_time_prev->copy(T_time_new);
+    w_time_prev->copy(w_time_new);
 
     ts++;
   }

@@ -14,12 +14,12 @@ class CustomWeakForm : public DefaultWeakFormSourceIteration<double>
 {
   public:
     CustomWeakForm(const MaterialPropertyMaps& matprop,
-                   Hermes::vector<MeshFunction<double>*>& iterates,
+                   Hermes::vector<MeshFunctionSharedPtr<double> >& iterates,
                    double init_keff, std::string bdy_vacuum);
 };
 
 // Integral over the active core.
-double integrate(MeshFunction<double>* sln, Mesh* mesh, std::string area);
+double integrate(MeshFunction<double>* sln, MeshSharedPtr mesh, std::string area);
 int get_num_of_neg(MeshFunction<double> *sln);
 
 // Jacobian matrix (same as stiffness matrix since projections are linear).
@@ -147,6 +147,6 @@ private:
 /// \return  number of iterations needed for convergence within the specified tolerance.
 ///
 int power_iteration(const MaterialPropertyMaps& matprop, 
-                    const Hermes::vector<const Space<double>*>& spaces, DefaultWeakFormSourceIteration<double>* wf, 
-                    const Hermes::vector<MeshFunction<double> *>& solution, const std::string& fission_region, 
+                    const Hermes::vector<SpaceSharedPtr<double> >& spaces, DefaultWeakFormSourceIteration<double>* wf, 
+                    const Hermes::vector<MeshFunctionSharedPtr<double> >& solution, const std::string& fission_region, 
                     double tol, Hermes::MatrixSolverType matrix_solver);

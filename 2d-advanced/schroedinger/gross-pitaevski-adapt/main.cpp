@@ -138,10 +138,10 @@ int main(int argc, char* argv[])
   }
 
   // Load the mesh->
-  Mesh mesh, basemesh;
+  MeshSharedPtr mesh(new Mesh), basemesh(new Mesh);
   MeshReaderH2D mloader;
-  mloader.load("square.mesh", &basemesh);
-  mesh->copy(&basemesh);
+  mloader.load("square.mesh", basemesh);
+  mesh->copy(basemesh);
 
   // Initial mesh refinements.
   for(int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
@@ -160,12 +160,12 @@ int main(int argc, char* argv[])
   EssentialBCs<std::complex<double> > bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.
-  H1Space<std::complex<double> > space(mesh, &bcs, P_INIT);
-  int ndof = space.get_num_dofs();
+  SpaceSharedPtr<std::complex<double> > space(new H1Space<std::complex<double> > (mesh, &bcs, P_INIT));
+  int ndof = space->get_num_dofs();
   Hermes::Mixins::Loggable::Static::info("ndof = %d", ndof);
  
   // Initialize the FE problem.
-  DiscreteProblem<std::complex<double> > dp(&wf, &space);
+  DiscreteProblem<std::complex<double> > dp(&wf, space);
 
   // Create a refinement selector.
   H1ProjBasedSelector<std::complex<double> > selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
@@ -189,9 +189,9 @@ int main(int argc, char* argv[])
   space_error_view.fix_scale_width(50);
   RealFilter real(&psi_time_prev);
   ImagFilter imag(&psi_time_prev);
-  sview_real.show(&real);
-  sview_imag.show(&imag);
-  ord_view.show(&space);
+  sview_real.show(real);
+  sview_imag.show(imag);
+  ord_view.show(space);
 
   // Graph for time step history.
   SimpleGraph time_step_graph;
@@ -210,19 +210,19 @@ int main(int argc, char* argv[])
     {
       Hermes::Mixins::Loggable::Static::info("Global mesh derefinement.");
       switch (UNREF_METHOD) {
-        case 1: mesh->copy(&basemesh);
-                space.set_uniform_order(P_INIT);
+        case 1: mesh->copy(basemesh);
+                space->set_uniform_order(P_INIT);
                 break;
-        case 2: space.unrefine_all_mesh_elements();
-                space.set_uniform_order(P_INIT);
+        case 2: space->unrefine_all_mesh_elements();
+                space->set_uniform_order(P_INIT);
                 break;
-        case 3: space.unrefine_all_mesh_elements();
-                space.adjust_element_order(-1, -1, P_INIT, P_INIT);
+        case 3: space->unrefine_all_mesh_elements();
+                space->adjust_element_order(-1, -1, P_INIT, P_INIT);
                 break;
         default: throw Hermes::Exceptions::Exception("Wrong global derefinement method.");
       }
 
-      ndof = Space<std::complex<double> >::get_num_dofs(&space);
+      ndof = Space<std::complex<double> >::get_num_dofs(space);
     }
     Hermes::Mixins::Loggable::Static::info("ndof: %d", ndof);
 
@@ -235,12 +235,12 @@ int main(int argc, char* argv[])
     bool done = false; int as = 1;
     double err_est;
     do {
-      // Construct globally refined reference mesh and setup reference space.
+      // Construct globally refined reference mesh and setup reference space->
       Mesh::ReferenceMeshCreator refMeshCreator(mesh);
-      Mesh* ref_mesh = refMeshCreator.create_ref_mesh();
+      MeshSharedPtr ref_mesh = refMeshCreator.create_ref_mesh();
 
-      Space<std::complex<double> >::ReferenceSpaceCreator refSpaceCreator(&space, ref_mesh);
-      Space<std::complex<double> >* ref_space = refSpaceCreator.create_ref_space();
+      Space<std::complex<double> >::ReferenceSpaceCreator refSpaceCreator(space, ref_mesh);
+      SpaceSharedPtr<std::complex<double> > ref_space = refSpaceCreator.create_ref_space();
 
       // Initialize discrete problem on reference mesh->
       DiscreteProblem<std::complex<double> >* ref_dp = new DiscreteProblem<std::complex<double> >(&wf, ref_space);
@@ -256,9 +256,9 @@ int main(int argc, char* argv[])
       {
         runge_kutta.set_time(current_time);
         runge_kutta.set_time_step(time_step);
-        runge_kutta.set_newton_max_iter(NEWTON_MAX_ITER);
-        runge_kutta.set_newton_tol(NEWTON_TOL_FINE);
-        runge_kutta.rk_time_step_newton(&psi_time_prev, &ref_sln, time_error_fn);
+        runge_kutta.set_max_allowed_iterations(NEWTON_MAX_ITER);
+        runge_kutta.set_tolerance(NEWTON_TOL_FINE);
+        runge_kutta.rk_time_step_newton(&psi_time_prev, ref_sln, time_error_fn);
       }
       catch(Exceptions::Exception& e)
       {
@@ -280,10 +280,10 @@ int main(int argc, char* argv[])
         time_error_view.show_mesh(false);
         RealFilter abs_time(time_error_fn);
         AbsFilter abs_tef(&abs_time);
-        time_error_view.show(&abs_tef);
+        time_error_view.show(abs_tef);
 
         rel_err_time = Global<std::complex<double> >::calc_norm(time_error_fn, HERMES_H1_NORM) / 
-                       Global<std::complex<double> >::calc_norm(&ref_sln, HERMES_H1_NORM) * 100;
+                       Global<std::complex<double> >::calc_norm(ref_sln, HERMES_H1_NORM) * 100;
         if (ADAPTIVE_TIME_STEP_ON == false) Hermes::Mixins::Loggable::Static::info("rel_err_time: %g%%", rel_err_time);
       }
 
@@ -293,7 +293,7 @@ int main(int argc, char* argv[])
           Hermes::Mixins::Loggable::Static::info("Decreasing time step from %g to %g s and restarting time step.", 
                time_step, time_step * TIME_STEP_DEC_RATIO);
           time_step *= TIME_STEP_DEC_RATIO;
-          delete ref_space;
+          
           delete ref_dp;
           continue;
         }
@@ -301,7 +301,7 @@ int main(int argc, char* argv[])
           Hermes::Mixins::Loggable::Static::info("rel_err_time = %g%% is below lower limit %g%%", rel_err_time, TIME_ERR_TOL_LOWER);
           Hermes::Mixins::Loggable::Static::info("Increasing time step from %g to %g s.", time_step, time_step * TIME_STEP_INC_RATIO);
           time_step *= TIME_STEP_INC_RATIO;
-          delete ref_space;
+          
           delete ref_dp;
           continue;
         }
@@ -322,25 +322,25 @@ int main(int argc, char* argv[])
       // Project the fine mesh solution onto the coarse mesh->
       Solution<std::complex<double> > sln;
       Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh for error estimation.");
-      OGProjection<std::complex<double> > ogProjection; ogProjection.project_global(&space, &ref_sln, &sln); 
+      OGProjection<std::complex<double> > ogProjection; ogProjection.project_global(space, ref_sln, sln); 
 
       // Show spatial error.
       sprintf(title, "Spatial error est, spatial adaptivity step %d", as);  
-      DiffFilter<std::complex<double> >* space_error_fn = new DiffFilter<std::complex<double> >(Hermes::vector<MeshFunction<std::complex<double> >*>(&ref_sln, &sln));   
+      DiffFilter<std::complex<double> >* space_error_fn = new DiffFilter<std::complex<double> >(Hermes::vector<MeshFunction<std::complex<double> >*>(ref_sln, sln));   
       space_error_view.set_title(title);
       space_error_view.show_mesh(false);
       RealFilter abs_space(space_error_fn);
       AbsFilter abs_sef(&abs_space);
-      space_error_view.show(&abs_sef);
+      space_error_view.show(abs_sef);
 
       // Calculate element errors and spatial error estimate.
       Hermes::Mixins::Loggable::Static::info("Calculating spatial error estimate.");
-      Adapt<std::complex<double> >* adaptivity = new Adapt<std::complex<double> >(&space);
-      double err_rel_space = adaptivity->calc_err_est(&sln, &ref_sln) * 100;
+      Adapt<std::complex<double> >* adaptivity = new Adapt<std::complex<double> >(space);
+      double err_rel_space = adaptivity->calc_err_est(sln, ref_sln) * 100;
 
       // Report results.
       Hermes::Mixins::Loggable::Static::info("ndof: %d, ref_ndof: %d, err_rel_space: %g%%", 
-           Space<std::complex<double> >::get_num_dofs(&space), Space<std::complex<double> >::get_num_dofs(ref_space), err_rel_space);
+           Space<std::complex<double> >::get_num_dofs(space), Space<std::complex<double> >::get_num_dofs(ref_space), err_rel_space);
 
       // If err_est too large, adapt the mesh->
       if (err_rel_space < SPACE_ERR_TOL) done = true;
@@ -349,7 +349,7 @@ int main(int argc, char* argv[])
         Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh->");
         done = adaptivity->adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
 
-        if (Space<std::complex<double> >::get_num_dofs(&space) >= NDOF_STOP) 
+        if (Space<std::complex<double> >::get_num_dofs(space) >= NDOF_STOP) 
           done = true;
         else
           // Increase the counter of performed adaptivity steps.
@@ -361,7 +361,7 @@ int main(int argc, char* argv[])
       if(!done)
       {
         delete ref_space->get_mesh();
-        delete ref_space;
+        
       }
       delete ref_dp;
       delete space_error_fn;
@@ -377,16 +377,16 @@ int main(int argc, char* argv[])
     sview_real.set_title(title);
     sprintf(title, "Solution - imaginary part, Time %3.2f s", current_time);
     sview_imag.set_title(title);
-    RealFilter real(&ref_sln);
-    ImagFilter imag(&ref_sln);
-    sview_real.show(&real);
-    sview_imag.show(&imag);
+    RealFilter real(ref_sln);
+    ImagFilter imag(ref_sln);
+    sview_real.show(real);
+    sview_imag.show(imag);
     sprintf(title, "Mesh, time %g s", current_time);
     ord_view.set_title(title);
-    ord_view.show(&space);
+    ord_view.show(space);
 
     // Copy last reference solution into psi_time_prev.
-    psi_time_prev.copy(&ref_sln);
+    psi_time_prev->copy(ref_sln);
 
     // Increase current time and counter of time steps.
     current_time += time_step;

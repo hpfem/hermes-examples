@@ -101,8 +101,8 @@ int main(int argc, char* argv[])
   EssentialBCs<double> bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.
-  H1Space<double> space(mesh, &bcs, P_INIT);
-  int ndof = space.get_num_dofs();
+  SpaceSharedPtr<double> space(new H1Space<double>(mesh, &bcs, P_INIT));
+  int ndof = space->get_num_dofs();
   Hermes::Mixins::Loggable::Static::info("ndof = %d.", ndof);
 
   // Zero initial solutions. This is why we use H_OFFSET.
@@ -113,7 +113,7 @@ int main(int argc, char* argv[])
   view.fix_scale_width(80);
 
   // Visualize the initial condition.
-  view.show(&h_time_prev);
+  view.show(h_time_prev);
 
   // Initialize the constitutive relations.
   ConstitutiveRelations* constitutive_relations;
@@ -126,7 +126,7 @@ int main(int argc, char* argv[])
   CustomWeakFormRichardsRK wf(constitutive_relations);
 
   // Initialize Runge-Kutta time stepping.
-  RungeKutta<double> runge_kutta(&wf, &space, &bt);
+  RungeKutta<double> runge_kutta(&wf, space, &bt);
 
   // Time stepping:
   double current_time = 0;
@@ -142,8 +142,8 @@ int main(int argc, char* argv[])
     {
       runge_kutta.set_time(current_time);
       runge_kutta.set_time_step(time_step);
-      runge_kutta.set_newton_max_iter(NEWTON_MAX_ITER);
-      runge_kutta.set_newton_tol(NEWTON_TOL);
+      runge_kutta.set_max_allowed_iterations(NEWTON_MAX_ITER);
+      runge_kutta.set_tolerance(NEWTON_TOL);
       runge_kutta.rk_time_step_newton(&h_time_prev, &h_time_new);
     }
     catch(Exceptions::Exception& e)
@@ -153,7 +153,7 @@ int main(int argc, char* argv[])
     }
 
     // Copy solution for the new time step.
-    h_time_prev.copy(&h_time_new);
+    h_time_prev->copy(h_time_new);
 
     // Increase current time.
     current_time += time_step;
@@ -162,7 +162,7 @@ int main(int argc, char* argv[])
     char title[100];
     sprintf(title, "Time %3.2f s", current_time);
     view.set_title(title);
-    view.show(&h_time_prev);
+    view.show(h_time_prev);
 
     // Increase time step counter.
     ts++;

@@ -26,7 +26,7 @@ public:
 class CustomExactSolution : public ExactSolutionScalar<double>
 {
 public:
-  CustomExactSolution(Mesh* mesh, double alpha, double x_loc, double y_loc)
+  CustomExactSolution(MeshSharedPtr mesh, double alpha, double x_loc, double y_loc)
       : ExactSolutionScalar<double>(mesh), alpha(alpha), x_loc(x_loc), y_loc(y_loc) {};
 
   virtual double value(double x, double y) const;

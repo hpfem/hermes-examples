@@ -22,7 +22,7 @@ double CustomEssentialBCNonConst::value(double x, double y, double n_x, double n
 
 /* Custom weak forms */
 
-CustomWeakFormRichardsIE::CustomWeakFormRichardsIE(double time_step, Solution<double>* h_time_prev, ConstitutiveRelations* constitutive) : WeakForm<double>(1), constitutive(constitutive)
+CustomWeakFormRichardsIE::CustomWeakFormRichardsIE(double time_step, MeshFunctionSharedPtr<double>  h_time_prev, ConstitutiveRelations* constitutive) : WeakForm<double>(1), constitutive(constitutive)
 {
   // Jacobian volumetric part.
   CustomJacobianFormVol* jac_form_vol = new CustomJacobianFormVol(0, 0, time_step);

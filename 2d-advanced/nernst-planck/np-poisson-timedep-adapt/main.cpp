@@ -192,7 +192,7 @@ int main (int argc, char* argv[]) {
   // Load the mesh file.
   Mesh C_mesh, phi_mesh, basemesh;
   MeshReaderH2D mloader;
-  mloader.load("small.mesh", &basemesh);
+  mloader.load("small.mesh", basemesh);
   
   if (SCALED) {
     bool ret = basemesh->rescale(l, l);
@@ -208,8 +208,8 @@ int main (int argc, char* argv[]) {
   basemesh->refine_towards_boundary(BDY_BOT, REF_INIT - 1);
   basemesh->refine_all_elements(1);
   basemesh->refine_all_elements(1);
-  C_mesh->copy(&basemesh);
-  phi_mesh->copy(&basemesh);
+  C_mesh->copy(basemesh);
+  phi_mesh->copy(basemesh);
 
   DefaultEssentialBCConst<double> bc_phi_voltage(BDY_TOP, scaleVoltage(VOLTAGE));
   DefaultEssentialBCConst<double> bc_phi_zero(BDY_BOT, scaleVoltage(0.0));
@@ -218,8 +218,8 @@ int main (int argc, char* argv[]) {
       Hermes::vector<EssentialBoundaryCondition<double>* >(&bc_phi_voltage, &bc_phi_zero));
 
   // Spaces for concentration and the voltage.
-  H1Space<double> C_space(&C_mesh, P_INIT);
-  H1Space<double> phi_space(MULTIMESH ? &phi_mesh : &C_mesh, &bcs_phi, P_INIT);
+  H1Space<double> C_space(C_mesh, P_INIT));
+  H1Space<double> phi_space(MULTIMESH ? &phi_mesh : &C_mesh, &bcs_phi, P_INIT));
 
   Solution<double> C_sln, C_ref_sln;
   Solution<double> phi_sln, phi_ref_sln;
@@ -248,18 +248,18 @@ int main (int argc, char* argv[]) {
     wf = new WeakFormPNPEuler(TAU, C0, K, L, D, &C_prev_time);
   }
 
-  DiscreteProblem<double> dp_coarse(wf, Hermes::vector<const Space<double> *>(&C_space, &phi_space));
+  DiscreteProblem<double> dp_coarse(wf, Hermes::vector<SpaceSharedPtr<double> >(&C_space, &phi_space));
 
   NewtonSolver<double>* solver_coarse = new NewtonSolver<double>(&dp_coarse);
 
   // Project the initial condition on the FE space to obtain initial
   // coefficient vector for the Newton's method.
   Hermes::Mixins::Loggable::Static::info("Projecting to obtain initial vector for the Newton's method.");
-  int ndof = Space<double>::get_num_dofs(Hermes::vector<const Space<double>*>(&C_space, &phi_space));
+  int ndof = Space<double>::get_num_dofs(Hermes::vector<SpaceSharedPtr<double> >(&C_space, &phi_space));
   double* coeff_vec_coarse = new double[ndof] ;
 
-  OGProjection<double> ogProjection; ogProjection.project_global(Hermes::vector<const Space<double> *>(&C_space, &phi_space),
-      Hermes::vector<MeshFunction<double> *>(&C_prev_time, &phi_prev_time),
+  OGProjection<double> ogProjection; ogProjection.project_global(Hermes::vector<SpaceSharedPtr<double> >(&C_space, &phi_space),
+      Hermes::vector<MeshFunctionSharedPtr<double> >(&C_prev_time, &phi_prev_time),
       coeff_vec_coarse);
 
   // Create a selector which will select optimal candidate.
@@ -272,17 +272,17 @@ int main (int argc, char* argv[]) {
   OrderView Cordview("C order", new WinGeom(0, 300, 600, 600));
   OrderView phiordview("Phi order", new WinGeom(600, 300, 600, 600));
 
-  Cview.show(&C_prev_time);
-  Cordview.show(&C_space);
-  phiview.show(&phi_prev_time);
-  phiordview.show(&phi_space);
+  Cview.show(C_prev_time);
+  Cordview.show(C_space);
+  phiview.show(phi_prev_time);
+  phiordview.show(phi_space);
 
   // Newton's loop on the coarse mesh->
   Hermes::Mixins::Loggable::Static::info("Solving on initial coarse mesh");
   try
   {
-    solver_coarse->set_newton_max_iter(NEWTON_MAX_ITER);
-    solver_coarse->set_newton_tol(NEWTON_TOL_COARSE);
+    solver_coarse->set_max_allowed_iterations(NEWTON_MAX_ITER);
+    solver_coarse->set_tolerance(NEWTON_TOL_COARSE);
     solver_coarse->solve(coeff_vec_coarse);
   }
   catch(Hermes::Exceptions::Exception e)
@@ -293,12 +293,12 @@ int main (int argc, char* argv[]) {
 
   //View::wait(HERMES_WAIT_KEYPRESS);
 
-  // Translate the resulting coefficient vector into the Solution<double> sln.
-  Solution<double>::vector_to_solutions(solver_coarse->get_sln_vector(), Hermes::vector<const Space<double> *>(&C_space, &phi_space),
-      Hermes::vector<Solution<double> *>(&C_sln, &phi_sln));
+  // Translate the resulting coefficient vector into the Solution<double> sln->
+  Solution<double>::vector_to_solutions(solver_coarse->get_sln_vector(), Hermes::vector<SpaceSharedPtr<double> >(&C_space, &phi_space),
+      Hermes::vector<MeshFunctionSharedPtr<double> >(&C_sln, &phi_sln));
 
-  Cview.show(&C_sln);
-  phiview.show(&phi_sln);
+  Cview.show(C_sln);
+  phiview.show(phi_sln);
 
   // Cleanup after the Newton loop on the coarse mesh->
   delete solver_coarse;
@@ -316,13 +316,13 @@ int main (int argc, char* argv[]) {
     if (pid.get_timestep_number() > 1 && pid.get_timestep_number() % UNREF_FREQ == 0)
     {
       Hermes::Mixins::Loggable::Static::info("Global mesh derefinement.");
-      C_mesh->copy(&basemesh);
+      C_mesh->copy(basemesh);
       if (MULTIMESH)
       {
-        phi_mesh->copy(&basemesh);
+        phi_mesh->copy(basemesh);
       }
-      C_space.set_uniform_order(P_INIT);
-      phi_space.set_uniform_order(P_INIT);
+      C_space->set_uniform_order(P_INIT);
+      phi_space->set_uniform_order(P_INIT);
 
     }
 
@@ -333,24 +333,24 @@ int main (int argc, char* argv[]) {
       Hermes::Mixins::Loggable::Static::info("Time step %d, adaptivity step %d:", pid.get_timestep_number(), as);
 
       // Construct globally refined reference mesh
-      // and setup reference space.
+      // and setup reference space->
       Mesh::ReferenceMeshCreator refMeshCreatorC(&C_mesh);
-      Mesh* ref_C_mesh = refMeshCreatorC.create_ref_mesh();
+      MeshSharedPtr ref_C_mesh = refMeshCreatorC.create_ref_mesh();
 
       Space<double>::ReferenceSpaceCreator refSpaceCreatorC(&C_space, ref_C_mesh);
-      Space<double>* ref_C_space = refSpaceCreatorC.create_ref_space();
+      SpaceSharedPtr<double> ref_C_space = refSpaceCreatorC.create_ref_space();
 
       Mesh::ReferenceMeshCreator refMeshCreatorPhi(&phi_mesh);
-      Mesh* ref_phi_mesh = refMeshCreatorPhi.create_ref_mesh();
+      MeshSharedPtr ref_phi_mesh = refMeshCreatorPhi.create_ref_mesh();
 
       Space<double>::ReferenceSpaceCreator refSpaceCreatorPhi(&phi_space, ref_phi_mesh);
-      Space<double>* ref_phi_space = refSpaceCreatorPhi.create_ref_space();
+      SpaceSharedPtr<double> ref_phi_space = refSpaceCreatorPhi.create_ref_space();
 
-      Hermes::vector<const Space<double>*> ref_spaces(ref_C_space, ref_phi_space);
-      Hermes::vector<const Space<double>*> ref_spaces_const(ref_C_space, ref_phi_space);
+      Hermes::vector<SpaceSharedPtr<double> > ref_spaces(ref_C_space, ref_phi_space);
+      Hermes::vector<SpaceSharedPtr<double> > ref_spaces(ref_C_space, ref_phi_space);
 
-      DiscreteProblem<double>* dp = new DiscreteProblem<double>(wf, ref_spaces_const);
-      int ndof_ref = Space<double>::get_num_dofs(ref_spaces_const);
+      DiscreteProblem<double>* dp = new DiscreteProblem<double>(wf, ref_spaces);
+      int ndof_ref = Space<double>::get_num_dofs(ref_spaces);
 
       double* coeff_vec = new double[ndof_ref];
 
@@ -359,29 +359,29 @@ int main (int argc, char* argv[]) {
       // Calculate initial coefficient vector for Newton on the fine mesh->
       if (as == 1 && pid.get_timestep_number() == 1) {
         Hermes::Mixins::Loggable::Static::info("Projecting coarse mesh solution to obtain coefficient vector on new fine mesh->");
-        OGProjection<double> ogProjection; ogProjection.project_global(ref_spaces_const,
-              Hermes::vector<MeshFunction<double> *>(&C_sln, &phi_sln),
+        OGProjection<double> ogProjection; ogProjection.project_global(ref_spaces,
+              Hermes::vector<MeshFunctionSharedPtr<double> >(&C_sln, &phi_sln),
               coeff_vec);
       }
       else {
         Hermes::Mixins::Loggable::Static::info("Projecting previous fine mesh solution to obtain coefficient vector on new fine mesh->");
-        OGProjection<double> ogProjection; ogProjection.project_global(ref_spaces_const,
-              Hermes::vector<MeshFunction<double> *>(&C_ref_sln, &phi_ref_sln),
+        OGProjection<double> ogProjection; ogProjection.project_global(ref_spaces,
+              Hermes::vector<MeshFunctionSharedPtr<double> >(&C_ref_sln, &phi_ref_sln),
               coeff_vec);
       }
       if (as > 1) {
         // Now deallocate the previous mesh
         Hermes::Mixins::Loggable::Static::info("Delallocating the previous mesh");
-        delete C_ref_sln.get_mesh();
-        delete phi_ref_sln.get_mesh();
+        delete C_ref_sln->get_mesh();
+        delete phi_ref_sln->get_mesh();
       }
 
       // Newton's loop on the fine mesh->
       Hermes::Mixins::Loggable::Static::info("Solving on fine mesh:");
       try
       {
-        solver->set_newton_max_iter(NEWTON_MAX_ITER);
-        solver->set_newton_tol(NEWTON_TOL_FINE);
+        solver->set_max_allowed_iterations(NEWTON_MAX_ITER);
+        solver->set_tolerance(NEWTON_TOL_FINE);
         solver->solve(coeff_vec);
       }
       catch(Hermes::Exceptions::Exception e)
@@ -390,35 +390,35 @@ int main (int argc, char* argv[]) {
         throw Hermes::Exceptions::Exception("Newton's iteration failed.");
       };
 
-      // Store the result in ref_sln.
-      Solution<double>::vector_to_solutions(solver->get_sln_vector(), ref_spaces_const,
-          Hermes::vector<Solution<double> *>(&C_ref_sln, &phi_ref_sln));
+      // Store the result in ref_sln->
+      Solution<double>::vector_to_solutions(solver->get_sln_vector(), ref_spaces,
+          Hermes::vector<MeshFunctionSharedPtr<double> >(&C_ref_sln, &phi_ref_sln));
 
       // Projecting reference solution onto the coarse mesh
       Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh->");
-      OGProjection<double> ogProjection; ogProjection.project_global(Hermes::vector<const Space<double> *>(&C_space, &phi_space),
-          Hermes::vector<Solution<double> *>(&C_ref_sln, &phi_ref_sln),
-          Hermes::vector<Solution<double> *>(&C_sln, &phi_sln),
+      OGProjection<double> ogProjection; ogProjection.project_global(Hermes::vector<SpaceSharedPtr<double> >(&C_space, &phi_space),
+          Hermes::vector<MeshFunctionSharedPtr<double> >(&C_ref_sln, &phi_ref_sln),
+          Hermes::vector<MeshFunctionSharedPtr<double> >(&C_sln, &phi_sln),
           matrix_solver);
 
       // Calculate element errors and total error estimate.
       Hermes::Mixins::Loggable::Static::info("Calculating error estimate.");
-      Adapt<double>* adaptivity = new Adapt<double>(Hermes::vector<Space<double> *>(&C_space, &phi_space));
+      Adapt<double>* adaptivity = new Adapt<double>(Hermes::vector<SpaceSharedPtr<double> >(&C_space, &phi_space));
       Hermes::vector<double> err_est_rel;
-      double err_est_rel_total = adaptivity->calc_err_est(Hermes::vector<Solution<double> *>(&C_sln, &phi_sln),
-                                 Hermes::vector<Solution<double> *>(&C_ref_sln, &phi_ref_sln), &err_est_rel) * 100;
+      double err_est_rel_total = adaptivity->calc_err_est(Hermes::vector<MeshFunctionSharedPtr<double> >(&C_sln, &phi_sln),
+                                 Hermes::vector<MeshFunctionSharedPtr<double> >(&C_ref_sln, &phi_ref_sln), &err_est_rel) * 100;
 
       // Report results.
       Hermes::Mixins::Loggable::Static::info("ndof_coarse[0]: %d, ndof_fine[0]: %d",
-           C_space.get_num_dofs(), ref_C_space->get_num_dofs());
+           C_space->get_num_dofs(), ref_C_space->get_num_dofs());
       Hermes::Mixins::Loggable::Static::info("err_est_rel[0]: %g%%", err_est_rel[0]*100);
       Hermes::Mixins::Loggable::Static::info("ndof_coarse[1]: %d, ndof_fine[1]: %d",
-           phi_space.get_num_dofs(), ref_phi_space->get_num_dofs());
+           phi_space->get_num_dofs(), ref_phi_space->get_num_dofs());
       Hermes::Mixins::Loggable::Static::info("err_est_rel[1]: %g%%", err_est_rel[1]*100);
       // Report results.
       Hermes::Mixins::Loggable::Static::info("ndof_coarse_total: %d, ndof_fine_total: %d, err_est_rel: %g%%", 
-           Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&C_space, &phi_space)),
-               Space<double>::get_num_dofs(ref_spaces_const), err_est_rel_total);
+           Space<double>::get_num_dofs(Hermes::vector<SpaceSharedPtr<double> >(&C_space, &phi_space)),
+               Space<double>::get_num_dofs(ref_spaces), err_est_rel_total);
 
       // If err_est too large, adapt the mesh->
       if (err_est_rel_total < ERR_STOP) done = true;
@@ -430,7 +430,7 @@ int main (int argc, char* argv[]) {
         
         Hermes::Mixins::Loggable::Static::info("Adapted...");
 
-        if (Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&C_space, &phi_space)) >= NDOF_STOP)
+        if (Space<double>::get_num_dofs(Hermes::vector<SpaceSharedPtr<double> >(&C_space, &phi_space)) >= NDOF_STOP)
           done = true;
         else as++;
       }
@@ -441,21 +441,21 @@ int main (int argc, char* argv[]) {
       sprintf(title, "Solution[C], step# %d, step size %g, time %g, phys time %g",
           pid.get_timestep_number(), *TAU, pid.get_time(), physTime(pid.get_time()));
       Cview.set_title(title);
-      Cview.show(&C_ref_sln);
+      Cview.show(C_ref_sln);
       sprintf(title, "Mesh[C], step# %d, step size %g, time %g, phys time %g",
           pid.get_timestep_number(), *TAU, pid.get_time(), physTime(pid.get_time()));
       Cordview.set_title(title);
-      Cordview.show(&C_space);
+      Cordview.show(C_space);
       
       Hermes::Mixins::Loggable::Static::info("Visualization procedures: phi");
       sprintf(title, "Solution[phi], step# %d, step size %g, time %g, phys time %g",
           pid.get_timestep_number(), *TAU, pid.get_time(), physTime(pid.get_time()));
       phiview.set_title(title);
-      phiview.show(&phi_ref_sln);
+      phiview.show(phi_ref_sln);
       sprintf(title, "Mesh[phi], step# %d, step size %g, time %g, phys time %g",
           pid.get_timestep_number(), *TAU, pid.get_time(), physTime(pid.get_time()));
       phiordview.set_title(title);
-      phiordview.show(&phi_space);
+      phiordview.show(phi_space);
       //View::wait(HERMES_WAIT_KEYPRESS);
 
       // Clean up.
@@ -468,13 +468,13 @@ int main (int argc, char* argv[]) {
     }
     while (done == false);
 
-    pid.end_step(Hermes::vector<Solution<double>*> (&C_ref_sln, &phi_ref_sln),
-        Hermes::vector<Solution<double>*> (&C_prev_time, &phi_prev_time));
+    pid.end_step(Hermes::vector<MeshFunctionSharedPtr<double> > (&C_ref_sln, &phi_ref_sln),
+        Hermes::vector<MeshFunctionSharedPtr<double> > (&C_prev_time, &phi_prev_time));
     // TODO! Time step reduction when necessary.
 
-    // Copy last reference solution into sln_prev_time.
-    C_prev_time.copy(&C_ref_sln);
-    phi_prev_time.copy(&phi_ref_sln);
+    // Copy last reference solution into sln_prev_time
+    C_prev_time->copy(C_ref_sln);
+    phi_prev_time->copy(phi_ref_sln);
 
   } while (pid.has_next());
 

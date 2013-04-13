@@ -16,7 +16,7 @@ double alpha(double omega, double k);
 class CustomInitialConditionE : public ExactSolutionVector<double>
 {
 public:
- CustomInitialConditionE(const Mesh* mesh, double time, double omega, double k_x, double k_y) 
+ CustomInitialConditionE(MeshSharedPtr mesh,double time, double omega, double k_x, double k_y) 
      : ExactSolutionVector<double>(mesh), time(time), omega(omega), k_x(k_x), k_y(k_y) {};
 
   virtual Scalar2<double> value (double x, double y) const;
@@ -34,7 +34,7 @@ public:
 class CustomInitialConditionH : public ExactSolutionScalar<double>
 {
 public:
-  CustomInitialConditionH(const Mesh* mesh, double time, double omega, double k_x, double k_y) 
+  CustomInitialConditionH(MeshSharedPtr mesh,double time, double omega, double k_x, double k_y) 
       : ExactSolutionScalar<double>(mesh), time(time), omega(omega), k_x(k_x), k_y(k_y) {};
 
   virtual double value (double x, double y) const;
@@ -52,7 +52,7 @@ public:
 class CustomInitialConditionP : public ExactSolutionVector<double>
 {
 public:
-  CustomInitialConditionP(const Mesh* mesh, double time, double omega, double k_x, double k_y) 
+  CustomInitialConditionP(MeshSharedPtr mesh,double time, double omega, double k_x, double k_y) 
       : ExactSolutionVector<double>(mesh), time(time), omega(omega), k_x(k_x), k_y(k_y) {};
 
   virtual Scalar2<double> value (double x, double y) const;
