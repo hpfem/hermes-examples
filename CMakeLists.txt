@@ -64,6 +64,8 @@ project(hermes_examples)
 	
   include_directories("${PTHREAD_ROOT}/include")
 	find_package(PTHREAD REQUIRED)
+  find_package(TCMALLOC REQUIRED)
+  include_directories(${TCMALLOC_INCLUDE_DIR})
 
 	if(WITH_TRILINOS)
 		find_package(TRILINOS REQUIRED)
