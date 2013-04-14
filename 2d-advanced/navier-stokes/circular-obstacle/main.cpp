@@ -139,7 +139,12 @@ int main(int argc, char* argv[])
 
   // Initialize the FE problem.
   DiscreteProblem<double> dp(&wf, spaces);
-
+  Hermes::Hermes2D::NewtonSolver<double> newton(&dp);
+  Hermes::Mixins::Loggable::Static::info("Solving nonlinear problem:");
+  newton.set_max_allowed_iterations(NEWTON_MAX_ITER);
+  newton.set_tolerance(NEWTON_TOL);
+  newton.set_jacobian_constant();
+    
   // Initialize views.
   VectorView vview("velocity [m/s]", new WinGeom(0, 0, 750, 240));
   ScalarView pview("pressure [Pa]", new WinGeom(0, 290, 750, 240));
@@ -164,10 +169,6 @@ int main(int argc, char* argv[])
     }
 
     // Perform Newton's iteration.
-    Hermes::Hermes2D::NewtonSolver<double> newton(&dp);
-    Hermes::Mixins::Loggable::Static::info("Solving nonlinear problem:");
-    newton.set_max_allowed_iterations(NEWTON_MAX_ITER);
-    newton.set_tolerance(NEWTON_TOL);
     try
     {
       newton.solve();

@@ -22,14 +22,14 @@ const int P_INIT = 1;
 // Stabilization on/off (assumes that H2D_SECOND_DERIVATIVES_ENABLED is defined).
 const bool STABILIZATION_ON = false;              
 // Shock capturing on/off.
-const bool SHOCK_CAPTURING_ON = false;            
+const bool SHOCK_CAPTURING_ON = true;            
 // Number of initial uniform mesh refinements.
 const int INIT_REF_NUM = 2;                       
 // Number of initial uniform mesh refinements in the boundary layer region.
 const int INIT_REF_NUM_BDY = 1;                   
 // This is a quantitative parameter of the adapt(...) function and
 // it has different meanings for various adaptive strategies.
-const double THRESHOLD = 0.9;                     
+const double THRESHOLD = 0.3;                     
 // Adaptive strategy:
 // STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
 //   error is processed. If more elements have similar errors, refine

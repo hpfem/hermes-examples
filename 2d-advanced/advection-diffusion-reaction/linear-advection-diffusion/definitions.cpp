@@ -26,17 +26,15 @@ Scalar WeakFormLinearAdvectionDiffusion::MatrixFormVolAdvectionDiffusion::matrix
                 (Hermes::sqrt(Hermes::pow(u->dx[i], 2) + Hermes::pow(u->dy[i], 2)) + 1.e-8);
     }
       
+#ifdef H2D_SECOND_DERIVATIVES_ENABLED
     if(static_cast<WeakFormLinearAdvectionDiffusion*>(wf)->stabilization_on) 
     {
-#ifdef H2D_SECOND_DERIVATIVES_ENABLED
       double b_norm = Hermes::sqrt(b1*b1 + b2*b2);
       Real tau = 1. / Hermes::sqrt(9*Hermes::pow(4*epsilon/Hermes::pow(h_e, 2), 2) + Hermes::pow(2*b_norm/h_e, 2));
       result += wt[i] * tau * (-b1 * v->dx[i] - b2 * v->dy[i] + epsilon * v->laplace[i])
                             * (-b1 * u->dx[i] - b2 * u->dy[i] + epsilon * u->laplace[i]);
-#else
-      throw Hermes::Exceptions::Exception("Define H2D_SECOND_DERIVATIVES_ENABLED in h2d_common.h if you want to use second derivatives of shape functions in weak forms.");
-#endif
     }
+#endif
   }
   return result;
 }
