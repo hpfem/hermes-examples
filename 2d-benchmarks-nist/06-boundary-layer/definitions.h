@@ -1,4 +1,5 @@
 #include "hermes2d.h"
+#include "../NIST-util.h"
 
 using namespace Hermes;
 using namespace Hermes::Hermes2D;
@@ -32,6 +33,8 @@ public:
   virtual void derivatives(double x, double y, double& dx, double& dy) const;
 
   virtual Ord ord (Ord x, Ord y) const; 
+
+  MeshFunction<double>* clone() const { return new CustomExactSolution(mesh, epsilon); }
 
   double epsilon;
 };

@@ -1,4 +1,5 @@
 #include "hermes2d.h"
+#include "../NIST-util.h"
 
 using namespace Hermes::Hermes2D;
 using namespace WeakFormsH1;
@@ -72,6 +73,8 @@ public:
 
   virtual void derivatives (double x, double y, double& dx, double& dy) const;
   virtual Ord ord (Ord x, Ord y) const { return Ord(Ord::get_max_order()); }
+
+  MeshFunction<double>* clone() const { return new CustomExactSolution(mesh, alpha, x_loc, y_loc, r_zero); }
 
   double alpha, x_loc, y_loc, r_zero;
 };

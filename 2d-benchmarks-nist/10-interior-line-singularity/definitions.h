@@ -1,4 +1,5 @@
 #include "hermes2d.h"
+#include "../NIST-util.h"
 
 using namespace Hermes;
 using namespace Hermes::Hermes2D;
@@ -50,6 +51,8 @@ public:
   ~CustomExactSolution();
 
   CustomExactFunction* cef;
+
+  MeshFunction<double>* clone() const { return new CustomExactSolution(mesh, k, alpha); }
 
   double k;
   double alpha;

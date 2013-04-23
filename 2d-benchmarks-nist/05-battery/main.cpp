@@ -19,49 +19,27 @@ using namespace RefinementSelectors;
 //
 //  The following parameters can be changed:
 
-// Set to "false" to suppress Hermes OpenGL visualization. 
-const bool HERMES_VISUALIZATION = true;           
-// Set to "true" to enable VTK output.
-const bool VTK_VISUALIZATION = false;             
 // Initial polynomial degree of mesh elements.
 const int P_INIT = 2;
-// Number of initial uniform mesh refinements.   
-const int INIT_REF_NUM = 1;                       
-// This is a quantitative parameter of the adapt(...) function and
-// it has different meanings for various adaptive strategies.
-const double THRESHOLD = 0.3;                     
-// Adaptive strategy:
-// STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
-//   error is processed. If more elements have similar errors, refine
-//   all to keep the mesh symmetric.
-// STRATEGY = 1 ... refine all elements whose error is larger
-//   than THRESHOLD times maximum element error.
-// STRATEGY = 2 ... refine all elements whose error is larger
-//   than THRESHOLD.
-// More adaptive strategies can be created in adapt_ortho_h1.cpp.
-const int STRATEGY = 0;                           
-// Predefined list of element refinement candidates. Possible values are
-// H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO, H2D_HP_ANISO_H
-// H2D_HP_ANISO_P, H2D_HP_ANISO.
-const CandList CAND_LIST = H2D_HP_ANISO;        
-// Maximum allowed level of hanging nodes:
-// MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
-// MESH_REGULARITY = 1 ... at most one-level hanging nodes,
-// MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
-// Note that regular meshes are not supported, this is due to
-// their notoriously bad performance.
-const int MESH_REGULARITY = -1;                   
+// Number of initial uniform mesh refinements.
+const int INIT_REF_NUM = 1;
+// This is a quantitative parameter of Adaptivity.
+const double THRESHOLD = 0.3;
+// This is a stopping criterion for Adaptivity.
+const AdaptivityStoppingCriterion stoppingCriterion = AdaptStoppingCriterionSingleElement;   
+
+// Predefined list of element refinement candidates.
+const CandList CAND_LIST = H2D_HP_ANISO_H;
+// Maximum allowed level of hanging nodes.
+const int MESH_REGULARITY = -1;
 // Stopping criterion for adaptivity.
-const double ERR_STOP = 1.0;                      
-// This parameter influences the selection of candidates in hp-adaptivity. 
-// Default value is 1.0.
-const double CONV_EXP = 0.3;                      
-// Adaptivity process stops when the number of degrees of freedom grows
-// over this limit. This is to prevent h-adaptivity to go on forever.
-const int NDOF_STOP = 60000;                      
-// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK; 
+const double ERR_STOP = 1.0;
+
+// Newton tolerance
+const double NEWTON_TOLERANCE = 1e-6;
+
+bool HERMES_VISUALIZATION = false;
+bool VTK_VISUALIZATION = false;
 
 int main(int argc, char* argv[])
 {
@@ -84,7 +62,7 @@ int main(int argc, char* argv[])
   MeshFunctionSharedPtr<double> sln(new Solution<double>), ref_sln(new Solution<double>);
   
   // Initialize refinement selector.
-  H1ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
+  MySelector selector(CAND_LIST);
 
   // Initialize views.
   ScalarView sview("Solution", new WinGeom(0, 0, 320, 600));
@@ -116,7 +94,7 @@ int main(int argc, char* argv[])
     int ndof_ref = ref_space->get_num_dofs();
 
     // Initialize fine mesh problem.
-    Hermes::Mixins::Loggable::Static::info("Solving on fine mesh->");
+    Hermes::Mixins::Loggable::Static::info("Solving on fine mesh.");
     DiscreteProblem<double> dp(&wf, ref_space);
     
     NewtonSolver<double> newton(&dp);
@@ -136,8 +114,8 @@ int main(int argc, char* argv[])
     // Translate the resulting coefficient vector into the instance of Solution.
     Solution<double>::vector_to_solution(newton.get_sln_vector(), ref_space, ref_sln);
     
-    // Project the fine mesh solution onto the coarse mesh->
-    Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh->");
+    // Project the fine mesh solution onto the coarse mesh.
+    Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh.");
     OGProjection<double> ogProjection; ogProjection.project_global(space, ref_sln, sln);
 
     // Time measurement.
@@ -172,21 +150,13 @@ int main(int argc, char* argv[])
 
     // Calculate element errors and total error estimate.
     Hermes::Mixins::Loggable::Static::info("Calculating error estimate.");
-    Adapt<double> adaptivity(space);
-    bool solutions_for_adapt = true;
-    // In the following function, the Boolean parameter "solutions_for_adapt" determines whether
-    // the calculated errors are intended for use with adaptivity (this may not be the case, for example,
-    // when error wrt. an exact solution is calculated). The default value is solutions_for_adapt = true,
-    // The last parameter "error_flags" determine whether the total and element errors are treated as
-    // absolute or relative. Its default value is error_flags = HERMES_TOTAL_ERROR_REL | HERMES_ELEMENT_ERROR_REL.
-    // In subsequent examples and benchmarks, these two parameters will be often used with
-    // their default values, and thus they will not be present in the code explicitly.
-    double err_est_rel = adaptivity.calc_err_est(sln, ref_sln, solutions_for_adapt,
-                         HERMES_TOTAL_ERROR_REL | HERMES_ELEMENT_ERROR_REL) * 100;
+    DefaultErrorCalculator<double, HERMES_H1_NORM> error_calculator(RelativeErrorToGlobalNorm, 1);
+    error_calculator.calculate_errors(sln, ref_sln);
+    Adapt<double> adaptivity(space, &error_calculator);
+    double err_est_rel = error_calculator.get_total_error_squared() * 100.0;
 
     // Report results.
-    Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d, err_est_rel: %g%%",
-      space->get_num_dofs(), ref_space->get_num_dofs(), err_est_rel);
+    Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d, err_est_rel: %g%%", space->get_num_dofs(), ref_space->get_num_dofs(), err_est_rel);
 
     // Add entry to DOF and CPU convergence graphs.
     cpu_time.tick();    
@@ -203,15 +173,13 @@ int main(int argc, char* argv[])
       done = true;
     else
     {
-      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh->");
-      done = adaptivity.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
+      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
+      done = adaptivity.adapt(&selector);
 
       // Increase the counter of performed adaptivity steps.
       if (done == false)  
         as++;
     }
-    if (space->get_num_dofs() >= NDOF_STOP) 
-      done = true;
   }
   while (done == false);
 

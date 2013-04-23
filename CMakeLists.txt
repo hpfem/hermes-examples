@@ -1,6 +1,8 @@
 set(CMAKE_USER_MAKE_RULES_OVERRIDE_CXX ${CMAKE_HOME_DIRECTORY}/cmake/cxx_flag_overrides.cmake)
 project(hermes_examples)
 	cmake_minimum_required(VERSION 2.6)
+  
+  set(HERMES_EXAMPLES_DEBUG YES)
 
 	set(CMAKE_MODULE_PATH ${CMAKE_HOME_DIRECTORY}/cmake)
         include(CommonTargetProperties)

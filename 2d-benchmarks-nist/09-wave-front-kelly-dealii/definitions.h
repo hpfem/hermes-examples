@@ -1,4 +1,5 @@
 #include "hermes2d.h"
+#include "../NIST-util.h"
 
 using namespace Hermes::Hermes2D;
 using namespace WeakFormsH1;

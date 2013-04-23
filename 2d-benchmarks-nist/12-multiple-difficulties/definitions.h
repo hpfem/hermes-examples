@@ -1,4 +1,5 @@
 #include "hermes2d.h"
+#include "../NIST-util.h"
 
 using namespace Hermes;
 using namespace Hermes::Hermes2D;
@@ -46,6 +47,8 @@ public:
   virtual Ord ord (Ord x, Ord y) const;
 
   double get_angle(double y, double x) const;
+
+  MeshFunction<double>* clone() const { return new CustomExactSolution(mesh, alpha_w, alpha_p, x_w, y_w, r_0, omega_c, epsilon, x_p, y_p); }
 
   double alpha_w;
   double alpha_p;
