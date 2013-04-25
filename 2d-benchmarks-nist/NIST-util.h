@@ -1,3 +1,6 @@
+#ifndef __NIST_UTIL_H
+#define __NIST_UTIL_H
+
 #include "hermes2d.h"
 
 using namespace Hermes::Hermes2D;
@@ -31,3 +34,25 @@ private:
     }
   }
 };
+
+bool adaptive_step_single_space(
+  MeshSharedPtr& mesh,
+  MeshFunctionSharedPtr<double>& exact_sln, 
+  SpaceSharedPtr<double>& space, 
+  MeshFunctionSharedPtr<double>& sln, 
+  MySelector& selector,
+  MeshFunctionSharedPtr<double>& ref_sln,
+  Hermes::Mixins::TimeMeasurable& cpu_time,
+  LinearSolver<double>& newton,
+  Views::ScalarView& sview,
+  Views::OrderView & oview,
+  SimpleGraph graph_dof_est,
+  SimpleGraph graph_cpu_est,
+  SimpleGraph graph_dof_exact,
+  SimpleGraph graph_cpu_exact,
+  ErrorCalculator<double>& error_calculator,
+  Adapt<double>& adaptivity,
+  int& as,
+  double ERR_STOP
+  );
+#endif

@@ -182,6 +182,7 @@ int main(int argc, char* argv[])
     DiscreteProblem<double> dp(&wf, ref_spaces);
 
     NewtonSolver<double> newton(&dp);
+    newton.set_tolerance(1e-4);
     
     try
     {
