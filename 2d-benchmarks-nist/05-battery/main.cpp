@@ -34,6 +34,7 @@ const CandList CAND_LIST = H2D_HP_ANISO_H;
 const int MESH_REGULARITY = -1;
 // Stopping criterion for adaptivity.
 const double ERR_STOP = 1.0;
+const CalculatedErrorType errorType = RelativeErrorToGlobalNorm;
 
 // Newton tolerance
 const double NEWTON_TOLERANCE = 1e-6;
@@ -43,7 +44,7 @@ bool VTK_VISUALIZATION = false;
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh->
+  // Load the mesh.
   MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("battery.mesh", mesh);
@@ -150,11 +151,13 @@ int main(int argc, char* argv[])
 
     // Calculate element errors and total error estimate.
     Hermes::Mixins::Loggable::Static::info("Calculating error estimate.");
-    DefaultErrorCalculator<double, HERMES_H1_NORM> error_calculator(RelativeErrorToGlobalNorm, 1);
+    DefaultErrorCalculator<double, HERMES_H1_NORM> error_calculator(errorType, 1);
     error_calculator.calculate_errors(sln, ref_sln);
-    Adapt<double> adaptivity(space, &error_calculator);
     double err_est_rel = error_calculator.get_total_error_squared() * 100.0;
 
+    Adapt<double> adaptivity(space, &error_calculator);
+    adaptivity.set_strategy(stoppingCriterion, THRESHOLD);
+    
     // Report results.
     Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d, err_est_rel: %g%%", space->get_num_dofs(), ref_space->get_num_dofs(), err_est_rel);
 
@@ -168,7 +171,7 @@ int main(int argc, char* argv[])
     // Skip the time spent to save the convergence graphs.
     cpu_time.tick(Hermes::Mixins::TimeMeasurable::HERMES_SKIP);
 
-    // If err_est too large, adapt the mesh->
+    // If err_est too large, adapt the mesh.
     if (err_est_rel < ERR_STOP) 
       done = true;
     else

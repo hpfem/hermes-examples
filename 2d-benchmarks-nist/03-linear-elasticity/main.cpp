@@ -45,7 +45,7 @@ const int P_INIT_V = 2;
 // Number of initial uniform mesh refinements.
 const int INIT_REF_NUM = 2;
 // This is a quantitative parameter of Adaptivity.
-const double THRESHOLD = 0.3;
+const double THRESHOLD = 0.6;
 // This is a stopping criterion for Adaptivity.
 const AdaptivityStoppingCriterion stoppingCriterion = AdaptStoppingCriterionSingleElement;   
 
@@ -55,6 +55,7 @@ const CandList CAND_LIST = H2D_HP_ANISO_H;
 const int MESH_REGULARITY = -1;
 // Stopping criterion for adaptivity.
 const double ERR_STOP = 1.0;
+const CalculatedErrorType errorType = RelativeErrorToGlobalNorm;
 
 // Newton tolerance
 const double NEWTON_TOLERANCE = 1e-6;
@@ -86,7 +87,7 @@ const double Q = -0.2189232362488;
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh->
+  // Load the mesh.
   MeshSharedPtr u_mesh(new Mesh), v_mesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("elasticity.mesh", u_mesh);
@@ -175,7 +176,7 @@ int main(int argc, char* argv[])
     Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d (%d DOF):", as, ndof_ref);
     cpu_time.tick();
 
-    Hermes::Mixins::Loggable::Static::info("Solving on reference mesh->");
+    Hermes::Mixins::Loggable::Static::info("Solving on reference mesh.");
 
     // Assemble the discrete problem.    
     DiscreteProblem<double> dp(&wf, ref_spaces);
@@ -203,13 +204,14 @@ int main(int argc, char* argv[])
     OGProjection<double> ogProjection; ogProjection.project_global(spaces, ref_slns, slns);
 
     // Calculate element errors and total error estimate.
-    DefaultErrorCalculator<double, HERMES_H1_NORM> error_calculator(RelativeErrorToGlobalNorm, 2);
+    DefaultErrorCalculator<double, HERMES_H1_NORM> error_calculator(errorType, 2);
     error_calculator.calculate_errors(slns, exact_slns);
     double err_exact_rel_total = error_calculator.get_total_error_squared() * 100.0;
     error_calculator.calculate_errors(slns, ref_slns);
     double err_est_rel_total = error_calculator.get_total_error_squared() * 100.0;
 
     Adapt<double> adaptivity(spaces, &error_calculator);
+    adaptivity.set_strategy(stoppingCriterion, THRESHOLD);
 
     cpu_time.tick();
     Hermes::Mixins::Loggable::Static::info("Error calculation: %g s", cpu_time.last());
@@ -238,7 +240,7 @@ int main(int argc, char* argv[])
 
     cpu_time.tick(Hermes::Mixins::TimeMeasurable::HERMES_SKIP);
 
-    // If err_est too large, adapt the mesh->
+    // If err_est too large, adapt the mesh.
     if (err_est_rel_total < ERR_STOP) 
       done = true;
     else 

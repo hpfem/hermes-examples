@@ -186,6 +186,7 @@ SpaceSharedPtr<double> space(new // Create an H1 space with default shapeset.
     
     // Calculate element errors and total error estimate.
     Hermes::Hermes2D::BasicKellyAdapt<double> adaptivity(&space);
+    adaptivity.set_strategy(stoppingCriterion, THRESHOLD);
     
     if (USE_ENERGY_NORM_NORMALIZATION)
       adaptivity.set_error_form(new EnergyErrorForm(&wf));
