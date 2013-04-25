@@ -37,22 +37,22 @@ private:
 
 bool adaptive_step_single_space(
   MeshSharedPtr& mesh,
-  MeshFunctionSharedPtr<double>& exact_sln, 
   SpaceSharedPtr<double>& space, 
   MeshFunctionSharedPtr<double>& sln, 
   MySelector& selector,
   MeshFunctionSharedPtr<double>& ref_sln,
   Hermes::Mixins::TimeMeasurable& cpu_time,
-  LinearSolver<double>& newton,
+  Solver<double>& solver,
   Views::ScalarView& sview,
   Views::OrderView & oview,
   SimpleGraph graph_dof_est,
   SimpleGraph graph_cpu_est,
-  SimpleGraph graph_dof_exact,
-  SimpleGraph graph_cpu_exact,
   ErrorCalculator<double>& error_calculator,
   Adapt<double>& adaptivity,
   int& as,
-  double ERR_STOP
+  double ERR_STOP,
+  MeshFunctionSharedPtr<double>& exact_sln = MeshFunctionSharedPtr<double>(),
+  SimpleGraph graph_dof_exact = SimpleGraph(),
+  SimpleGraph graph_cpu_exact = SimpleGraph()
   );
 #endif

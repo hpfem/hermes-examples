@@ -76,6 +76,7 @@ int main(int argc, char* argv[])
 
   // Initialize approximate solution.
   MeshFunctionSharedPtr<double> sln(new Solution<double>());
+  MeshFunctionSharedPtr<double> ref_sln(new Solution<double>());
   
   // Initialize refinement selector.
   MySelector selector(CAND_LIST);
@@ -95,7 +96,6 @@ int main(int argc, char* argv[])
   // Assemble the discrete problem.    
   LinearSolver<double> newton;
   newton.set_weak_formulation(&wf);
-  MeshFunctionSharedPtr<double> ref_sln(new Solution<double>());
 
   // Adaptivity loop.
   DefaultErrorCalculator<double, HERMES_H1_NORM> error_calculator(errorType, 1);
@@ -121,7 +121,7 @@ int main(int argc, char* argv[])
     ((CustomExactSolution*)exact_sln.get())->alpha = alpha;
 
     int as = 1;
-    while (!adaptive_step_single_space(mesh, exact_sln, space, sln, selector, ref_sln, cpu_time,newton,sview,oview,graph_dof_est,graph_cpu_est,graph_dof_exact,graph_cpu_exact, error_calculator, adaptivity,as, ERR_STOP))
+    while (!adaptive_step_single_space(mesh, space, sln, selector, ref_sln, cpu_time,newton,sview,oview,graph_dof_est,graph_cpu_est, error_calculator, adaptivity, as, ERR_STOP, exact_sln, graph_dof_exact, graph_cpu_exact))
     {
       Linearizer lin;
       char* filename = new char[1000];

@@ -37,7 +37,7 @@ const CandList CAND_LIST = H2D_HP_ANISO_H;
 // Maximum allowed level of hanging nodes.
 const int MESH_REGULARITY = -1;
 // Stopping criterion for adaptivity.
-const double ERR_STOP = 1.0;
+const double ERR_STOP = 1e-1;
 const CalculatedErrorType errorType = RelativeErrorToGlobalNorm;
 
 // Newton tolerance

@@ -330,6 +330,7 @@ CustomWeakFormPoisson::CustomWeakFormPoisson(std::string omega_1, std::string om
   omega_1(omega_1), omega_2(omega_2), omega_3(omega_3), 
   omega_4(omega_4), omega_5(omega_5), mesh(mesh),
 
+  /*
   p_1(25.0),
   p_2(7.0),
   p_3(5.0),
@@ -341,6 +342,19 @@ CustomWeakFormPoisson::CustomWeakFormPoisson(std::string omega_1, std::string om
   q_3(0.0001),
   q_4(0.2),
   q_5(0.05),
+  */
+
+  p_1(1.0),
+  p_2(1.0),
+  p_3(1.0),
+  p_4(1.0),
+  p_5(1.0),
+
+  q_1(1.0),
+  q_2(1.0),
+  q_3(1.0),
+  q_4(1.0),
+  q_5(1.00),
 
   f_1(0.0),
   f_2(1.0),

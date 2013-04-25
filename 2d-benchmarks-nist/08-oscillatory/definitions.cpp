@@ -48,7 +48,7 @@ Ord CustomExactSolution::ord (Ord x, Ord y) const
 CustomWeakForm::CustomWeakForm(CustomRightHandSide* f) : WeakForm<double>(1) 
 {
   // Jacobian.
-  add_matrix_form(new CustomMatrixFormVol(0, 0, f->alpha));
+  add_matrix_form(new CustomMatrixFormVol(0, 0, f));
   // Residual.
   add_vector_form(new CustomVectorFormVol(0, f));
 }
@@ -63,7 +63,7 @@ Scalar CustomWeakForm::CustomMatrixFormVol::matrix_form(int n, double *wt, Func<
     Scalar x = e->x[i];
     Scalar y = e->y[i];
     Scalar r = Hermes::sqrt(x*x + y*y);
-    Scalar h = 1/(alpha + r);
+    Scalar h = 1/(f->alpha + r);
     Scalar grad_u_grad_v = u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i];
     val += wt[i] * (grad_u_grad_v - Hermes::pow(h, 4) * u->val[i] * v->val[i]);
   }
