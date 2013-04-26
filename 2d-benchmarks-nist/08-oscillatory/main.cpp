@@ -43,9 +43,6 @@ const CalculatedErrorType errorType = RelativeErrorToGlobalNorm;
 // Newton tolerance
 const double NEWTON_TOLERANCE = 1e-6;
 
-bool HERMES_VISUALIZATION = false;
-bool VTK_VISUALIZATION = false;
-
 int main(int argc, char* argv[])
 {
   // Load the mesh.
@@ -75,7 +72,7 @@ int main(int argc, char* argv[])
 
   // Initialize approximate solution.
   MeshFunctionSharedPtr<double> sln(new Solution<double>), ref_sln(new Solution<double>);
-  
+
   // Initialize refinement selector.
   MySelector selector(CAND_LIST);
 
@@ -129,13 +126,10 @@ int main(int argc, char* argv[])
       sprintf(filename, "Mesh-%i.vtk", iteration);
       ord.save_mesh_vtk(newton.get_space(0), filename);
     }
-    
+
     std::cout << std::endl << "------------------------------------------------" << std::endl;
   }
-  
-  Hermes::Mixins::Loggable::Static::info("Total running time: %g s", cpu_time.accumulated());
 
-  // Wait for all views to be closed.
-  Views::View::wait();
+  Hermes::Mixins::Loggable::Static::info("Total running time: %g s", cpu_time.accumulated());
   return 0;
 }

@@ -136,8 +136,5 @@ int main(int argc, char* argv[])
     
     std::cout << std::endl << "------------------------------------------------" << std::endl;
   }
-
-  // Wait for all views to be closed.
-  Views::View::wait();
-  return 0;
+return 0;
 }

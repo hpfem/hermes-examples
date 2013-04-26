@@ -39,8 +39,6 @@ const CalculatedErrorType errorType = RelativeErrorToGlobalNorm;
 // Newton tolerance
 const double NEWTON_TOLERANCE = 1e-6;
 
-bool HERMES_VISUALIZATION = false;
-bool VTK_VISUALIZATION = false;
 
 int main(int argc, char* argv[])
 {
@@ -127,7 +125,7 @@ int main(int argc, char* argv[])
     std::cout << std::endl << "------------------------------------------------" << std::endl;
   }
 
-  // Wait for all views to be closed.
+  
   Views::View::wait();
 
   return 0;
