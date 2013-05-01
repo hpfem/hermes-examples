@@ -105,23 +105,23 @@ public:
   const std::string omega_4;
   const std::string omega_5;
 
-  const double p_1;
-  const double p_2;
-  const double p_3;
-  const double p_4;
-  const double p_5;
+  double p_1;
+  double p_2;
+  double p_3;
+  double p_4;
+  double p_5;
 
-  const double q_1;
-  const double q_2;
-  const double q_3;
-  const double q_4;
-  const double q_5;
+  double q_1;
+  double q_2;
+  double q_3;
+  double q_4;
+  double q_5;
 
-  const double f_1;
-  const double f_2;
-  const double f_3;
-  const double f_4;
-  const double f_5;
+  double f_1;
+  double f_2;
+  double f_3;
+  double f_4;
+  double f_5;
 
   // Boundary markers.
   const std::string bdy_left;
@@ -130,15 +130,15 @@ public:
   const std::string bdy_bottom;
 
   // Boundary condition coefficients for the four sides.
-  const double c_left;
-  const double c_top;
-  const double c_right;
-  const double c_bottom;
+  double c_left;
+  double c_top;
+  double c_right;
+  double c_bottom;
 
-  const double g_n_left;
-  const double g_n_top;
-  const double g_n_right;
-  const double g_n_bottom;
+  double g_n_left;
+  double g_n_top;
+  double g_n_right;
+  double g_n_bottom;
 
   virtual WeakForm* clone() const;
 };
