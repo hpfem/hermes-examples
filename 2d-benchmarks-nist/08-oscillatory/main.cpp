@@ -183,7 +183,7 @@ int main(int argc, char* argv[])
           space, 
           sln, 
           refinement_selector,
-          1,
+          (argc > 2 && atoi(argv[1]) == 0) ? 0 : 1,
           ref_sln, 
           cpu_time,
           newton,
