@@ -26,7 +26,7 @@ const int INIT_REF_NUM = 1;
 // This is a quantitative parameter of Adaptivity.
 double THRESHOLD = 0.3;
 // This is a stopping criterion for Adaptivity.
-const AdaptivityStoppingCriterion stoppingCriterion = AdaptStoppingCriterionSingleElement;   
+AdaptStoppingCriterionSingleElement<double>* stoppingCriterion = new AdaptStoppingCriterionSingleElement<double>(THRESHOLD);   
 
 // Predefined list of element refinement candidates.
 CandList CAND_LIST = H2D_HP_ANISO_H;
@@ -92,7 +92,7 @@ int main(int argc, char* argv[])
   // Adaptivity loop.
   DefaultErrorCalculator<double, HERMES_H1_NORM> error_calculator(errorType, 1);
   Adapt<double> adaptivity(space, &error_calculator);
-  adaptivity.set_strategy(stoppingCriterion, THRESHOLD);
+  adaptivity.set_strategy(stoppingCriterion);
 
   sprintf(filename, "Results-%s-%s.csv", get_cand_list_str(CAND_LIST), THRESHOLD_STRING);
   std::ofstream data(filename);

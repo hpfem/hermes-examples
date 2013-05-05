@@ -32,7 +32,7 @@ const int INIT_REF_NUM = 0;
 // This is a quantitative parameter of Adaptivity.
 const double THRESHOLD = 0.3;
 // This is a stopping criterion for Adaptivity.
-const AdaptivityStoppingCriterion stoppingCriterion = AdaptStoppingCriterionSingleElement;   
+AdaptStoppingCriterionSingleElement<double>* stoppingCriterion = new AdaptStoppingCriterionSingleElement<double>(THRESHOLD);   
 
 // Predefined list of element refinement candidates.
 const CandList CAND_LIST = H2D_HP_ANISO_H;
@@ -145,7 +145,7 @@ int main(int argc, char* argv[])
     double err_est_rel = error_calculator.get_total_error_squared() * 100.0;
 
     Adapt<double> adaptivity(space, &error_calculator);
-    adaptivity.set_strategy(stoppingCriterion, THRESHOLD);
+    adaptivity.set_strategy(stoppingCriterion);
 
     cpu_time.tick();
     Hermes::Mixins::Loggable::Static::info("Error calculation: %g s", cpu_time.last());

@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
   // Adaptivity loop.
   DefaultErrorCalculator<double, HERMES_H1_NORM> error_calculator(errorType, 1);
   Adapt<double> adaptivity(space, &error_calculator);
-  adaptivity.set_strategy(stoppingCriterion, THRESHOLD);
+  adaptivity.set_strategy(stoppingCriterion);
 
   int number_of_steps = 20;
   for(int iteration = 0; iteration < number_of_steps; iteration++)

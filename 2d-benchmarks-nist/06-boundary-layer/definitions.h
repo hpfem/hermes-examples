@@ -22,23 +22,21 @@ public:
 
 /* Exact solution */
 
-class CustomBC : public EssentialBoundaryCondition<double>
+class CustomExactSolution : public ExactSolutionScalar<double>
 {
 public:
-  CustomBC(Hermes::vector<std::string> markers, double amplitude = 1., double frequency = 1000.)
-      : EssentialBoundaryCondition<double>(markers), amplitude(amplitude), frequency(frequency)
-  {
-  };
+  CustomExactSolution(MeshSharedPtr mesh, double epsilon)
+      : ExactSolutionScalar<double>(mesh), epsilon(epsilon) {};
 
-  inline typename EssentialBoundaryCondition<double>::EssentialBCValueType get_value_type() const { return EssentialBoundaryCondition<double>::BC_FUNCTION; }
+  virtual double value(double x, double y) const;
 
-  virtual double value(double x, double y, double n_x, double n_y, double t_x, double t_y) const
-  {
-    return this->amplitude * std::sin(2 * M_PI * this->frequency * this->current_time);
-  }
+  virtual void derivatives(double x, double y, double& dx, double& dy) const;
 
-  double amplitude;
-  double frequency;
+  virtual Ord ord (Ord x, Ord y) const; 
+
+  MeshFunction<double>* clone() const { return new CustomExactSolution(mesh, epsilon); }
+
+  double epsilon;
 };
 
 /* Weak forms */

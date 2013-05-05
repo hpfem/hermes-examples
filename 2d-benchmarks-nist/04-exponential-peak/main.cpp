@@ -29,33 +29,31 @@ double y_loc = 0.5;
 const int P_INIT = 2;
 // Number of initial uniform mesh refinements.
 const int INIT_REF_NUM = 1;
-// This is a quantitative parameter of Adaptivity.
-double THRESHOLD = 0.5;
-// This is a stopping criterion for Adaptivity.
-const AdaptivityStoppingCriterion stoppingCriterion = AdaptStoppingCriterionSingleElement;
 
-// Predefined list of element refinement candidates.
-CandList CAND_LIST = H2D_H_ISO;
-// Maximum allowed level of hanging nodes.
-const int MESH_REGULARITY = -1;
-// Stopping criterion for adaptivity.
+// Error stop type.
 const CalculatedErrorType errorType = RelativeErrorToGlobalNorm;
+// Maximum allowed level of hanging node  s.
+const int MESH_REGULARITY = -1;
+
+// Error stop value (in percent).
+double ERR_STOP = 0.1;
 
 int main(int argc, char* argv[])
 {
-  const char* THRESHOLD_STRING = "Custom";
-
+  Selector<double>* refinement_selector;
+  AdaptivityStoppingCriterion<double>* stoppingCriterion;
+  char* resultStringIdentification;
   if(argc > 2)
+    resultStringIdentification = process_arguments_main_comparison(argc, argv, refinement_selector, stoppingCriterion);
+  else
   {
-    CAND_LIST = CandList(atoi(argv[1]));
-    THRESHOLD = threshold_values[atoi(argv[2])];
-    THRESHOLD_STRING = thresholds[atoi(argv[2])];
+    refinement_selector = new MySelector(hXORpSelectionBasedOnError);
+    stoppingCriterion = new AdaptStoppingCriterionSingleElement<double>(0.5);
+    resultStringIdentification = "Custom";
   }
 
-  sprintf(Hermes::Mixins::Loggable::logFileName, "Logfile-%s-%s.log", get_cand_list_str(CAND_LIST), THRESHOLD_STRING);
-
-  double ERR_STOP = 1.;
-
+  sprintf(Hermes::Mixins::Loggable::logFileName, "Logfile-%s.log", resultStringIdentification);
+  
   // Load the mesh.
   MeshSharedPtr mesh(new Mesh), basemesh(new Mesh);
   MeshReaderH2D mloader;
@@ -67,7 +65,6 @@ int main(int argc, char* argv[])
   // Perform initial mesh refinements.
   for (int i = 0; i<INIT_REF_NUM; i++)
     mesh->refine_all_elements();
-
   basemesh->copy(mesh);
 
   // Set exact solution.
@@ -90,9 +87,6 @@ int main(int argc, char* argv[])
   MeshFunctionSharedPtr<double> sln(new Solution<double>());
   MeshFunctionSharedPtr<double> ref_sln(new Solution<double>());
 
-  // Initialize refinement selector.
-  MySelector selector(CAND_LIST);
-
   // Initialize views.
   Views::ScalarView sview("Solution", new Views::WinGeom(0, 0, 440, 350));
   Views::OrderView oview("Polynomial orders", new Views::WinGeom(450, 0, 420, 350));
@@ -101,20 +95,22 @@ int main(int argc, char* argv[])
   char* filename = new char[1000];
 
   // Assemble the discrete problem.    
-  LinearSolver<double> newton;
-  newton.set_weak_formulation(&wf);
+  LinearSolver<double> linear_solver;
+  linear_solver.set_weak_formulation(&wf);
+  linear_solver.set_UMFPACK_output(true, false);
 
   // Adaptivity loop.
   DefaultErrorCalculator<double, HERMES_H1_NORM> error_calculator(errorType, 1);
   Adapt<double> adaptivity(space, &error_calculator);
-  adaptivity.set_strategy(stoppingCriterion, THRESHOLD);
+  adaptivity.set_strategy(stoppingCriterion);
 
-  sprintf(filename, "Results-%s-%s.csv", get_cand_list_str(CAND_LIST), THRESHOLD_STRING);
+  sprintf(filename, "%s.csv", resultStringIdentification);
   std::ofstream data(filename);
   data.precision(10);
   data.setf( std::ios::fixed, std::ios::floatfield );
   data << 
       "Iteration" << ';' <<
+      "ErrorLevel" << ';' <<
       "CPUTime" << ';' <<
       "AdaptivitySteps" << ';' <<
       "dof_reached" << ';' <<
@@ -123,6 +119,9 @@ int main(int argc, char* argv[])
       "total_cache_record_found" << ';' <<
       "total_cache_record_found_reinit" << ';' <<
       "total_cache_record_not_found" << ';' <<
+      "max_FactorizationSize" << ';' <<
+      "total_PeakMemoryUsage" << ';' <<
+      "total_Flops" << ';' <<
       "error_stop" << ';' <<
       "error_reached" << ';' <<
       "exact_error_reached" <<
@@ -131,7 +130,7 @@ int main(int argc, char* argv[])
   Hermes::Mixins::Loggable logger;
   logger.set_verbose_output(true);
 
-  int iterations_count = 8;
+  int iterations_count = 10;
   int error_levels_count = 5;
   double error_stop = ERR_STOP;
 
@@ -144,7 +143,7 @@ int main(int argc, char* argv[])
       space->assign_dofs();
 
       double factor = std::abs(std::sin( 0.5 * M_PI * std::pow((double)(iteration + 1) / (double)iterations_count, 4.0)));
-      alpha = 10. + factor * 2000.;
+      alpha = 10. + factor * 5000.;
       f.alpha = alpha;
       ((CustomExactSolution*)exact_sln.get())->alpha = alpha;
       
@@ -158,18 +157,24 @@ int main(int argc, char* argv[])
       int total_cache_record_found = 0;
       int total_cache_record_found_reinit = 0;
       int total_cache_record_not_found = 0;
+      double total_PeakMemoryUsage = 0;
+      double total_Flops = 0;
 
       // Max.
       int as = 1;
       int dof_reached;
       double error_reached;
       double exact_error_reached;
+      double max_FactorizationSize = 0;
 
       // One step.
       int cache_searches;
       int cache_record_found;
       int cache_record_found_reinit;
       int cache_record_not_found;
+      double FactorizationSize;
+      double PeakMemoryUsage;
+      double Flops;
 
       // Time measurement.
       Hermes::Mixins::TimeMeasurable cpu_time;
@@ -184,11 +189,11 @@ int main(int argc, char* argv[])
           mesh, 
           space, 
           sln, 
-          selector,
-          is_p(CAND_LIST) ? 1 : 0,
+          refinement_selector,
+          1,
           ref_sln, 
           cpu_time,
-          newton,
+          linear_solver,
           sview,
           oview,
           error_calculator,
@@ -202,6 +207,9 @@ int main(int argc, char* argv[])
           cache_record_found_reinit,
           cache_record_not_found,
           exact_error_reached,
+          FactorizationSize,
+          PeakMemoryUsage,
+          Flops,
           exact_sln))
         {
           dof_cumulative += dof_reached;
@@ -210,6 +218,10 @@ int main(int argc, char* argv[])
           total_cache_record_found += cache_record_found;
           total_cache_record_found_reinit += cache_record_found_reinit;
           total_cache_record_not_found += cache_record_not_found;
+
+          max_FactorizationSize = std::max(max_FactorizationSize, FactorizationSize);
+          total_PeakMemoryUsage += PeakMemoryUsage;
+          total_Flops += Flops;
         }
       }
       catch(std::exception& e)
@@ -225,19 +237,24 @@ int main(int argc, char* argv[])
       total_cache_record_found_reinit += cache_record_found_reinit;
       total_cache_record_not_found += cache_record_not_found;
 
+      max_FactorizationSize = std::max(max_FactorizationSize, FactorizationSize);
+      total_PeakMemoryUsage += PeakMemoryUsage;
+      total_Flops += Flops;
+
       cpu_time.tick();
       {
-        sprintf(filename, "Solution-%s-%s-%i.vtk", get_cand_list_str(CAND_LIST), THRESHOLD_STRING, iteration);
+        sprintf(filename, "Solution-%s-%i-%i.vtk", resultStringIdentification, error_level, iteration);
         lin.save_solution_vtk(ref_sln, filename, "sln", false, 1, HERMES_EPS_LOW);
-        sprintf(filename, "Orders-%s-%s-%i.vtk", get_cand_list_str(CAND_LIST), THRESHOLD_STRING, iteration);
-        ord.save_orders_vtk(newton.get_space(0), filename);
-        sprintf(filename, "Mesh-%s-%s-%i.vtk", get_cand_list_str(CAND_LIST), THRESHOLD_STRING, iteration);
-        ord.save_mesh_vtk(newton.get_space(0), filename);
+        sprintf(filename, "Orders-%s-%i-%i.vtk", resultStringIdentification, error_level, iteration);
+        ord.save_orders_vtk(linear_solver.get_space(0), filename);
+        sprintf(filename, "Mesh-%s-%i-%i.vtk", resultStringIdentification, error_level, iteration);
+        ord.save_mesh_vtk(linear_solver.get_space(0), filename);
       }
       cpu_time.tick(Hermes::Mixins::TimeMeasurable::HERMES_SKIP);
 
       data << 
         iteration << ';' <<
+        error_level << ';' <<
         cpu_time.accumulated() << ';' <<
         as - 1 << ';' <<
         dof_reached << ';' <<
@@ -246,6 +263,9 @@ int main(int argc, char* argv[])
         total_cache_record_found << ';' <<
         total_cache_record_found_reinit << ';' <<
         total_cache_record_not_found << ';' <<
+        max_FactorizationSize << ';' <<
+        total_PeakMemoryUsage << ';' <<
+        total_Flops << ';' <<
         error_stop << ';' <<
         error_reached << ';' <<
         exact_error_reached <<
@@ -261,6 +281,11 @@ int main(int argc, char* argv[])
       std::cout << "total_cache_record_found: " << total_cache_record_found << std::endl;
       std::cout << "total_cache_record_found_reinit: " << total_cache_record_found_reinit << std::endl;
       std::cout << "total_cache_record_not_found: " << total_cache_record_not_found << std::endl;
+
+      std::cout << "max_FactorizationSize: " << max_FactorizationSize << std::endl;
+      std::cout << "total_PeakMemoryUsage: " << total_PeakMemoryUsage << std::endl;
+      std::cout << "total_Flops: " << total_Flops << std::endl;
+
 
       std::cout << "error_stop: " << error_stop << std::endl;
       std::cout << "error_reached: " << error_reached << std::endl;
