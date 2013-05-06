@@ -26,6 +26,10 @@ class MySelector : public H1ProjBasedSelector<double>
 public:
   MySelector(hpAdaptivityStrategy strategy) : H1ProjBasedSelector<double>(cand_list), strategy(strategy)
   {
+    if(strategy == hXORpSelectionBasedOnError)
+    {
+      //this->set_error_weights(1.0,1.0,1.0);
+    }
   }
 private:
   bool select_refinement(Element* element, int order, MeshFunction<double>* rsln, ElementToRefine& refinement)
@@ -84,7 +88,10 @@ private:
         Hermes::vector<Cand> candidates;
         candidates.push_back(Cand(H2D_REFINEMENT_P, last_order));
         candidates.push_back(Cand(H2D_REFINEMENT_H, order, order, order, order));
-        Cand* best_candidate = (candidates[0].error > candidates[1].error) ? &candidates[0] : &candidates[1];
+        
+        this->evaluate_cands_error(candidates, element, rsln);
+        
+        Cand* best_candidate = (candidates[0].error < candidates[1].error) ? &candidates[0] : &candidates[1];
         Cand* best_candidates_specific_type[4];
         best_candidates_specific_type[H2D_REFINEMENT_P] = &candidates[0];
         best_candidates_specific_type[H2D_REFINEMENT_H] = &candidates[1];
