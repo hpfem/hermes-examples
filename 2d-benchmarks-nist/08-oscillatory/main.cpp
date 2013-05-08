@@ -45,9 +45,9 @@ int main(int argc, char* argv[])
     resultStringIdentification = process_arguments_main_comparison(argc, argv, refinement_selector, stoppingCriterion);
   else
   {
-    refinement_selector = new MySelector(hXORpSelectionBasedOnError);
-    stoppingCriterion = new AdaptStoppingCriterionSingleElement<double>(0.5);
-    resultStringIdentification = "Custom";
+    refinement_selector = new MySelector(noSelectionH);
+    stoppingCriterion = new AdaptStoppingCriterionSingleElement<double>(0.4);
+    resultStringIdentification = "noSelectionH-Lower";
   }
 
   sprintf(Hermes::Mixins::Loggable::logFileName, "Logfile-%s.log", resultStringIdentification);
@@ -140,7 +140,7 @@ int main(int argc, char* argv[])
       f.alpha = alpha;
       ((CustomExactSolution*)exact_sln.get())->alpha = alpha;
 
-      error_stop = ERR_STOP / std::pow(2.0, (double)error_level);
+      error_stop = ERR_STOP / std::pow(4.0, (double)error_level);
       
       logger.info("Iteration: %i-%i, Error level: %g, Alpha: %g%.", iteration, error_level, error_stop, alpha);
 

@@ -1,6 +1,6 @@
 #include "NIST-util.h"
 
-const char* thresholds[7] = { "Lowest", "Low", "Lower", "Medium", "High", "Higher", "Highest" };
+const char* thresholds[7] = { "Lowest", "Lower", "Low", "Medium", "High", "Higher", "Highest" };
 const double threshold_values[7] = { 0.05, 0.2, 0.4, 0.5, 0.6, 0.8, 0.95 };
 extern const char* strategies[6] = {
   "noSelectionH",
@@ -104,8 +104,8 @@ bool adaptive_step_single_space(
         logger->info("err_exact_rel: %g%%.", err_exact_rel);
     
       // View the coarse mesh solution and polynomial orders.
-      // sview.show(ref_sln);
-      // oview.show(ref_space);
+       // sview.show(ref_sln);
+       // oview.show(ref_space);
 
       error_reached = err_est_rel;
       if(exact_sln)

@@ -19,18 +19,18 @@ using namespace RefinementSelectors;
 //
 //  The following parameters can be changed:
 
-const double omega_c = 3.0 * M_PI / 2.0;
-const double x_w = 0.0;             
-const double y_w = -1.0 / 4.0;
-const double r_0 = 1.0 / 4.0;
-const double alpha_w = 200.0;
-const double x_p = 3.0 / 4.0;
-const double y_p = 2.0 / 4.0;
-const double alpha_p = 100.0;
-const double epsilon = 1.0 / 100.0;
+double omega_c = 3.0 * M_PI / 2.0;
+double x_w = 0.0;             
+double y_w = -1.0 / 4.0;
+double r_0 = 1.0 / 4.0;
+double alpha_w = 200.0;
+double x_p = 3.0 / 4.0;
+double y_p = 2.0 / 4.0;
+double alpha_p = 100.0;
+double epsilon = 1.0 / 100.0;
 
 // Initial polynomial degree of mesh elements.
-const int P_INIT = 1;
+int P_INIT = 1;
 // Number of initial uniform mesh refinements.
 const int INIT_REF_NUM = 0;
 
@@ -40,7 +40,7 @@ const CalculatedErrorType errorType = RelativeErrorToGlobalNorm;
 const int MESH_REGULARITY = -1;
 
 // Error stop value (in percent).
-double ERR_STOP = 10.0;
+double ERR_STOP = 5.0;
 
 int main(int argc, char* argv[])
 {
@@ -58,6 +58,9 @@ int main(int argc, char* argv[])
 
   sprintf(Hermes::Mixins::Loggable::logFileName, "Logfile-%s.log", resultStringIdentification);
   
+  if(argc > 2 && atoi(argv[1]) == 0)
+    P_INIT = 2;
+
   // Load the mesh.
   MeshSharedPtr mesh(new Mesh), basemesh(new Mesh);
   MeshReaderH2D mloader;
@@ -143,6 +146,23 @@ int main(int argc, char* argv[])
       space->set_uniform_order(P_INIT);
       space->assign_dofs();
 
+      x_w = 0.0 - (iteration / 9.) * 0.05;           
+      y_w = (-1.0 / 4.0) - (iteration / 9.) * 0.5;
+      r_0 = (1.0 / 4.0) + (iteration / 9.) * 0.5;
+      x_p = (3.0 / 4.0) + ((-Hermes::sqrt(5.0) / 4.0) - (3.0 / 4.0)) * (iteration / 9.);
+      y_p = (2.0 / 4.0) - (iteration / 9.) * 0.75;
+
+      f.x_w = x_w;
+      ((CustomExactSolution*)exact_sln.get())->x_w = x_w;
+      f.y_w = y_w;
+      ((CustomExactSolution*)exact_sln.get())->y_w = y_w;
+      f.r_0 = r_0;
+      ((CustomExactSolution*)exact_sln.get())->r_0 = r_0;
+      f.x_p = x_p;
+      ((CustomExactSolution*)exact_sln.get())->x_p = x_p;
+      f.y_p = y_p;
+      ((CustomExactSolution*)exact_sln.get())->y_p = y_p;
+
       error_stop = ERR_STOP / std::pow(2.0, (double)error_level);
       
       logger.info("Iteration: %i-%i, Error level: %g%%.", iteration, error_level, error_stop);
@@ -186,7 +206,7 @@ int main(int argc, char* argv[])
           space, 
           sln, 
           refinement_selector,
-          1,
+          (argc > 2 && atoi(argv[1]) == 0) ? 0 : 1,
           ref_sln, 
           cpu_time,
           newton,
@@ -257,12 +277,14 @@ int main(int argc, char* argv[])
 
       cpu_time.tick();
       {
-        sprintf(filename, "Solution-%s-%i-%i.vtk", resultStringIdentification, error_level, iteration);
-        lin.save_solution_vtk(ref_sln, filename, "sln", false, 1, HERMES_EPS_LOW);
-        sprintf(filename, "Orders-%s-%i-%i.vtk", resultStringIdentification, error_level, iteration);
-        ord.save_orders_vtk(newton.get_space(0), filename);
-        sprintf(filename, "Mesh-%s-%i-%i.vtk", resultStringIdentification, error_level, iteration);
-        ord.save_mesh_vtk(newton.get_space(0), filename);
+        {
+          sprintf(filename, "Solution-%s-%i-%i.vtk", resultStringIdentification, error_level, iteration);
+          lin.save_solution_vtk(ref_sln, filename, "sln", false, 1, HERMES_EPS_LOW);
+          sprintf(filename, "Orders-%s-%i-%i.vtk", resultStringIdentification, error_level, iteration);
+          ord.save_orders_vtk(newton.get_space(0), filename);
+          sprintf(filename, "Mesh-%s-%i-%i.vtk", resultStringIdentification, error_level, iteration);
+          ord.save_mesh_vtk(newton.get_space(0), filename);
+        }
       }
       cpu_time.tick(Hermes::Mixins::TimeMeasurable::HERMES_SKIP);
 

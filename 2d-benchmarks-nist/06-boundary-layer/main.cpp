@@ -184,7 +184,7 @@ int main(int argc, char* argv[])
           space, 
           sln, 
           refinement_selector,
-          1,
+          (argc > 2 && atoi(argv[1]) == 0) ? 0 : 1,
           ref_sln, 
           cpu_time,
           newton,
@@ -255,12 +255,14 @@ int main(int argc, char* argv[])
 
       cpu_time.tick();
       {
+        /*
         sprintf(filename, "Solution-%s-%i-%i.vtk", resultStringIdentification, error_level, iteration);
         lin.save_solution_vtk(ref_sln, filename, "sln", false, 1, HERMES_EPS_LOW);
         sprintf(filename, "Orders-%s-%i-%i.vtk", resultStringIdentification, error_level, iteration);
         ord.save_orders_vtk(newton.get_space(0), filename);
         sprintf(filename, "Mesh-%s-%i-%i.vtk", resultStringIdentification, error_level, iteration);
         ord.save_mesh_vtk(newton.get_space(0), filename);
+        */
       }
       cpu_time.tick(Hermes::Mixins::TimeMeasurable::HERMES_SKIP);
 
