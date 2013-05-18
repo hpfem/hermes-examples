@@ -127,14 +127,14 @@ int main(int argc, char* argv[])
       yvel_space, p_space, temperature_space));
 
   // Define projection norms.
-  ProjNormType vel_proj_norm = HERMES_H1_NORM;
+  NormType vel_proj_norm = HERMES_H1_NORM;
 #ifdef PRESSURE_IN_L2
-  ProjNormType p_proj_norm = HERMES_L2_NORM;
+  NormType p_proj_norm = HERMES_L2_NORM;
 #else
-  ProjNormType p_proj_norm = HERMES_H1_NORM;
+  NormType p_proj_norm = HERMES_H1_NORM;
 #endif
-  ProjNormType temperature_proj_norm = HERMES_H1_NORM;
-  Hermes::vector<ProjNormType> all_proj_norms = Hermes::vector<ProjNormType>(vel_proj_norm, 
+  NormType temperature_proj_norm = HERMES_H1_NORM;
+  Hermes::vector<NormType> all_proj_norms = Hermes::vector<NormType>(vel_proj_norm, 
       vel_proj_norm, p_proj_norm, temperature_proj_norm);
 
   // Initial conditions and such.

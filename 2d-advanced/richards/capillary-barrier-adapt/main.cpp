@@ -244,7 +244,7 @@ int main(int argc, char* argv[])
   Hermes::Mixins::Loggable::Static::info("ndof = %d.", ndof);
 
   // Create a selector which will select optimal candidate.
-  H1ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
+  H1ProjBasedSelector<double> selector(CAND_LIST);
 
   // Solutions for the time stepping and the Newton's method.
   MeshFunctionSharedPtr<double> sln(new Solution<double>), ref_sln(new Solution<double>);

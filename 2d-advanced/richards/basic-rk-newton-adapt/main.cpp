@@ -160,7 +160,7 @@ int main(int argc, char* argv[])
   DiscreteProblem<double> dp(&wf, space);
 
   // Create a refinement selector.
-  H1ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
+  H1ProjBasedSelector<double> selector(CAND_LIST);
 
   // Visualize initial condition.
   char title[100];

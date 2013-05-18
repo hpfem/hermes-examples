@@ -103,13 +103,13 @@ SpaceSharedPtr<double> xvel_space(new H1Space<double>(mesh, &bcs_vel_x, P_INIT_V
   Hermes::Mixins::Loggable::Static::info("ndof = %d.", ndof);
 
   // Define projection norms.
-  ProjNormType vel_proj_norm = HERMES_H1_NORM;
+  NormType vel_proj_norm = HERMES_H1_NORM;
 #ifdef PRESSURE_IN_L2
-  ProjNormType p_proj_norm = HERMES_L2_NORM;
+  NormType p_proj_norm = HERMES_L2_NORM;
 #else
-  ProjNormType p_proj_norm = HERMES_H1_NORM;
+  NormType p_proj_norm = HERMES_H1_NORM;
 #endif
-  ProjNormType t_proj_norm = HERMES_H1_NORM;
+  NormType t_proj_norm = HERMES_H1_NORM;
 
   // Solutions for the Newton's iteration and time stepping.
   Hermes::Mixins::Loggable::Static::info("Setting initial conditions.");
@@ -142,7 +142,7 @@ SpaceSharedPtr<double> xvel_space(new H1Space<double>(mesh, &bcs_vel_x, P_INIT_V
   double* coeff_vec = new double[Space<double>::get_num_dofs(spaces)];
   Hermes::Mixins::Loggable::Static::info("Projecting initial condition to obtain initial vector for the Newton's method.");
   OGProjection<double> ogProjection; ogProjection.project_global(spaces, slns, coeff_vec, 
-      Hermes::vector<ProjNormType>(vel_proj_norm, vel_proj_norm, p_proj_norm, t_proj_norm));
+      Hermes::vector<NormType>(vel_proj_norm, vel_proj_norm, p_proj_norm, t_proj_norm));
 
     Hermes::Hermes2D::NewtonSolver<double> newton(&dp);
   // Time-stepping loop:

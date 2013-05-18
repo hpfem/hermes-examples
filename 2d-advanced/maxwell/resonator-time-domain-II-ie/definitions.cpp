@@ -1,5 +1,14 @@
 #include "definitions.h"
 
+template<typename Real, typename Scalar>
+static Scalar int_e_f(int n, double *wt, Func<Real> *u, Func<Real> *v)
+{
+  Scalar result = Scalar(0);
+  for (int i = 0; i < n; i++)
+    result += wt[i] * (u->val0[i] * conj(v->val0[i]) + u->val1[i] * conj(v->val1[i]));
+  return result;
+}
+
 CustomWeakFormWaveIE::CustomWeakFormWaveIE(double tau, double c_squared, MeshFunctionSharedPtr<double>  E_prev_sln, MeshFunctionSharedPtr<double>  F_prev_sln) : WeakForm<double>(2) 
 {
   // Jacobian.

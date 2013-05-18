@@ -1,5 +1,14 @@
 #include "definitions.h"
 
+template<typename Real, typename Scalar>
+static Scalar int_e_f(int n, double *wt, Func<Real> *u, Func<Real> *v)
+{
+  Scalar result = Scalar(0);
+  for (int i = 0; i < n; i++)
+    result += wt[i] * (u->val0[i] * conj(v->val0[i]) + u->val1[i] * conj(v->val1[i]));
+  return result;
+}
+
 Scalar2<double> CustomInitialConditionWave::value (double x, double y) const 
 {
   return Scalar2<double>(std::sin(x) * std::cos(y), -std::cos(x) * std::sin(y));

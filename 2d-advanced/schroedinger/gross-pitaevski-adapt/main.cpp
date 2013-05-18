@@ -168,7 +168,7 @@ int main(int argc, char* argv[])
   DiscreteProblem<std::complex<double> > dp(&wf, space);
 
   // Create a refinement selector.
-  H1ProjBasedSelector<std::complex<double> > selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
+  H1ProjBasedSelector<std::complex<double> > selector(CAND_LIST);
 
   // Visualize initial condition.
   char title[100];

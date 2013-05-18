@@ -103,7 +103,7 @@ int main(int argc, char* argv[])
   MeshFunctionSharedPtr<std::complex<double> >  sln(new Solution<std::complex<double> >), ref_sln(new Solution<std::complex<double> >);
 
   // Initialize refinement selector.
-  H1ProjBasedSelector<std::complex<double> > selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
+  H1ProjBasedSelector<std::complex<double> > selector(CAND_LIST);
 
   // Initialize views.
   ScalarView sview("Acoustic pressure", new WinGeom(0, 0, 600, 350));

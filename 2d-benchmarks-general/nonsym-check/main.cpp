@@ -81,7 +81,7 @@ int main(int argc, char* argv[])
   MeshFunctionSharedPtr<double> sln(new Solution<double>());
 
   // Initialize refinement selector.
-  H1ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
+  H1ProjBasedSelector<double> selector(CAND_LIST);
 
   // Initialize views.
   Views::ScalarView sview("Solution", new Views::WinGeom(0, 0, 440, 350));

@@ -262,7 +262,7 @@ int main (int argc, char* argv[]) {
     coeff_vec_coarse);
 
   // Create a selector which will select optimal candidate.
-  H1ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
+  H1ProjBasedSelector<double> selector(CAND_LIST);
 
   // Visualization windows.
   char title[1000];

@@ -164,7 +164,7 @@ int main(int argc, char* argv[])
     k_TT, k_ww, T_EXTERIOR, W_EXTERIOR, "bdy_ext");
 
   // Initialize refinement selector.
-  H1ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
+  H1ProjBasedSelector<double> selector(CAND_LIST);
 
   // Geometry and position of visualization windows.
   WinGeom* T_sln_win_geom = new WinGeom(0, 0, 300, 450);

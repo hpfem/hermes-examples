@@ -120,11 +120,11 @@ int main(int argc, char* argv[])
   Hermes::Mixins::Loggable::Static::info("ndof = %d.", ndof);
 
   // Define projection norms.
-  ProjNormType vel_proj_norm = HERMES_H1_NORM;
+  NormType vel_proj_norm = HERMES_H1_NORM;
 #ifdef PRESSURE_IN_L2
-  ProjNormType p_proj_norm = HERMES_L2_NORM;
+  NormType p_proj_norm = HERMES_L2_NORM;
 #else
-  ProjNormType p_proj_norm = HERMES_H1_NORM;
+  NormType p_proj_norm = HERMES_H1_NORM;
 #endif
 
   // Solutions for the Newton's iteration and time stepping.

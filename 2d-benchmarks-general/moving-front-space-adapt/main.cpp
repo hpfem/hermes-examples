@@ -144,7 +144,7 @@ int main(int argc, char* argv[])
   MeshFunctionSharedPtr<double> sln_time_new(new Solution<double>(mesh));
 
   // Create a refinement selector.
-  H1ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
+  H1ProjBasedSelector<double> selector(CAND_LIST);
 
   // Visualize initial condition.
   char title[100];

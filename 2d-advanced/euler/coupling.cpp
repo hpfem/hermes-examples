@@ -1,7 +1,7 @@
 #include "coupling.h"
 
 CouplingErrorFormVelocity::CouplingErrorFormVelocity(VelocityComponent component, double c_p)
-  : Adapt<double>::MatrixFormVolError(component, 4), component(component), c_p(c_p) 
+  : MatrixFormVol<double>(component, 4), component(component), c_p(c_p) 
 {
 }
 
@@ -51,7 +51,7 @@ MatrixFormVol<double>* CouplingErrorFormVelocity::clone() const
 }
 
 CouplingErrorFormTemperature::CouplingErrorFormTemperature(VelocityComponent component, double c_p)
-  : Adapt<double>::MatrixFormVolError(4, component), component(component), c_p(c_p) 
+  : MatrixFormVol<double>(4, component), component(component), c_p(c_p) 
 {
 }
 

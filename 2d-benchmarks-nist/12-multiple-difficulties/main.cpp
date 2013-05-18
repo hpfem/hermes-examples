@@ -40,7 +40,7 @@ const CalculatedErrorType errorType = RelativeErrorToGlobalNorm;
 const int MESH_REGULARITY = -1;
 
 // Error stop value (in percent).
-double ERR_STOP = 5.0;
+double ERR_STOP = 0.05;
 
 int main(int argc, char* argv[])
 {
@@ -130,7 +130,7 @@ int main(int argc, char* argv[])
   logger.set_verbose_output(true);
 
   int iterations_count = 10;
-  int error_levels_count = 5;
+  int error_levels_count = 1;
   double error_stop = ERR_STOP;
 
   for(int iteration = 0; iteration < iterations_count; iteration++)
@@ -274,19 +274,6 @@ int main(int argc, char* argv[])
       max_FactorizationSize = std::max(max_FactorizationSize, FactorizationSize);
       total_PeakMemoryUsage += PeakMemoryUsage;
       total_Flops += Flops;
-
-      cpu_time.tick();
-      {
-        {
-          sprintf(filename, "Solution-%s-%i-%i.vtk", resultStringIdentification, error_level, iteration);
-          lin.save_solution_vtk(ref_sln, filename, "sln", false, 1, HERMES_EPS_LOW);
-          sprintf(filename, "Orders-%s-%i-%i.vtk", resultStringIdentification, error_level, iteration);
-          ord.save_orders_vtk(newton.get_space(0), filename);
-          sprintf(filename, "Mesh-%s-%i-%i.vtk", resultStringIdentification, error_level, iteration);
-          ord.save_mesh_vtk(newton.get_space(0), filename);
-        }
-      }
-      cpu_time.tick(Hermes::Mixins::TimeMeasurable::HERMES_SKIP);
 
       data << 
         iteration << ';' <<

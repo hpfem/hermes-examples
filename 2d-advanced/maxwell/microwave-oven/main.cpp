@@ -124,7 +124,7 @@ int main(int argc, char* argv[])
   MeshFunctionSharedPtr<std::complex<double> >  sln(new Solution<std::complex<double> >), ref_sln(new Solution<std::complex<double> >);
 
   // Initialize refinements selector.
-  HcurlProjBasedSelector<std::complex<double> > selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
+  HcurlProjBasedSelector<std::complex<double> > selector(CAND_LIST);
 
   // Initialize views.
   ScalarView eview("Electric field", new WinGeom(0, 0, 580, 400));

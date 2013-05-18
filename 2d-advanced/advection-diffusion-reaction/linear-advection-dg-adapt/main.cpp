@@ -71,7 +71,7 @@ int main(int argc, char* args[])
   SpaceSharedPtr<double>  space(new L2Space<double>(mesh, P_INIT));
 
   // Initialize refinement selector.
-  L2ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
+  L2ProjBasedSelector<double> selector(CAND_LIST);
 
   // Disable weighting of refinement candidates.
   selector.set_error_weights(1, 1, 1);

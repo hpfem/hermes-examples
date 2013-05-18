@@ -9,7 +9,7 @@ enum VelocityComponent
     velY = 2
   };
 
-class CouplingErrorFormVelocity : public Adapt<double>::MatrixFormVolError
+class CouplingErrorFormVelocity : public MatrixFormVol<double>
 {
 public:
   CouplingErrorFormVelocity(VelocityComponent component, double c_p);
@@ -24,7 +24,7 @@ public:
   double c_p;
 };
 
-class CouplingErrorFormTemperature : public Adapt<double>::MatrixFormVolError
+class CouplingErrorFormTemperature : public MatrixFormVol<double>
 {
 public:
   CouplingErrorFormTemperature(VelocityComponent component, double c_p);

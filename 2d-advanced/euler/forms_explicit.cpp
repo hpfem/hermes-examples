@@ -264,9 +264,13 @@ public:
 
     for(unsigned int i = 0; i < this->ext.size(); i++)
     {
-      MeshFunctionSharedPtr<double>  ext = static_cast<MeshFunctionSharedPtr<double> >(this->ext[i]->clone());
-      if((static_cast<MeshFunctionSharedPtr<double> >(this->ext[i].get()))->get_type() == HERMES_SLN)
-        ext->set_type(HERMES_SLN);
+      MeshFunctionSharedPtr<double> ext = this->ext[i]->clone();
+
+      if(dynamic_cast<Solution<double>*>(this->ext[i].get()))
+      {
+        if((dynamic_cast<Solution<double>*>(this->ext[i].get()))->get_type() == HERMES_SLN)
+          dynamic_cast<Solution<double>*>(ext.get())->set_type(HERMES_SLN);
+      }
       wf->ext.push_back(ext);
     }
 
@@ -1001,9 +1005,13 @@ public:
 
     for(unsigned int i = 0; i < this->ext.size(); i++)
     {
-      MeshFunctionSharedPtr<double>  ext = static_cast<MeshFunctionSharedPtr<double> >(this->ext[i]->clone());
-      if((static_cast<MeshFunctionSharedPtr<double> >(this->ext[i].get()))->get_type() == HERMES_SLN)
-        ext->set_type(HERMES_SLN);
+      MeshFunctionSharedPtr<double> ext = this->ext[i]->clone();
+
+      if(dynamic_cast<Solution<double>*>(this->ext[i].get()))
+      {
+        if((dynamic_cast<Solution<double>*>(this->ext[i].get()))->get_type() == HERMES_SLN)
+          dynamic_cast<Solution<double>*>(ext.get())->set_type(HERMES_SLN);
+      }
       wf->ext.push_back(ext);
     }
 

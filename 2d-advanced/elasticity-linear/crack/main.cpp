@@ -122,7 +122,7 @@ int main(int argc, char* argv[])
   MeshFunctionSharedPtr<double> u1_sln_ref(new Solution<double>), u2_sln_ref(new Solution<double>);
 
   // Initialize refinement selector.
-  H1ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
+  H1ProjBasedSelector<double> selector(CAND_LIST);
 
   // Initialize views.
   ScalarView s_view_0("Solution (x-displacement)", new WinGeom(0, 0, 700, 350));

@@ -256,7 +256,7 @@ int main(int argc, char* argv[])
 
       // Project the previous time level solution onto the new fine mesh->
       Hermes::Mixins::Loggable::Static::info("Projecting the previous time level solution onto the new fine mesh->");
-      OGProjection<double> ogProjection; ogProjection.project_global(cref_spaces, prev_slns, prev_slns, Hermes::vector<Hermes::Hermes2D::ProjNormType>(), iteration > 1);
+      OGProjection<double> ogProjection; ogProjection.project_global(cref_spaces, prev_slns, prev_slns, Hermes::vector<Hermes::Hermes2D::NormType>(), iteration > 1);
 
       // Report NDOFs.
       Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d.", 
@@ -301,12 +301,12 @@ int main(int argc, char* argv[])
 
       // Project the fine mesh solution onto the coarse mesh->
       Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh->");
-      ogProjection.project_global(cspaces, rslns, slns, Hermes::vector<ProjNormType>(HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_H1_NORM)); 
+      ogProjection.project_global(cspaces, rslns, slns, Hermes::vector<NormType>(HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_H1_NORM)); 
 
       // Calculate element errors and total error estimate.
       Hermes::Mixins::Loggable::Static::info("Calculating error estimate.");
 
-      Adapt<double>* adaptivity = new Adapt<double>(spaces, Hermes::vector<ProjNormType>(HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_H1_NORM));
+      Adapt<double>* adaptivity = new Adapt<double>(spaces, Hermes::vector<NormType>(HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_H1_NORM));
       adaptivity->set_error_form(new CouplingErrorFormVelocity(velX, C_P));
       adaptivity->set_error_form(new CouplingErrorFormVelocity(velY, C_P));
       adaptivity->set_norm_form(new CouplingErrorFormVelocity(velX, C_P));

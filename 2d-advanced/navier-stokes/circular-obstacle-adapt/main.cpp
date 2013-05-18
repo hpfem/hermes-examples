@@ -178,11 +178,11 @@ SpaceSharedPtr<double> yvel_space(new H1Space<double>(mesh, &bcs_vel_y, P_INIT_V
   Hermes::Mixins::Loggable::Static::info("ndof = %d.", ndof);
 
   // Define projection norms.
-  ProjNormType vel_proj_norm = HERMES_H1_NORM;
+  NormType vel_proj_norm = HERMES_H1_NORM;
 #ifdef PRESSURE_IN_L2
-  ProjNormType p_proj_norm = HERMES_L2_NORM;
+  NormType p_proj_norm = HERMES_L2_NORM;
 #else
-  ProjNormType p_proj_norm = HERMES_H1_NORM;
+  NormType p_proj_norm = HERMES_H1_NORM;
 #endif
 
   // Solutions for the Newton's iteration and time stepping.
@@ -208,7 +208,7 @@ SpaceSharedPtr<double> yvel_space(new H1Space<double>(mesh, &bcs_vel_y, P_INIT_V
   DiscreteProblem<double> dp(&wf, spaces);
 
   // Initialize refinement selector.
-  H1ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
+  H1ProjBasedSelector<double> selector(CAND_LIST);
 
   // Initialize views.
   VectorView vview("velocity [m/s]", new WinGeom(0, 0, 750, 240));
@@ -305,7 +305,7 @@ SpaceSharedPtr<double> yvel_space(new H1Space<double>(mesh, &bcs_vel_y, P_INIT_V
       OGProjection<double> ogProj; ogProj.project_global(Hermes::vector<SpaceSharedPtr<double> >(xvel_space, yvel_space, p_space), 
           Hermes::vector<MeshFunctionSharedPtr<double> >(xvel_ref_sln, yvel_ref_sln, p_ref_sln), 
           Hermes::vector<MeshFunctionSharedPtr<double> >(xvel_sln, yvel_sln, p_sln), 
-          Hermes::vector<ProjNormType>(vel_proj_norm, vel_proj_norm, p_proj_norm) );
+          Hermes::vector<NormType>(vel_proj_norm, vel_proj_norm, p_proj_norm) );
 
       // Calculate element errors and total error estimate.
       Hermes::Mixins::Loggable::Static::info("Calculating error estimate.");
