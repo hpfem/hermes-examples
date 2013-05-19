@@ -24,14 +24,14 @@ WeakFormHelmholtz::WeakFormHelmholtz(double eps, double mu, double omega, double
   add_matrix_form(new MatrixFormHelmholtzEquation_real_imag(0, 1, mu, omega, sigma));
   add_matrix_form(new MatrixFormHelmholtzEquation_imag_real(1, 0, mu, omega, sigma));
   add_matrix_form(new MatrixFormHelmholtzEquation_imag_imag(1, 1, eps, mu, omega));
-  add_matrix_form_surf(new  MatrixFormSurfHelmholtz_real_imag(0, 1, "Bdy_impedance", beta));
-  add_matrix_form_surf(new  MatrixFormSurfHelmholtz_imag_real(1, 0, "Bdy_impedance", beta));
+  add_matrix_form_surf(new  MatrixFormSurfHelmholtz_real_imag(0, 1, "0", beta));
+  add_matrix_form_surf(new  MatrixFormSurfHelmholtz_imag_real(1, 0, "0", beta));
 
   // Residual.
   add_vector_form(new VectorFormHelmholtzEquation_real(0, eps, omega, mu, sigma));
   add_vector_form(new VectorFormHelmholtzEquation_imag(1, eps, omega, mu, sigma));
-  add_vector_form_surf(new VectorFormSurfHelmholtz_real(0, "Bdy_impedance", beta));
-  add_vector_form_surf(new VectorFormSurfHelmholtz_imag(1, "Bdy_impedance", beta));  
+  add_vector_form_surf(new VectorFormSurfHelmholtz_real(0, "0", beta));
+  add_vector_form_surf(new VectorFormSurfHelmholtz_imag(1, "0", beta));  
 }
 
 /* Jacobian forms */

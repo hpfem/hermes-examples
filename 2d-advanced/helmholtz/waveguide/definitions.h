@@ -29,6 +29,24 @@ class WeakFormHelmholtz : public WeakForm<double>
 public:
     WeakFormHelmholtz(double eps, double mu, double omega, double sigma, double beta, double E0, double h);
 
+    void set_parameters(double eps, double mu, double omega, double sigma, double beta, double E0, double h)
+    {
+      this->delete_all();
+
+      // Jacobian.
+      add_matrix_form(new MatrixFormHelmholtzEquation_real_real(0, 0, eps, omega, mu));
+      add_matrix_form(new MatrixFormHelmholtzEquation_real_imag(0, 1, mu, omega, sigma));
+      add_matrix_form(new MatrixFormHelmholtzEquation_imag_real(1, 0, mu, omega, sigma));
+      add_matrix_form(new MatrixFormHelmholtzEquation_imag_imag(1, 1, eps, mu, omega));
+      add_matrix_form_surf(new  MatrixFormSurfHelmholtz_real_imag(0, 1, "0", beta));
+      add_matrix_form_surf(new  MatrixFormSurfHelmholtz_imag_real(1, 0, "0", beta));
+
+      // Residual.
+      add_vector_form(new VectorFormHelmholtzEquation_real(0, eps, omega, mu, sigma));
+      add_vector_form(new VectorFormHelmholtzEquation_imag(1, eps, omega, mu, sigma));
+      add_vector_form_surf(new VectorFormSurfHelmholtz_real(0, "0", beta));
+      add_vector_form_surf(new VectorFormSurfHelmholtz_imag(1, "0", beta));  
+    }
 private:
     class MatrixFormHelmholtzEquation_real_real : public MatrixFormVol<double>
     {
@@ -47,7 +65,7 @@ private:
             Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const;
 
         MatrixFormVol<double>* clone() const;
-    private:
+    
         // Members.
         double eps;
         double omega;
@@ -56,7 +74,7 @@ private:
 
     class MatrixFormHelmholtzEquation_real_imag : public MatrixFormVol<double>
     {
-    private:
+    
         // Members.
         double mu;
         double omega;
@@ -80,7 +98,7 @@ private:
 
     class MatrixFormHelmholtzEquation_imag_real : public MatrixFormVol<double>
     {
-    private:
+    
         // Members.
         double mu;
         double omega;
@@ -185,7 +203,7 @@ private:
             Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const;
 
         VectorFormVol<double>* clone() const;
-    private:
+    
         // Members.
         double eps;
         double omega;
@@ -210,7 +228,7 @@ private:
             Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const;
 
         VectorFormVol<double>* clone() const;
-    private:
+    
         // Members.
         double eps;
         double omega;

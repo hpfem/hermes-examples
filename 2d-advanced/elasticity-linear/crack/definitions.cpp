@@ -6,10 +6,11 @@ CustomWeakFormLinearElasticity::CustomWeakFormLinearElasticity(double E, double 
   double lambda = (E * nu) / ((1 + nu) * (1 - 2*nu));
   double mu = E / (2*(1 + nu));
 
+  // SINGLE-COMPONENT FORMS. USEFUL FOR MULTIMESH, DO NOT REMOVE.
   // Jacobian.
-  add_matrix_form(new DefaultJacobianElasticity_0_0<double>(0, 0, HERMES_ANY, lambda, mu));
-  add_matrix_form(new DefaultJacobianElasticity_0_1<double>(0, 1, HERMES_ANY, lambda, mu));
-  add_matrix_form(new DefaultJacobianElasticity_1_1<double>(1, 1, HERMES_ANY, lambda, mu));
+  add_matrix_form(new DefaultJacobianElasticity_0_0<double>(0, 0, lambda, mu));
+  add_matrix_form(new DefaultJacobianElasticity_0_1<double>(0, 1, lambda, mu));
+  add_matrix_form(new DefaultJacobianElasticity_1_1<double>(1, 1, lambda, mu));
 
   // Residual - first equation.
   add_vector_form(new DefaultResidualElasticity_0_0<double>(0, HERMES_ANY, lambda, mu));

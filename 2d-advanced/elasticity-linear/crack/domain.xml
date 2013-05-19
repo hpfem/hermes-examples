@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mesh:mesh xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:mesh="XMLMesh"
+  xmlns:element="XMLMesh"
+  xsi:schemaLocation="XMLMesh ../../xml_schemas/mesh_h2d_xml.xsd">
+
+  <vertices>
+    <v x="0.1" y="0" i="0"/>
+    <v x="0.07071067809999999" y="0.07071067809999999" i="1"/>
+    <v x="0" y="0.1" i="2"/>
+    <v x="0.1707106781" y="0" i="3"/>
+    <v x="0.1707106781" y="0.07071067809999999" i="4"/>
+    <v x="0.1707106781" y="0.1707106781" i="5"/>
+    <v x="0.07071067809999999" y="0.1707106781" i="6"/>
+    <v x="0" y="0.1707106781" i="7"/>
+    <v x="1" y="0" i="8"/>
+    <v x="1" y="0.07071067809999999" i="9"/>
+    <v x="1" y="0.1707106781" i="10"/>
+    <v x="1" y="1" i="11"/>
+    <v x="0.1707106781" y="1" i="12"/>
+    <v x="0.07071067809999999" y="1" i="13"/>
+    <v x="0" y="1" i="14"/>
+    <v x="-0.9" y="1" i="15"/>
+    <v x="-0.9" y="0.1707106781" i="16"/>
+    <v x="-0.9" y="0.1" i="17"/>
+  </vertices>
+
+  <elements>
+    <mesh:t v1="4" v2="1" v3="0" m="Material" />
+    <mesh:t v1="6" v2="2" v3="1" m="Material" />
+    <mesh:t v1="3" v2="4" v3="0" m="Material" />
+    <mesh:t v1="6" v2="7" v3="2" m="Material" />
+    <mesh:q v1="1" v2="4" v3="5" v4="6" m="Material" />
+    <mesh:q v1="3" v2="8" v3="9" v4="4" m="Material" />
+    <mesh:q v1="4" v2="9" v3="10" v4="5" m="Material" />
+    <mesh:q v1="5" v2="10" v3="11" v4="12" m="Material" />
+    <mesh:q v1="6" v2="5" v3="12" v4="13" m="Material" />
+    <mesh:q v1="7" v2="6" v3="13" v4="14" m="Material" />
+    <mesh:q v1="16" v2="7" v3="14" v4="15" m="Material" />
+    <mesh:q v1="17" v2="2" v3="7" v4="16" m="Material" />
+  </elements>
+
+  <edges>
+    <ed v1="1" v2="0" m="Rest" />
+    <ed v1="2" v2="1" m="Rest" />
+    <ed v1="0" v2="3" m="Bottom" />
+    <ed v1="3" v2="8" m="Bottom" />
+    <ed v1="8" v2="9" m="Rest" />
+    <ed v1="9" v2="10" m="Rest" />
+    <ed v1="10" v2="11" m="Rest" />
+    <ed v1="11" v2="12" m="Top" />
+    <ed v1="12" v2="13" m="Top" />
+    <ed v1="13" v2="14" m="Top" />
+    <ed v1="14" v2="15" m="Top" />
+    <ed v1="15" v2="16" m="Rest" />
+    <ed v1="17" v2="2" m="Rest" />
+    <ed v1="16" v2="17" m="Rest" />
+  </edges>
+
+  <curves>
+    <arc v1="1" v2="0" angle="-45" />
+    <arc v1="2" v2="1" angle="-45" />
+  </curves>
+
+</mesh:mesh>

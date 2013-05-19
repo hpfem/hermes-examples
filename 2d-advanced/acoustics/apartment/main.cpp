@@ -165,6 +165,11 @@ int main(int argc, char* argv[])
 
     // Calculate element errors and total error estimate.
     Hermes::Mixins::Loggable::Static::info("Calculating error estimate.");
+    // Error calculation.
+    DefaultErrorCalculator<double, HERMES_H1_NORM> errorCalculator(RelativeErrorToGlobalNorm, 1);
+    // Stopping criterion for an adaptivity step.
+    AdaptStoppingCriterionCumulative<double> stoppingCriterion(0.3);
+
     Adapt<std::complex<double> >* adaptivity = new Adapt<std::complex<double> >(space);
     double err_est_rel = adaptivity->calc_err_est(sln, ref_sln) * 100;
 

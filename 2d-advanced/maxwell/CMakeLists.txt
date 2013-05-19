@@ -1,6 +1,1 @@
-add_subdirectory(microwave-oven)
-add_subdirectory(resonator-time-domain-I)
-add_subdirectory(resonator-time-domain-II-ie)
-add_subdirectory(resonator-time-domain-II-rk)
 add_subdirectory(magnetostatics)
-add_subdirectory(maxwell-debye-rk)

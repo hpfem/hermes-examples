@@ -5,7 +5,8 @@ using namespace Hermes::Hermes2D;
 using namespace Hermes::Hermes2D::WeakFormsH1;
 using namespace Hermes::Hermes2D::WeakFormsElasticity;
 using namespace Hermes::Hermes2D::Views;
-using namespace RefinementSelectors;
+
+//#define USE_MULTICOMPONENT_FORMS
 
 class CustomWeakFormLinearElasticity : public WeakForm<double>
 {

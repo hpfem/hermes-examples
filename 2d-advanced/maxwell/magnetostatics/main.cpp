@@ -15,7 +15,7 @@
 //  The following parameters can be changed:
 
 // Initial polynomial degree.
-const int P_INIT = 3;                             
+const int P_INIT = 3;
 // Stopping criterion for the Newton's method.
 const double NEWTON_TOL = 1e-10;                  
 // Maximum allowed number of Newton iterations.
@@ -23,7 +23,7 @@ const int NEWTON_MAX_ITER = 1000;
 // Number between 0 and 1 to damp Newton's iterations.
 const double NEWTON_DAMPING = 1.0;                
 // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM = 0;                       
+const int INIT_REF_NUM = 1;                       
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
@@ -69,13 +69,14 @@ int main(int argc, char* argv[])
   plot_derivative = true;
   mu_inv_iron.plot("spline_der.dat", interval_extension, plot_derivative);
 
-  // Load the mesh->
+  // Load the mesh.
   MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("actuator.mesh", mesh);
 
   // Perform initial mesh refinements.
-  for(int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
+  for(int i = 0; i < INIT_REF_NUM; i++)
+    mesh->refine_all_elements();
 
   // Initialize boundary conditions.
   DefaultEssentialBCConst<double> bc_essential(BDY_DIRICHLET, 0.0);
@@ -108,8 +109,9 @@ int main(int argc, char* argv[])
 
   // Perform Newton's iteration.
   Hermes::Hermes2D::NewtonSolver<double> newton(&dp);
-  bool verbose = true;
-  newton.set_verbose_output(verbose);
+  newton.set_manual_damping_coeff(0.1);
+  newton.set_sufficient_improvement_factor_jacobian(0.5);
+  newton.set_max_steps_with_reused_jacobian(5);
   try
   {
     newton.set_max_allowed_iterations(NEWTON_MAX_ITER);
@@ -122,7 +124,7 @@ int main(int argc, char* argv[])
     throw Hermes::Exceptions::Exception("Newton's iteration failed.");
   };
 
-  // Translate the resulting coefficient vector into the Solution sln->
+  // Translate the resulting coefficient vector into the Solution sln.
   Solution<double>::vector_to_solution(newton.get_sln_vector(), space, sln);
 
   // Cleanup.
@@ -143,8 +145,8 @@ int main(int argc, char* argv[])
   // Output solution in VTK format.
   Linearizer lin;
   bool mode_3D = true;
-  lin.save_solution_vtk(flux_density, "sln->vtk", "Flux density", mode_3D);
-  Hermes::Mixins::Loggable::Static::info("Solution in VTK format saved to file %s.", "sln->vtk");
+  lin.save_solution_vtk(flux_density, "sln.vtk", "Flux-density", mode_3D);
+  Hermes::Mixins::Loggable::Static::info("Solution in VTK format saved to file %s.", "sln.vtk");
 
   OrderView o_view("Mesh", new WinGeom(720, 0, 350, 450));
   o_view.show(space);
