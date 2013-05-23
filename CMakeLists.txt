@@ -67,6 +67,9 @@ SET(WITH_1d NO)
   find_package(TCMALLOC REQUIRED)
   include_directories(${TCMALLOC_INCLUDE_DIR})
 
+  find_package(UMFPACK REQUIRED)
+  include_directories(${UMFPACK_INCLUDE_DIRS})
+
 	if(WITH_TRILINOS)
 		find_package(TRILINOS REQUIRED)
 		include_directories(${TRILINOS_INCLUDE_DIR})
