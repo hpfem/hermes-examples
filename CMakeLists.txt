@@ -26,9 +26,8 @@ project(hermes_examples)
   # set(MPI_LIBRARIES         -lmpi)
   # set(MPI_INCLUDE_PATH      /usr/include/openmpi
   
-  # By default all examples are turned on.
-  # This can be changed in your CMake.vars file.
-  SET(WITH_1d YES)
+
+SET(WITH_1d NO)
   SET(WITH_2d-advanced YES)
     SET(WITH_acoustics NO)
     SET(WITH_advection-diffusion-reaction NO)
@@ -45,7 +44,7 @@ project(hermes_examples)
     SET(WITH_wave-equation NO)
   SET(WITH_2d-benchmarks-general NO)
   SET(WITH_2d-benchmarks-nist NO)
-
+  
 	# Allow to override the default values in CMake.vars:
 	include(CMake.vars OPTIONAL)
 
