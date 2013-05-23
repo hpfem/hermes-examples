@@ -28,7 +28,7 @@ void FilterVectorPotential::filter_fn(int n, Hermes::vector<double*> values, dou
     for(unsigned int j = 0; j < values.size(); j++)
       result[i] += sqr(values[j][i]);
 
-    result[i] = std::sqrt(result[i]) * e->x[i];
+    result[i] = std::sqrt(result[i]);
   }
 }
 

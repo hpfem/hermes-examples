@@ -31,8 +31,7 @@ Ord CustomMatrixForm::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, F
 
 double CustomMatrixForm::gamma(int marker, double x, double y) const
 {
-  if (align_mesh && (static_cast<CustomWeakForm*>(wf))->get_marker() == marker) return 0.03;
-  if (!align_mesh && in_load(x,y))
+  if (in_load(x,y))
   {
     double cx = -0.152994121;  double cy =  0.030598824;
     double r = std::sqrt(sqr(cx - x) + sqr(cy - y));
@@ -55,8 +54,7 @@ MatrixFormVol<std::complex<double> >* CustomMatrixForm::clone() const
 
 double CustomMatrixForm::er(int marker, double x, double y) const
 {
-  if (align_mesh && (static_cast<CustomWeakForm*>(wf))->get_marker() == marker) return 7.5;
-  if (!align_mesh && in_load(x,y)) 
+  if (in_load(x,y)) 
   {
     double cx = -0.152994121;  double cy =  0.030598824;
     double r = std::sqrt(sqr(cx - x) + sqr(cy - y));
@@ -113,8 +111,7 @@ Ord CustomResidualForm::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v,
 
 double CustomResidualForm::gamma(int marker, double x, double y) const
 {
-  if (align_mesh && (static_cast<CustomWeakForm*>(wf))->get_marker() == marker) return 0.03;
-  if (!align_mesh && in_load(x,y)) 
+  if (in_load(x,y)) 
   {
     double cx = -0.152994121;  double cy =  0.030598824;
     double r = std::sqrt(sqr(cx - x) + sqr(cy - y));
@@ -137,8 +134,7 @@ CustomResidualForm::VectorFormVol<std::complex<double> >* CustomResidualForm::cl
 
 double CustomResidualForm::er(int marker, double x, double y) const
 {
-  if (align_mesh && (static_cast<CustomWeakForm*>(wf))->get_marker() == marker) return 7.5;
-  if (!align_mesh && in_load(x,y)) 
+  if (in_load(x,y)) 
   {
     double cx = -0.152994121;  double cy =  0.030598824;
     double r = std::sqrt(sqr(cx - x) + sqr(cy - y));
@@ -165,8 +161,12 @@ template<typename Scalar, typename Real>
 Scalar CustomVectorFormSurf::vector_form_surf(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v, 
                                               Geom<Real> *e, Func<Scalar>* *ext) const 
 {
+  Scalar result = Scalar(0);
+  for (int i = 0; i < n; i++)
+    result += wt[i] * (v->val1[i]);
+
   std::complex<double> ii = std::complex<double>(0.0, 1.0);
-  return ii * omega * J * int_v1<Real, Scalar>(n, wt, v); // just second component of v, since J = (0, J)
+  return ii * omega * J * result;
 }
 
 std::complex<double> CustomVectorFormSurf::value(int n, double *wt, Func<std::complex<double> > *u_ext[], 

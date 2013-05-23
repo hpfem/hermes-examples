@@ -34,22 +34,13 @@ const int INIT_REF_NUM = 0;
 // to the maximum poly order of the tangential component, and polynomials
 // of degree P_INIT + 1 are present in element interiors. P_INIT = 0
 // is for Whitney elements.
-const int P_INIT = 2;                             
+const int P_INIT = 1;
 // if ALIGN_MESH == true, curvilinear elements aligned with the
 // circular load are used, otherwise one uses a non-aligned mesh->
 const bool ALIGN_MESH = false;                     
 // This is a quantitative parameter of the adapt(...) function and
 // it has different meanings for various adaptive strategies.
-const double THRESHOLD = 0.3;                     
-// Adapt<std::complex<double> >ive strategy:
-// STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
-//   error is processed. If more elements have similar errors, refine
-//   all to keep the mesh symmetric.
-// STRATEGY = 1 ... refine all elements whose error is larger
-//   than THRESHOLD times maximum element error.
-// STRATEGY = 2 ... refine all elements whose error is larger
-//   than THRESHOLD.
-const int STRATEGY = 0;                           
+const double THRESHOLD = 0.6;
 // Predefined list of element refinement candidates. Possible values are
 // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
 // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
@@ -65,7 +56,7 @@ const int MESH_REGULARITY = -1;
 // candidates in hp-adaptivity. Default value is 1.0. 
 const double CONV_EXP = 1.0;                      
 // Stopping criterion for adaptivity.
-const double ERR_STOP = 1.0;                      
+const double ERR_STOP = 5e-2;
 // Adaptivity process stops when the number of degrees of freedom grows
 // over this limit. This is to prevent h-adaptivity to go on forever.
 const int NDOF_STOP = 60000;                      
@@ -74,7 +65,7 @@ const int NDOF_STOP = 60000;
 MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
 
 // Newton's method.
-const double NEWTON_TOL = 1e-6;
+const double NEWTON_TOL = 1e-4;
 const int NEWTON_MAX_ITER = 100;
 
 // Problem parameters.
@@ -94,9 +85,21 @@ const double J = 0.0000033333;
 const std::string BDY_PERFECT_CONDUCTOR = "b2";
 const std::string BDY_CURRENT = "b1";
 
+class CustomErrorCalculator : public ErrorCalculator<std::complex<double> >
+{
+public:
+  CustomErrorCalculator(CalculatedErrorType errorType) : ErrorCalculator<std::complex<double> >(errorType)
+  {
+    this->add_error_form(new CustomErrorForm (kappa));
+  }
+  virtual ~CustomErrorCalculator()
+  {
+  }
+};
+
 int main(int argc, char* argv[])
 {
-  // Load the mesh->
+  // Load the mesh.
   MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
   if (ALIGN_MESH) 
@@ -105,7 +108,8 @@ int main(int argc, char* argv[])
     mloader.load("oven_load_square.mesh", mesh);
 
   // Perform initial mesh refinemets.
-  for (int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
+  for (int i = 0; i < INIT_REF_NUM; i++)
+    mesh->refine_all_elements();
 
   // Initialize boundary conditions
   DefaultEssentialBCConst<std::complex<double> > bc_essential(BDY_PERFECT_CONDUCTOR, std::complex<double>(0.0, 0.0));
@@ -126,6 +130,15 @@ int main(int argc, char* argv[])
   // Initialize refinements selector.
   HcurlProjBasedSelector<std::complex<double> > selector(CAND_LIST);
 
+  // Error calculation.
+  CustomErrorCalculator errorCalculator(RelativeErrorToGlobalNorm);
+      
+  // Stopping criterion for an adaptivity step.
+  AdaptStoppingCriterionSingleElement<std::complex<double> > stoppingCriterion(THRESHOLD);
+
+  // Adaptivity.
+  Adapt<std::complex<double> > adaptivity(space, &errorCalculator, &stoppingCriterion);
+
   // Initialize views.
   ScalarView eview("Electric field", new WinGeom(0, 0, 580, 400));
   OrderView  oview("Polynomial orders", new WinGeom(590, 0, 550, 400));
@@ -137,6 +150,11 @@ int main(int argc, char* argv[])
   Hermes::Mixins::TimeMeasurable cpu_time;
   cpu_time.tick();
 
+  Hermes::Hermes2D::NewtonSolver<std::complex<double> > newton(&wf, space);
+  newton.set_max_allowed_iterations(NEWTON_MAX_ITER);
+  newton.set_tolerance(NEWTON_TOL);
+
+  // Newton's iteration.
   // Adaptivity loop:
   int as = 1; bool done = false;
   do
@@ -152,18 +170,13 @@ int main(int argc, char* argv[])
     int ndof_ref = Space<std::complex<double> >::get_num_dofs(ref_space);
 
     // Initialize reference problem.
-    Hermes::Mixins::Loggable::Static::info("Solving on reference mesh->");
-    DiscreteProblem<std::complex<double> > dp(&wf, ref_space);
-
+    Hermes::Mixins::Loggable::Static::info("Solving on reference mesh.");
     // Time measurement.
     cpu_time.tick();
+    newton.set_space(ref_space);
 
-    // Perform Newton's iteration.
-    Hermes::Hermes2D::NewtonSolver<std::complex<double> > newton(&dp);
     try
     {
-      newton.set_max_allowed_iterations(NEWTON_MAX_ITER);
-      newton.set_tolerance(NEWTON_TOL);
       newton.solve();
     }
     catch(Hermes::Exceptions::Exception e)
@@ -174,37 +187,35 @@ int main(int argc, char* argv[])
     // Translate the resulting coefficient vector into the Solution<std::complex<double> > sln->
     Hermes::Hermes2D::Solution<std::complex<double> >::vector_to_solution(newton.get_sln_vector(), ref_space, ref_sln);
 
-    // Project the fine mesh solution onto the coarse mesh->
-    Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh->");
+    // Project the fine mesh solution onto the coarse mesh.
+    Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
     OGProjection<std::complex<double> > ogProjection; ogProjection.project_global(space, ref_sln, sln); 
 
     // View the coarse mesh solution and polynomial orders.
-    MeshFunctionSharedPtr<double> real(new RealFilter(sln));
+    MeshFunctionSharedPtr<double> real(new RealFilter(ref_sln));
     MeshFunctionSharedPtr<double> magn(new MagFilter<double>(real));
     MeshFunctionSharedPtr<double> limited_magn(new ValFilter(magn, 0.0, 4e3));
     char title[100];
     sprintf(title, "Electric field, adaptivity step %d", as);
     eview.set_title(title);
     //eview.set_min_max_range(0.0, 4e3);
-    eview.show(limited_magn);
+    eview.show(limited_magn, HERMES_EPS_LOW);
     sprintf(title, "Polynomial orders, adaptivity step %d", as);
     oview.set_title(title);
     oview.show(space);
 
     // Calculate element errors and total error estimate.
     Hermes::Mixins::Loggable::Static::info("Calculating error estimate."); 
-    Adapt<std::complex<double> >* adaptivity = new Adapt<std::complex<double> >(space);
 
-    // Set custom error form and calculate error estimate.
-    CustomErrorForm cef(kappa);
-    adaptivity->set_error_form(0, 0, &cef);
-    double err_est_rel = adaptivity->calc_err_est(sln, ref_sln) * 100;
+    // Calculate error estimate.
+    errorCalculator.calculate_errors(sln, ref_sln);
+    double err_est_rel = errorCalculator.get_total_error_squared() * 100.;
 
     // Report results.
     Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d, err_est_rel: %g%%", 
       Space<std::complex<double> >::get_num_dofs(space), 
       Space<std::complex<double> >::get_num_dofs(ref_space), err_est_rel);
-
+  
     // Time measurement.
     cpu_time.tick();
 
@@ -214,16 +225,14 @@ int main(int argc, char* argv[])
     graph_cpu.add_values(cpu_time.accumulated(), err_est_rel);
     graph_cpu.save("conv_cpu_est.dat");
 
-    // If err_est too large, adapt the mesh->
+    // If err_est too large, adapt the mesh.
     if (err_est_rel < ERR_STOP) done = true;
     else 
     {
-      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh->");
-      done = adaptivity->adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
+      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
+      done = adaptivity.adapt(&selector);
     }
     if (space->get_num_dofs() >= NDOF_STOP) done = true;
-
-    delete adaptivity;
 
     // Increase counter.
     as++;
@@ -232,20 +241,7 @@ int main(int argc, char* argv[])
 
   Hermes::Mixins::Loggable::Static::info("Total running time: %g s", cpu_time.accumulated());
 
-  MeshFunctionSharedPtr<double> ref_real(new RealFilter(sln));
-  MeshFunctionSharedPtr<double> ref_magn(new MagFilter<double>(ref_real));
-  MeshFunctionSharedPtr<double> ref_limited_magn(new ValFilter(ref_magn, 0.0, 4e3));
-  eview.set_title("Fine mesh solution - magnitude");
-  eview.show(ref_limited_magn);
-
-  // Output solution in VTK format.
-  Linearizer lin;
-  bool mode_3D = true;
-  lin.save_solution_vtk(ref_limited_magn, "sln->vtk", "Magnitude of E", mode_3D);
-  Hermes::Mixins::Loggable::Static::info("Solution in VTK format saved to file %s.", "sln->vtk");
-
   // Wait for all views to be closed.
   View::wait();
   return 0;
 }
-

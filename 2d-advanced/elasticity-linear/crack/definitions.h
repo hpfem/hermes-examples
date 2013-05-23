@@ -2,11 +2,11 @@
 
 using namespace Hermes;
 using namespace Hermes::Hermes2D;
+using namespace Hermes::Hermes2D::RefinementSelectors;
 using namespace Hermes::Hermes2D::WeakFormsH1;
 using namespace Hermes::Hermes2D::WeakFormsElasticity;
 using namespace Hermes::Hermes2D::Views;
-
-//#define USE_MULTICOMPONENT_FORMS
+using namespace RefinementSelectors;
 
 class CustomWeakFormLinearElasticity : public WeakForm<double>
 {

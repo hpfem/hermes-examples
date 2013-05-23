@@ -101,7 +101,6 @@ int main(int argc, char* argv[])
   
   ScalarView viewEr("Er [V/m]", new WinGeom(600, 0, 700, 200));
   viewEr.show_mesh(false);
-  viewEr.set_3d_mode(true);
   ScalarView viewEi("Ei [V/m]", new WinGeom(600, 220, 700, 200));
   
   ScalarView viewMagnitude("Magnitude of E [V/m]", new WinGeom(600, 440, 700, 200));

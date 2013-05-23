@@ -6,6 +6,7 @@ using namespace Hermes;
 using namespace Hermes::Hermes2D;
 using namespace Hermes::Hermes2D::Views;
 using namespace Hermes::Hermes2D::RefinementSelectors;
+using namespace Hermes::Hermes2D::WeakFormsHcurl;
 
 /* Weak forms */
 
@@ -121,35 +122,37 @@ private:
 
 // Custom error form.
 
-class CustomErrorForm : public Adapt<std::complex<double> >::MatrixFormVolError
+class CustomErrorForm : public NormFormVol<std::complex<double> >
 {
 public:
- CustomErrorForm(double kappa) : Adapt<std::complex<double> >::MatrixFormVolError(0, 0)
+ CustomErrorForm(double kappa) : NormFormVol<std::complex<double> >(0, 0)
   {
     kappa_squared = sqr(kappa);
   };
 
   template<typename Real, typename Scalar>
-  Scalar hcurl_form_kappa(int n, double *wt, Func<Scalar> *u_ext[], Func<Scalar> *u, 
-      Func<Scalar> *v, Geom<Real> *e, Func<Scalar>* *ext) const
+  Scalar hcurl_form_kappa(int n, double *wt, Func<Scalar> *u, Func<Scalar> *v, Geom<Real> *e) const
   {
-    return int_curl_e_curl_f<Scalar, Scalar>(n, wt, u, v) + kappa_squared * int_e_f<Scalar, Scalar>(n, wt, u, v);
+    Scalar result = Scalar(0);
+    
+    for (int i = 0; i < n; i++)
+    {
+      result += wt[i] * (u->curl[i] * conj(v->curl[i]));
+      result += kappa_squared * wt[i] * (u->val0[i] * conj(v->val0[i]) + u->val1[i] * conj(v->val1[i]));
+    }
+
+    return result;
   }
 
-  virtual std::complex<double> value(int n, double *wt, Func<std::complex<double> > *u_ext[], Func<std::complex<double> > *u, 
-      Func<std::complex<double> > *v, Geom<double> *e, Func<std::complex<double> > **ext) const
+  virtual std::complex<double> value(int n, double *wt, Func<std::complex<double> > *u, Func<std::complex<double> > *v, Geom<double> *e) const
   {
-    return hcurl_form_kappa<double, std::complex<double> >(n, wt, u_ext, u, v, e, ext);
+    return hcurl_form_kappa<double, std::complex<double> >(n, wt, u, v, e);
   }
 
-  virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, 
-      Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const
+  virtual Ord ord(int n, double *wt, Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e) const
   {
-    return hcurl_form_kappa<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
+    return hcurl_form_kappa<Ord, Ord>(n, wt, u, v, e);
   }
-
-  virtual MatrixFormVol<std::complex<double> >* clone() const { return new CustomErrorForm(Hermes::sqrt(kappa_squared)); }
-
 
   double kappa_squared;
 };

@@ -1,7 +1,7 @@
 
 a = 0.25   # horizontal size of an element
 b = 0.1    # vertical size of an element
-w = 0.001  # width of the cracks
+w = 1.0  # width of the cracks
 
 a2 = 0.50
 a3 = 0.75
@@ -12,10 +12,10 @@ a6 = 1.50
 b2 = 0.2
 b3 = 0.3
 
-bw1 = 0.0995 # b - w/2
-bw2 = 0.1005 # b + w/2
-bw3 = 0.1995 # b2 - w/2
-bw4 = 0.2005 # b2 + w/2
+bw1 = 0.095 # b - w/2
+bw2 = 0.105 # b + w/2
+bw3 = 0.195 # b2 - w/2
+bw4 = 0.205 # b2 + w/2
 
 vertices = [
   [  0, 0 ],         # vertex 0
