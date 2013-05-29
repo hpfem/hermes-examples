@@ -1,4 +1,4 @@
-#define HERMES_REPORT_ALL
+
 #include "definitions.h"
 
 using namespace std;

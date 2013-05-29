@@ -134,7 +134,7 @@ const double MESH_SIZE = 3.0;
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh->
+  // Load the mesh.
   MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("square.mesh", mesh);
@@ -186,7 +186,7 @@ int main(int argc, char* argv[])
   VectorView velocity_view("Velocity", new WinGeom(700, 400, 600, 300));
   
   // Initialize refinement selector.
-  L2ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, MAX_P_ORDER);
+  L2ProjBasedSelector<double> selector(CAND_LIST);
   selector.set_error_weights(1.0, 1.0, 1.0);
 
   // Set up CFL calculation class.
@@ -223,7 +223,7 @@ int main(int argc, char* argv[])
     {
       Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d:", as);
 
-      // Construct globally refined reference mesh and setup reference space->
+      // Construct globally refined reference mesh and setup reference space.
       int order_increase = 1;
 
       Mesh::ReferenceMeshCreator refMeshCreatorFlow(mesh);
@@ -260,7 +260,7 @@ int main(int argc, char* argv[])
         space_rho_v_y, space_e)), Space<double>::get_num_dofs(ref_spaces));
 
       // Assemble the reference problem.
-      Hermes::Mixins::Loggable::Static::info("Solving on reference mesh->");
+      Hermes::Mixins::Loggable::Static::info("Solving on reference mesh.");
       DiscreteProblem<double> dp(&wf, ref_spaces);
 
       SparseMatrix<double>* matrix = create_matrix<double>();
@@ -292,8 +292,8 @@ int main(int argc, char* argv[])
       else
         throw Hermes::Exceptions::Exception("Matrix solver failed.\n");
 
-      // Project the fine mesh solution onto the coarse mesh->
-      Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh->");
+      // Project the fine mesh solution onto the coarse mesh.
+      Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
       ogProjection.project_global(Hermes::vector<SpaceSharedPtr<double> >(space_rho, space_rho_v_x, 
         space_rho_v_y, space_e), Hermes::vector<MeshFunctionSharedPtr<double> >(rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e), 
         Hermes::vector<MeshFunctionSharedPtr<double> >(sln_rho, sln_rho_v_x, sln_rho_v_y, sln_e), 
@@ -301,9 +301,9 @@ int main(int argc, char* argv[])
 
       // Calculate element errors and total error estimate.
       Hermes::Mixins::Loggable::Static::info("Calculating error estimate.");
-      Adapt<double>* adaptivity = new Adapt<double>(Hermes::vector<SpaceSharedPtr<double> >(space_rho, space_rho_v_x, 
+      Adapt<double> adaptivity(Hermes::vector<SpaceSharedPtr<double> >(space_rho, space_rho_v_x, 
         space_rho_v_y, space_e), Hermes::vector<NormType>(HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM));
-      double err_est_rel_total = adaptivity->calc_err_est(Hermes::vector<MeshFunctionSharedPtr<double> >(sln_rho, sln_rho_v_x, sln_rho_v_y, sln_e),
+      double err_est_rel_total = adaptivity.calc_err_est(Hermes::vector<MeshFunctionSharedPtr<double> >(sln_rho, sln_rho_v_x, sln_rho_v_y, sln_e),
         Hermes::vector<MeshFunctionSharedPtr<double> >(rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e)) * 100;
 
       CFL.calculate_semi_implicit(Hermes::vector<MeshFunctionSharedPtr<double> >(rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e), (ref_spaces)[0]->get_mesh(), time_step);
@@ -311,13 +311,13 @@ int main(int argc, char* argv[])
       // Report results.
       Hermes::Mixins::Loggable::Static::info("err_est_rel: %g%%", err_est_rel_total);
 
-      // If err_est too large, adapt the mesh->
+      // If err_est too large, adapt the mesh.
       if (err_est_rel_total < ERR_STOP & Space<double>::get_num_dofs(ref_spaces) > NDOFS_MIN)
         done = true;
       else
       {
-        Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh->");
-        done = adaptivity->adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&selector, &selector, &selector, &selector), 
+        Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
+        done = adaptivity.adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&selector, &selector, &selector, &selector), 
           THRESHOLD, STRATEGY, MESH_REGULARITY);
 
         REFINEMENT_COUNT++;
@@ -332,7 +332,7 @@ int main(int argc, char* argv[])
       delete solver;
       delete matrix;
       delete rhs;
-      delete adaptivity;
+      
     }
     while (done == false);
 

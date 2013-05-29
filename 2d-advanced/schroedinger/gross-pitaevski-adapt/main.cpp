@@ -1,4 +1,4 @@
-#define HERMES_REPORT_ALL
+
 #define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
 
@@ -40,37 +40,16 @@ const int UNREF_METHOD = 3;
 // This is a quantitative parameter of the adapt(...) function and
 // it has different meanings for various adaptive strategies.
 const double THRESHOLD = 0.3;                     
-// Adaptive strategy:
-// STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
-//   error is processed. If more elements have similar errors, refine
-//   all to keep the mesh symmetric.
-// STRATEGY = 1 ... refine all elements whose error is larger
-//   than THRESHOLD times maximum element error.
-// STRATEGY = 2 ... refine all elements whose error is larger
-//   than THRESHOLD.
-const int STRATEGY = 1;                           
-// Predefined list of element refinement candidates. Possible values are
-// H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
-// H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
-const CandList CAND_LIST = H2D_HP_ANISO;          
-// Maximum allowed level of hanging nodes:
-// MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
-// MESH_REGULARITY = 1 ... at most one-level hanging nodes,
-// MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
-// Note that regular meshes are not supported, this is due to
-// their notoriously bad performance.
-const int MESH_REGULARITY = -1;                   
-// This parameter influences the selection of
-// candidates in hp-adaptivity. Default value is 1.0. 
-const double CONV_EXP = 1.0;                                          
+// Error calculation & adaptivity.
+DefaultErrorCalculator<double, HERMES_H1_NORM> errorCalculator(RelativeErrorToGlobalNorm, 1);
+// Stopping criterion for an adaptivity step.
+AdaptStoppingCriterionSingleElement<double> stoppingCriterion(THRESHOLD);
+// Adaptivity processor class.
+Adapt<double> adaptivity(&errorCalculator, &stoppingCriterion);
+// Predefined list of element refinement candidates.
+const CandList CAND_LIST = H2D_HP_ANISO;
 // Stopping criterion for adaptivity.
-const double SPACE_ERR_TOL = 1.0;                 
-// Adaptivity process stops when the number of degrees of freedom grows
-// over this limit. This is to prevent h-adaptivity to go on forever.
-const int NDOF_STOP = 60000;                      
-// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
+const double ERR_STOP = 1e-1;
 
 // Temporal adaptivity.
 // This flag decides whether adaptive time stepping will be done.
@@ -89,7 +68,7 @@ const double TIME_STEP_INC_RATIO = 1.1;
 const double TIME_STEP_DEC_RATIO = 0.8;           
 
 // Newton's method.
-// Stopping criterion for Newton on coarse mesh->
+// Stopping criterion for Newton on coarse mesh.
 const double NEWTON_TOL_COARSE = 0.01;            
 // Stopping criterion for Newton on fine mesh->
 const double NEWTON_TOL_FINE = 0.05;              
@@ -137,7 +116,7 @@ int main(int argc, char* argv[])
     ADAPTIVE_TIME_STEP_ON = false;
   }
 
-  // Load the mesh->
+  // Load the mesh.
   MeshSharedPtr mesh(new Mesh), basemesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("square.mesh", basemesh);
@@ -146,8 +125,8 @@ int main(int argc, char* argv[])
   // Initial mesh refinements.
   for(int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
 
-  // Convert initial condition into a Solution<std::complex<double> >.
-  MeshFunctionSharedPtr<std::complex<double> > psi_time_prev(new CustomInitialCondition(mesh));
+  // Convert initial condition into a Solution<complex>.
+  MeshFunctionSharedPtr<complex> psi_time_prev(new CustomInitialCondition(mesh));
 
   // Initialize the weak formulation.
   double current_time = 0;
@@ -156,19 +135,19 @@ int main(int argc, char* argv[])
   CustomWeakFormGPRK wf(h, m, g, omega);
 
   // Initialize boundary conditions.
-  DefaultEssentialBCConst<std::complex<double> > bc_essential("Bdy", 0.0);
-  EssentialBCs<std::complex<double> > bcs(&bc_essential);
+  DefaultEssentialBCConst<complex> bc_essential("Bdy", 0.0);
+  EssentialBCs<complex> bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.
-  SpaceSharedPtr<std::complex<double> > space(new H1Space<std::complex<double> > (mesh, &bcs, P_INIT));
+  SpaceSharedPtr<complex> space(new H1Space<complex> (mesh, &bcs, P_INIT));
   int ndof = space->get_num_dofs();
   Hermes::Mixins::Loggable::Static::info("ndof = %d", ndof);
 
   // Initialize the FE problem.
-  DiscreteProblem<std::complex<double> > dp(&wf, space);
+  DiscreteProblem<complex> dp(&wf, space);
 
   // Create a refinement selector.
-  H1ProjBasedSelector<std::complex<double> > selector(CAND_LIST);
+  H1ProjBasedSelector<complex> selector(CAND_LIST);
 
   // Visualize initial condition.
   char title[100];
@@ -224,29 +203,29 @@ int main(int argc, char* argv[])
       default: throw Hermes::Exceptions::Exception("Wrong global derefinement method.");
       }
 
-      ndof = Space<std::complex<double> >::get_num_dofs(space);
+      ndof = Space<complex>::get_num_dofs(space);
     }
     Hermes::Mixins::Loggable::Static::info("ndof: %d", ndof);
 
     // Spatial adaptivity loop. Note: psi_time_prev must not be 
     // changed during spatial adaptivity. 
-    MeshFunctionSharedPtr<std::complex<double> > ref_sln(new Solution<std::complex<double> >());
-    MeshFunctionSharedPtr<std::complex<double> > time_error_fn(new Solution<std::complex<double> >);
+    MeshFunctionSharedPtr<complex> ref_sln(new Solution<complex>());
+    MeshFunctionSharedPtr<complex> time_error_fn(new Solution<complex>);
     bool done = false;
     int as = 1;
     double err_est;
     do {
-      // Construct globally refined reference mesh and setup reference space->
+      // Construct globally refined reference mesh and setup reference space.
       Mesh::ReferenceMeshCreator refMeshCreator(mesh);
       MeshSharedPtr ref_mesh = refMeshCreator.create_ref_mesh();
 
-      Space<std::complex<double> >::ReferenceSpaceCreator refSpaceCreator(space, ref_mesh);
-      SpaceSharedPtr<std::complex<double> > ref_space = refSpaceCreator.create_ref_space();
+      Space<complex>::ReferenceSpaceCreator refSpaceCreator(space, ref_mesh);
+      SpaceSharedPtr<complex> ref_space = refSpaceCreator.create_ref_space();
 
-      // Initialize discrete problem on reference mesh->
-      DiscreteProblem<std::complex<double> >* ref_dp = new DiscreteProblem<std::complex<double> >(&wf, ref_space);
+      // Initialize discrete problem on reference mesh.
+      DiscreteProblem<complex>* ref_dp = new DiscreteProblem<complex>(&wf, ref_space);
 
-      RungeKutta<std::complex<double> > runge_kutta(&wf, ref_space, &bt);
+      RungeKutta<complex> runge_kutta(&wf, ref_space, &bt);
 
       // Runge-Kutta step on the fine mesh->
       Hermes::Mixins::Loggable::Static::info("Runge-Kutta time step on fine mesh (t = %g s, time step = %g s, stages: %d).", 
@@ -285,8 +264,8 @@ int main(int argc, char* argv[])
 
         time_error_view.show(abs_tef);
 
-        rel_err_time = Global<std::complex<double> >::calc_norm(time_error_fn.get(), HERMES_H1_NORM) / 
-          Global<std::complex<double> >::calc_norm(ref_sln.get(), HERMES_H1_NORM) * 100;
+        rel_err_time = Global<complex>::calc_norm(time_error_fn.get(), HERMES_H1_NORM) / 
+          Global<complex>::calc_norm(ref_sln.get(), HERMES_H1_NORM) * 100;
         if (ADAPTIVE_TIME_STEP_ON == false) Hermes::Mixins::Loggable::Static::info("rel_err_time: %g%%", rel_err_time);
       }
 
@@ -322,14 +301,14 @@ int main(int argc, char* argv[])
 
       Hermes::Mixins::Loggable::Static::info("Spatial adaptivity step %d.", as);
 
-      // Project the fine mesh solution onto the coarse mesh->
-      MeshFunctionSharedPtr<std::complex<double> > sln(new Solution<std::complex<double> >);
+      // Project the fine mesh solution onto the coarse mesh.
+      MeshFunctionSharedPtr<complex> sln(new Solution<complex>);
       Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh for error estimation.");
-      OGProjection<std::complex<double> > ogProjection; ogProjection.project_global(space, ref_sln, sln); 
+      OGProjection<complex> ogProjection; ogProjection.project_global(space, ref_sln, sln); 
 
       // Show spatial error.
       sprintf(title, "Spatial error est, spatial adaptivity step %d", as);  
-      MeshFunctionSharedPtr<std::complex<double> > space_error_fn(new DiffFilter<std::complex<double> >(Hermes::vector<MeshFunctionSharedPtr<std::complex<double> > >(ref_sln, sln)));
+      MeshFunctionSharedPtr<complex> space_error_fn(new DiffFilter<complex>(Hermes::vector<MeshFunctionSharedPtr<complex> >(ref_sln, sln)));
 
       space_error_view.set_title(title);
       space_error_view.show_mesh(false);
@@ -341,29 +320,26 @@ int main(int argc, char* argv[])
 
       // Calculate element errors and spatial error estimate.
       Hermes::Mixins::Loggable::Static::info("Calculating spatial error estimate.");
-      Adapt<std::complex<double> >* adaptivity = new Adapt<std::complex<double> >(space);
-      double err_rel_space = adaptivity->calc_err_est(sln, ref_sln) * 100;
+      Adapt<complex> adaptivity(space);
+      double err_rel_space = errorCalculator.get_total_error_squared() * 100;
 
       // Report results.
       Hermes::Mixins::Loggable::Static::info("ndof: %d, ref_ndof: %d, err_rel_space: %g%%", 
-        Space<std::complex<double> >::get_num_dofs(space), Space<std::complex<double> >::get_num_dofs(ref_space), err_rel_space);
+        Space<complex>::get_num_dofs(space), Space<complex>::get_num_dofs(ref_space), err_rel_space);
 
-      // If err_est too large, adapt the mesh->
+      // If err_est too large, adapt the mesh.
       if (err_rel_space < SPACE_ERR_TOL) done = true;
       else 
       {
-        Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh->");
-        done = adaptivity->adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
+        Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh.");
+        done = adaptivity.adapt(&selector);
 
-        if (Space<std::complex<double> >::get_num_dofs(space) >= NDOF_STOP) 
-          done = true;
-        else
-          // Increase the counter of performed adaptivity steps.
-          as++;
+        // Increase the counter of performed adaptivity steps.
+        as++;
       }
 
       // Clean up.
-      delete adaptivity;
+      
       delete ref_dp;
     }
     while (done == false);

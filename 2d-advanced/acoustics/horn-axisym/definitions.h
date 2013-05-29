@@ -7,9 +7,11 @@ using namespace Hermes::Hermes2D;
 using namespace Hermes::Hermes2D::Views;
 using namespace Hermes::Hermes2D::RefinementSelectors;
 
+typedef std::complex<double> complex;
+
 /* Weak forms */
 
-class CustomWeakFormAcoustics : public WeakForm<std::complex<double> >
+class CustomWeakFormAcoustics : public WeakForm<complex>
 {
 public:
   CustomWeakFormAcoustics(std::string bdy_newton, double rho,

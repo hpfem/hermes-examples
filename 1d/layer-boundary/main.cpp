@@ -1,4 +1,4 @@
-#define HERMES_REPORT_ALL
+
 #define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
 
@@ -24,18 +24,13 @@ const int P_INIT = 1;
 const int INIT_REF_NUM = 0;                       
 // Number of initial mesh refinements towards the boundary.
 const int INIT_REF_NUM_BDY = 5;                   
-// This is a quantitative parameter of the adapt(...) function and
-// it has different meanings for various adaptive strategies (see below).
-const double THRESHOLD = 0.3;                     
-// Adaptive strategy:
-// STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
-//   error is processed. If more elements have similar errors, refine
-//   all to keep the mesh symmetric.
-// STRATEGY = 1 ... refine all elements whose error is larger
-//   than THRESHOLD times maximum element error.
-// STRATEGY = 2 ... refine all elements whose error is larger
-//   than THRESHOLD.
-const int STRATEGY = 0;                           
+/// This is a quantitative parameter of the adapt(...) function and
+// it has different meanings for various adaptive strategies.
+const double THRESHOLD = 0.5;
+// Error calculation & adaptivity.
+DefaultErrorCalculator<double, HERMES_H1_NORM> errorCalculator(RelativeErrorToGlobalNorm, 1);
+// Stopping criterion for an adaptivity step.
+AdaptStoppingCriterionSingleElement<double> stoppingCriterion(THRESHOLD);
 // Predefined list of element refinement candidates. Possible values are
 // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
 // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
@@ -65,7 +60,7 @@ const double K = 1e2;
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh->
+  // Load the mesh.
   MeshSharedPtr mesh(new Mesh);
   MeshReaderH1DXML mloader;
   mloader.load("domain.xml", mesh);
@@ -97,7 +92,7 @@ int main(int argc, char* argv[])
   MeshFunctionSharedPtr<double> sln(new Solution<double>());
 
   // Initialize refinement selector.
-  H1ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
+  H1ProjBasedSelector<double> selector(CAND_LIST);
 
   // Initialize views.
   Views::ScalarView sview("Solution", new Views::WinGeom(0, 0, 600, 360));
@@ -118,7 +113,7 @@ int main(int argc, char* argv[])
   {
     cpu_time.tick();
 
-    // Construct globally refined reference mesh and setup reference space->
+    // Construct globally refined reference mesh and setup reference space.
     // FIXME: This should be increase in the x-direction only.
     int order_increase = 1;          
     // FIXME: This should be '2' but that leads to a segfault.
@@ -133,7 +128,7 @@ int main(int argc, char* argv[])
     Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d (%d DOF):", as, ndof_ref);
     cpu_time.tick();
     
-    Hermes::Mixins::Loggable::Static::info("Solving on reference mesh->");
+    Hermes::Mixins::Loggable::Static::info("Solving on reference mesh.");
 
     // Assemble the discrete problem.
     DiscreteProblem<double> dp(&wf, ref_space);
@@ -157,17 +152,19 @@ int main(int argc, char* argv[])
     cpu_time.tick();
     Hermes::Mixins::Loggable::Static::info("Solution: %g s", cpu_time.last());
 
-    // Project the fine mesh solution onto the coarse mesh->
+    // Project the fine mesh solution onto the coarse mesh.
     Hermes::Mixins::Loggable::Static::info("Calculating error estimate and exact error.");
     OGProjection<double> ogProjection; ogProjection.project_global(space, ref_sln, sln);
 
     // Calculate element errors and total error estimate.
-    Adapt<double> adaptivity(space);
-    double err_est_rel = adaptivity.calc_err_est(sln, ref_sln) * 100;
-
     // Calculate exact error.
-    double err_exact_rel = Global<double>::calc_rel_error(sln.get(), exact_sln.get(), HERMES_H1_NORM) * 100;
+    errorCalculator.calculate_errors(sln, exact_sln, false);
+    double err_exact_rel = errorCalculator.get_total_error_squared() * 100;
+    errorCalculator.calculate_errors(sln, ref_sln);
+    double err_est_rel = errorCalculator.get_total_error_squared() * 100;
 
+    Adapt<double> adaptivity(space, &errorCalculator, &stoppingCriterion);
+    
     cpu_time.tick();
     Hermes::Mixins::Loggable::Static::info("Error calculation: %g s", cpu_time.last());
     
@@ -195,12 +192,12 @@ int main(int argc, char* argv[])
     
     cpu_time.tick(Hermes::Mixins::TimeMeasurable::HERMES_SKIP);
 
-    // If err_est too large, adapt the mesh-> The NDOF test must be here, so that the solution may be visualized
+    // If err_est too large, adapt the mesh. The NDOF test must be here, so that the solution may be visualized
     // after ending due to this criterion.
     if (err_exact_rel < ERR_STOP || space->get_num_dofs() >= NDOF_STOP) 
       done = true;
     else
-      done = adaptivity.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
+      done = adaptivity.adapt(&selector);
    
     cpu_time.tick();
     Hermes::Mixins::Loggable::Static::info("Adaptation: %g s", cpu_time.last());

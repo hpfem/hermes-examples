@@ -1,4 +1,4 @@
-#define HERMES_REPORT_ALL
+
 #include "definitions.h"
 
 using namespace RefinementSelectors;
@@ -25,14 +25,16 @@ const int P_INIT = 1;
 const int INIT_REF_NUM = 1;
 // This is a quantitative parameter of Adaptivity.
 double THRESHOLD = 0.3;
-// This is a stopping criterion for Adaptivity.
-AdaptStoppingCriterionSingleElement<double>* stoppingCriterion = new AdaptStoppingCriterionSingleElement<double>(THRESHOLD);   
-
+// Error calculation & adaptivity.
+DefaultErrorCalculator<double, HERMES_H1_NORM> errorCalculator(RelativeErrorToGlobalNorm, 2);
+// Stopping criterion for an adaptivity step.
+AdaptStoppingCriterionSingleElement<double> stoppingCriterion(THRESHOLD);
+// Adaptivity processor class.
+Adapt<double> adaptivity(&errorCalculator, &stoppingCriterion);
 // Predefined list of element refinement candidates.
-CandList CAND_LIST = H2D_HP_ANISO_H;
-// Maximum allowed level of hanging nodes.
-const int MESH_REGULARITY = -1;
-const CalculatedErrorType errorType = RelativeErrorToGlobalNorm;
+CandList CAND_LIST = H2D_HP_ANISO;
+// Stopping criterion for adaptivity.
+const double ERR_STOP = 1e-1;
 
 // Newton tolerance
 const double NEWTON_TOLERANCE = 1e-6;
@@ -76,7 +78,7 @@ int main(int argc, char* argv[])
   MeshFunctionSharedPtr<double> sln(new Solution<double>), ref_sln(new Solution<double>);
   
   // Initialize refinement selector.
-  MySelector selector(CAND_LIST);
+  MySelector selector(hXORpSelectionBasedOnError);
 
   // Initialize views.
   ScalarView sview("Solution", new WinGeom(0, 0, 320, 600));
@@ -88,11 +90,6 @@ int main(int argc, char* argv[])
   // Assemble the discrete problem.    
   NewtonSolver<double> newton;
   newton.set_weak_formulation(&wf);
-
-  // Adaptivity loop.
-  DefaultErrorCalculator<double, HERMES_H1_NORM> error_calculator(errorType, 1);
-  Adapt<double> adaptivity(space, &error_calculator);
-  adaptivity.set_strategy(stoppingCriterion);
 
   sprintf(filename, "Results-%s-%s.csv", get_cand_list_str(CAND_LIST), THRESHOLD_STRING);
   std::ofstream data(filename);
@@ -178,6 +175,9 @@ int main(int argc, char* argv[])
       int cache_record_found;
       int cache_record_found_reinit;
       int cache_record_not_found;
+      double FactorizationSize;
+      double PeakMemoryUsage;
+      double Flops;
 
       // Time measurement.
       Hermes::Mixins::TimeMeasurable cpu_time;
@@ -192,14 +192,14 @@ int main(int argc, char* argv[])
           mesh, 
           space, 
           sln, 
-          selector,
+          &selector,
           is_p(CAND_LIST) ? 1 : 0,
           ref_sln, 
           cpu_time,
           newton,
           sview,
           oview,
-          error_calculator,
+          errorCalculator,
           adaptivity,
           as,
           error_stop,
@@ -209,7 +209,10 @@ int main(int argc, char* argv[])
           cache_record_found,
           cache_record_found_reinit,
           cache_record_not_found,
-          exact_error_reached))
+          exact_error_reached,
+          FactorizationSize,
+          PeakMemoryUsage,
+          Flops))
         {
           dof_cumulative += dof_reached;
 

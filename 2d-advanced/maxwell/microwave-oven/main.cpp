@@ -1,5 +1,3 @@
-#define HERMES_REPORT_ALL
-#define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
 
 // This example solves adaptively the electric field in a simplified microwave oven.
@@ -85,10 +83,10 @@ const double J = 0.0000033333;
 const std::string BDY_PERFECT_CONDUCTOR = "b2";
 const std::string BDY_CURRENT = "b1";
 
-class CustomErrorCalculator : public ErrorCalculator<std::complex<double> >
+class CustomErrorCalculator : public ErrorCalculator<complex>
 {
 public:
-  CustomErrorCalculator(CalculatedErrorType errorType) : ErrorCalculator<std::complex<double> >(errorType)
+  CustomErrorCalculator(CalculatedErrorType errorType) : ErrorCalculator<complex>(errorType)
   {
     this->add_error_form(new CustomErrorForm (kappa));
   }
@@ -112,12 +110,12 @@ int main(int argc, char* argv[])
     mesh->refine_all_elements();
 
   // Initialize boundary conditions
-  DefaultEssentialBCConst<std::complex<double> > bc_essential(BDY_PERFECT_CONDUCTOR, std::complex<double>(0.0, 0.0));
+  DefaultEssentialBCConst<complex> bc_essential(BDY_PERFECT_CONDUCTOR, std::complex<double>(0.0, 0.0));
 
-  EssentialBCs<std::complex<double> > bcs(&bc_essential);
+  EssentialBCs<complex> bcs(&bc_essential);
 
   // Create an Hcurl space with default shapeset.
-  SpaceSharedPtr<std::complex<double> > space(new HcurlSpace<std::complex<double> > (mesh, &bcs, P_INIT));
+  SpaceSharedPtr<complex> space(new HcurlSpace<complex> (mesh, &bcs, P_INIT));
   int ndof = space->get_num_dofs();
   Hermes::Mixins::Loggable::Static::info("ndof = %d", ndof);
 
@@ -125,19 +123,19 @@ int main(int argc, char* argv[])
   CustomWeakForm wf(e_0, mu_0, mu_r, kappa, omega, J, ALIGN_MESH, mesh, BDY_CURRENT);
 
   // Initialize coarse and reference mesh solution.
-  MeshFunctionSharedPtr<std::complex<double> >  sln(new Solution<std::complex<double> >), ref_sln(new Solution<std::complex<double> >);
+  MeshFunctionSharedPtr<complex>  sln(new Solution<complex>), ref_sln(new Solution<complex>);
 
   // Initialize refinements selector.
-  HcurlProjBasedSelector<std::complex<double> > selector(CAND_LIST);
+  HcurlProjBasedSelector<complex> selector(CAND_LIST);
 
   // Error calculation.
   CustomErrorCalculator errorCalculator(RelativeErrorToGlobalNorm);
       
   // Stopping criterion for an adaptivity step.
-  AdaptStoppingCriterionSingleElement<std::complex<double> > stoppingCriterion(THRESHOLD);
+  AdaptStoppingCriterionSingleElement<complex> stoppingCriterion(THRESHOLD);
 
   // Adaptivity.
-  Adapt<std::complex<double> > adaptivity(space, &errorCalculator, &stoppingCriterion);
+  Adapt<complex> adaptivity(space, &errorCalculator, &stoppingCriterion);
 
   // Initialize views.
   ScalarView eview("Electric field", new WinGeom(0, 0, 580, 400));
@@ -150,7 +148,7 @@ int main(int argc, char* argv[])
   Hermes::Mixins::TimeMeasurable cpu_time;
   cpu_time.tick();
 
-  Hermes::Hermes2D::NewtonSolver<std::complex<double> > newton(&wf, space);
+  Hermes::Hermes2D::NewtonSolver<complex> newton(&wf, space);
   newton.set_max_allowed_iterations(NEWTON_MAX_ITER);
   newton.set_tolerance(NEWTON_TOL);
 
@@ -161,13 +159,13 @@ int main(int argc, char* argv[])
   {
     Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d:", as);
 
-    // Construct globally refined reference mesh and setup reference space->
+    // Construct globally refined reference mesh and setup reference space.
     Mesh::ReferenceMeshCreator refMeshCreator(mesh);
     MeshSharedPtr ref_mesh = refMeshCreator.create_ref_mesh();
 
-    Space<std::complex<double> >::ReferenceSpaceCreator refSpaceCreator(space, ref_mesh);
-    SpaceSharedPtr<std::complex<double> > ref_space = refSpaceCreator.create_ref_space();
-    int ndof_ref = Space<std::complex<double> >::get_num_dofs(ref_space);
+    Space<complex>::ReferenceSpaceCreator refSpaceCreator(space, ref_mesh);
+    SpaceSharedPtr<complex> ref_space = refSpaceCreator.create_ref_space();
+    int ndof_ref = Space<complex>::get_num_dofs(ref_space);
 
     // Initialize reference problem.
     Hermes::Mixins::Loggable::Static::info("Solving on reference mesh.");
@@ -184,12 +182,12 @@ int main(int argc, char* argv[])
       e.print_msg();
       throw Hermes::Exceptions::Exception("Newton's iteration failed.");
     };
-    // Translate the resulting coefficient vector into the Solution<std::complex<double> > sln->
-    Hermes::Hermes2D::Solution<std::complex<double> >::vector_to_solution(newton.get_sln_vector(), ref_space, ref_sln);
+    // Translate the resulting coefficient vector into the Solution<complex> sln->
+    Hermes::Hermes2D::Solution<complex>::vector_to_solution(newton.get_sln_vector(), ref_space, ref_sln);
 
     // Project the fine mesh solution onto the coarse mesh.
     Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
-    OGProjection<std::complex<double> > ogProjection; ogProjection.project_global(space, ref_sln, sln); 
+    OGProjection<complex> ogProjection; ogProjection.project_global(space, ref_sln, sln); 
 
     // View the coarse mesh solution and polynomial orders.
     MeshFunctionSharedPtr<double> real(new RealFilter(ref_sln));
@@ -213,14 +211,14 @@ int main(int argc, char* argv[])
 
     // Report results.
     Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d, err_est_rel: %g%%", 
-      Space<std::complex<double> >::get_num_dofs(space), 
-      Space<std::complex<double> >::get_num_dofs(ref_space), err_est_rel);
+      Space<complex>::get_num_dofs(space), 
+      Space<complex>::get_num_dofs(ref_space), err_est_rel);
   
     // Time measurement.
     cpu_time.tick();
 
     // Add entry to DOF and CPU convergence graphs.
-    graph_dof.add_values(Space<std::complex<double> >::get_num_dofs(space), err_est_rel);
+    graph_dof.add_values(Space<complex>::get_num_dofs(space), err_est_rel);
     graph_dof.save("conv_dof_est.dat");
     graph_cpu.add_values(cpu_time.accumulated(), err_est_rel);
     graph_cpu.save("conv_cpu_est.dat");

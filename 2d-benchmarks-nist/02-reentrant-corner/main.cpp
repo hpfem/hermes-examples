@@ -1,4 +1,4 @@
-#define HERMES_REPORT_ALL
+
 #include "definitions.h"
 
 using namespace RefinementSelectors;
@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
   MeshFunctionSharedPtr<double> sln(new Solution<double>());
   
   // Initialize refinement selector.
-  MySelector selector(CAND_LIST);
+  MySelector selector(hXORpSelectionBasedOnError);
 
   // Initialize views.
   Views::ScalarView sview("Solution", new Views::WinGeom(0, 0, 440, 350));
@@ -122,7 +122,7 @@ int main(int argc, char* argv[])
   {
     cpu_time.tick();
 
-    // Construct globally refined reference mesh and setup reference space->
+    // Construct globally refined reference mesh and setup reference space.
     Mesh::ReferenceMeshCreator refMeshCreator(mesh);
     MeshSharedPtr ref_mesh = refMeshCreator.create_ref_mesh();
 
@@ -163,13 +163,13 @@ int main(int argc, char* argv[])
     OGProjection<double> ogProjection; ogProjection.project_global(space, ref_sln, sln);
 
     // Calculate element errors and total error estimate.
-    DefaultErrorCalculator<double, HERMES_H1_NORM> error_calculator(errorType, 1);
-    error_calculator.calculate_errors(sln, exact_sln);
-    double err_exact_rel = error_calculator.get_total_error_squared() * 100.0;
-    error_calculator.calculate_errors(sln, ref_sln);
-    double err_est_rel = error_calculator.get_total_error_squared() * 100.0;
+    DefaultErrorCalculator<double, HERMES_H1_NORM> errorCalculator(errorType, 1);
+    errorCalculator.calculate_errors(sln, exact_sln);
+    double err_exact_rel = errorCalculator.get_total_error_squared() * 100.0;
+    errorCalculator.calculate_errors(sln, ref_sln);
+    double err_est_rel = errorCalculator.get_total_error_squared() * 100.0;
 
-    Adapt<double> adaptivity(space, &error_calculator);
+    Adapt<double> adaptivity(space, &errorCalculator);
     adaptivity.set_strategy(stoppingCriterion);
 
     cpu_time.tick();

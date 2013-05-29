@@ -1,4 +1,4 @@
-#define HERMES_REPORT_ALL
+
 #define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
 
@@ -69,7 +69,7 @@ int main(int argc, char* argv[])
   if (bt.is_diagonally_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage diagonally implicit R-K method.", bt.get_size());
   if (bt.is_fully_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage fully implicit R-K method.", bt.get_size());
 
-  // Load the mesh->
+  // Load the mesh.
   MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("square.mesh", mesh);
@@ -77,9 +77,9 @@ int main(int argc, char* argv[])
   // Initial mesh refinements.
   for(int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
 
-  // Convert initial condition into a Solution<std::complex<double> >.
-  MeshFunctionSharedPtr<std::complex<double> > psi_time_prev(new CustomInitialCondition(mesh));
-  MeshFunctionSharedPtr<std::complex<double> > psi_time_new(new Solution<std::complex<double> >(mesh));
+  // Convert initial condition into a Solution<complex>.
+  MeshFunctionSharedPtr<complex> psi_time_prev(new CustomInitialCondition(mesh));
+  MeshFunctionSharedPtr<complex> psi_time_new(new Solution<complex>(mesh));
 
   // Initialize the weak formulation.
   double current_time = 0;
@@ -87,16 +87,16 @@ int main(int argc, char* argv[])
   CustomWeakFormGPRK wf(h, m, g, omega);
   
   // Initialize boundary conditions.
-  DefaultEssentialBCConst<std::complex<double> > bc_essential("Bdy", 0.0);
-  EssentialBCs<std::complex<double> > bcs(&bc_essential);
+  DefaultEssentialBCConst<complex> bc_essential("Bdy", 0.0);
+  EssentialBCs<complex> bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.
-  SpaceSharedPtr<std::complex<double> > space(new H1Space<std::complex<double> > (mesh, &bcs, P_INIT));
+  SpaceSharedPtr<complex> space(new H1Space<complex> (mesh, &bcs, P_INIT));
   int ndof = space->get_num_dofs();
   Hermes::Mixins::Loggable::Static::info("ndof = %d", ndof);
  
   // Initialize the FE problem.
-  DiscreteProblem<std::complex<double> > dp(&wf, space);
+  DiscreteProblem<complex> dp(&wf, space);
 
   // Initialize views.
   ScalarView sview_real("Solution - real part", new WinGeom(0, 0, 600, 500));
@@ -105,7 +105,7 @@ int main(int argc, char* argv[])
   sview_imag.fix_scale_width(80);
 
   // Initialize Runge-Kutta time stepping.
-  RungeKutta<std::complex<double> > runge_kutta(&wf, space, &bt);
+  RungeKutta<complex> runge_kutta(&wf, space, &bt);
   
   // Time stepping:
   int ts = 1;

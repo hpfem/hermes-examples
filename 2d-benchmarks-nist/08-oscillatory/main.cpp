@@ -1,4 +1,4 @@
-#define HERMES_REPORT_ALL
+
 #include "definitions.h"
 
 using namespace RefinementSelectors;
@@ -89,8 +89,8 @@ int main(int argc, char* argv[])
   char* filename = new char[1000];
 
   // Adaptivity loop.
-  DefaultErrorCalculator<double, HERMES_H1_NORM> error_calculator(errorType, 1);
-  Adapt<double> adaptivity(space, &error_calculator);
+  DefaultErrorCalculator<double, HERMES_H1_NORM> errorCalculator(errorType, 1);
+  Adapt<double> adaptivity(space, &errorCalculator);
   adaptivity.set_strategy(stoppingCriterion);
 
   sprintf(filename, "%s.csv", resultStringIdentification);
@@ -189,7 +189,7 @@ int main(int argc, char* argv[])
           newton,
           sview,
           oview,
-          error_calculator,
+          errorCalculator,
           adaptivity,
           as,
           error_stop,

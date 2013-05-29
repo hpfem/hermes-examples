@@ -22,7 +22,7 @@ const int INIT_REF_NUM = 0;
 const int P_INIT_U1 = 2;                          
 // Initial polynomial degree of mesh elements (v-displacement).
 const int P_INIT_U2 = 2;                          
-// true = use multi-mesh, false = use single-mesh->
+// true = use multi-mesh, false = use single-mesh.
 // Note: in the single mesh option, the meshes are
 // forced to be geometrically the same but the
 // polynomial degrees can still vary.
@@ -86,7 +86,7 @@ int main(int argc, char* argv[])
   Hermes::Mixins::TimeMeasurable cpu_time;
   cpu_time.tick();
 
-  // Load the mesh->
+  // Load the mesh.
   MeshSharedPtr u1_mesh(new Mesh), u2_mesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("domain.mesh", u1_mesh);
@@ -198,7 +198,7 @@ int main(int argc, char* argv[])
     Solution<double>::vector_to_solutions(newton.get_sln_vector(), ref_spaces, 
         Hermes::vector<MeshFunctionSharedPtr<double> >(u1_sln_ref, u2_sln_ref));
 
-    // Project the fine mesh solution onto the coarse mesh->
+    // Project the fine mesh solution onto the coarse mesh.
     Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
     OGProjection<double> ogProjection; ogProjection.project_global(Hermes::vector<SpaceSharedPtr<double> >(u1_space, u2_space), 
         Hermes::vector<MeshFunctionSharedPtr<double> >(u1_sln_ref, u2_sln_ref), 
@@ -220,10 +220,10 @@ int main(int argc, char* argv[])
 
     /* 
     // Register custom forms for error calculation.
-    adaptivity->set_error_form(0, 0, bilinear_form_0_0<double, double>, bilinear_form_0_0<Ord, Ord>);
-    adaptivity->set_error_form(0, 1, bilinear_form_0_1<double, double>, bilinear_form_0_1<Ord, Ord>);
-    adaptivity->set_error_form(1, 0, bilinear_form_1_0<double, double>, bilinear_form_1_0<Ord, Ord>);
-    adaptivity->set_error_form(1, 1, bilinear_form_1_1<double, double>, bilinear_form_1_1<Ord, Ord>);
+    errorCalculator.add_error_form(0, 0, bilinear_form_0_0<double, double>, bilinear_form_0_0<Ord, Ord>);
+    errorCalculator.add_error_form(0, 1, bilinear_form_0_1<double, double>, bilinear_form_0_1<Ord, Ord>);
+    errorCalculator.add_error_form(1, 0, bilinear_form_1_0<double, double>, bilinear_form_1_0<Ord, Ord>);
+    errorCalculator.add_error_form(1, 1, bilinear_form_1_1<double, double>, bilinear_form_1_1<Ord, Ord>);
     */
 
     // Calculate error estimate for each solution component and the total error estimate.
@@ -248,7 +248,7 @@ int main(int argc, char* argv[])
     graph_cpu_est.add_values(cpu_time.accumulated(), err_est_rel_total);
     graph_cpu_est.save("conv_cpu_est.dat");
 
-    // If err_est too large, adapt the mesh->
+    // If err_est too large, adapt the mesh.
     if (err_est_rel_total < ERR_STOP) 
       done = true;
     else 

@@ -9,6 +9,15 @@ static Scalar int_e_f(int n, double *wt, Func<Real> *u, Func<Real> *v)
   return result;
 }
 
+template<typename Real, typename Scalar>
+static Scalar int_curl_e_curl_f(int n, double *wt, Func<Real> *u, Func<Real> *v)
+{
+  Scalar result = Scalar(0);
+  for (int i = 0; i < n; i++)
+    result += wt[i] * (u->curl[i] * conj(v->curl[i]));
+  return result;
+}
+
 Scalar2<double> CustomInitialConditionWave::value (double x, double y) const 
 {
   return Scalar2<double>(std::sin(x) * std::cos(y), -std::cos(x) * std::sin(y));

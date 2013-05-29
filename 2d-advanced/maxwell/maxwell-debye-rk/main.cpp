@@ -1,4 +1,4 @@
-#define HERMES_REPORT_ALL
+
 #define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
 
@@ -64,47 +64,16 @@ int REFINEMENT_COUNT = 0;
 // This is a quantitative parameter of the adapt(...) function and
 // it has different meanings for various adaptive strategies (see below).
 const double THRESHOLD = 0.5;
-
-// Adaptive strategy:
-// STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
-//   error is processed. If more elements have similar errors, refine
-//   all to keep the mesh symmetric.
-// STRATEGY = 1 ... refine all elements whose error is larger
-//   than THRESHOLD times maximum element error.
-// STRATEGY = 2 ... refine all elements whose error is larger
-//   than THRESHOLD.
-const int STRATEGY = 1;                           
-
-// Predefined list of element refinement candidates. Possible values are
-// H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
-// H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
-CandList CAND_LIST = H2D_HP_ANISO;                
-
-// Maximum polynomial degree used. -1 for unlimited.
-const int MAX_P_ORDER = -1;                       
-
-// Maximum allowed level of hanging nodes:
-// MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
-// MESH_REGULARITY = 1 ... at most one-level hanging nodes,
-// MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
-// Note that regular meshes are not supported, this is due to
-// their notoriously bad performance.
-const int MESH_REGULARITY = -1;                   
-
-// This parameter influences the selection of
-// candidates in hp-adaptivity. Default value is 1.0. 
-const double CONV_EXP = 1;                        
-
-// Stopping criterion for adaptivity (rel. error tolerance between the
-// fine mesh and coarse mesh solution in percent).
-const double ERR_STOP = 0.5;  
-
-// Stopping criterion for adaptivity (number of adaptivity steps).
-const int ADAPTIVITY_STEPS = 5;
-
-// Adaptivity process stops when the number of degrees of freedom grows over
-// this limit. This is mainly to prevent h-adaptivity to go on forever.
-const int NDOF_STOP = 6200;  
+// Error calculation & adaptivity.
+DefaultErrorCalculator<double, HERMES_H1_NORM> errorCalculator(RelativeErrorToGlobalNorm, 3);
+// Stopping criterion for an adaptivity step.
+AdaptStoppingCriterionSingleElement<double> stoppingCriterion(THRESHOLD);
+// Adaptivity processor class.
+Adapt<double> adaptivity(&errorCalculator, &stoppingCriterion);
+// Predefined list of element refinement candidates.
+const CandList CAND_LIST = H2D_HP_ANISO;
+// Stopping criterion for adaptivity.
+const double ERR_STOP = 1e-1;
 
 // Problem parameters.
 // Permeability of free space->
@@ -149,7 +118,7 @@ int main(int argc, char* argv[])
 		if (bt.is_diagonally_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage diagonally implicit R-K method.", bt.get_size());
 		if (bt.is_fully_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage fully implicit R-K method.", bt.get_size());
 
-		// Load the mesh->
+		// Load the mesh.
 		MeshSharedPtr E_mesh(new Mesh), H_mesh(new Mesh), P_mesh(new Mesh);
 		MeshReaderH2D mloader;
 		mloader.load("domain.mesh", E_mesh);
@@ -227,8 +196,8 @@ int main(int argc, char* argv[])
 		runge_kutta.set_verbose_output(true);
 
 		// Initialize refinement selector.
-		H1ProjBasedSelector<double> H1selector(CAND_LIST, CONV_EXP, MAX_P_ORDER);
-		HcurlProjBasedSelector<double> HcurlSelector(CAND_LIST, CONV_EXP, MAX_P_ORDER);
+		H1ProjBasedSelector<double> H1selector(CAND_LIST);
+		HcurlProjBasedSelector<double> HcurlSelector(CAND_LIST);
 
 		// Time stepping loop.
 		int ts = 1;
@@ -260,7 +229,7 @@ int main(int argc, char* argv[])
 			{
 				Hermes::Mixins::Loggable::Static::info("Adaptivity step %d:", as);
 
-				// Construct globally refined reference mesh and setup reference space->
+				// Construct globally refined reference mesh and setup reference space.
 				int order_increase = 1;
 
 				Mesh::ReferenceMeshCreator refMeshCreatorE(E_mesh);
@@ -313,42 +282,37 @@ int main(int argc, char* argv[])
 			  P2_view.set_title(title);
 			  P2_view.show(P_time_new, H2D_FN_VAL_1);
 
-				// Project the fine mesh solution onto the coarse mesh->
-				Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh->");
+				// Project the fine mesh solution onto the coarse mesh.
+				Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
 				OGProjection<double> ogProjection; ogProjection.project_global(Hermes::vector<SpaceSharedPtr<double> >(E_space, H_space, 
 					P_space), Hermes::vector<MeshFunctionSharedPtr<double> >(E_time_new, H_time_new, P_time_new), Hermes::vector<MeshFunctionSharedPtr<double> >(E_time_new_coarse, H_time_new_coarse, P_time_new_coarse));
 
 				// Calculate element errors and total error estimate.
 				Hermes::Mixins::Loggable::Static::info("Calculating error estimate.");
-				Adapt<double>* adaptivity = new Adapt<double>(Hermes::vector<SpaceSharedPtr<double> >(E_space, H_space, P_space));
+				adaptivity.set_spaces(Hermes::vector<SpaceSharedPtr<double> >(E_space, H_space, P_space));
+        errorCalculator.calculate_errors(Hermes::vector<MeshFunctionSharedPtr<double> >(E_time_new_coarse, H_time_new_coarse, P_time_new_coarse),
+					Hermes::vector<MeshFunctionSharedPtr<double> >(E_time_new, H_time_new, P_time_new));
 
-				double err_est_rel_total = adaptivity->calc_err_est(Hermes::vector<MeshFunctionSharedPtr<double> >(E_time_new_coarse, H_time_new_coarse, P_time_new_coarse),
-					Hermes::vector<MeshFunctionSharedPtr<double> >(E_time_new, H_time_new, P_time_new)) * 100;
+        double err_est_rel_total = errorCalculator.get_total_error_squared() * 100.;
 
 				// Report results.
 				Hermes::Mixins::Loggable::Static::info("Error estimate: %g%%", err_est_rel_total);
 
-				// If err_est too large, adapt the mesh->
-				if (err_est_rel_total < ERR_STOP || as > ADAPTIVITY_STEPS - 1)
+				// If err_est too large, adapt the mesh.
+				if (err_est_rel_total < ERR_STOP)
         {
-          if(err_est_rel_total < ERR_STOP)
-				    Hermes::Mixins::Loggable::Static::info("Error estimate under the specified threshold -> moving to next time step.");
-          else
-				    Hermes::Mixins::Loggable::Static::info("Error estimate above the specified threshold, but the specified number of adaptivity steps reached -> moving to next time step.");
+          Hermes::Mixins::Loggable::Static::info("Error estimate under the specified threshold -> moving to next time step.");
 					done = true;
         }
 				else
 				{
-					Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh->");
+					Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
 					REFINEMENT_COUNT++;
-					done = adaptivity->adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&HcurlSelector, &H1selector, &HcurlSelector), 
-						THRESHOLD, STRATEGY, MESH_REGULARITY);
+					done = adaptivity.adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&HcurlSelector, &H1selector, &HcurlSelector));
 
           if(!done)
 						as++;
 				}
-
-        delete adaptivity;
 			} 
       while(!done);
 

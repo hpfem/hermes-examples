@@ -222,7 +222,7 @@ bool adaptive_step_single_space(
   Solver<double>& solver,
   Views::ScalarView& sview,
   Views::OrderView & oview,
-  ErrorCalculator<double>& error_calculator,
+  ErrorCalculator<double>& errorCalculator,
   Adapt<double>& adaptivity,
   int& as,
   double error_stop,

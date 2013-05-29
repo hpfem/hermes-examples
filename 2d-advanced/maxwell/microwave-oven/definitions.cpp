@@ -17,8 +17,8 @@ Scalar CustomMatrixForm::matrix_form(int n, double *wt, Func<Scalar> *u_ext[], F
   return 1.0/mu_r * result3 - ikappa * Hermes::sqrt(mu_0 / e_0) * result1 - sqr(kappa) * result2;
 }
 
-std::complex<double> CustomMatrixForm::value(int n, double *wt, Func<std::complex<double> > *u_ext[], Func<double> *u, 
-                               Func<double> *v, Geom<double> *e, Func<std::complex<double> > **ext) const 
+std::complex<double> CustomMatrixForm::value(int n, double *wt, Func<complex> *u_ext[], Func<double> *u, 
+                               Func<double> *v, Geom<double> *e, Func<complex> **ext) const 
 {
   return matrix_form<double, std::complex<double> >(n, wt, u_ext, u, v, e, ext);
 }
@@ -45,7 +45,7 @@ Ord CustomMatrixForm::gamma(int marker, Ord x, Ord y) const
   return Ord(0.0);
 }
 
-MatrixFormVol<std::complex<double> >* CustomMatrixForm::clone() const 
+MatrixFormVol<complex>* CustomMatrixForm::clone() const 
 {
   CustomMatrixForm* form = new CustomMatrixForm(i, j, e_0, mu_0, mu_r, kappa, omega, J, align_mesh);
   form->wf = this->wf;
@@ -97,8 +97,8 @@ Scalar CustomResidualForm::vector_form(int n, double *wt, Func<Scalar> *u_ext[],
   return 1.0/mu_r * result3 - ikappa * Hermes::sqrt(mu_0 / e_0) * result1 - sqr(kappa) * result2;
 }
 
-std::complex<double> CustomResidualForm::value(int n, double *wt, Func<std::complex<double> > *u_ext[], Func<double> *v, 
-                                 Geom<double> *e, Func<std::complex<double> > **ext) const 
+std::complex<double> CustomResidualForm::value(int n, double *wt, Func<complex> *u_ext[], Func<double> *v, 
+                                 Geom<double> *e, Func<complex> **ext) const 
 {
   return vector_form<double, std::complex<double> >(n, wt, u_ext, v, e, ext);
 }
@@ -125,7 +125,7 @@ Ord CustomResidualForm::gamma(int marker, Ord x, Ord y) const
   return Ord(0.0); 
 }
 
-CustomResidualForm::VectorFormVol<std::complex<double> >* CustomResidualForm::clone() const 
+CustomResidualForm::VectorFormVol<complex>* CustomResidualForm::clone() const 
 {
     CustomResidualForm* form = new CustomResidualForm(i, e_0, mu_0, mu_r, kappa, omega, J, align_mesh);
     form->wf = this->wf;
@@ -169,8 +169,8 @@ Scalar CustomVectorFormSurf::vector_form_surf(int n, double *wt, Func<Scalar> *u
   return ii * omega * J * result;
 }
 
-std::complex<double> CustomVectorFormSurf::value(int n, double *wt, Func<std::complex<double> > *u_ext[], 
-                                   Func<double> *v, Geom<double> *e, Func<std::complex<double> > **ext) const 
+std::complex<double> CustomVectorFormSurf::value(int n, double *wt, Func<complex> *u_ext[], 
+                                   Func<double> *v, Geom<double> *e, Func<complex> **ext) const 
 {
   return vector_form_surf<std::complex<double> , double>(n, wt, u_ext, v, e, ext);
 }
@@ -183,7 +183,7 @@ Ord CustomVectorFormSurf::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *
 
 
 CustomWeakForm::CustomWeakForm(double e_0, double mu_0, double mu_r, double kappa, double omega, 
-  double J, bool align_mesh, MeshSharedPtr mesh, std::string current_bdy) : WeakForm<std::complex<double> >(1), marker(mesh->get_element_markers_conversion().get_internal_marker("e1").marker)
+  double J, bool align_mesh, MeshSharedPtr mesh, std::string current_bdy) : WeakForm<complex>(1), marker(mesh->get_element_markers_conversion().get_internal_marker("e1").marker)
 {
   // Jacobian forms - volumetric.
   add_matrix_form(new CustomMatrixForm(0, 0, e_0, mu_0, mu_r, kappa, omega, J, align_mesh));

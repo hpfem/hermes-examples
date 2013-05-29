@@ -136,7 +136,7 @@ int main(int argc, char* argv[])
     LinearSolver<double> solver(&wf, spaces);
   #pragma endregion
   
-  #pragma region 5.Time stepping loop.
+  #pragma region 5. Time stepping loop.
     int iteration = 0;
     for(double t = 0.0; t < 10.0; t += time_step)
     {

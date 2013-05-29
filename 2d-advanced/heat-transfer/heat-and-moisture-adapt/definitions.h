@@ -36,10 +36,10 @@ protected:
 
 /* Custom error forms */
 
-class CustomErrorForm : public Adapt<double>::MatrixFormVolError
+class CustomErrorForm : public MatrixFormVol<double>
 {
 public:
-  CustomErrorForm(double d, double c) : Adapt<double>::MatrixFormVolError(0, 0, HERMES_H1_NORM), d(d), c(c) {};
+  CustomErrorForm(double d, double c) : MatrixFormVol<double>(0, 0), d(d), c(c) {};
 
   template<typename Real, typename Scalar>
   Scalar laplace_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Scalar> *u, 

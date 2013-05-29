@@ -1,4 +1,4 @@
-#define HERMES_REPORT_ALL
+
 #include "definitions.h"
 
 using namespace Hermes::Hermes2D;
@@ -38,7 +38,7 @@ const double FIXED_BDY_TEMP = 20.0;
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh->
+  // Load the mesh.
   MeshSharedPtr mesh(new Mesh);
   MeshReaderH1DXML mloader;
   mloader.load("domain.xml", mesh);

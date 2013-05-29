@@ -42,7 +42,7 @@ bool adaptive_step_single_space(
   Solver<double>& solver,
   Views::ScalarView& sview,
   Views::OrderView & oview,
-  ErrorCalculator<double>& error_calculator,
+  ErrorCalculator<double>& errorCalculator,
   Adapt<double>& adaptivity,
   int& as,
   double error_stop,
@@ -61,7 +61,7 @@ bool adaptive_step_single_space(
 {
   try
   {
-    // Construct globally refined reference mesh and setup reference space->
+    // Construct globally refined reference mesh and setup reference space.
     Mesh::ReferenceMeshCreator refMeshCreator(mesh);
     MeshSharedPtr ref_mesh = refMeshCreator.create_ref_mesh();
 
@@ -89,11 +89,11 @@ bool adaptive_step_single_space(
     double err_exact_rel;
     if(exact_sln)
     {
-      error_calculator.calculate_errors(sln, exact_sln);
-      err_exact_rel = error_calculator.get_total_error_squared() * 100.0;
+      errorCalculator.calculate_errors(sln, exact_sln);
+      err_exact_rel = errorCalculator.get_total_error_squared() * 100.0;
     }
-    error_calculator.calculate_errors(sln, ref_sln);
-    double err_est_rel = error_calculator.get_total_error_squared() * 100.0;
+    errorCalculator.calculate_errors(sln, ref_sln);
+    double err_est_rel = errorCalculator.get_total_error_squared() * 100.0;
 
     // Report results - skip time.
     cpu_time.tick();

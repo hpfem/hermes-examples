@@ -1,4 +1,4 @@
-#define HERMES_REPORT_ALL
+
 #include "definitions.h"
 
 using namespace RefinementSelectors;
@@ -46,16 +46,16 @@ const int P_INIT_V = 2;
 const int INIT_REF_NUM = 2;
 // This is a quantitative parameter of Adaptivity.
 const double THRESHOLD = 0.6;
-// This is a stopping criterion for Adaptivity.
-AdaptStoppingCriterionSingleElement<double>* stoppingCriterion = new AdaptStoppingCriterionSingleElement<double>(THRESHOLD);   
-
+// Error calculation & adaptivity.
+DefaultErrorCalculator<double, HERMES_H1_NORM> errorCalculator(RelativeErrorToGlobalNorm, 2);
+// Stopping criterion for an adaptivity step.
+AdaptStoppingCriterionSingleElement<double> stoppingCriterion(THRESHOLD);
+// Adaptivity processor class.
+Adapt<double> adaptivity(&errorCalculator, &stoppingCriterion);
 // Predefined list of element refinement candidates.
-const CandList CAND_LIST = H2D_HP_ANISO_H;
-// Maximum allowed level of hanging nodes.
-const int MESH_REGULARITY = -1;
+const CandList CAND_LIST = H2D_HP_ANISO;
 // Stopping criterion for adaptivity.
 const double ERR_STOP = 1e-1;
-const CalculatedErrorType errorType = RelativeErrorToGlobalNorm;
 
 // Newton tolerance
 const double NEWTON_TOLERANCE = 1e-6;
@@ -130,7 +130,7 @@ int main(int argc, char* argv[])
   Hermes::vector<MeshFunctionSharedPtr<double> >exact_slns(exact_u, exact_v);
 
   // Initialize refinement selector.
-  MySelector selector(CAND_LIST);
+  MySelector selector(hXORpSelectionBasedOnError);
 
   // Initialize views.
   Views::ScalarView s_view_u("Solution for u", new WinGeom(0, 0, 440, 350));
@@ -154,7 +154,7 @@ int main(int argc, char* argv[])
   {
     cpu_time.tick();
 
-    // Construct globally refined reference mesh and setup reference space->
+    // Construct globally refined reference mesh and setup reference space.
     Mesh::ReferenceMeshCreator refMeshCreatorU(u_mesh);
     MeshSharedPtr ref_u_mesh = refMeshCreatorU.create_ref_mesh();
 
@@ -203,14 +203,10 @@ int main(int argc, char* argv[])
     OGProjection<double> ogProjection; ogProjection.project_global(spaces, ref_slns, slns);
 
     // Calculate element errors and total error estimate.
-    DefaultErrorCalculator<double, HERMES_H1_NORM> error_calculator(errorType, 2);
-    error_calculator.calculate_errors(slns, exact_slns);
-    double err_exact_rel_total = error_calculator.get_total_error_squared() * 100.0;
-    error_calculator.calculate_errors(slns, ref_slns);
-    double err_est_rel_total = error_calculator.get_total_error_squared() * 100.0;
-
-    Adapt<double> adaptivity(spaces, &error_calculator);
-    adaptivity.set_strategy(stoppingCriterion);
+    errorCalculator.calculate_errors(slns, exact_slns);
+    double err_exact_rel_total = errorCalculator.get_total_error_squared() * 100.0;
+    errorCalculator.calculate_errors(slns, ref_slns);
+    double err_est_rel_total = errorCalculator.get_total_error_squared() * 100.0;
 
     cpu_time.tick();
     Hermes::Mixins::Loggable::Static::info("Error calculation: %g s", cpu_time.last());

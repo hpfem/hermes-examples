@@ -1,4 +1,4 @@
-#define HERMES_REPORT_ALL
+
 #define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
 
@@ -65,37 +65,16 @@ const int UNREF_METHOD = 3;
 // This is a quantitative parameter of the adapt(...) function and
 // it has different meanings for various adaptive strategies.
 const double THRESHOLD = 0.3;                     
-// Adaptive strategy:
-// STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
-//   error is processed. If more elements have similar errors, refine
-//   all to keep the mesh symmetric.
-// STRATEGY = 1 ... refine all elements whose error is larger
-//   than THRESHOLD times maximum element error.
-// STRATEGY = 2 ... refine all elements whose error is larger
-//   than THRESHOLD.
-const int STRATEGY = 0;                           
-// Predefined list of element refinement candidates. Possible values are
-// H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
-// H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
-const CandList CAND_LIST = H2D_HP_ANISO;          
-// Maximum allowed level of hanging nodes:
-// MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
-// MESH_REGULARITY = 1 ... at most one-level hanging nodes,
-// MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
-// Note that regular meshes are not supported, this is due to
-// their notoriously bad performance.
-const int MESH_REGULARITY = -1;                   
-// This parameter influences the selection of
-// candidates in hp-adaptivity. Default value is 1.0. 
-const double CONV_EXP = 1.0;                      
+// Error calculation & adaptivity.
+DefaultErrorCalculator<double, HERMES_H1_NORM> errorCalculator(RelativeErrorToGlobalNorm, 1);
+// Stopping criterion for an adaptivity step.
+AdaptStoppingCriterionSingleElement<double> stoppingCriterion(THRESHOLD);
+// Adaptivity processor class.
+Adapt<double> adaptivity(&errorCalculator, &stoppingCriterion);
+// Predefined list of element refinement candidates.
+const CandList CAND_LIST = H2D_HP_ANISO;
 // Stopping criterion for adaptivity.
-const double ERR_STOP = 1.0;                      
-// Adaptivity process stops when the number of degrees of freedom grows
-// over this limit. This is to prevent h-adaptivity to go on forever.
-const int NDOF_STOP = 60000;                      
-// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
+const double ERR_STOP = 1e-1;
 
 // Constitutive relations.
 enum CONSTITUTIVE_RELATIONS {
@@ -224,7 +203,7 @@ int main(int argc, char* argv[])
   Hermes::Mixins::TimeMeasurable cpu_time;
   cpu_time.tick();
 
-  // Load the mesh->
+  // Load the mesh.
   MeshSharedPtr mesh(new Mesh), basemesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load(mesh_file.c_str(), basemesh);
@@ -328,7 +307,7 @@ int main(int argc, char* argv[])
       Hermes::Mixins::Loggable::Static::info("---- Time step %d, time step lenght %g, time %g (days), adaptivity step %d:", ts, time_step, current_time, as);
 
       // Construct globally refined reference mesh
-      // and setup reference space->
+      // and setup reference space.
       Mesh::ReferenceMeshCreator refMeshCreator(mesh);
       MeshSharedPtr ref_mesh = refMeshCreator.create_ref_mesh();
 
@@ -354,7 +333,7 @@ int main(int argc, char* argv[])
         // Initialize the FE problem.
         DiscreteProblem<double> dp(wf, ref_space);
 
-        // Perform Newton's iteration on the reference mesh-> If necessary, 
+        // Perform Newton's iteration on the reference mesh. If necessary, 
         // reduce time step to make it converge, but then restore time step 
         // size to its original value.
         Hermes::Mixins::Loggable::Static::info("Performing Newton's iteration (tau = %g days):", time_step);
@@ -419,7 +398,7 @@ int main(int argc, char* argv[])
           OGProjection<double> ogProjection; ogProjection.project_global(ref_space, ref_sln, sln_prev_iter);
         }
 
-        // Perform Picard iteration on the reference mesh-> If necessary, 
+        // Perform Picard iteration on the reference mesh. If necessary, 
         // reduce time step to make it converge, but then restore time step 
         // size to its original value.
         Hermes::Mixins::Loggable::Static::info("Performing Picard's iteration (tau = %g days):", time_step);
@@ -459,36 +438,29 @@ int main(int argc, char* argv[])
 
       /*** ADAPTIVITY ***/
 
-      // Project the fine mesh solution on the coarse mesh->
+      // Project the fine mesh solution on the coarse mesh.
       Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh for error calculation.");
       if(space->get_mesh() == NULL) throw Hermes::Exceptions::Exception("it is NULL");
       OGProjection<double> ogProjection; ogProjection.project_global(space, ref_sln, sln);
 
       // Calculate element errors.
       Hermes::Mixins::Loggable::Static::info("Calculating error estimate."); 
-      Adapt<double>* adaptivity = new Adapt<double>(space);
+      adaptivity.set_space(space);
       
       // Calculate error estimate wrt. fine mesh solution.
-      err_est_rel = adaptivity->calc_err_est(sln, ref_sln) * 100;
+      err_est_rel = errorCalculator.get_total_error_squared() * 100;
 
       // Report results.
       Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d, space_err_est_rel: %g%%", 
         Space<double>::get_num_dofs(space), Space<double>::get_num_dofs(ref_space), err_est_rel);
 
-      // If space_err_est too large, adapt the mesh->
+      // If space_err_est too large, adapt the mesh.
       if (err_est_rel < ERR_STOP) done = true;
       else {
-        Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh->");
-        done = adaptivity->adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
-        if (Space<double>::get_num_dofs(space) >= NDOF_STOP) {
-          done = true;
-          break;
-        }
+        Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
+        done = adaptivity.adapt(&selector);
         as++;
       }
-
-      delete adaptivity;
-      
     }
     while (!done);
 

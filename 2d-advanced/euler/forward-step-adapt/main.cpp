@@ -54,34 +54,16 @@ int REFINEMENT_COUNT = 0;
 // This is a quantitative parameter of the adapt(...) function and
 // it has different meanings for various adaptive strategies (see below).
 const double THRESHOLD = 0.3;                     
-// Adaptive strategy:
-const int STRATEGY = 1;                           
-
-// Predefined list of element refinement candidates. Possible values are
-// H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
-// H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
-CandList CAND_LIST = H2D_HP_ANISO;                
-
-// Maximum polynomial degree used. -1 for unlimited.
-const int MAX_P_ORDER = 1;                       
-
-// Maximum allowed level of hanging nodes:
-const int MESH_REGULARITY = -1;                   
-
-// This parameter influences the selection of
-// candidates in hp-adaptivity. Default value is 1.0. 
-const double CONV_EXP = 1;                        
-
+// Error calculation & adaptivity.
+DefaultErrorCalculator<double, HERMES_H1_NORM> errorCalculator(RelativeErrorToGlobalNorm, 4);
+// Stopping criterion for an adaptivity step.
+AdaptStoppingCriterionSingleElement<double> stoppingCriterion(THRESHOLD);
+// Adaptivity processor class.
+Adapt<double> adaptivity(&errorCalculator, &stoppingCriterion);
+// Predefined list of element refinement candidates.
+const CandList CAND_LIST = H2D_HP_ANISO;
 // Stopping criterion for adaptivity.
-double ERR_STOP = 5.0;                     
-
-// Adaptivity process stops when the number of degrees of freedom grows over
-// this limit. This is mainly to prevent h-adaptivity to go on forever.
-const int NDOF_STOP = 16000;                   
-
-// Matrix solver for orthogonal projections: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
+double ERR_STOP = 1e-1;
 
 // Equation parameters.
 const double P_EXT = 1.0;         // Exterior pressure (dimensionless).
@@ -113,7 +95,7 @@ int refinement_criterion(Element* e)
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh->
+  // Load the mesh.
   MeshSharedPtr mesh(new Mesh), base_mesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("ffs.mesh", base_mesh);
@@ -172,7 +154,7 @@ int main(int argc, char* argv[])
   ScalarView s4("RhoE", new WinGeom(700, 400, 700, 400));
 
   // Initialize refinement selector.
-  L2ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, MAX_P_ORDER);
+  L2ProjBasedSelector<double> selector(CAND_LIST);
   selector.set_error_weights(1.0, 1.0, 1.0);
 
   // Set up CFL calculation class.
@@ -264,7 +246,7 @@ int main(int argc, char* argv[])
         space_rho_v_y, space_e)), Space<double>::get_num_dofs(ref_spaces));
 
       // Assemble the reference problem.
-      Hermes::Mixins::Loggable::Static::info("Solving on reference mesh->");
+      Hermes::Mixins::Loggable::Static::info("Solving on reference mesh.");
       DiscreteProblem<double> dp(&wf, ref_spaces);
 
       SparseMatrix<double>* matrix = create_matrix<double>();
@@ -304,8 +286,8 @@ int main(int argc, char* argv[])
         std::cout << e.what();
       }
 
-      // Project the fine mesh solution onto the coarse mesh->
-      Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh->");
+      // Project the fine mesh solution onto the coarse mesh.
+      Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
       ogProjection.project_global(Hermes::vector<SpaceSharedPtr<double> >(space_rho, space_rho_v_x,
         space_rho_v_y, space_e), Hermes::vector<MeshFunctionSharedPtr<double> >(rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e), 
         Hermes::vector<MeshFunctionSharedPtr<double> >(sln_rho, sln_rho_v_x, sln_rho_v_y, sln_e), 
@@ -313,9 +295,9 @@ int main(int argc, char* argv[])
 
       // Calculate element errors and total error estimate.
       Hermes::Mixins::Loggable::Static::info("Calculating error estimate.");
-      Adapt<double>* adaptivity = new Adapt<double>(Hermes::vector<SpaceSharedPtr<double> >(space_rho, space_rho_v_x, 
+      Adapt<double> adaptivity(Hermes::vector<SpaceSharedPtr<double> >(space_rho, space_rho_v_x, 
         space_rho_v_y, space_e), Hermes::vector<NormType>(HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM));
-      double err_est_rel_total = adaptivity->calc_err_est(Hermes::vector<MeshFunctionSharedPtr<double> >(sln_rho, sln_rho_v_x, sln_rho_v_y, sln_e),
+      double err_est_rel_total = adaptivity.calc_err_est(Hermes::vector<MeshFunctionSharedPtr<double> >(sln_rho, sln_rho_v_x, sln_rho_v_y, sln_e),
         Hermes::vector<MeshFunctionSharedPtr<double> >(rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e)) * 100;
 
       CFL.calculate_semi_implicit(Hermes::vector<MeshFunctionSharedPtr<double> >(rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e), ref_space_rho->get_mesh(), time_step);
@@ -323,25 +305,14 @@ int main(int argc, char* argv[])
       // Report results.
       Hermes::Mixins::Loggable::Static::info("err_est_rel: %g%%", err_est_rel_total);
 
-      // If err_est too large, adapt the mesh->
+      // If err_est too large, adapt the mesh.
       if (err_est_rel_total < ERR_STOP)
         done = true;
       else
       {
-        if (Space<double>::get_num_dofs(Hermes::vector<SpaceSharedPtr<double> >(space_rho, space_rho_v_x, 
-          space_rho_v_y, space_e)) >= NDOF_STOP) 
-        {
-          Hermes::Mixins::Loggable::Static::info("Max. number of DOFs exceeded.");
-          REFINEMENT_COUNT++;
-          done = true;
-        }
-        else
-        {
-          Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh->");
-          REFINEMENT_COUNT++;
-          done = adaptivity->adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&selector, &selector, &selector, &selector), 
-            THRESHOLD, STRATEGY, MESH_REGULARITY);
-        }
+        Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
+        REFINEMENT_COUNT++;
+        done = adaptivity.adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&selector, &selector, &selector, &selector));
 
         if(!done)
           as++;
@@ -380,7 +351,7 @@ int main(int argc, char* argv[])
       delete solver;
       delete matrix;
       delete rhs;
-      delete adaptivity;
+      
     }
     while (done == false);
 

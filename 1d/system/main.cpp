@@ -1,4 +1,4 @@
-#define HERMES_REPORT_ALL
+
 #define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
 
@@ -39,7 +39,7 @@ const int P_INIT_V = 1;
 // Number of initial boundary refinements
 const int INIT_REF_BDY = 5;                       
 // MULTI = true  ... use multi-mesh,
-// MULTI = false ... use single-mesh->
+// MULTI = false ... use single-mesh.
 // Note: In the single mesh option, the meshes are
 // forced to be geometrically the same but the
 // polynomial degrees can still vary.
@@ -47,37 +47,16 @@ const bool MULTI = true;
 // This is a quantitative parameter of the adapt(...) function and
 // it has different meanings for various adaptive strategies.
 const double THRESHOLD = 0.3;                     
-// Adaptive strategy:
-// STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
-//   error is processed. If more elements have similar errors, refine
-//   all to keep the mesh symmetric.
-// STRATEGY = 1 ... refine all elements whose error is larger
-//   than THRESHOLD times maximum element error.
-// STRATEGY = 2 ... refine all elements whose error is larger
-//   than THRESHOLD.
-const int STRATEGY = 1;                           
-// Predefined list of element refinement candidates. Possible values are
-// H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
-// H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
-const CandList CAND_LIST = H2D_HP_ANISO;          
-// Maximum allowed level of hanging nodes:
-// MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
-// MESH_REGULARITY = 1 ... at most one-level hanging nodes,
-// MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
-// Note that regular meshes are not supported, this is due to
-// their notoriously bad performance.
-const int MESH_REGULARITY = -1;                   
-// This parameter influences the selection of
-// candidates in hp-adaptivity. Default value is 1.0. 
-const double CONV_EXP = 1;                        
+// Error calculation & adaptivity.
+DefaultErrorCalculator<double, HERMES_H1_NORM> errorCalculator(RelativeErrorToGlobalNorm, 1);
+// Stopping criterion for an adaptivity step.
+AdaptStoppingCriterionSingleElement<double> stoppingCriterion(THRESHOLD);
+// Adaptivity processor class.
+Adapt<double> adaptivity(&errorCalculator, &stoppingCriterion);
+// Predefined list of element refinement candidates.
+const CandList CAND_LIST = H2D_HP_ANISO;
 // Stopping criterion for adaptivity.
-const double ERR_STOP = 0.1;                      
-// Adaptivity process stops when the number of degrees of freedom grows over
-// this limit. This is mainly to prevent h-adaptivity to go on forever.
-const int NDOF_STOP = 1000;                       
-// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-Hermes::MatrixSolverType matrix_solver = Hermes::SOLVER_UMFPACK;  
+const double ERR_STOP = 1e-1;
 
 // Problem parameters.
 const double D_u = 1;
@@ -93,7 +72,7 @@ int main(int argc, char* argv[])
   Hermes::Mixins::TimeMeasurable cpu_time;
   cpu_time.tick();
 
-  // Load the mesh->
+  // Load the mesh.
   MeshSharedPtr u_mesh(new Mesh), v_mesh(new Mesh);
   MeshReaderH1DXML mloader;
   mloader.load("domain.xml", u_mesh);
@@ -144,7 +123,7 @@ int main(int argc, char* argv[])
   MeshFunctionSharedPtr<double> u_sln(new Solution<double>), v_sln(new Solution<double>), u_ref_sln(new Solution<double>), v_ref_sln(new Solution<double>);
 
   // Initialize refinement selector.
-  H1ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
+  H1ProjBasedSelector<double> selector(CAND_LIST);
 
   // Initialize views.
   Views::ScalarView s_view_0("Solution[0]", new Views::WinGeom(0, 0, 440, 350));
@@ -167,7 +146,7 @@ int main(int argc, char* argv[])
   {
     Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d:", as);
 
-    // Construct globally refined reference mesh and setup reference space->
+    // Construct globally refined reference mesh and setup reference space.
     // FIXME: This should be increase in the x-direction only.
     int order_increase = 1;          
     // FIXME: This should be '2' but that leads to a segfault.
@@ -190,7 +169,7 @@ int main(int argc, char* argv[])
     int ndof_ref = Space<double>::get_num_dofs(ref_spaces);
 
     // Initialize reference problem.
-    Hermes::Mixins::Loggable::Static::info("Solving on reference mesh->");
+    Hermes::Mixins::Loggable::Static::info("Solving on reference mesh.");
     DiscreteProblem<double> dp(&wf, ref_spaces);
 
     NewtonSolver<double> newton(&dp);
@@ -214,7 +193,7 @@ int main(int argc, char* argv[])
     Solution<double>::vector_to_solutions(newton.get_sln_vector(), ref_spaces, 
         Hermes::vector<MeshFunctionSharedPtr<double> >(u_ref_sln, v_ref_sln));
 
-    // Project the fine mesh solution onto the coarse mesh->
+    // Project the fine mesh solution onto the coarse mesh.
     Hermes::Mixins::Loggable::Static::info("Projecting reference solutions on coarse meshes.");
     OGProjection<double> ogProjection; ogProjection.project_global(Hermes::vector<SpaceSharedPtr<double> >(u_space, v_space), 
         Hermes::vector<MeshFunctionSharedPtr<double> >(u_ref_sln, v_ref_sln), 
@@ -230,20 +209,15 @@ int main(int argc, char* argv[])
 
     // Calculate element errors.
     Hermes::Mixins::Loggable::Static::info("Calculating error estimate and exact error."); 
-    Adapt<double>* adaptivity = new Adapt<double>(Hermes::vector<SpaceSharedPtr<double> >(u_space, v_space));
+    adaptivity.set_spaces(Hermes::vector<SpaceSharedPtr<double> >(u_space, v_space));
     
-    // Calculate error estimate for each solution component and the total error estimate.
-    Hermes::vector<double> err_est_rel;
-    double err_est_rel_total = adaptivity->calc_err_est(Hermes::vector<MeshFunctionSharedPtr<double> >(u_sln, v_sln), 
-        Hermes::vector<MeshFunctionSharedPtr<double> >(u_ref_sln, v_ref_sln), &err_est_rel) * 100;
-
 #ifdef WITH_EXACT_SOLUTION
-    // Calculate exact error for each solution component and the total exact error.
-    Hermes::vector<double> err_exact_rel;
-    bool solutions_for_adapt = false;
-    double err_exact_rel_total = adaptivity->calc_err_exact(Hermes::vector<MeshFunctionSharedPtr<double> >(u_sln, v_sln), 
-        Hermes::vector<MeshFunctionSharedPtr<double> >(exact_u, exact_v), &err_exact_rel, solutions_for_adapt) * 100;
+    errorCalculator.calculate_errors(Hermes::vector<MeshFunctionSharedPtr<double> >(u_sln, v_sln), Hermes::vector<MeshFunctionSharedPtr<double> >(exact_u, exact_v), false);
+    double err_exact_rel_total = errorCalculator.get_total_error_squared() * 100;
 #endif
+
+    errorCalculator.calculate_errors(Hermes::vector<MeshFunctionSharedPtr<double> >(u_sln, v_sln), Hermes::vector<MeshFunctionSharedPtr<double> >(u_ref_sln, v_ref_sln), true);
+    double err_est_rel_total = errorCalculator.get_total_error_squared() * 100;
 
     // Time measurement.
     cpu_time.tick();
@@ -252,10 +226,8 @@ int main(int argc, char* argv[])
 #ifdef WITH_EXACT_SOLUTION
     Hermes::Mixins::Loggable::Static::info("ndof_coarse[0]: %d, ndof_fine[0]: %d",
          u_space->get_num_dofs(), ref_u_space->get_num_dofs());
-    Hermes::Mixins::Loggable::Static::info("err_est_rel[0]: %g%%, err_exact_rel[0]: %g%%", err_est_rel[0]*100, err_exact_rel[0]*100);
     Hermes::Mixins::Loggable::Static::info("ndof_coarse[1]: %d, ndof_fine[1]: %d",
          v_space->get_num_dofs(), ref_v_space->get_num_dofs());
-    Hermes::Mixins::Loggable::Static::info("err_est_rel[1]: %g%%, err_exact_rel[1]: %g%%", err_est_rel[1]*100, err_exact_rel[1]*100);
     Hermes::Mixins::Loggable::Static::info("ndof_coarse_total: %d, ndof_fine_total: %d",
          Space<double>::get_num_dofs(Hermes::vector<SpaceSharedPtr<double> >(u_space, v_space)), 
          Space<double>::get_num_dofs(ref_spaces));
@@ -285,20 +257,14 @@ int main(int argc, char* argv[])
     graph_cpu_exact.save("conv_cpu_exact.dat");
 #endif
 
-    // If err_est too large, adapt the mesh->
+    // If err_est too large, adapt the mesh.
     if (err_est_rel_total < ERR_STOP) 
       done = true;
     else 
     {
-      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh->");
-      done = adaptivity->adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&selector, &selector), 
-          THRESHOLD, STRATEGY, MESH_REGULARITY);
+      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
+      done = adaptivity.adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&selector, &selector));
     }
-    if (Space<double>::get_num_dofs(Hermes::vector<SpaceSharedPtr<double> >(u_space, v_space)) 
-        >= NDOF_STOP) done = true;
-
-    // Clean up.
-    delete adaptivity;
     
     // Increase counter.
     as++;
