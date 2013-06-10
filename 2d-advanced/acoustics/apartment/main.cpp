@@ -19,13 +19,8 @@ const int INIT_REF_NUM = 0;
 const int P_INIT = 2;                             
 // This is a quantitative parameter of the adapt(...) function and
 // it has different meanings for various adaptive strategies.
-const double THRESHOLD = 0.3;                     
-// Error calculation & adaptivity.
-DefaultErrorCalculator<complex, HERMES_H1_NORM> errorCalculator(RelativeErrorToGlobalNorm, 1);
-// Stopping criterion for an adaptivity step.
-AdaptStoppingCriterionSingleElement<complex> stoppingCriterion(THRESHOLD);
-// Adaptivity processor class.
-Adapt<complex> adaptivity(&errorCalculator, &stoppingCriterion);
+const double THRESHOLD = 0.75;                     
+
 // Predefined list of element refinement candidates.
 const CandList CAND_LIST = H2D_HP_ANISO;
 // Stopping criterion for adaptivity.
@@ -49,9 +44,12 @@ int main(int argc, char* argv[])
   MeshReaderH2D mloader;
   mloader.load("domain.mesh", mesh);
 
-  //MeshView mv("Initial mesh", new WinGeom(0, 0, 400, 400));
-  //mv.show(mesh);
-  //View::wait(HERMES_WAIT_KEYPRESS);
+  // Error calculation & adaptivity.
+  DefaultErrorCalculator<complex, HERMES_H1_NORM> errorCalculator(RelativeErrorToGlobalNorm, 1);
+  // Stopping criterion for an adaptivity step.
+  AdaptStoppingCriterionSingleElement<complex> stoppingCriterion(THRESHOLD);
+  // Adaptivity processor class.
+  Adapt<complex> adaptivity(&errorCalculator, &stoppingCriterion);
 
   // Perform initial mesh refinements.
   for (int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
@@ -76,15 +74,18 @@ int main(int argc, char* argv[])
 
   // Initialize views.
   ScalarView sview("Acoustic pressure", new WinGeom(0, 0, 600, 350));
+  ScalarView eview("Error", new WinGeom(0, 370, 600, 350));
   sview.show_mesh(false);
   sview.fix_scale_width(50);
   OrderView  oview("Polynomial orders", new WinGeom(610, 0, 600, 350));
+  ScalarView ref_view("Refined elements", new WinGeom(610, 370, 600, 350));
 
   // DOF and CPU convergence graphs initialization.
   SimpleGraph graph_dof, graph_cpu;
 
   // Adaptivity loop:
   int as = 1;
+  adaptivity.set_space(space);
   bool done = false;
   do
   {
@@ -137,6 +138,8 @@ int main(int argc, char* argv[])
     errorCalculator.calculate_errors(sln, ref_sln);
     double err_est_rel = errorCalculator.get_total_error_squared() * 100;
 
+    eview.show(errorCalculator.get_errorMeshFunction());
+
     // Report results.
     Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d, err_est_rel: %g%%",
       Space<complex>::get_num_dofs(space), Space<complex>::get_num_dofs(ref_space), err_est_rel);
@@ -156,6 +159,11 @@ int main(int argc, char* argv[])
     {
       Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
       done = adaptivity.adapt(&selector);
+      ref_view.show(adaptivity.get_refinementInfoMeshFunction());
+      cpu_time.tick();
+      char* cpu_time_string = cpu_time.accumulated_str().c_str();
+      ref_view.titl
+      ref_view.set_title();
     }
     
     // Increase counter.

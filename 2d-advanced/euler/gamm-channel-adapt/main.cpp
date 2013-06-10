@@ -40,9 +40,9 @@ const double NU_1 = 0.1;
 const double NU_2 = 0.1;
 
 // Initial polynomial degree. 
-const int P_INIT = 1;                                                  
+const int P_INIT = 0;                                                  
 // Number of initial uniform mesh refinements.  
-const int INIT_REF_NUM = 0;
+const int INIT_REF_NUM = 2;
 // CFL value.
 double CFL_NUMBER = 0.9;                          
 // Initial time step.
@@ -64,10 +64,10 @@ const double THRESHOLD = 0.6;
 // Predefined list of element refinement candidates. Possible values are
 // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
 // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
-CandList CAND_LIST = H2D_H_ISO;                
+CandList CAND_LIST = H2D_HP_ANISO;                
 
 // Stopping criterion for adaptivity.
-const double ERR_STOP = 0.005;                     
+const double ERR_STOP = 0.01;                     
 
 // Adaptivity process stops when the number of degrees of freedom grows over
 // this limit. This is mainly to prevent h-adaptivity to go on forever.
@@ -155,12 +155,15 @@ int main(int argc, char* argv[])
     Mach_number_view.show_contours(.02);
     Mach_number_view.show_mesh(false);
     VectorView velocity_view("Velocity", new WinGeom(0, 330, 600, 300));
+    OrderView order_view("Orders", new WinGeom(700, 330, 600, 300));
   #pragma endregion
 
   #pragma region 4. Adaptivity setup.
     // Initialize refinement selector.
     L2ProjBasedSelector<double> selector(CAND_LIST);
-    selector.set_error_weights(1.0, 1.0, 1.0);
+    selector.set_dof_score_exponent(2.0);
+
+    //selector.set_error_weights(1.0, 1.0, 1.0);
 
     // Error calculation.
     DefaultErrorCalculator<double, HERMES_L2_NORM> errorCalculator(RelativeErrorToGlobalNorm, 4);
@@ -265,6 +268,8 @@ int main(int argc, char* argv[])
               flux_limiter->limit_according_to_detector(spaces);
 
               flux_limiter->get_limited_solutions(rslns);
+
+              delete flux_limiter;
             }
           #pragma endregion
 
@@ -311,6 +316,7 @@ int main(int argc, char* argv[])
                 pressure_view.show(pressure, 1);
                 Mach_number_view.show(Mach_number, 1);
                 velocity_view.show(rsln_rho_v_x, rsln_rho_v_y);
+                order_view.show((ref_spaces)[0]);
               }
             }
           #pragma endregion
