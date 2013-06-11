@@ -44,7 +44,7 @@ const int P_INIT = 0;
 // Number of initial uniform mesh refinements.  
 const int INIT_REF_NUM = 2;
 // CFL value.
-double CFL_NUMBER = 0.9;                          
+double CFL_NUMBER = 0.3;                          
 // Initial time step.
 double time_step_n = 1E-6;                        
 
@@ -67,7 +67,7 @@ const double THRESHOLD = 0.6;
 CandList CAND_LIST = H2D_HP_ANISO;                
 
 // Stopping criterion for adaptivity.
-const double ERR_STOP = 0.01;                     
+const double ERR_STOP = 0.007;                     
 
 // Adaptivity process stops when the number of degrees of freedom grows over
 // this limit. This is mainly to prevent h-adaptivity to go on forever.
@@ -151,11 +151,12 @@ int main(int argc, char* argv[])
     ScalarView pressure_view("Pressure", new WinGeom(0, 0, 600, 300));
     pressure_view.show_contours(.1);
     pressure_view.show_mesh(false);
-    ScalarView Mach_number_view("Mach number", new WinGeom(700, 0, 600, 300));
+    ScalarView Mach_number_view("Mach number", new WinGeom(650, 0, 600, 300));
     Mach_number_view.show_contours(.02);
     Mach_number_view.show_mesh(false);
-    VectorView velocity_view("Velocity", new WinGeom(0, 330, 600, 300));
-    OrderView order_view("Orders", new WinGeom(700, 330, 600, 300));
+    ScalarView eview("Error - density", new WinGeom(0, 330, 600, 300));
+    ScalarView eview1("Error - momentum", new WinGeom(0, 660, 600, 300));
+    OrderView order_view("Orders", new WinGeom(650, 330, 600, 300));
   #pragma endregion
 
   #pragma region 4. Adaptivity setup.
@@ -189,7 +190,7 @@ int main(int argc, char* argv[])
   
   #pragma region 6. Time stepping loop.
     int iteration = 1;
-    for(double t = 0.0; t < 3.5; t += time_step_n)
+    for(double t = 0.0; t < 50.; t += time_step_n)
     {
       Hermes::Mixins::Loggable::Static::info("---- Time step %d, time %3.5f.", iteration++, t);
 
@@ -315,7 +316,6 @@ int main(int argc, char* argv[])
                 pressure->reinit();
                 pressure_view.show(pressure, 1);
                 Mach_number_view.show(Mach_number, 1);
-                velocity_view.show(rsln_rho_v_x, rsln_rho_v_y);
                 order_view.show((ref_spaces)[0]);
               }
             }

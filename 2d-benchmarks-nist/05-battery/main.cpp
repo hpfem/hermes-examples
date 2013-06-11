@@ -26,7 +26,7 @@ const int INIT_REF_NUM = 1;
 // This is a quantitative parameter of Adaptivity.
 double THRESHOLD = 0.3;
 // Error calculation & adaptivity.
-DefaultErrorCalculator<double, HERMES_H1_NORM> errorCalculator(RelativeErrorToGlobalNorm, 2);
+DefaultErrorCalculator<double, HERMES_H1_NORM> errorCalculator(RelativeErrorToGlobalNorm, 1);
 // Stopping criterion for an adaptivity step.
 AdaptStoppingCriterionSingleElement<double> stoppingCriterion(THRESHOLD);
 // Adaptivity processor class.

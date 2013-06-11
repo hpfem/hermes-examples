@@ -89,7 +89,7 @@ bool adaptive_step_single_space(
     double err_exact_rel;
     if(exact_sln)
     {
-      errorCalculator.calculate_errors(sln, exact_sln);
+      errorCalculator.calculate_errors(sln, exact_sln, false);
       err_exact_rel = errorCalculator.get_total_error_squared() * 100.0;
     }
     errorCalculator.calculate_errors(sln, ref_sln);
@@ -104,8 +104,8 @@ bool adaptive_step_single_space(
         logger->info("err_exact_rel: %g%%.", err_exact_rel);
     
       // View the coarse mesh solution and polynomial orders.
-       // sview.show(ref_sln);
-       // oview.show(ref_space);
+       sview.show(ref_sln);
+       oview.show(ref_space);
 
       error_reached = err_est_rel;
       if(exact_sln)

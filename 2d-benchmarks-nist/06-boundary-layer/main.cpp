@@ -21,7 +21,7 @@ using namespace RefinementSelectors;
 //
 //  The following parameters can be changed:
 
-double epsilon = 1e1;
+double eps = 1e1;
 
 // Initial polynomial degree of mesh elements.
 const int P_INIT = 2;
@@ -63,10 +63,10 @@ int main(int argc, char* argv[])
   basemesh->copy(mesh);
 
   // Set exact solution.
-  MeshFunctionSharedPtr<double> exact_sln(new CustomExactSolution(mesh, epsilon));
+  MeshFunctionSharedPtr<double> exact_sln(new CustomExactSolution(mesh, eps));
 
   // Define right-hand side.
-  CustomRightHandSide f(epsilon);
+  CustomRightHandSide f(eps);
 
   // Initialize weak formulation.
   CustomWeakForm wf(&f);
@@ -120,7 +120,7 @@ int main(int argc, char* argv[])
   logger.set_verbose_output(true);
 
   int iterations_count = 10;
-  int error_levels_count = 5;
+  int error_levels_count = 1;
   double error_stop = ERR_STOP;
 
   for(int iteration = 0; iteration < iterations_count; iteration++)
@@ -130,6 +130,7 @@ int main(int argc, char* argv[])
       // Assemble the discrete problem.    
       NewtonSolver<double> newton;
       newton.set_weak_formulation(&wf);
+      newton.set_tolerance(1e-5);
       newton.set_UMFPACK_output(true, false);
 
       mesh->copy(basemesh);
@@ -137,13 +138,13 @@ int main(int argc, char* argv[])
       space->assign_dofs();
 
       double factor = std::abs(std::sin( 0.5 * M_PI * std::pow((double)(iteration + 1) / (double)iterations_count, 4.0)));
-      epsilon = 10. / std::pow(2, (iteration + 2));
-      f.epsilon = epsilon;
-      ((CustomExactSolution*)exact_sln.get())->epsilon = epsilon;
-      
+      eps = 10. / std::pow(2, (iteration + 2));
+      f.epsilon = eps;
+      ((CustomExactSolution*)exact_sln.get())->epsilon = eps;
+
       error_stop = ERR_STOP / std::pow(4.0, (double)error_level);
       
-      logger.info("Iteration: %i-%i, Error level: %g, Factor: %g, Epsilon: %g%.", iteration, error_level, error_stop, factor, epsilon);
+      logger.info("Iteration: %i-%i, Error level: %g, Factor: %g, Epsilon: %g%.", iteration, error_level, error_stop, factor, eps);
 
       // Cumulative.
       int dof_cumulative = 0;
@@ -255,14 +256,8 @@ int main(int argc, char* argv[])
 
       cpu_time.tick();
       {
-        /*
         sprintf(filename, "Solution-%s-%i-%i.vtk", resultStringIdentification, error_level, iteration);
         lin.save_solution_vtk(ref_sln, filename, "sln", false, 1, HERMES_EPS_LOW);
-        sprintf(filename, "Orders-%s-%i-%i.vtk", resultStringIdentification, error_level, iteration);
-        ord.save_orders_vtk(newton.get_space(0), filename);
-        sprintf(filename, "Mesh-%s-%i-%i.vtk", resultStringIdentification, error_level, iteration);
-        ord.save_mesh_vtk(newton.get_space(0), filename);
-        */
       }
       cpu_time.tick(Hermes::Mixins::TimeMeasurable::HERMES_SKIP);
 
