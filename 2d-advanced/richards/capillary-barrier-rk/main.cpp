@@ -289,7 +289,10 @@ int main(int argc, char* argv[])
     // reduced and the entire time step repeated. If yes, then another
     // check is run, and if the relative error is very low, time step 
     // is increased.
-    double rel_err_time = Global<double>::calc_norm(time_error_fn.get(), HERMES_H1_NORM) / Global<double>::calc_norm(h_time_new.get(), HERMES_H1_NORM) * 100;
+    DefaultNormCalculator<double, HERMES_H1_NORM> normCalculator(1);
+    normCalculator.calculate_norm(time_error_fn);
+    double rel_err_time = normCalculator.get_total_norm_squared() * 100;
+
     Hermes::Mixins::Loggable::Static::info("rel_err_time = %g%%", rel_err_time);
     if (rel_err_time > time_tol_upper) {
       Hermes::Mixins::Loggable::Static::info("rel_err_time above upper limit %g%% -> decreasing time step from %g to %g days and repeating time step.", 
