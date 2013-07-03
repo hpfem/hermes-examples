@@ -1,4 +1,3 @@
-set(CMAKE_USER_MAKE_RULES_OVERRIDE_CXX ${CMAKE_HOME_DIRECTORY}/cmake/cxx_flag_overrides.cmake)
 project(hermes_examples)
 	cmake_minimum_required(VERSION 2.6)
   
@@ -63,7 +62,7 @@ project(hermes_examples)
 		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP") 
 	endif(MSVC)
 	
-  include_directories("${PTHREAD_ROOT}/include")
+    include_directories("${PTHREAD_ROOT}/include")
 	find_package(PTHREAD REQUIRED)
   find_package(TCMALLOC REQUIRED)
   include_directories(${TCMALLOC_INCLUDE_DIR})
