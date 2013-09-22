@@ -42,17 +42,17 @@ const double NU_1 = 0.1;
 const double NU_2 = 0.1;
 
 // Initial polynomial degree.      
-const int P_INIT = 0;                                             
+const int P_INIT = 1;                                             
 // Number of initial uniform mesh refinements.     
 const int INIT_REF_NUM = 2;                                               
 // CFL value.
-double CFL_NUMBER = 0.1;                                
+double CFL_NUMBER = 0.3;                                
 // Initial time step.
 double time_step_n = 1E-6;
 double TIME_INTERVAL_LENGTH = 20.;
 
 // Every UNREF_FREQth time step the mesh is unrefined.
-const int UNREF_FREQ = 5;
+const int UNREF_FREQ = 10;
 
 // Number of mesh refinements between two unrefinements.
 // The mesh is not unrefined unless there has been a refinement since
@@ -66,7 +66,7 @@ const double THRESHOLD = 0.3;
 // Predefined list of element refinement candidates. Possible values are
 // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
 // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
-CandList CAND_LIST = H2D_HP_ANISO;                
+CandList CAND_LIST = H2D_H_ANISO;                
 
 // Maximum polynomial degree used. -1 for unlimited.
 // See User Documentation for details.
@@ -83,10 +83,7 @@ const int MESH_REGULARITY = -1;
 // Stopping criterion for adaptivity.
 double adaptivityErrorStop(int iteration)
 {
-  if(iteration > 49)
-    return 0.01;
-  else
-    return 0.5 - iteration * 0.01;
+    return 0.02;
 }
 
 // Equation parameters.

@@ -98,20 +98,19 @@ for(double t = 0.0; t < TIME_INTERVAL_LENGTH; t += time_step_n)
       Solution<double>::vector_to_solutions(solver.get_sln_vector(), ref_spaces, rslns);
     else
     {
-      FluxLimiter* flux_limiter;
-      if(SHOCK_CAPTURING_TYPE == KUZMIN)
-        flux_limiter = new FluxLimiter(FluxLimiter::Kuzmin, solver.get_sln_vector(), ref_spaces);
-      else
-        flux_limiter = new FluxLimiter(FluxLimiter::Krivodonova, solver.get_sln_vector(), ref_spaces);
+      if(SHOCK_CAPTURING_TYPE == KRIVODONOVA)
+      {
+        FluxLimiter* flux_limiter = new FluxLimiter(FluxLimiter::Krivodonova, solver.get_sln_vector(), ref_spaces);
+        flux_limiter->limit_according_to_detector();
+        flux_limiter->get_limited_solutions(rslns);
+        delete flux_limiter;
+      }
 
       if(SHOCK_CAPTURING_TYPE == KUZMIN)
-        flux_limiter->limit_second_orders_according_to_detector(spaces);
-
-      flux_limiter->limit_according_to_detector(spaces);
-
-      flux_limiter->get_limited_solutions(rslns);
-
-      delete flux_limiter;
+      {
+        PostProcessing::VertexBasedLimiter limiter(ref_spaces, solver.get_sln_vector(), 1);
+        limiter.get_solutions(rslns);
+      }
     }
 #pragma endregion
 

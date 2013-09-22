@@ -681,7 +681,7 @@ public:
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
       Geom<Ord> *e, Func<Ord>* *ext) const 
     {
-      return Ord(24);
+      return Ord(10);
     }
 
     MatrixFormSurf<double>* clone()  const
@@ -812,7 +812,7 @@ public:
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, 
       Geom<Ord> *e, Func<Ord>* *ext) const 
     {
-      return Ord(24);
+      return Ord(10);
     }
 
     VectorFormSurf<double>* clone()  const
@@ -889,7 +889,7 @@ public:
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const 
     {
-      return Ord(24);
+      return Ord(10);
     }
 
     MatrixFormSurf<double>* clone()  const
