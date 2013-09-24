@@ -1,5 +1,4 @@
 #include "hermes2d.h"
-#include "runge_kutta.h"
 
 using namespace Hermes;
 using namespace Hermes::Hermes2D;
