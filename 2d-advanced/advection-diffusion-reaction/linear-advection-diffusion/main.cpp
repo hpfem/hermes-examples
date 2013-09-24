@@ -122,8 +122,8 @@ int main(int argc, char* argv[])
     
     // Solve the linear system of the reference problem. 
     // If successful, obtain the solution.
-    if(solver->solve()) Solution<double>::vector_to_solution(solver->get_sln_vector(), ref_space, ref_sln);
-    else throw Hermes::Exceptions::Exception("Matrix solver failed.\n");
+    solver->solve();
+    Solution<double>::vector_to_solution(solver->get_sln_vector(), ref_space, ref_sln);
 
     // Project the fine mesh solution onto the coarse mesh.
     Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");

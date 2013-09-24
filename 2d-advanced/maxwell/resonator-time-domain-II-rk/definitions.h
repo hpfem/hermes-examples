@@ -18,7 +18,7 @@ public:
 
   virtual void derivatives (double x, double y, Scalar2<double>& dx, Scalar2<double>& dy) const;
 
-  virtual Ord ord(Ord x, Ord y) const;
+  virtual Ord ord(double x, double y) const;
 
   virtual MeshFunction<double>* clone() const;
 };

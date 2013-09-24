@@ -12,9 +12,9 @@ std::complex<double> CustomInitialCondition::value (double x, double y) const
   return exp(-10*(x*x + y*y));
 }
 
-Ord CustomInitialCondition::ord(Ord x, Ord y) const 
+Ord CustomInitialCondition::ord(double x, double y) const 
 {
-  return exp(-10*(x*x + y*y));
+  return Ord(20);
 }
 
 MeshFunction<complex>* CustomInitialCondition::clone() const 

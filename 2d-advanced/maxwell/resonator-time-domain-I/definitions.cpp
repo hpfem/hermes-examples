@@ -15,7 +15,7 @@ void CustomInitialConditionWave::derivatives (double x, double y, Scalar2<double
     dy[1] = -std::cos(x) * std::cos(y);
 }
 
-Ord CustomInitialConditionWave::ord(Ord x, Ord y) const
+Ord CustomInitialConditionWave::ord(double x, double y) const
 {
   return Ord(10);
 }

@@ -11,7 +11,7 @@ void CustomInitialConditionWave::derivatives (double x, double y, double& dx, do
   dy = exp(-x*x - y*y) * (-2*y);
 }
 
-Ord CustomInitialConditionWave::ord(Ord x, Ord y) const 
+Ord CustomInitialConditionWave::ord(double x, double y) const 
 {
   return Ord(10);
 }

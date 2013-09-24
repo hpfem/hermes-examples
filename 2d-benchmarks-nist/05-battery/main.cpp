@@ -50,7 +50,7 @@ int main(int argc, char* argv[])
     THRESHOLD_STRING = thresholds[atoi(argv[2])];
   }
 
-  sprintf(Hermes::Mixins::Loggable::logFileName, "Logfile-%s-%s.log", get_cand_list_str(CAND_LIST), THRESHOLD_STRING);
+  sprintf(Hermes::Mixins::Loggable::staticLogFileName, "Logfile-%s-%s.log", get_cand_list_str(CAND_LIST), THRESHOLD_STRING);
 
   double ERR_STOP = 1.;
 

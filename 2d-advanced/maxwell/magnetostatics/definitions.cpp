@@ -54,9 +54,9 @@ FilterFluxDensity::FilterFluxDensity(Hermes::vector<MeshFunctionSharedPtr<double
 {
 }
 
-Func<double>* FilterFluxDensity::get_pt_value(double x, double y, Element* e) 
+Func<double>* FilterFluxDensity::get_pt_value(double x, double y, bool use_MeshHashGrid, Element* e) 
 {
-  throw Hermes::Exceptions::Exception("Not implemented yet"); return 0;
+  throw Hermes::Exceptions::Exception("Not implemented yet"); return NULL;
 }
 
 MeshFunction<double>* FilterFluxDensity::clone() const 

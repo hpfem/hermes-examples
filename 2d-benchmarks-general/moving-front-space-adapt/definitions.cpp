@@ -20,7 +20,7 @@ void CustomExactSolution::derivatives(double x, double y, double& dx, double& dy
          M_PI*(2*y - y0 - y1) + (4*y - 2*(y0 + y1))*Hermes::atan(S*(t - Hermes::sqrt(x*x + y*y)))))/(2.*C);
 }
 
-Ord CustomExactSolution::ord(Ord x, Ord y) const 
+Ord CustomExactSolution::ord(double x, double y) const 
 {
   return Ord(20);
 }

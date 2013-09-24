@@ -171,36 +171,33 @@ int main(int argc, char* argv[])
 
     // Solve the matrix problem.
     Hermes::Mixins::Loggable::Static::info("Solving the matrix problem.");
-    if(solver->solve())
+    solver->solve();
+  
+    if(!SHOCK_CAPTURING)
     {
-      if(!SHOCK_CAPTURING)
-      {
-        Solution<double>::vector_to_solutions(solver->get_sln_vector(), Hermes::vector<SpaceSharedPtr<double> >(space_rho, space_rho_v_x, 
-          space_rho_v_y, space_e, space_temp), Hermes::vector<MeshFunctionSharedPtr<double> >(prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e, prev_temp));
-      }
-      else
-      {
-        FluxLimiter* flux_limiter;
-        if(SHOCK_CAPTURING_TYPE == KUZMIN)
-          flux_limiter = new FluxLimiter(FluxLimiter::Kuzmin, solver->get_sln_vector(), Hermes::vector<SpaceSharedPtr<double> >(space_rho, space_rho_v_x, 
-          space_rho_v_y, space_e), true);
-        else
-          flux_limiter = new FluxLimiter(FluxLimiter::Krivodonova, solver->get_sln_vector(), Hermes::vector<SpaceSharedPtr<double> >(space_rho, space_rho_v_x, 
-          space_rho_v_y, space_e));
-
-        if(SHOCK_CAPTURING_TYPE == KUZMIN)
-          flux_limiter->limit_second_orders_according_to_detector();
-
-        flux_limiter->limit_according_to_detector();
-
-        flux_limiter->get_limited_solutions(Hermes::vector<MeshFunctionSharedPtr<double> >(prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e));
-
-        Solution<double>::vector_to_solution(solver->get_sln_vector() + Space<double>::get_num_dofs(Hermes::vector<SpaceSharedPtr<double> >(space_rho, space_rho_v_x, 
-          space_rho_v_y, space_e)), space_temp, prev_temp);
-      }
+      Solution<double>::vector_to_solutions(solver->get_sln_vector(), Hermes::vector<SpaceSharedPtr<double> >(space_rho, space_rho_v_x, 
+        space_rho_v_y, space_e, space_temp), Hermes::vector<MeshFunctionSharedPtr<double> >(prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e, prev_temp));
     }
     else
-      throw Hermes::Exceptions::Exception("Matrix solver failed.\n");
+    {
+      FluxLimiter* flux_limiter;
+      if(SHOCK_CAPTURING_TYPE == KUZMIN)
+        flux_limiter = new FluxLimiter(FluxLimiter::Kuzmin, solver->get_sln_vector(), Hermes::vector<SpaceSharedPtr<double> >(space_rho, space_rho_v_x, 
+        space_rho_v_y, space_e), true);
+      else
+        flux_limiter = new FluxLimiter(FluxLimiter::Krivodonova, solver->get_sln_vector(), Hermes::vector<SpaceSharedPtr<double> >(space_rho, space_rho_v_x, 
+        space_rho_v_y, space_e));
+
+      if(SHOCK_CAPTURING_TYPE == KUZMIN)
+        flux_limiter->limit_second_orders_according_to_detector();
+
+      flux_limiter->limit_according_to_detector();
+
+      flux_limiter->get_limited_solutions(Hermes::vector<MeshFunctionSharedPtr<double> >(prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e));
+
+      Solution<double>::vector_to_solution(solver->get_sln_vector() + Space<double>::get_num_dofs(Hermes::vector<SpaceSharedPtr<double> >(space_rho, space_rho_v_x, 
+        space_rho_v_y, space_e)), space_temp, prev_temp);
+    }
 
     CFL.calculate_semi_implicit(Hermes::vector<MeshFunctionSharedPtr<double> >(prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e), mesh, time_step);
 

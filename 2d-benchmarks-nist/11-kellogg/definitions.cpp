@@ -54,7 +54,7 @@ void CustomExactSolution::derivatives(double x, double y, double& dx, double& dy
         - (tau * Hermes::pow(r, tau) * Hermes::cos((M_PI/2. - rho)*tau) * Hermes::sin(tau*((-3.*M_PI)/2. - sigma + theta))*x/(r*r));
 }
 
-Ord CustomExactSolution::ord (Ord x, Ord y) const
+Ord CustomExactSolution::ord(double x, double y) const
 {
   return Ord(6);
 }

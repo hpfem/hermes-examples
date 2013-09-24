@@ -11,7 +11,7 @@ double CustomExactSolution::value(double x, double y) const
   return Hermes::sin(x)*Hermes::sin(y);
 }
 
-Ord CustomExactSolution::ord(Ord x, Ord y) const 
+Ord CustomExactSolution::ord(double x, double y) const 
 {
   return Ord(7);
 }

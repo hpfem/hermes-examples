@@ -47,7 +47,7 @@ double CustomRightHandSide1::value(double x, double y) const
   return -d_u * d_u * Laplace_u - u + sigma * v;
 }
 
-Hermes::Ord CustomRightHandSide1::ord(Hermes::Ord x, Hermes::Ord y) const 
+Hermes::Ord CustomRightHandSide1::ord  (Hermes::Ord x, Hermes::Ord y) const 
 {
   return Hermes::Ord(10);
 }
@@ -73,7 +73,7 @@ double CustomRightHandSide2::value(double x, double y) const
   return -d_v*d_v * Laplace_v - u + v;
 }
 
-Hermes::Ord CustomRightHandSide2::ord(Hermes::Ord x, Hermes::Ord y) const 
+Hermes::Ord CustomRightHandSide2::ord (Hermes::Ord x, Hermes::Ord y) const 
 {
   return Hermes::Ord(10);
 }
@@ -102,7 +102,7 @@ void ExactSolutionFitzHughNagumo1::derivatives (double x, double y, double& dx, 
   dy = 0;
 }
 
-Hermes::Ord ExactSolutionFitzHughNagumo1::ord(Hermes::Ord x, Hermes::Ord y) const 
+Hermes::Ord ExactSolutionFitzHughNagumo1::ord (double x, double y) const 
 {
   return Hermes::Ord(10);
 }
@@ -135,7 +135,7 @@ void ExactSolutionFitzHughNagumo2::derivatives (double x, double y, double& dx, 
   dy = 0;
 }
 
-Hermes::Ord ExactSolutionFitzHughNagumo2::ord(Hermes::Ord x, Hermes::Ord y) const 
+Hermes::Ord ExactSolutionFitzHughNagumo2::ord (double x, double y) const 
 {
   return Hermes::Ord(10);
 }

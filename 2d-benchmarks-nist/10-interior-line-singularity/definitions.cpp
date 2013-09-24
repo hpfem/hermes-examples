@@ -51,7 +51,7 @@ void CustomExactSolution::derivatives(double x, double y, double& dx, double& dy
   dy = -Hermes::sin(k * y) * k;
 }
 
-Ord CustomExactSolution::ord(Ord x, Ord y) const
+Ord CustomExactSolution::ord(double x, double y) const
 {
   return Ord(16);
 }

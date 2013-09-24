@@ -20,7 +20,7 @@ public:
 
   virtual std::complex<double>  value (double x, double y) const;
 
-  virtual Ord ord(Ord x, Ord y) const;
+  virtual Ord ord(double x, double y) const;
   virtual MeshFunction<complex>* clone() const;
 };
 

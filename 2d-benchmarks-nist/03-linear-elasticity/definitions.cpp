@@ -216,7 +216,7 @@ void CustomExactSolutionU::derivatives (double x, double y, double& dx, double& 
        D * r(x, y) * (lambda * (-1) * (lambda - 2) * Hermes::sin((lambda - 2) * get_angle(y, x)) * d_theta_dy(x, y));
 }
 
-Ord CustomExactSolutionU::ord (Ord x, Ord y) const 
+Ord CustomExactSolutionU::ord(double x, double y) const 
 {
   return Ord(4.0);
 }
@@ -426,7 +426,7 @@ void CustomExactSolutionV::derivatives (double x, double y, double& dx, double& 
          D * r(x, y) * (lambda * (lambda - 2) * Hermes::cos((lambda - 2) * get_angle(y, x)) * d_theta_dy(x, y));
 }
 
-Ord CustomExactSolutionV::ord (Ord x, Ord y) const 
+Ord CustomExactSolutionV::ord(double x, double y) const 
 {
   return Ord(4.0);
 }

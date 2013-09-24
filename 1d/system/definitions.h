@@ -39,7 +39,7 @@ public:
 
   virtual double value(double x, double y) const;
 
-  virtual Hermes::Ord ord(Hermes::Ord x, Hermes::Ord y) const;
+  virtual Hermes::Ord ord (Hermes::Ord x, Hermes::Ord y) const;
 
   ~CustomRightHandSide1();
 
@@ -55,7 +55,7 @@ public:
 
   virtual double value(double x, double y) const;
 
-  virtual Hermes::Ord ord(Hermes::Ord x, Hermes::Ord y) const;
+  virtual Hermes::Ord ord (Hermes::Ord x, Hermes::Ord y) const;
 
   ~CustomRightHandSide2();
 
@@ -75,7 +75,7 @@ public:
 
   virtual void derivatives(double x, double y, double& dx, double& dy) const;
 
-  virtual Hermes::Ord ord(Hermes::Ord x, Hermes::Ord y) const;
+  virtual Hermes::Ord ord (double x, double y) const;
 
   ~ExactSolutionFitzHughNagumo1();
 
@@ -92,7 +92,7 @@ public:
 
   virtual void derivatives(double x, double y, double& dx, double& dy) const;
 
-  virtual Hermes::Ord ord(Hermes::Ord x, Hermes::Ord y) const;
+  virtual Hermes::Ord ord (double x, double y) const;
 
   ~ExactSolutionFitzHughNagumo2();
 

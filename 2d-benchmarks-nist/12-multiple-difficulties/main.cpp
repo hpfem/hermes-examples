@@ -56,7 +56,7 @@ int main(int argc, char* argv[])
     resultStringIdentification = "Custom";
   }
 
-  sprintf(Hermes::Mixins::Loggable::logFileName, "Logfile-%s.log", resultStringIdentification);
+  sprintf(Hermes::Mixins::Loggable::staticLogFileName, "Logfile-%s.log", resultStringIdentification);
   
   if(argc > 2 && atoi(argv[1]) == 0)
     P_INIT = 2;
@@ -72,10 +72,10 @@ int main(int argc, char* argv[])
   basemesh->copy(mesh);
 
   // Set exact solution.
-  MeshFunctionSharedPtr<double> exact_sln(new CustomExactSolution(mesh, alpha_w, alpha_p, x_w, y_w, r_0, omega_c, epsilon, x_p, y_p));
+  MeshFunctionSharedPtr<double> exact_sln(new CustomExactSolution(mesh, alpha_w, alpha_p, x_w, y_w, r_0, omega_c, ::epsilon, x_p, y_p));
 
   // Define right-hand side.
-  CustomRightHandSide f(alpha_w, alpha_p, x_w, y_w, r_0, omega_c, epsilon, x_p, y_p);
+  CustomRightHandSide f(alpha_w, alpha_p, x_w, y_w, r_0, omega_c, ::epsilon, x_p, y_p);
 
   // Initialize the weak formulation.
   Hermes1DFunction<double> lambda(1.0);

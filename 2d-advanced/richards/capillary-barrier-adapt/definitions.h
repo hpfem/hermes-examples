@@ -28,7 +28,7 @@ public:
     dy = 0.0;
   };
 
-  virtual Ord ord(Ord x, Ord y) const {
+  virtual Ord ord(double x, double y) const {
     return Ord(0);
   }
 
@@ -60,8 +60,8 @@ public:
     return new ExactSolutionPoisson(mesh);
   }
 
-  virtual Ord ord(Ord x, Ord y) const {
-    return x*x +y*y;
+  virtual Ord ord(double x, double y) const {
+    return Ord(2);
   }
 };
 

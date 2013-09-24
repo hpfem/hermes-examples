@@ -25,7 +25,7 @@ void CustomExactSolution::derivatives(double x, double y, double& dx, double& dy
   dy = -exp(a) * (2 * alpha * (y - y_loc));
 }
 
-Ord CustomExactSolution::ord (Ord x, Ord y) const
+Ord CustomExactSolution::ord(double x, double y) const
 {
   return Ord(8);
 }

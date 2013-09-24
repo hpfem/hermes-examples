@@ -109,13 +109,13 @@ int main(int argc, char* argv[])
 
   // Perform Newton's iteration.
   Hermes::Hermes2D::NewtonSolver<double> newton(&dp);
-  newton.set_manual_damping_coeff(0.1);
+  newton.set_manual_damping_coeff(true, 0.1);
   newton.set_sufficient_improvement_factor_jacobian(0.5);
   newton.set_max_steps_with_reused_jacobian(5);
   try
   {
     newton.set_max_allowed_iterations(NEWTON_MAX_ITER);
-    newton.set_tolerance(NEWTON_TOL);
+    newton.set_tolerance(NEWTON_TOL, ResidualNormAbsolute);
     newton.solve(coeff_vec);
   }
   catch(Hermes::Exceptions::Exception e)

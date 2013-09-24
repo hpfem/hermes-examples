@@ -82,7 +82,7 @@ public:
   
   virtual MeshFunction<double>* clone() const;
 
-  virtual Ord ord (Ord x, Ord y) const;
+  virtual Ord ord (double x, double y) const;
 
   double E, nu, lambda, Q;
 
@@ -164,7 +164,7 @@ public:
   
   virtual MeshFunction<double>* clone() const;
 
-  virtual Ord ord (Ord x, Ord y) const;
+  virtual Ord ord (double x, double y) const;
 
   double E, nu, lambda, Q;
 };

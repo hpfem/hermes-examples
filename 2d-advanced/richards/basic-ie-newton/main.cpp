@@ -123,7 +123,6 @@ int main(int argc, char* argv[])
     try
     {
       newton.set_max_allowed_iterations(NEWTON_MAX_ITER);
-      newton.set_tolerance(NEWTON_TOL);
       newton.solve();
     }
     catch(Hermes::Exceptions::Exception e)

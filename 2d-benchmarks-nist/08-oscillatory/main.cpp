@@ -50,7 +50,7 @@ int main(int argc, char* argv[])
     resultStringIdentification = "noSelectionH-Lower";
   }
 
-  sprintf(Hermes::Mixins::Loggable::logFileName, "Logfile-%s.log", resultStringIdentification);
+  sprintf(Hermes::Mixins::Loggable::staticLogFileName, "Logfile-%s.log", resultStringIdentification);
   
   // Load the mesh.
   MeshSharedPtr mesh(new Mesh), basemesh(new Mesh);

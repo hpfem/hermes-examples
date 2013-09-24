@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
   ndof = Space<double>::get_num_dofs(Hermes::vector<SpaceSharedPtr<double> >(e_r_space, e_i_space));
 
   Hermes::Hermes2D::NewtonSolver<double> newton(&dp);
-  newton.set_tolerance(NEWTON_TOL);
+  newton.set_tolerance(NEWTON_TOL, ResidualNormAbsolute);
   newton.set_max_allowed_iterations(NEWTON_MAX_ITER);
   
   ScalarView viewEr("Er [V/m]", new WinGeom(600, 0, 700, 200));

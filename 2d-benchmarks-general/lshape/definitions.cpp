@@ -16,7 +16,7 @@ void CustomExactSolution::derivatives(double x, double y, double& dx, double& dy
   dy = 2.0/3.0*y*Hermes::sin(t1)/(t2*t2) - 2.0/3.0*x*t2*Hermes::cos(t1)/t3;
 }
 
-Ord CustomExactSolution::ord(Ord x, Ord y) const 
+Ord CustomExactSolution::ord(double x, double y) const 
 {
   return Ord(20);
 }

@@ -11,7 +11,7 @@ double CustomExactSolution::value(double x, double y) const
   return sin(x);
 }
 
-Ord CustomExactSolution::ord(Ord x, Ord y) const 
+Ord CustomExactSolution::ord(double x, double y) const 
 {
   return Ord(20);
 }

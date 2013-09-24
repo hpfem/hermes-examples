@@ -32,7 +32,7 @@ void CustomInitialConditionE::derivatives (double x, double y, Scalar2<double>& 
   dy[1] = omega*k_x*exp(-omega*time) * std::sin(k_x * M_PI * x) * (-1.0*std::sin(k_y * M_PI * y)*k_y*M_PI);
 }
 
-Ord CustomInitialConditionE::ord(Ord x, Ord y) const 
+Ord CustomInitialConditionE::ord(double x, double y) const 
 {
   return Ord(20);
 }
@@ -51,7 +51,7 @@ void CustomInitialConditionH::derivatives (double x, double y, double& dx, doubl
   dy = k_squared * M_PI * exp(-omega*time) * std::cos(k_x * M_PI * x) * (-1.0*std::sin(k_y * M_PI * y)*k_y*M_PI);
 }
 
-Ord CustomInitialConditionH::ord(Ord x, Ord y) const 
+Ord CustomInitialConditionH::ord(double x, double y) const 
 {
   return Ord(20);
 }
@@ -76,7 +76,7 @@ void CustomInitialConditionP::derivatives (double x, double y, Scalar2<double>& 
   dy[1] = -k_x*alpha(omega, k)*exp(-omega*time) * std::sin(k_x * M_PI * x) * (-1.0*std::sin(k_y * M_PI * y)*k_y*M_PI);
 }
 
-Ord CustomInitialConditionP::ord(Ord x, Ord y) const 
+Ord CustomInitialConditionP::ord(double x, double y) const 
 {
   return Ord(20);
 }

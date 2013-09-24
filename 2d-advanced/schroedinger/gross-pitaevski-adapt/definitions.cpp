@@ -12,7 +12,7 @@ std::complex<double> CustomInitialCondition::value (double x, double y) const
   return exp(-20*(x*x + y*y));
 }
 
-Ord CustomInitialCondition::ord(Ord x, Ord y) const 
+Ord CustomInitialCondition::ord(double x, double y) const 
 {
   return exp(-20*(x*x + y*y));
 }

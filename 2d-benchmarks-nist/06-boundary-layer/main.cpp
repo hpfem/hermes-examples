@@ -50,7 +50,7 @@ int main(int argc, char* argv[])
     resultStringIdentification = "Custom";
   }
 
-  sprintf(Hermes::Mixins::Loggable::logFileName, "Logfile-%s.log", resultStringIdentification);
+  sprintf(Hermes::Mixins::Loggable::staticLogFileName, "Logfile-%s.log", resultStringIdentification);
   
   // Load the mesh.
   MeshSharedPtr mesh(new Mesh), basemesh(new Mesh);
@@ -130,7 +130,7 @@ int main(int argc, char* argv[])
       // Assemble the discrete problem.    
       NewtonSolver<double> newton;
       newton.set_weak_formulation(&wf);
-      newton.set_tolerance(1e-5);
+      newton.set_tolerance(1e-5, ResidualNormAbsolute);
       newton.set_UMFPACK_output(true, false);
 
       mesh->copy(basemesh);

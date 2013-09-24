@@ -19,7 +19,7 @@ void CustomInitialConditionTemperature::derivatives(double x, double y, double& 
   dy = 0;
 }
 
-Ord CustomInitialConditionTemperature::ord(Ord x, Ord y) const 
+Ord CustomInitialConditionTemperature::ord(double x, double y) const 
 {
   return Ord(1);
 }

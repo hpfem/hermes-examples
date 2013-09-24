@@ -17,7 +17,7 @@ public:
 
   virtual void derivatives(double x, double y, double& dx, double& dy) const;
 
-  virtual Ord ord(Ord x, Ord y) const;
+  virtual Ord ord (double x, double y) const;
 
   double x0, x1, y0, y1, *t_ptr, s, c;
 };

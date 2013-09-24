@@ -275,32 +275,28 @@ int main(int argc, char* argv[])
 
       // Solve the matrix problem.
       Hermes::Mixins::Loggable::Static::info("Solving the matrix problem.");
-      if(solver->solve())
+      solver->solve();
+      if(!SHOCK_CAPTURING)
       {
-        if(!SHOCK_CAPTURING)
-        {
-          Solution<double>::vector_to_solutions(solver->get_sln_vector(), cref_spaces, rslns);
-        }
-        else
-        {
-          FluxLimiter* flux_limiter;
-          if(SHOCK_CAPTURING_TYPE == KUZMIN)
-            flux_limiter = new FluxLimiter(FluxLimiter::Kuzmin, solver->get_sln_vector(), cref_flow_spaces, true);
-          else
-            flux_limiter = new FluxLimiter(FluxLimiter::Krivodonova, solver->get_sln_vector(), cref_flow_spaces);
-
-          if(SHOCK_CAPTURING_TYPE == KUZMIN)
-            flux_limiter->limit_second_orders_according_to_detector(flow_spaces);
-
-          flux_limiter->limit_according_to_detector(flow_spaces);
-
-          flux_limiter->get_limited_solutions(rflow_slns);
-
-          Solution<double>::vector_to_solution(solver->get_sln_vector() + Space<double>::get_num_dofs(cref_flow_spaces), ref_space_temp, rsln_temp);
-        }
+        Solution<double>::vector_to_solutions(solver->get_sln_vector(), cref_spaces, rslns);
       }
       else
-        throw Hermes::Exceptions::Exception("Matrix solver failed.\n");
+      {
+        FluxLimiter* flux_limiter;
+        if(SHOCK_CAPTURING_TYPE == KUZMIN)
+          flux_limiter = new FluxLimiter(FluxLimiter::Kuzmin, solver->get_sln_vector(), cref_flow_spaces, true);
+        else
+          flux_limiter = new FluxLimiter(FluxLimiter::Krivodonova, solver->get_sln_vector(), cref_flow_spaces);
+
+        if(SHOCK_CAPTURING_TYPE == KUZMIN)
+          flux_limiter->limit_second_orders_according_to_detector(flow_spaces);
+
+        flux_limiter->limit_according_to_detector(flow_spaces);
+
+        flux_limiter->get_limited_solutions(rflow_slns);
+
+        Solution<double>::vector_to_solution(solver->get_sln_vector() + Space<double>::get_num_dofs(cref_flow_spaces), ref_space_temp, rsln_temp);
+      }
 
       // Project the fine mesh solution onto the coarse mesh.
       Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");

@@ -216,8 +216,8 @@ int main (int argc, char* argv[]) {
   WeakForm<double> *wf;
   if (TIME_DISCR == 2) {
     if (SCALED) {
-      wf = new ScaledWeakFormPNPCranic(TAU, epsilon, C_prev_time, phi_prev_time);
-      Hermes::Mixins::Loggable::Static::info("Scaled weak form, with time step %g and epsilon %g", *TAU, epsilon);
+      wf = new ScaledWeakFormPNPCranic(TAU, ::epsilon, C_prev_time, phi_prev_time);
+      Hermes::Mixins::Loggable::Static::info("Scaled weak form, with time step %g and epsilon %g", *TAU, ::epsilon);
     } else {
       wf = new WeakFormPNPCranic(TAU, C0, K, L, D, C_prev_time, phi_prev_time);
     }
@@ -261,7 +261,7 @@ int main (int argc, char* argv[]) {
   try
   {
     solver_coarse->set_max_allowed_iterations(NEWTON_MAX_ITER);
-    solver_coarse->set_tolerance(NEWTON_TOL_COARSE);
+    solver_coarse->set_tolerance(NEWTON_TOL_COARSE, ResidualNormAbsolute);
     solver_coarse->solve(coeff_vec_coarse);
   }
   catch(Hermes::Exceptions::Exception e)
@@ -353,7 +353,7 @@ int main (int argc, char* argv[]) {
       try
       {
         solver->set_max_allowed_iterations(NEWTON_MAX_ITER);
-        solver->set_tolerance(NEWTON_TOL_FINE);
+        solver->set_tolerance(NEWTON_TOL_FINE, ResidualNormAbsolute);
         solver->solve(coeff_vec);
       }
       catch(Hermes::Exceptions::Exception e)

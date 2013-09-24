@@ -221,8 +221,7 @@ int main(int argc, char* argv[])
     else 
     {
       Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
-      done = adaptivity.adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&selector, &selector), 
-        MULTI == true ? THRESHOLD_MULTI : THRESHOLD_SINGLE);
+      done = adaptivity.adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&selector, &selector));
     }
 
     // Increase counter.

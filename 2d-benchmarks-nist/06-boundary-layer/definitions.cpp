@@ -30,7 +30,7 @@ void CustomExactSolution::derivatives(double x, double y, double& dx, double& dy
        - (1 - exp(-(1 - x)/epsilon))*Hermes::cos(M_PI*(x + y))*exp(-(1 - y)/epsilon)/epsilon;
 }
 
-Ord CustomExactSolution::ord (Ord x, Ord y) const
+Ord CustomExactSolution::ord(double x, double y) const
 {
   return Ord(8);
 }

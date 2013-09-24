@@ -39,7 +39,7 @@ void CustomExactSolution::derivatives(double x, double y, double& dx, double& dy
   dy = -Hermes::cos(h) * h * h * y / r;
 }
 
-Ord CustomExactSolution::ord (Ord x, Ord y) const
+Ord CustomExactSolution::ord(double x, double y) const
 {
   return Ord(10);
 }
