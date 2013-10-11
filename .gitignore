@@ -4,7 +4,13 @@
 # in that subdirectory instead.
 #
 
+*.out.*
+*.tmp
+*.cbp
+*.m
+.gitignore
 CMake.vars
+CTestCheckpoint.txt
 *.h2d
 .*
 *.o
@@ -18,7 +24,6 @@ tutorial.*
 *.png
 *.bmp
 *.user
-*make*
 *.bak
 
 # top-level files
@@ -65,9 +70,6 @@ Debug/
 # kdevelop project files
 *.kdev*
 
-# Python stuff
-!python/_hermes_common.so
-
 # Documentation generated
 *.html
 *.eps
@@ -82,5 +84,19 @@ Debug/
 *.sty
 *.dvi
 *.vtk
-*.m
-doc/*
+
+
+# Misc
+*.exe
+*.dat
+*.lastbuildstate
+*.cfg
+*.bak
+*.options
+*.pdr.*
+*.jit
+*My Inspector*
+*.exp
+*.ipgset
+*.psess
+*.vsp
