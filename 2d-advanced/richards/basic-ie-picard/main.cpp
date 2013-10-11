@@ -85,14 +85,11 @@ int main(int argc, char* argv[])
   Hermes::Mixins::Loggable::Static::info("ndof = %d.", ndof);
 
   // Zero initial solutions. This is why we use H_OFFSET.
-  MeshFunctionSharedPtr<double> h_time_prev(new ZeroSolution<double>(mesh)), h_iter_prev(new ZeroSolution<double>(mesh));
+  MeshFunctionSharedPtr<double> h_time_prev(new ConstantSolution<double>(mesh, 0.));
 
   // Initialize views.
   ScalarView view("Initial condition", new WinGeom(0, 0, 600, 500));
   view.fix_scale_width(80);
-
-  // Visualize the initial condition.
-  view.show(h_time_prev);
 
   // Initialize the constitutive relations.
   ConstitutiveRelations* constitutive_relations;
@@ -103,14 +100,14 @@ int main(int argc, char* argv[])
 
   // Initialize the weak formulation.
   double current_time = 0;
-  CustomWeakFormRichardsIEPicard wf(time_step, h_time_prev, h_iter_prev, constitutive_relations);
+  CustomWeakFormRichardsIEPicard wf(time_step, h_time_prev, constitutive_relations);
 
   // Initialize the FE problem.
   DiscreteProblem<double> dp(&wf, space);
   dp.set_linear();
 
   // Initialize the Picard solver.
-  PicardSolver<double> picard(&dp);
+  PicardSolver<double> picard(&wf, space);
   picard.set_verbose_output(true);
 
   // Time stepping:
@@ -134,7 +131,7 @@ int main(int argc, char* argv[])
     }
 
     // Translate the coefficient vector into a Solution. 
-    Solution<double>::vector_to_solution(picard.get_sln_vector(), space, h_iter_prev);
+    Solution<double>::vector_to_solution(picard.get_sln_vector(), space, h_time_prev);
 
     // Increase current time and time step counter.
     current_time += time_step;
@@ -144,10 +141,7 @@ int main(int argc, char* argv[])
     char title[100];
     sprintf(title, "Time %g s", current_time);
     view.set_title(title);
-    view.show(h_iter_prev);
-
-    // Save the next time level solution.
-    h_time_prev->copy(h_iter_prev);
+    view.show(h_time_prev);
   }
   while (current_time < T_FINAL);
 

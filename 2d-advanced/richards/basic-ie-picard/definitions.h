@@ -28,7 +28,7 @@ public:
 class CustomWeakFormRichardsIEPicard : public WeakForm<double>
 {
 public:
-  CustomWeakFormRichardsIEPicard(double time_step, MeshFunctionSharedPtr<double>  h_time_prev, MeshFunctionSharedPtr<double>  h_iter_prev, ConstitutiveRelations* constitutive);
+  CustomWeakFormRichardsIEPicard(double time_step, MeshFunctionSharedPtr<double>  h_time_prev, ConstitutiveRelations* constitutive);
 
 private:
 

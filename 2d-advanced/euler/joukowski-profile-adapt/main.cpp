@@ -288,7 +288,7 @@ SpaceSharedPtr<double> *>(new         Hermes::vector<Space<double>(ref_space_rho
 
       SparseMatrix<double>* matrix = create_matrix<double>();
       Vector<double>* rhs = create_vector<double>();
-      LinearMatrixSolver<double>* solver = create_linear_solver<double>( matrix, rhs);
+      Hermes::Solvers::LinearMatrixSolver<double>* solver = create_linear_solver<double>( matrix, rhs);
 
       wf.set_current_time_step(time_step);
 

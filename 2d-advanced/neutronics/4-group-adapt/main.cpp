@@ -169,7 +169,7 @@ SpaceSharedPtr<double>*> spaces(&space1, &space2, &space3, &space4);
   SparseMatrix<double>* mat = create_matrix<double>();
   Vector<double>* rhs = create_vector<double>();
   // Instantiate the solver itself.
-  LinearMatrixSolver<double>* solver = create_linear_solver<double>( mat, rhs);
+  Hermes::Solvers::LinearMatrixSolver<double>* solver = create_linear_solver<double>( mat, rhs);
 
   // Initialize views.
   /* for 1280x800 display */

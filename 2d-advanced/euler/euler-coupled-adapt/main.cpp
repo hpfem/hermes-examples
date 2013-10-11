@@ -353,7 +353,7 @@ SpaceSharedPtr<double>* ref_space_c = refSpaceCreatorConcentration.create_ref_sp
       SparseMatrix<double>* matrix = create_matrix<double>();
       Vector<double>* rhs = create_vector<double>();
       Vector<double>* rhs_stabilization = create_vector<double>();
-      LinearMatrixSolver<double>* solver = create_linear_solver<double>( matrix, rhs);
+      Hermes::Solvers::LinearMatrixSolver<double>* solver = create_linear_solver<double>( matrix, rhs);
 
       // Initialize the FE problem.
       DiscreteProblem<double> dp(&wf, ref_spaces_const);

@@ -150,7 +150,7 @@ int main(int argc, char* argv[])
 
   Hermes::Hermes2D::NewtonSolver<complex> newton(&wf, space);
   newton.set_max_allowed_iterations(NEWTON_MAX_ITER);
-  newton.set_tolerance(NEWTON_TOL, ResidualNormAbsolute);
+  newton.set_tolerance(NEWTON_TOL, Hermes::Solvers::ResidualNormAbsolute);
 
   // Newton's iteration.
   // Adaptivity loop:

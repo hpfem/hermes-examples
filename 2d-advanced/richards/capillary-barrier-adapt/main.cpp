@@ -355,7 +355,7 @@ int main(int argc, char* argv[])
           try
           {
             newton.set_max_allowed_iterations(NEWTON_MAX_ITER);
-            newton.set_tolerance(NEWTON_TOL, ResidualNormAbsolute);
+            newton.set_tolerance(NEWTON_TOL, Hermes::Solvers::ResidualNormAbsolute);
             newton.solve(coeff_vec);
             newton_converged = true;
           }
@@ -411,7 +411,7 @@ int main(int argc, char* argv[])
         PicardSolver<double> picard(&dp);
         picard.set_verbose_output(verbose);
         picard.set_max_allowed_iterations(PICARD_MAX_ITER);
-        picard.set_tolerance(PICARD_TOL, SolutionChangeRelative);
+        picard.set_tolerance(PICARD_TOL, Hermes::Solvers::SolutionChangeRelative);
         while(true)
         {
           try

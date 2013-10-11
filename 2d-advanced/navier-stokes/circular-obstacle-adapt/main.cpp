@@ -268,7 +268,7 @@ SpaceSharedPtr<double> yvel_space(new H1Space<double>(mesh, &bcs_vel_y, P_INIT_V
       {
         newton.set_spaces(ref_spaces);
         newton.set_max_allowed_iterations(NEWTON_MAX_ITER);
-        newton.set_tolerance(NEWTON_TOL, ResidualNormAbsolute);
+        newton.set_tolerance(NEWTON_TOL, Hermes::Solvers::ResidualNormAbsolute);
         if(as == 2)
           newton.output_matrix();
         newton.solve(coeff_vec);

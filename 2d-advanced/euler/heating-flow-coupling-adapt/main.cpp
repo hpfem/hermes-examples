@@ -174,7 +174,7 @@ int main(int argc, char* argv[])
   SparseMatrix<double>* matrix = create_matrix<double>();
   Vector<double>* rhs = create_vector<double>();
   Vector<double>* rhs_stabilization = create_vector<double>();
-  LinearMatrixSolver<double>* solver = create_linear_solver<double>( matrix, rhs);
+  Hermes::Solvers::LinearMatrixSolver<double>* solver = create_linear_solver<double>( matrix, rhs);
 
   // Set up stability calculation class.
   CFLCalculation CFL(CFL_NUMBER, KAPPA);

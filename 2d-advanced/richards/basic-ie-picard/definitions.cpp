@@ -5,7 +5,7 @@
 // as the zero vector. Note: the resulting 
 // pressure head will also be greater than the 
 // true one by this offset.
-double H_OFFSET = 1000;
+double H_OFFSET = 1e3;
 
 /* Custom non-constant Dirichlet condition */
 
@@ -22,16 +22,16 @@ double CustomEssentialBCNonConst::value(double x, double y, double n_x, double n
 
 /* Custom weak forms */
 
-CustomWeakFormRichardsIEPicard::CustomWeakFormRichardsIEPicard(double time_step, MeshFunctionSharedPtr<double>  h_time_prev, MeshFunctionSharedPtr<double>  h_iter_prev, ConstitutiveRelations* constitutive) : WeakForm<double>(1), constitutive(constitutive) 
+CustomWeakFormRichardsIEPicard::CustomWeakFormRichardsIEPicard(double time_step, MeshFunctionSharedPtr<double>  h_time_prev, ConstitutiveRelations* constitutive) : WeakForm<double>(1), constitutive(constitutive) 
 {
   // Jacobian.
   CustomJacobian* matrix_form = new CustomJacobian(0, 0, time_step);
-  matrix_form->set_ext(Hermes::vector<MeshFunctionSharedPtr<double> >(h_time_prev, h_iter_prev));
+  matrix_form->set_ext(h_time_prev);
   add_matrix_form(matrix_form);
 
   // Residual.
   CustomResidual* vector_form = new CustomResidual(0, time_step);
-  vector_form->set_ext(Hermes::vector<MeshFunctionSharedPtr<double> >(h_time_prev, h_iter_prev));
+  vector_form->set_ext(h_time_prev);
   add_vector_form(vector_form);
 }
 
@@ -42,7 +42,7 @@ double CustomWeakFormRichardsIEPicard::CustomJacobian::value(int n, double *wt, 
   Func<double>* h_prev_picard = u_ext[0];
   for (int i = 0; i < n; i++)
   {
-    double h_prev_picard_i = h_prev_picard->val[i] - H_OFFSET;
+    double h_prev_picard_i = h_prev_picard->val[i] - 0.;
 
     result += wt[i] * (   static_cast<CustomWeakFormRichardsIEPicard*>(wf)->constitutive->C(h_prev_picard_i) * u->val[i] * v->val[i]
                         + static_cast<CustomWeakFormRichardsIEPicard*>(wf)->constitutive->K(h_prev_picard_i) * (u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i]) * time_step
@@ -71,8 +71,8 @@ double CustomWeakFormRichardsIEPicard::CustomResidual::value(int n, double *wt, 
   Func<double>* h_prev_time = ext[0];
   for (int i = 0; i < n; i++)
   {
-    double h_prev_picard_i = h_prev_picard->val[i] - H_OFFSET;
-    double h_prev_time_i = h_prev_time->val[i];// - H_OFFSET;
+    double h_prev_picard_i = h_prev_picard->val[i] - 0.;
+    double h_prev_time_i = h_prev_time->val[i] - 0.;
     result += wt[i] * static_cast<CustomWeakFormRichardsIEPicard*>(wf)->constitutive->C(h_prev_picard_i) * (h_prev_time_i) * v->val[i];
   }
   return result;

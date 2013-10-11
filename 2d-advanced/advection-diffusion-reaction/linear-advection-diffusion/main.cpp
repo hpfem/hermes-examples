@@ -1,5 +1,3 @@
-
-#define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
 
 //  This example solves a linear advection diffusion problem using optional
@@ -107,23 +105,17 @@ int main(int argc, char* argv[])
     Space<double>::ReferenceSpaceCreator refSpaceCreator(space, ref_mesh);
     SpaceSharedPtr<double> ref_space = refSpaceCreator.create_ref_space();
 
-    // Initialize matrix solver.
-    SparseMatrix<double>* matrix = create_matrix<double>();
-    Vector<double>* rhs = create_vector<double>();
-    LinearMatrixSolver<double>* solver = create_linear_solver<double>( matrix, rhs);
-
     // Assemble the reference problem.
     Hermes::Mixins::Loggable::Static::info("Solving on reference mesh.");
-    DiscreteProblem<double>* dp = new DiscreteProblem<double>(&wf, ref_space);
-    dp->assemble(matrix, rhs);
+    LinearSolver<double> solver(&wf, ref_space);
 
     // Time measurement.
     cpu_time.tick();
     
     // Solve the linear system of the reference problem. 
     // If successful, obtain the solution.
-    solver->solve();
-    Solution<double>::vector_to_solution(solver->get_sln_vector(), ref_space, ref_sln);
+    solver.solve();
+    Solution<double>::vector_to_solution(solver.get_sln_vector(), ref_space, ref_sln);
 
     // Project the fine mesh solution onto the coarse mesh.
     Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");

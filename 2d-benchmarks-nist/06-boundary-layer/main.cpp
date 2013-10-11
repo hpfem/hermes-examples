@@ -130,7 +130,7 @@ int main(int argc, char* argv[])
       // Assemble the discrete problem.    
       NewtonSolver<double> newton;
       newton.set_weak_formulation(&wf);
-      newton.set_tolerance(1e-5, ResidualNormAbsolute);
+      newton.set_tolerance(1e-5, Hermes::Solvers::ResidualNormAbsolute);
       newton.set_UMFPACK_output(true, false);
 
       mesh->copy(basemesh);

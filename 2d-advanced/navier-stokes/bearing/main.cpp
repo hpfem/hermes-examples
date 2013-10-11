@@ -187,7 +187,7 @@ int main(int argc, char* argv[])
     try
     {
       newton.set_max_allowed_iterations(NEWTON_MAX_ITER);
-      newton.set_tolerance(NEWTON_TOL, ResidualNormAbsolute);
+      newton.set_tolerance(NEWTON_TOL, Hermes::Solvers::ResidualNormAbsolute);
       newton.solve();
     }
     catch(Hermes::Exceptions::Exception e)

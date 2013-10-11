@@ -142,7 +142,7 @@ int main(int argc, char* argv[])
   Hermes::Hermes2D::NewtonSolver<double> newton(&dp);
   Hermes::Mixins::Loggable::Static::info("Solving nonlinear problem:");
   newton.set_max_allowed_iterations(NEWTON_MAX_ITER);
-  newton.set_tolerance(NEWTON_TOL, ResidualNormAbsolute);
+  newton.set_tolerance(NEWTON_TOL, Hermes::Solvers::ResidualNormAbsolute);
   newton.set_jacobian_constant();
     
   // Initialize views.

@@ -158,7 +158,7 @@ SpaceSharedPtr<double> xvel_space(new H1Space<double>(mesh, &bcs_vel_x, P_INIT_V
     try
     {
       newton.set_max_allowed_iterations(NEWTON_MAX_ITER);
-      newton.set_tolerance(NEWTON_TOL, ResidualNormAbsolute);
+      newton.set_tolerance(NEWTON_TOL, Hermes::Solvers::ResidualNormAbsolute);
       newton.solve(coeff_vec);
     }
     catch(Hermes::Exceptions::Exception e)
