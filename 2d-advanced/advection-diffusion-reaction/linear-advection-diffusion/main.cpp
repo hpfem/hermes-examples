@@ -159,13 +159,6 @@ int main(int argc, char* argv[])
       // Increase the counter of performed adaptivity steps.
       if (done == false)  as++;
     }
-    
-    // Clean up.
-    delete solver;
-    delete matrix;
-    delete rhs;
-    
-    delete dp;
   }
   while (done == false);
   

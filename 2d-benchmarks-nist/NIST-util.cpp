@@ -74,10 +74,7 @@ bool adaptive_step_single_space(
     solver.set_report_cache_hits_and_misses();
     solver.set_space(ref_space);
     solver.solve();
-    FactorizationSize = solver.get_UMFPACK_reporting_data(Solver<double>::FactorizationSize);
-    PeakMemoryUsage = solver.get_UMFPACK_reporting_data(Solver<double>::PeakMemoryUsage);
-    Flops = solver.get_UMFPACK_reporting_data(Solver<double>::Flops);
-
+    
     // Translate the resulting coefficient vector into the instance of Solution.
     Solution<double>::vector_to_solution(solver.get_sln_vector(), ref_space, ref_sln);
     
