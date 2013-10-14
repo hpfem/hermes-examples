@@ -1,4 +1,3 @@
-
 #include "definitions.h"
 
 using namespace RefinementSelectors;
@@ -20,52 +19,37 @@ using namespace RefinementSelectors;
 //  The following parameters can be changed:
 
 // Initial polynomial degree of mesh elements.
-const int P_INIT = 1;
+const int P_INIT = 2;
 // Number of initial uniform mesh refinements.
 const int INIT_REF_NUM = 1;
 // This is a quantitative parameter of Adaptivity.
-double THRESHOLD = 0.3;
-// Error calculation & adaptivity.
-DefaultErrorCalculator<double, HERMES_H1_NORM> errorCalculator(RelativeErrorToGlobalNorm, 1);
-// Stopping criterion for an adaptivity step.
-AdaptStoppingCriterionSingleElement<double> stoppingCriterion(THRESHOLD);
-// Adaptivity processor class.
-Adapt<double> adaptivity(&errorCalculator, &stoppingCriterion);
+const double THRESHOLD = 0.3;
+// This is a stopping criterion for Adaptivity.
+AdaptStoppingCriterionSingleElement<double> stoppingCriterion(THRESHOLD);   
+
 // Predefined list of element refinement candidates.
-CandList CAND_LIST = H2D_HP_ANISO;
+const CandList CAND_LIST = H2D_HP_ANISO_H;
+// Maximum allowed level of hanging nodes.
+const int MESH_REGULARITY = -1;
 // Stopping criterion for adaptivity.
-const double ERR_STOP = 1e-1;
+const double ERR_STOP = 1.0;
+const CalculatedErrorType errorType = RelativeErrorToGlobalNorm;
 
 // Newton tolerance
 const double NEWTON_TOLERANCE = 1e-6;
 
+bool HERMES_VISUALIZATION = false;
+bool VTK_VISUALIZATION = false;
+
 int main(int argc, char* argv[])
 {
-  const char* THRESHOLD_STRING = "Custom";
-
-  if(argc > 2)
-  {
-    CAND_LIST = CandList(atoi(argv[1]));
-    THRESHOLD = threshold_values[atoi(argv[2])];
-    THRESHOLD_STRING = thresholds[atoi(argv[2])];
-  }
-
-  sprintf(Hermes::Mixins::Loggable::staticLogFileName, "Logfile-%s-%s.log", get_cand_list_str(CAND_LIST), THRESHOLD_STRING);
-
-  double ERR_STOP = 1.;
-
-
   // Load the mesh.
-  MeshSharedPtr mesh(new Mesh), basemesh(new Mesh);
+  MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("battery.mesh", mesh);
-  MeshView m;
-  m.show(mesh);
 
   // Perform initial mesh refinements.
   for (int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
-
-  basemesh->copy(mesh);
 
   // Create an H1 space with default shapeset.
   SpaceSharedPtr<double> space(new H1Space<double>(mesh, P_INIT));
@@ -78,207 +62,139 @@ int main(int argc, char* argv[])
   MeshFunctionSharedPtr<double> sln(new Solution<double>), ref_sln(new Solution<double>);
   
   // Initialize refinement selector.
-  MySelector selector(hXORpSelectionBasedOnError);
+  MySelector selector(CAND_LIST);
 
   // Initialize views.
   ScalarView sview("Solution", new WinGeom(0, 0, 320, 600));
+  sview.fix_scale_width(50);
+  sview.show_mesh(false);
   OrderView  oview("Polynomial orders", new WinGeom(330, 0, 300, 600));
-  Linearizer lin;
-  Orderizer ord;
-  char* filename = new char[1000];
+  
+  // DOF and CPU convergence graphs initialization.
+  SimpleGraph graph_dof, graph_cpu;
+  
+  // Time measurement.
+  Hermes::Mixins::TimeMeasurable cpu_time;
 
-  // Assemble the discrete problem.    
-  NewtonSolver<double> newton;
-  newton.set_weak_formulation(&wf);
-
-  sprintf(filename, "Results-%s-%s.csv", get_cand_list_str(CAND_LIST), THRESHOLD_STRING);
-  std::ofstream data(filename);
-  data.precision(10);
-  data.setf( std::ios::fixed, std::ios::floatfield );
-  data << 
-      "Iteration" << ';' <<
-      "CPUTime" << ';' <<
-      "AdaptivitySteps" << ';' <<
-      "dof_reached" << ';' <<
-      "dof_cumulative" << ';' <<
-      "total_cache_searches" << ';' <<
-      "total_cache_record_found" << ';' <<
-      "total_cache_record_found_reinit" << ';' <<
-      "total_cache_record_not_found" << ';' <<
-      "error_stop" << ';' <<
-      "error_reached" << ';' <<
-      "exact_error_reached" <<
-      std::endl;
-
-  Hermes::Mixins::Loggable logger;
-  logger.set_verbose_output(true);
-
-  int iterations_count = 8;
-  int error_levels_count = 5;
-  double error_stop = ERR_STOP;
-
-  for(int iteration = 0; iteration < iterations_count; iteration++)
+  // Adaptivity loop:
+  int as = 1; bool done = false;
+  do
   {
-    for(int error_level = 0; error_level < error_levels_count; error_level++)
+    Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d:", as);
+    
+    // Time measurement.
+    cpu_time.tick();
+
+    // Construct globally refined mesh and setup fine mesh space->
+    Mesh::ReferenceMeshCreator refMeshCreator(mesh);
+    MeshSharedPtr ref_mesh = refMeshCreator.create_ref_mesh();
+
+    Space<double>::ReferenceSpaceCreator refSpaceCreator(space, ref_mesh);
+    SpaceSharedPtr<double> ref_space = refSpaceCreator.create_ref_space();
+    int ndof_ref = ref_space->get_num_dofs();
+
+    // Initialize fine mesh problem.
+    Hermes::Mixins::Loggable::Static::info("Solving on fine mesh.");
+    DiscreteProblem<double> dp(&wf, ref_space);
+    
+    NewtonSolver<double> newton(&dp);
+    newton.set_verbose_output(true);
+
+    // Perform Newton's iteration.
+    try
     {
-      mesh->copy(basemesh);
-      space->set_uniform_order(P_INIT);
-      space->assign_dofs();
+      newton.solve();
+    }
+    catch(Hermes::Exceptions::Exception e)
+    {
+      e.print_msg();
+      throw Hermes::Exceptions::Exception("Newton's iteration failed.");
+    }
 
-      error_stop = ERR_STOP / std::pow(4.0, (double)error_level);
+    // Translate the resulting coefficient vector into the instance of Solution.
+    Solution<double>::vector_to_solution(newton.get_sln_vector(), ref_space, ref_sln);
+    
+    // Project the fine mesh solution onto the coarse mesh.
+    Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh.");
+    OGProjection<double> ogProjection; ogProjection.project_global(space, ref_sln, sln);
 
-      double factor = std::abs(std::sin( 0.5 * M_PI * std::pow((double)(iteration + 1) / (double)iterations_count, 4.0)));
+    // Time measurement.
+    cpu_time.tick();
 
-      wf.p_1 = (25.0) * factor * factor;
-      wf.p_2 = (7.0) * factor;
-      wf.p_3 = (5.0) * factor;
-      wf.p_4 = (0.2) * factor;
-      wf.p_5 = (0.05) * factor;
+    // VTK output.
+    if (VTK_VISUALIZATION) 
+    {
+      // Output solution in VTK format.
+      Views::Linearizer lin;
+      char* title = new char[100];
+      sprintf(title, "sln-%d.vtk", as);
+      lin.save_solution_vtk(sln, title, "Potential", false);
+      Hermes::Mixins::Loggable::Static::info("Solution in VTK format saved to file %s.", title);
 
-      wf.q_1 = 25. - (25.0) * factor;
-      wf.q_2 = 0.8 - (0.8) * factor;
-      wf.q_3 = 0.0001 - (0.0001) * factor;
-      wf.q_4 = 0.2 - (0.2) * factor;
-      wf.q_5 = 0.05 - (0.05) * factor;
+      // Output mesh and element orders in VTK format.
+      Views::Orderizer ord;
+      sprintf(title, "ord-%d.vtk", as);
+      ord.save_orders_vtk(space, title);
+      Hermes::Mixins::Loggable::Static::info("Element orders in VTK format saved to file %s.", title);
+    }
 
-      /*
-      wf.c_left = factor;
-      wf.c_top = factor + 1.;
-      wf.c_right = factor + 2.;
-      wf.c_bottom = factor + 3.;
+    // View the coarse mesh solution and polynomial orders.
+    if (HERMES_VISUALIZATION) 
+    {
+      sview.show(sln);
+      oview.show(space);
+    }
 
-      wf.g_n_left(0.0),
-      wf.g_n_top(3.0),
-      wf.g_n_right(2.0),
-      wf.g_n_bottom(1.0)
-      */
+    // Skip visualization time.
+    cpu_time.tick(Hermes::Mixins::TimeMeasurable::HERMES_SKIP);
 
-      newton.set_weak_formulation(&wf);
+    // Calculate element errors and total error estimate.
+    Hermes::Mixins::Loggable::Static::info("Calculating error estimate.");
+    DefaultErrorCalculator<double, HERMES_H1_NORM> error_calculator(errorType, 1);
+    error_calculator.calculate_errors(sln, ref_sln);
+    double err_est_rel = error_calculator.get_total_error_squared() * 100.0;
 
-      logger.info("Iteration: %i-%i, Error level: %g, Factor: %g.", iteration, error_level, error_stop, factor);
+    Adapt<double> adaptivity(space, &error_calculator);
+    adaptivity.set_strategy(&stoppingCriterion);
+    
+    // Report results.
+    Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d, err_est_rel: %g%%", space->get_num_dofs(), ref_space->get_num_dofs(), err_est_rel);
 
-      // Cumulative.
-      int dof_cumulative = 0;
-      int total_cache_searches = 0;
-      int total_cache_record_found = 0;
-      int total_cache_record_found_reinit = 0;
-      int total_cache_record_not_found = 0;
+    // Add entry to DOF and CPU convergence graphs.
+    cpu_time.tick();    
+    graph_cpu.add_values(cpu_time.accumulated(), err_est_rel);
+    graph_cpu.save("conv_cpu_est.dat");
+    graph_dof.add_values(space->get_num_dofs(), err_est_rel);
+    graph_dof.save("conv_dof_est.dat");
+    
+    // Skip the time spent to save the convergence graphs.
+    cpu_time.tick(Hermes::Mixins::TimeMeasurable::HERMES_SKIP);
 
-      // Max.
-      int as = 1;
-      int dof_reached;
-      double error_reached;
-      double exact_error_reached = 0;
+    // If err_est too large, adapt the mesh.
+    if (err_est_rel < ERR_STOP) 
+      done = true;
+    else
+    {
+      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
+      done = adaptivity.adapt(&selector);
 
-      // One step.
-      int cache_searches;
-      int cache_record_found;
-      int cache_record_found_reinit;
-      int cache_record_not_found;
-      double FactorizationSize;
-      double PeakMemoryUsage;
-      double Flops;
-
-      // Time measurement.
-      Hermes::Mixins::TimeMeasurable cpu_time;
-
-      // Tick.
-      cpu_time.tick();
-
-      try
-      {
-        while (!adaptive_step_single_space(
-          &logger,
-          mesh, 
-          space, 
-          sln, 
-          &selector,
-          is_p(CAND_LIST) ? 1 : 0,
-          ref_sln, 
-          cpu_time,
-          newton,
-          sview,
-          oview,
-          errorCalculator,
-          adaptivity,
-          as,
-          error_stop,
-          error_reached,
-          dof_reached,
-          cache_searches,
-          cache_record_found,
-          cache_record_found_reinit,
-          cache_record_not_found,
-          exact_error_reached,
-          FactorizationSize,
-          PeakMemoryUsage,
-          Flops))
-        {
-          dof_cumulative += dof_reached;
-
-          total_cache_searches += cache_searches;
-          total_cache_record_found += cache_record_found;
-          total_cache_record_found_reinit += cache_record_found_reinit;
-          total_cache_record_not_found += cache_record_not_found;
-        }
-      }
-      catch(std::exception& e)
-      {
-        data.close();
-        return -1;
-      }
-
-      dof_cumulative += dof_reached;
-
-      total_cache_searches += cache_searches;
-      total_cache_record_found += cache_record_found;
-      total_cache_record_found_reinit += cache_record_found_reinit;
-      total_cache_record_not_found += cache_record_not_found;
-
-      cpu_time.tick();
-      {
-        sprintf(filename, "Solution-%s-%s-%i-%i.vtk", get_cand_list_str(CAND_LIST), THRESHOLD_STRING, error_level, iteration);
-        lin.save_solution_vtk(ref_sln, filename, "sln", false, 1, HERMES_EPS_LOW);
-        sprintf(filename, "Orders-%s-%s-%i-%i.vtk", get_cand_list_str(CAND_LIST), THRESHOLD_STRING, error_level, iteration);
-        ord.save_orders_vtk(newton.get_space(0), filename);
-        sprintf(filename, "Mesh-%s-%s-%i-%i.vtk", get_cand_list_str(CAND_LIST), THRESHOLD_STRING, error_level, iteration);
-        ord.save_mesh_vtk(newton.get_space(0), filename);
-      }
-      cpu_time.tick(Hermes::Mixins::TimeMeasurable::HERMES_SKIP);
-
-      data << 
-        iteration << ';' <<
-        cpu_time.accumulated() << ';' <<
-        as - 1 << ';' <<
-        dof_reached << ';' <<
-        dof_cumulative << ';' <<
-        total_cache_searches << ';' <<
-        total_cache_record_found << ';' <<
-        total_cache_record_found_reinit << ';' <<
-        total_cache_record_not_found << ';' <<
-        error_stop << ';' <<
-        error_reached << ';' <<
-        exact_error_reached <<
-        std::endl;
-
-      std::cout << std::endl << "Results:" << std::endl;
-      std::cout << "CPU time: " << cpu_time.accumulated_str() << std::endl;
-      std::cout << "Adaptivity steps: " << as - 1 << std::endl;
-      std::cout << "dof_reached: " << dof_reached << std::endl;
-      std::cout << "dof_cumulative: " << dof_cumulative << std::endl;
-
-      std::cout << "total_cache_searches: " << total_cache_searches << std::endl;
-      std::cout << "total_cache_record_found: " << total_cache_record_found << std::endl;
-      std::cout << "total_cache_record_found_reinit: " << total_cache_record_found_reinit << std::endl;
-      std::cout << "total_cache_record_not_found: " << total_cache_record_not_found << std::endl;
-
-      std::cout << "error_stop: " << error_stop << std::endl;
-      std::cout << "error_reached: " << error_reached << std::endl;
-      std::cout << "exact_error_reached: " << exact_error_reached << std::endl;
-
+      // Increase the counter of performed adaptivity steps.
+      if (done == false)  
+        as++;
     }
   }
+  while (done == false);
 
-  data.close();
+  Hermes::Mixins::Loggable::Static::info("Total running time: %g s", cpu_time.accumulated());
+
+  // Show the fine mesh solution - final result.
+  sview.set_title("Fine mesh solution");
+  sview.show_mesh(false);
+  sview.show(ref_sln);
+
+  // Wait for all views to be closed.
+  Views::View::wait();
+
   return 0;
 }
+

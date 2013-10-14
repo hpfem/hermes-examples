@@ -63,7 +63,7 @@ void CustomExactSolution::derivatives(double x, double y, double& dx, double& dy
        + (-1) * (1.0 / epsilon) * exp(-(1 + y) / epsilon);
 }
 
-Ord CustomExactSolution::ord(double x, double y) const
+Ord CustomExactSolution::ord (double x, double y) const
 {
   return Ord(10);
 }

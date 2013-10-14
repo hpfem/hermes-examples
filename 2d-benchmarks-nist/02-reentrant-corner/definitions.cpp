@@ -18,7 +18,7 @@ void CustomExactSolution::derivatives(double x, double y, double& dx, double& dy
        + ((alpha * y * Hermes::sin(alpha* get_angle(y, x)) * b)/a));
 }
 
-Ord CustomExactSolution::ord(double x, double y) const
+Ord CustomExactSolution::ord (double x, double y) const
 {
   return Ord(10);
 }

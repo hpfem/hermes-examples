@@ -50,8 +50,8 @@ public:
   class CustomMatrixFormVol : public MatrixFormVol<double>
   {
   public:
-    CustomMatrixFormVol(int i, int j, CustomRightHandSide* f)
-        : MatrixFormVol<double>(i, j), f(f) {};
+    CustomMatrixFormVol(int i, int j, double alpha)
+        : MatrixFormVol<double>(i, j), alpha(alpha) {};
 
     template<typename Real, typename Scalar>
     Scalar matrix_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u,
@@ -65,7 +65,7 @@ public:
 
     MatrixFormVol<double>* clone() const;
 
-    CustomRightHandSide* f;
+    double alpha;
   };
 
   class CustomVectorFormVol : public VectorFormVol<double>

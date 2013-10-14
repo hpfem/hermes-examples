@@ -39,7 +39,7 @@ void CustomExactSolution::derivatives(double x, double y, double& dx, double& dy
   dy = -Hermes::cos(h) * h * h * y / r;
 }
 
-Ord CustomExactSolution::ord(double x, double y) const
+Ord CustomExactSolution::ord (double x, double y) const
 {
   return Ord(10);
 }
@@ -48,7 +48,7 @@ Ord CustomExactSolution::ord(double x, double y) const
 CustomWeakForm::CustomWeakForm(CustomRightHandSide* f) : WeakForm<double>(1) 
 {
   // Jacobian.
-  add_matrix_form(new CustomMatrixFormVol(0, 0, f));
+  add_matrix_form(new CustomMatrixFormVol(0, 0, f->alpha));
   // Residual.
   add_vector_form(new CustomVectorFormVol(0, f));
 }
@@ -63,7 +63,7 @@ Scalar CustomWeakForm::CustomMatrixFormVol::matrix_form(int n, double *wt, Func<
     Scalar x = e->x[i];
     Scalar y = e->y[i];
     Scalar r = Hermes::sqrt(x*x + y*y);
-    Scalar h = 1/(f->alpha + r);
+    Scalar h = 1/(alpha + r);
     Scalar grad_u_grad_v = u->dx[i] * v->dx[i] + u->dy[i] * v->dy[i];
     val += wt[i] * (grad_u_grad_v - Hermes::pow(h, 4) * u->val[i] * v->val[i]);
   }

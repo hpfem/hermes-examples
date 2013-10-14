@@ -380,5 +380,9 @@ CustomWeakFormPoisson::CustomWeakFormPoisson(std::string omega_1, std::string om
 
 WeakForm<double>* CustomWeakFormPoisson::clone() const
 {
-  return new CustomWeakFormPoisson(*this);
+  return new CustomWeakFormPoisson(this->omega_1, this->omega_2, 
+    this->omega_3, this->omega_4, 
+    this->omega_5, this->bdy_left, 
+    this->bdy_top, this->bdy_right, 
+    this->bdy_bottom, this->mesh);
 }
