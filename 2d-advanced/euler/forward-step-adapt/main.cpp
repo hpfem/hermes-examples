@@ -1,5 +1,5 @@
 #define HERMES_REPORT_INFO
-#define HERMES_REPORT_FILE "application.log"
+
 #include "hermes2d.h"
 
 using namespace Hermes;

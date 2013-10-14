@@ -1,5 +1,5 @@
 
-#define HERMES_REPORT_FILE "application.log"
+
 #include "definitions.h"
 
 // This example uses adaptive multimesh hp-FEM to solve a simple problem

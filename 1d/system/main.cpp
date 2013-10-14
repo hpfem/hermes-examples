@@ -1,5 +1,5 @@
 
-#define HERMES_REPORT_FILE "application.log"
+
 #include "definitions.h"
 
 using namespace RefinementSelectors;

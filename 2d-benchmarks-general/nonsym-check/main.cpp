@@ -1,5 +1,5 @@
 
-#define HERMES_REPORT_FILE "application.log"
+
 #include "definitions.h"
 
 using namespace RefinementSelectors;
@@ -25,7 +25,7 @@ int P_INIT = 1;
 // it has different meanings for various adaptive strategies.
 const double THRESHOLD = 0.3;                       
 // Error calculation & adaptivity.
-DefaultErrorCalculator<double, HERMES_H1_NORM> errorCalculator(RelativeErrorToGlobalNorm, 2);
+DefaultErrorCalculator<double, HERMES_H1_NORM> errorCalculator(RelativeErrorToGlobalNorm, 1);
 // Stopping criterion for an adaptivity step.
 AdaptStoppingCriterionSingleElement<double> stoppingCriterion(THRESHOLD);
 // Adaptivity processor class.
@@ -54,6 +54,9 @@ int main(int argc, char* argv[])
 
   // Create an H1 space with default shapeset.
   SpaceSharedPtr<double> space(new H1Space<double>(mesh, &bcs, P_INIT));
+
+  // Set the space to adaptivity.
+  adaptivity.set_space(space);
 
   // Initialize approximate solution.
   MeshFunctionSharedPtr<double> sln(new Solution<double>());
@@ -120,7 +123,6 @@ int main(int argc, char* argv[])
     OGProjection<double> ogProjection; ogProjection.project_global(space, ref_sln, sln);
 
     // Calculate element errors and total error estimate.
-    adaptivity.set_space(space);
     errorCalculator.calculate_errors(sln, exact_sln, false);
     double err_exact_rel = errorCalculator.get_total_error_squared() * 100;
 

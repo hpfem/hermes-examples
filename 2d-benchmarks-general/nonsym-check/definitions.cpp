@@ -18,7 +18,7 @@ Ord CustomExactSolution::ord(double x, double y) const
 
 MeshFunction<double>* CustomExactSolution::clone() const 
 {
-  return new CustomExactSolution(*this);
+  return new CustomExactSolution(this->mesh);
 }
 
 

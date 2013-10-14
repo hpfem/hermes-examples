@@ -1,5 +1,5 @@
 
-#define HERMES_REPORT_FILE "application.log"
+
 #include "definitions.h"
 
 //  This example solves a linear advection equation using Dicontinuous Galerkin (DG) method.

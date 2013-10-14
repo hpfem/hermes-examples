@@ -1,5 +1,5 @@
 
-#define HERMES_REPORT_FILE "application.log"
+
 #include "definitions.h"
 
 // This example is a simple test case for the Debye-Maxwell model solved in terms of 

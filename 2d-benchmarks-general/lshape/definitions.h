@@ -13,6 +13,8 @@ public:
   {
   }
 
+  MeshFunction<double>* clone() const { return new CustomExactSolution(mesh); }
+
   virtual double value(double x, double y) const;
 
   virtual void derivatives(double x, double y, double& dx, double& dy) const;

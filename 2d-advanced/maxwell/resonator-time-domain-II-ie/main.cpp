@@ -1,5 +1,5 @@
 
-#define HERMES_REPORT_FILE "application.log"
+
 #include "definitions.h"
 
 // This example solves a time-domain resonator problem for the Maxwell's equation. 

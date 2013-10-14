@@ -1,5 +1,5 @@
 
-#define HERMES_REPORT_FILE "application.log"
+
 #include "hermes2d.h"
 
 using namespace Hermes;
@@ -155,7 +155,7 @@ int main(int argc, char* argv[])
     int ndof_ref = ref_space->get_num_dofs();
 
     // Initialize fine mesh problem.
-    Hermes::Mixins::Loggable::Static::info("Solving on fine mesh->");
+    Hermes::Mixins::Loggable::Static::info("Solving on fine mesh.");
     DiscreteProblem<double> dp(&wf, ref_space);
     
     NewtonSolver<double> newton(&dp);

@@ -18,6 +18,8 @@ public:
   virtual double value(double x, double y) const;
 
   virtual Ord ord (double x, double y) const;
+
+  MeshFunction<double>* clone() const { return new CustomExactSolution(mesh); }
 };
 
 /* Custom function f */

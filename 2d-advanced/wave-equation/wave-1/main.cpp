@@ -1,5 +1,3 @@
-
-#define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
 
 // This example solves a simple linear wave equation by converting it 
@@ -29,10 +27,7 @@ const int P_INIT = 6;
 // Time step.
 const double time_step = 0.01;                     
 // Final time.
-const double T_FINAL = 2.0;                        
-// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;   
+const double T_FINAL = 2.0;
 
 // Choose one of the following time-integration methods, or define your own Butcher's table. The last number 
 // in the name of each method is its order. The one before last, if present, is the number of stages.
@@ -115,7 +110,6 @@ int main(int argc, char* argv[])
     {
       runge_kutta.set_time(current_time);
       runge_kutta.set_time_step(time_step);
-
       runge_kutta.rk_time_step_newton(slns, slns);
     }
     catch(Exceptions::Exception& e)

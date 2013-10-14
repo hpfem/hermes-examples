@@ -1,5 +1,5 @@
 #define HERMES_REPORT_INFO
-#define HERMES_REPORT_FILE "application.log"
+
 #include "hermes2d.h"
 
 using namespace Hermes;
@@ -36,7 +36,7 @@ enum shockCapturingType
   KRIVODONOVA
 };
 bool SHOCK_CAPTURING = true;
-shockCapturingType SHOCK_CAPTURING_TYPE = KUZMIN;
+shockCapturingType SHOCK_CAPTURING_TYPE = KRIVODONOVA;
 // Quantitative parameter of the discontinuity detector in case of Krivodonova.
 double DISCONTINUITY_DETECTOR_PARAM = 1.0;
 // Quantitative parameter of the shock capturing in case of Feistauer.

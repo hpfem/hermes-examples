@@ -1,5 +1,3 @@
-
-#define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
 
 // Flow inside a rotating circle. Both the flow and the circle are not moving 
@@ -51,9 +49,7 @@ const double T_FINAL = 3600.0;
 // Stopping criterion for the Newton's method.
 const double NEWTON_TOL = 1e-5;                   
 // Maximum allowed number of Newton iterations.
-const int NEWTON_MAX_ITER = 10;                   // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
+const int NEWTON_MAX_ITER = 10;
 
 // Current time (used in weak forms).
 double current_time = 0;
@@ -93,8 +89,6 @@ double integrate_over_wall(MeshFunction<double>* meshfn, int marker)
 
 int main(int argc, char* argv[])
 {
-  
-
   // Load the mesh.
   MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
@@ -105,7 +99,7 @@ int main(int argc, char* argv[])
   // Initial mesh refinements.
   for (int i=0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
   mesh->refine_towards_boundary(Hermes::vector<std::string>("Bdy-1", "Bdy-2", "Bdy-3", "Bdy-4"), 
-                               INIT_BDY_REF_NUM_INNER, false);  // True for anisotropic refinement.
+    INIT_BDY_REF_NUM_INNER, false);  // True for anisotropic refinement.
 
   // Initialize boundary conditions.
   EssentialBCNonConstX bc_vel_x(Hermes::vector<std::string>("Bdy-1", "Bdy-2", "Bdy-3","Bdy-4"), VEL, STARTUP_TIME);
@@ -113,8 +107,8 @@ int main(int argc, char* argv[])
   EssentialBCs<double> bcs_vel_x(&bc_vel_x);
   EssentialBCs<double> bcs_vel_y(&bc_vel_y);
 
-SpaceSharedPtr<double> xvel_space(new H1Space<double>(mesh, &bcs_vel_x, P_INIT_VEL));
-SpaceSharedPtr<double> yvel_space(new H1Space<double>(mesh, &bcs_vel_y, P_INIT_VEL));
+  SpaceSharedPtr<double> xvel_space(new H1Space<double>(mesh, &bcs_vel_x, P_INIT_VEL));
+  SpaceSharedPtr<double> yvel_space(new H1Space<double>(mesh, &bcs_vel_y, P_INIT_VEL));
 #ifdef PRESSURE_IN_L2
   SpaceSharedPtr<double> p_space(new L2Space<double>(mesh, P_INIT_PRESSURE));
 #else
@@ -140,13 +134,10 @@ SpaceSharedPtr<double> yvel_space(new H1Space<double>(mesh, &bcs_vel_y, P_INIT_V
   MeshFunctionSharedPtr<double>  yvel_prev_time(new ZeroSolution<double>(mesh));
   MeshFunctionSharedPtr<double>  p_prev_time(new ZeroSolution<double>(mesh));
   Hermes::vector<MeshFunctionSharedPtr<double> > slns_prev_time = 
-      Hermes::vector<MeshFunctionSharedPtr<double> >(xvel_prev_time, yvel_prev_time, p_prev_time);
+    Hermes::vector<MeshFunctionSharedPtr<double> >(xvel_prev_time, yvel_prev_time, p_prev_time);
 
   // Initialize weak formulation.
   WeakFormNSNewton wf(STOKES, RE, TAU, xvel_prev_time, yvel_prev_time);
-
-  // Initialize the FE problem.
-  DiscreteProblem<double> dp(&wf, spaces);
 
   // Initialize views.
   VectorView vview("velocity [m/s]", new WinGeom(0, 0, 600, 500));
@@ -171,7 +162,7 @@ SpaceSharedPtr<double> yvel_space(new H1Space<double>(mesh, &bcs_vel_y, P_INIT_V
 
     // Perform Newton's iteration.
     Hermes::Mixins::Loggable::Static::info("Solving nonlinear problem:");
-    Hermes::Hermes2D::NewtonSolver<double> newton(&dp);
+    Hermes::Hermes2D::NewtonSolver<double> newton(&wf, spaces);
     try
     {
       newton.set_max_allowed_iterations(NEWTON_MAX_ITER);
@@ -194,8 +185,7 @@ SpaceSharedPtr<double> yvel_space(new H1Space<double>(mesh, &bcs_vel_y, P_INIT_V
     sprintf(title, "Velocity, time %g", current_time);
     vview.set_title(title);
     vview.show(xvel_prev_time, yvel_prev_time, HERMES_EPS_LOW*10);
-    
- }
+  }
 
   // Wait for all views to be closed.
   View::wait();

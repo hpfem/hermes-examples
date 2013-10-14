@@ -1,5 +1,5 @@
 
-#define HERMES_REPORT_FILE "application.log"
+
 #include "definitions.h"
 
 using namespace RefinementSelectors;
@@ -53,6 +53,9 @@ int main(int argc, char* argv[])
 
   // Create an H1 space with default shapeset.
   SpaceSharedPtr<double> space(new H1Space<double>(mesh, &bcs, P_INIT));
+  
+  // Set it to adaptivity.
+  adaptivity.set_space(space);
 
   // Initialize approximate solution.
   MeshFunctionSharedPtr<double> sln(new Solution<double>());

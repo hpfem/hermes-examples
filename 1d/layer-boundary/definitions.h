@@ -33,9 +33,12 @@ public:
 
   virtual Ord ord (double x, double y) const;
 
+  MeshFunction<double>* clone() const { return new CustomExactSolution(this->mesh, this->K); }
+
   ~CustomExactSolution();
 
   CustomExactFunction* cef;
+  double K;
 };
 
 /* Custom function */

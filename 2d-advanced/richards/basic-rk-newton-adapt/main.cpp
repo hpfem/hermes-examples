@@ -1,5 +1,3 @@
-
-#define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
 
 //  This example uses adaptivity with dynamical meshes to solve
@@ -37,7 +35,7 @@ const double T_FINAL = 0.4;
 // it has different meanings for various adaptive strategies.
 const double THRESHOLD = 0.5;                     
 // Error calculation & adaptivity.
-DefaultErrorCalculator<double, HERMES_H1_NORM> errorCalculator(RelativeErrorToGlobalNorm, 4);
+DefaultErrorCalculator<double, HERMES_H1_NORM> errorCalculator(RelativeErrorToGlobalNorm, 1);
 // Stopping criterion for an adaptivity step.
 AdaptStoppingCriterionSingleElement<double> stoppingCriterion(THRESHOLD);
 // Adaptivity processor class.

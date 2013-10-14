@@ -35,7 +35,10 @@ public:
 
   ~CustomExactSolution();
 
+  MeshFunction<double>* clone() const { return new CustomExactSolution(mesh, K); }
+
   CustomExactFunction* cef;
+  double K;
 };
 
 /* Custom function */

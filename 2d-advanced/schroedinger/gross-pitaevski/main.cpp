@@ -1,5 +1,5 @@
 
-#define HERMES_REPORT_FILE "application.log"
+
 #include "definitions.h"
 
 //  This example uses the Newton's method to solve a nonlinear complex-valued

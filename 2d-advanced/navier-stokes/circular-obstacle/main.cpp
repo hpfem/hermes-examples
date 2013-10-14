@@ -1,5 +1,5 @@
 
-#define HERMES_REPORT_FILE "application.log"
+
 #include "definitions.h"
 
 // The time-dependent laminar incompressible Navier-Stokes equations are

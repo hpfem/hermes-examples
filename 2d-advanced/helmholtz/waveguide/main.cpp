@@ -1,5 +1,5 @@
 
-#define HERMES_REPORT_FILE "application.log"
+
 #include "definitions.h"
 
 // This example shows how to model harmonic steady state in parallel plate waveguide.

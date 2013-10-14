@@ -19,6 +19,8 @@ public:
 
   virtual Ord ord (double x, double y) const;
 
+  MeshFunction<double>* clone() const { return new CustomExactSolution(mesh, slope); }
+
   double slope;
 };
 

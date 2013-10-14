@@ -1,5 +1,3 @@
-
-#define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
 
 #include "timestep_controller.h"
@@ -107,7 +105,7 @@ const int TIME_DISCR = 2;
 
 // Stopping criterion for Newton on coarse mesh.
 const double NEWTON_TOL_COARSE = 0.01;            
-// Stopping criterion for Newton on fine mesh->
+// Stopping criterion for Newton on fine mesh.
 const double NEWTON_TOL_FINE = 0.05;              
 // Maximum allowed number of Newton iterations.
 const int NEWTON_MAX_ITER = 100;                  
@@ -165,10 +163,7 @@ double physVoltage(double phi) {
 double SCALED_INIT_TAU = scaleTime(INIT_TAU);
 
 
-
 int main (int argc, char* argv[]) {
-
-
   // Load the mesh file.
   MeshSharedPtr C_mesh(new Mesh), phi_mesh(new Mesh), basemesh(new Mesh);
   MeshReaderH2D mloader;
@@ -302,7 +297,8 @@ int main (int argc, char* argv[]) {
       }
       C_space->set_uniform_order(P_INIT);
       phi_space->set_uniform_order(P_INIT);
-
+      C_space->assign_dofs();
+      phi_space->assign_dofs();
     }
 
     // Adaptivity loop. Note: C_prev_time and Phi_prev_time must not be changed during spatial adaptivity.
@@ -334,21 +330,21 @@ int main (int argc, char* argv[]) {
 
       NewtonSolver<double>* solver = new NewtonSolver<double>(dp);
 
-      // Calculate initial coefficient vector for Newton on the fine mesh->
+      // Calculate initial coefficient vector for Newton on the fine mesh.
       if (as == 1 && pid.get_timestep_number() == 1) {
-        Hermes::Mixins::Loggable::Static::info("Projecting coarse mesh solution to obtain coefficient vector on new fine mesh->");
+        Hermes::Mixins::Loggable::Static::info("Projecting coarse mesh solution to obtain coefficient vector on new fine mesh.");
         OGProjection<double> ogProjection; ogProjection.project_global(ref_spaces,
           Hermes::vector<MeshFunctionSharedPtr<double> >(C_sln, phi_sln),
           coeff_vec);
       }
       else {
-        Hermes::Mixins::Loggable::Static::info("Projecting previous fine mesh solution to obtain coefficient vector on new fine mesh->");
+        Hermes::Mixins::Loggable::Static::info("Projecting previous fine mesh solution to obtain coefficient vector on new fine mesh.");
         OGProjection<double> ogProjection; ogProjection.project_global(ref_spaces,
           Hermes::vector<MeshFunctionSharedPtr<double> >(C_ref_sln, phi_ref_sln),
           coeff_vec);
       }
 
-      // Newton's loop on the fine mesh->
+      // Newton's loop on the fine mesh.
       Hermes::Mixins::Loggable::Static::info("Solving on fine mesh:");
       try
       {

@@ -1,5 +1,5 @@
 #define HERMES_REPORT_INFO
-#define HERMES_REPORT_FILE "application.log"
+
 #include "hermes2d.h"
 
 using namespace Hermes;
@@ -19,7 +19,7 @@ const unsigned int EVERY_NTH_STEP = 1;
 // Initial polynomial degree.
 const int P_INIT = 0;
 // Number of initial uniform mesh refinements.    
-const int INIT_REF_NUM = 5;
+const int INIT_REF_NUM = 3;
 
 // Shock capturing.
 enum shockCapturingType

@@ -1,5 +1,3 @@
-
-#define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
 
 // This example shows how to discretize the first-order time-domain Maxwell's equations 
@@ -25,10 +23,7 @@ const int INIT_REF_NUM = 1;
 // Time step.
 const double time_step = 0.05;                     
 // Final time.
-const double T_FINAL = 35.0;                       
-// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;   
+const double T_FINAL = 35.0;
 
 // Choose one of the following time-integration methods, or define your own Butcher's table. The last number 
 // in the name of each method is its order. The one before last, if present, is the number of stages.
@@ -82,7 +77,7 @@ int main(int argc, char* argv[])
   EssentialBCs<double> bcs_B;
 
   // Create x- and y- displacement space using the default H1 shapeset.
-  SpaceSharedPtr<double> B_space(new HcurlSpace<double>(mesh, &bcs_B, P_INIT));
+  SpaceSharedPtr<double> B_space(new H1Space<double>(mesh, &bcs_B, P_INIT));
   Hermes::vector<SpaceSharedPtr<double> > spaces(E_space, B_space);
   Hermes::vector<SpaceSharedPtr<double> > spaces_mutable(E_space, B_space);
   Hermes::Mixins::Loggable::Static::info("ndof = %d.", Space<double>::get_num_dofs(spaces));
@@ -134,6 +129,7 @@ int main(int argc, char* argv[])
 
     // Update time.
     current_time += time_step;
+    ts++;
 
   } while (current_time < T_FINAL);
 

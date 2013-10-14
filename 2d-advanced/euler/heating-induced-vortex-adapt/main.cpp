@@ -1,5 +1,5 @@
 #define HERMES_REPORT_INFO
-#define HERMES_REPORT_FILE "application.log"
+
 #include "hermes2d.h"
 
 using namespace Hermes;
@@ -41,7 +41,8 @@ double DISCONTINUITY_DETECTOR_PARAM = 1.0;
 const double NU_1 = 0.1;
 const double NU_2 = 0.1;
 
-// Initial polynomial degree.      
+// Initial polynomial degree.     
+// Do not change.
 const int P_INIT = 0;                                             
 // Number of initial uniform mesh refinements.     
 const int INIT_REF_NUM = 1;                                               

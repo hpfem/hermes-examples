@@ -1,5 +1,5 @@
 
-#define HERMES_REPORT_FILE "application.log"
+
 #include "definitions.h"
 
 using namespace RefinementSelectors;
@@ -51,7 +51,7 @@ const CandList CAND_LIST = H2D_HP_ANISO;
 const double ERR_STOP = 1e-1;
 
 // Newton's method
-// Stopping criterion for Newton on fine mesh->
+// Stopping criterion for Newton on fine mesh.
 const double NEWTON_TOL = 1e-5;                   
 // Maximum allowed number of Newton iterations.
 const int NEWTON_MAX_ITER = 20;                   

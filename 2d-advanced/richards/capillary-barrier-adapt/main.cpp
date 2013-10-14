@@ -1,5 +1,5 @@
 
-#define HERMES_REPORT_FILE "application.log"
+
 #include "definitions.h"
 
 //  This example uses adaptivity with dynamical meshes to solve
@@ -51,7 +51,7 @@ double time_step_max = 1.0;
 // Initial polynomial degree of all mesh elements.
 const int P_INIT = 1;                             
 // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM = 0;                       
+const int INIT_REF_NUM = 1;                       
 // Number of initial mesh refinements towards the top edge.
 const int INIT_REF_NUM_BDY_TOP = 0;               
 
@@ -74,7 +74,7 @@ Adapt<double> adaptivity(&errorCalculator, &stoppingCriterion);
 // Predefined list of element refinement candidates.
 const CandList CAND_LIST = H2D_HP_ANISO;
 // Stopping criterion for adaptivity.
-const double ERR_STOP = 1e-1;
+const double ERR_STOP = 1e-2;
 
 // Constitutive relations.
 enum CONSTITUTIVE_RELATIONS {
@@ -85,11 +85,11 @@ enum CONSTITUTIVE_RELATIONS {
 CONSTITUTIVE_RELATIONS constitutive_relations_type = CONSTITUTIVE_GENUCHTEN;
 
 // Newton's and Picard's methods.
-// Stopping criterion for Newton on fine mesh->
+// Stopping criterion for Newton on fine mesh.
 const double NEWTON_TOL = 1e-5;                   
 // Maximum allowed number of Newton iterations.
 int NEWTON_MAX_ITER = 10;                         
-// Stopping criterion for Picard on fine mesh->
+// Stopping criterion for Picard on fine mesh.
 const double PICARD_TOL = 1e-2;                   
 // Maximum allowed number of Picard iterations.
 int PICARD_MAX_ITER = 23;                         
@@ -320,13 +320,13 @@ int main(int argc, char* argv[])
       if(ITERATIVE_METHOD == 1) {
         double* coeff_vec = new double[ref_space->get_num_dofs()];
      
-        // Calculate initial coefficient vector for Newton on the fine mesh->
+        // Calculate initial coefficient vector for Newton on the fine mesh.
         if (as == 1 && ts == 1) {
-          Hermes::Mixins::Loggable::Static::info("Projecting coarse mesh solution to obtain initial vector on new fine mesh->");
+          Hermes::Mixins::Loggable::Static::info("Projecting coarse mesh solution to obtain initial vector on new fine mesh.");
           OGProjection<double> ogProjection; ogProjection.project_global(ref_space, sln_prev_time, coeff_vec);
         }
         else {
-          Hermes::Mixins::Loggable::Static::info("Projecting previous fine mesh solution to obtain initial vector on new fine mesh->");
+          Hermes::Mixins::Loggable::Static::info("Projecting previous fine mesh solution to obtain initial vector on new fine mesh.");
           OGProjection<double> ogProjection; ogProjection.project_global(ref_space, ref_sln, coeff_vec);
         }
 
@@ -349,6 +349,7 @@ int main(int argc, char* argv[])
         // Perform Newton's iteration.
         Hermes::Mixins::Loggable::Static::info("Solving nonlinear problem:");
         Hermes::Hermes2D::NewtonSolver<double> newton(&dp);
+        newton.set_sufficient_improvement_factor(1.1);
         bool newton_converged = false;
         while(!newton_converged)
         {
@@ -388,13 +389,13 @@ int main(int argc, char* argv[])
         delete [] coeff_vec;
       }
       else {
-        // Calculate initial condition for Picard on the fine mesh->
+        // Calculate initial condition for Picard on the fine mesh.
         if (as == 1 && ts == 1) {
-          Hermes::Mixins::Loggable::Static::info("Projecting coarse mesh solution to obtain initial vector on new fine mesh->");
+          Hermes::Mixins::Loggable::Static::info("Projecting coarse mesh solution to obtain initial vector on new fine mesh.");
           OGProjection<double> ogProjection; ogProjection.project_global(ref_space, sln_prev_time, sln_prev_iter);
         }
         else {
-          Hermes::Mixins::Loggable::Static::info("Projecting previous fine mesh solution to obtain initial vector on new fine mesh->");
+          Hermes::Mixins::Loggable::Static::info("Projecting previous fine mesh solution to obtain initial vector on new fine mesh.");
           OGProjection<double> ogProjection; ogProjection.project_global(ref_space, ref_sln, sln_prev_iter);
         }
 
@@ -448,6 +449,7 @@ int main(int argc, char* argv[])
       adaptivity.set_space(space);
       
       // Calculate error estimate wrt. fine mesh solution.
+      errorCalculator.calculate_errors(sln, ref_sln);
       err_est_rel = errorCalculator.get_total_error_squared() * 100;
 
       // Report results.
