@@ -1190,7 +1190,7 @@ int FluxLimiter::limit_according_to_detector(Hermes::vector<SpaceSharedPtr<doubl
             }
             if(all_sons_visited)
               for(unsigned int space_i = 0; space_i < spaces.size(); space_i++) 
-                coarse_spaces_to_limit[space_i]->set_element_order_internal(spaces[space_i]->get_mesh()->get_element(*it)->parent->id, 0);
+                coarse_spaces_to_limit[space_i]->set_element_order(spaces[space_i]->get_mesh()->get_element(*it)->parent->id, 0);
         }
       }
     }
@@ -1263,7 +1263,7 @@ void FluxLimiter::limit_second_orders_according_to_detector(Hermes::vector<Space
             }
             if(all_sons_visited)
               for(unsigned int space_i = 0; space_i < spaces.size(); space_i++) 
-                coarse_spaces_to_limit[space_i]->set_element_order_internal(spaces[space_i]->get_mesh()->get_element(*it)->parent->id, H2D_MAKE_QUAD_ORDER(h_order_to_set, v_order_to_set));
+                coarse_spaces_to_limit[space_i]->set_element_order(spaces[space_i]->get_mesh()->get_element(*it)->parent->id, H2D_MAKE_QUAD_ORDER(h_order_to_set, v_order_to_set));
         }
       }
     }
