@@ -63,7 +63,7 @@ project(hermes-examples)
   # This overrides CXX flags for MSVC
   if(MSVC)
     include(MSVC_FLAGS)
-  endif(MSVC
+  endif(MSVC)
   
   include_directories("${PTHREAD_ROOT}/include")
 
