@@ -32,7 +32,7 @@ project(hermes-examples)
   # This has to be the same as in the library's CMake.
   # Default "yes"
   set(H2D_WITH_GLUT YES)
-  set(WITH_TC_MALLOC YES)
+  set(WITH_TC_MALLOC NO)
   set(WITH_PARALUTION YES)
   set(WITH_UMFPACK YES)
   set(WITH_OPENMP YES)
