@@ -60,33 +60,11 @@ project(hermes-examples)
     set(DEBUG_FLAGS   "-g")
   endif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 
-  # Enabling multiprocessor build on MSVC
-  if(MSVC)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
-    if(WITH_OPENMP)
-      SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /openmp")
-    endif(WITH_OPENMP)
-  endif(MSVC)
-
   # This overrides CXX flags for MSVC
   if(MSVC)
-    if(WIN64)
-      set(MSVC_DEFINES "/DWIN64 /D_WINDOWS /Dfinite=_finite /wd4275 /wd4251")
-    else(WIN64)
-      set(MSVC_DEFINES "/DWIN32 /D_WINDOWS /Dfinite=_finite /wd4275 /wd4251")
-    endif(WIN64)
-    set(CMAKE_CXX_FLAGS_DEBUG          "/D_DEBUG /Od /Ob2 /MDd /Zi ${MSVC_DEFINES}")
-    set(HERMES_DEBUG_FLAGS "${CMAKE_CXX_FLAGS_DEBUG}")
-    set(CMAKE_CXX_FLAGS_MINSIZEREL_INIT     "/O2 /Ob2 /MD ${MSVC_DEFINES}")
-    set(CMAKE_CXX_FLAGS_RELEASE        "/DNDEBUG /O2 /Ob2 /MD ${MSVC_DEFINES}")
-    set(HERMES_RELEASE_FLAGS "${CMAKE_CXX_FLAGS_RELEASE}")
-    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO_INIT "/DNDEBUG /O2 /Ob2 /MD /Zi ${MSVC_DEFINES}")
-    
-    set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SAFESEH:NO")
-    set (CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /SAFESEH:NO")
-    set (CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} /SAFESEH:NO")
-  endif(MSVC)
-
+    include(MSVC_FLAGS)
+  endif(MSVC
+  
   include_directories("${PTHREAD_ROOT}/include")
 
   if(${WITH_UMFPACK})
