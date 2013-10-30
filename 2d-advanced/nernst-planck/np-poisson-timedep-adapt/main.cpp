@@ -195,6 +195,8 @@ int main (int argc, char* argv[]) {
   SpaceSharedPtr<double> C_space(new H1Space<double>(C_mesh, P_INIT));
   SpaceSharedPtr<double> phi_space(new  H1Space<double>(MULTIMESH ? phi_mesh : C_mesh, &bcs_phi, P_INIT));
 
+  Hermes::vector<SpaceSharedPtr<double> > spaces(C_space, phi_space);
+  
   MeshFunctionSharedPtr<double> C_sln(new Solution<double>), C_ref_sln(new Solution<double>);
   MeshFunctionSharedPtr<double> phi_sln(new Solution<double>), phi_ref_sln(new Solution<double>);
 
@@ -222,7 +224,7 @@ int main (int argc, char* argv[]) {
     wf = new WeakFormPNPEuler(TAU, C0, K, L, D, C_prev_time);
   }
 
-  DiscreteProblem<double> dp_coarse(wf, Hermes::vector<SpaceSharedPtr<double> >(C_space, phi_space));
+  DiscreteProblem<double> dp_coarse(wf, spaces);
 
   NewtonSolver<double>* solver_coarse = new NewtonSolver<double>(&dp_coarse);
 

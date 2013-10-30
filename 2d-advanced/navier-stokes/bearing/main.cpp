@@ -1,5 +1,3 @@
-
-
 #include "definitions.h"
 
 // Flow in between two circles, inner circle is rotating with surface 
@@ -180,7 +178,7 @@ int main(int argc, char* argv[])
 
     // Update time-dependent essential BCs.
     Hermes::Mixins::Loggable::Static::info("Updating time-dependent essential BC.");
-    Space<double>::update_essential_bc_values(Hermes::vector<SpaceSharedPtr<double> >(xvel_space, yvel_space, p_space), current_time);
+    Space<double>::update_essential_bc_values(spaces, current_time);
 
     // Perform Newton's iteration.
     Hermes::Mixins::Loggable::Static::info("Solving nonlinear problem:");

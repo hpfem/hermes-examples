@@ -259,13 +259,14 @@ int main(int argc, char* argv[])
         SpaceSharedPtr<double> ref_space_H = refSpaceCreatorH.create_ref_space();
         Space<double>::ReferenceSpaceCreator refSpaceCreatorP(P_space, ref_mesh_P, order_increase);
         SpaceSharedPtr<double> ref_space_P = refSpaceCreatorP.create_ref_space();
-
-        int ndof = Space<double>::get_num_dofs(Hermes::vector<SpaceSharedPtr<double> >(ref_space_E, ref_space_H, ref_space_P));
+        Hermes::vector<SpaceSharedPtr<double> > ref_spaces(ref_space_E, ref_space_H, ref_space_P);
+       
+        int ndof = Space<double>::get_num_dofs(ref_spaces);
         Hermes::Mixins::Loggable::Static::info("ndof = %d.", ndof);
 
         try
         {
-          runge_kutta.set_spaces(Hermes::vector<SpaceSharedPtr<double> >(ref_space_E, ref_space_H, ref_space_P));
+          runge_kutta.set_spaces(ref_spaces);
           runge_kutta.set_time(current_time);
           runge_kutta.set_time_step(time_step);
           runge_kutta.rk_time_step_newton(slns_time_prev, slns_time_new);

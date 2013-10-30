@@ -87,7 +87,8 @@ int main(int argc, char* argv[])
   wf.set_verbose_output(false);
 
   // Initialize the FE problem.
-  DiscreteProblem<double> dp(&wf, Hermes::vector<SpaceSharedPtr<double> >(e_r_space, e_i_space));
+  Hermes::vector<SpaceSharedPtr<double> > spaces(e_r_space, e_i_space);
+  DiscreteProblem<double> dp(&wf, spaces);
 
   // Initialize the solutions.
   MeshFunctionSharedPtr<double> e_r_sln(new Solution<double>), e_i_sln(new Solution<double>);

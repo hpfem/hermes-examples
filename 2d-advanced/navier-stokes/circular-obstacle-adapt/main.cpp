@@ -219,7 +219,7 @@ int main(int argc, char* argv[])
 
     // Update time-dependent essential BCs.
     Hermes::Mixins::Loggable::Static::info("Updating time-dependent essential BC.");
-    Space<double>::update_essential_bc_values(Hermes::vector<SpaceSharedPtr<double> >(xvel_space, yvel_space, p_space), current_time);
+    Space<double>::update_essential_bc_values(spaces, current_time);
 
     // Periodic global derefinements.
     if (ts > 1 && ts % UNREF_FREQ == 0) {

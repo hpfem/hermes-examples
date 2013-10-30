@@ -112,7 +112,8 @@ int main(int argc, char* argv[])
   CustomWeakFormLinearElasticity wf(E, nu, rho*g1, "bdy rest", f0, f1);
 
   // Initialize the FE problem.
-  DiscreteProblem<double> dp(&wf, Hermes::vector<SpaceSharedPtr<double> >(u1_space, u2_space));
+  Hermes::vector<SpaceSharedPtr<double> > spaces(u1_space, u2_space);
+  DiscreteProblem<double> dp(&wf, spaces);
 
   // Initialize coarse and reference mesh solutions.
   MeshFunctionSharedPtr<double> u1_sln(new Solution<double>), u2_sln(new Solution<double>);
