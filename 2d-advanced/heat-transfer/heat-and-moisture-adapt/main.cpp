@@ -1,5 +1,3 @@
-
-#define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
 
 using namespace RefinementSelectors;
@@ -34,16 +32,43 @@ const int UNREF_METHOD = 3;
 // This is a quantitative parameter of the adapt(...) function and
 // it has different meanings for various adaptive strategies.
 const double THRESHOLD = 0.9;                     
-// Error calculation & adaptivity.
-DefaultErrorCalculator<double, HERMES_H1_NORM> errorCalculator(RelativeErrorToGlobalNorm, 2);
-// Stopping criterion for an adaptivity step.
-AdaptStoppingCriterionSingleElement<double> stoppingCriterion(THRESHOLD);
-// Adaptivity processor class.
-Adapt<double> adaptivity(&errorCalculator, &stoppingCriterion);
 // Predefined list of element refinement candidates.
 const CandList CAND_LIST = H2D_HP_ANISO;
 // Stopping criterion for adaptivity.
 const double ERR_STOP = 1e0;
+
+// Problem parameters.
+const double c_TT = 2.18e+6;
+const double d_TT = 2.1;
+const double d_Tw = 2.37e-2 / W_SCALING_FACTOR;
+const double k_TT = 25;
+const double c_ww = 24.9;
+const double d_wT = 1.78e-10 * W_SCALING_FACTOR;
+const double d_ww = 3.02e-8;
+const double k_ww = 1.84e-7;
+
+CustomErrorForm cef_0_0(0, 0, d_TT, c_TT);
+CustomErrorForm cef_0_1(0, 1, d_Tw, c_TT);
+CustomErrorForm cef_1_0(1, 0, d_wT, c_ww);
+CustomErrorForm cef_1_1(1, 1, d_ww, c_ww);
+
+// Error calculation & adaptivity.
+class MyErrorCalculator : public Hermes::Hermes2D::ErrorCalculator<double>
+{
+public:
+  MyErrorCalculator() : Hermes::Hermes2D::ErrorCalculator<double>(RelativeErrorToGlobalNorm)
+  {
+    this->add_error_form(&cef_0_0);
+    this->add_error_form(&cef_0_1);
+    this->add_error_form(&cef_1_0);
+    this->add_error_form(&cef_1_1);
+  }
+}
+errorCalculator;
+// Stopping criterion for an adaptivity step.
+AdaptStoppingCriterionSingleElement<double> stoppingCriterion(THRESHOLD);
+// Adaptivity processor class.
+Adapt<double> adaptivity(&errorCalculator, &stoppingCriterion);
 
 // Newton's method
 // Stopping criterion for Newton on fine mesh->
@@ -73,16 +98,6 @@ ButcherTableType butcher_table_type = Implicit_RK_1;
 const double time_step = 10.*24*60*60;                  
 // Physical time [seconds].
 const double SIMULATION_TIME = 10000*time_step + 0.001;  
-
-// Problem parameters.
-const double c_TT = 2.18e+6;
-const double d_TT = 2.1;
-const double d_Tw = 2.37e-2 / W_SCALING_FACTOR;
-const double k_TT = 25;
-const double c_ww = 24.9;
-const double d_wT = 1.78e-10 * W_SCALING_FACTOR;
-const double d_ww = 3.02e-8;
-const double k_ww = 1.84e-7;
 
 // Initial and boundary conditions.
 // (Kelvins)
@@ -127,6 +142,8 @@ int main(int argc, char* argv[])
 
   SpaceSharedPtr<double> T_space(new H1Space<double>(T_mesh, &bcs_T, P_INIT));
   SpaceSharedPtr<double> w_space(new H1Space<double>(MULTI ? w_mesh : T_mesh, P_INIT));
+  Hermes::vector<SpaceSharedPtr<double> > spaces(T_space, w_space);
+  adaptivity.set_spaces(spaces);
 
   // Define constant initial conditions.
   Hermes::Mixins::Loggable::Static::info("Setting initial conditions.");
@@ -202,6 +219,7 @@ int main(int argc, char* argv[])
       }
       T_space->assign_dofs();
       w_space->assign_dofs();
+      Space<double>::assign_dofs(spaces);
     }
 
     // Spatial adaptivity loop. Note: T_time_prev and w_time_prev must not be changed during 
@@ -256,16 +274,6 @@ int main(int argc, char* argv[])
         Hermes::vector<MeshFunctionSharedPtr<double> >(T_time_new, w_time_new), 
         Hermes::vector<MeshFunctionSharedPtr<double> >(T_coarse, w_coarse)); 
 
-      // Initialize an instance of the Adapt class and register custom error forms.
-      Adapt<double> adaptivity(Hermes::vector<SpaceSharedPtr<double> >(T_space, w_space), &errorCalculator, &stoppingCriterion);
-      CustomErrorForm cef_0_0(d_TT, c_TT);
-      CustomErrorForm cef_0_1(d_Tw, c_TT);
-      CustomErrorForm cef_1_0(d_wT, c_ww);
-      CustomErrorForm cef_1_1(d_ww, c_ww);
-      errorCalculator.add_error_form(0, 0, &cef_0_0);
-      errorCalculator.add_error_form(0, 1, &cef_0_1);
-      errorCalculator.add_error_form(1, 0, &cef_1_0);
-      errorCalculator.add_error_form(1, 1, &cef_1_1);
 
       // Calculate element errors and total error estimate.
       Hermes::Mixins::Loggable::Static::info("Calculating error estimate."); 

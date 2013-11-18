@@ -36,33 +36,14 @@ protected:
 
 /* Custom error forms */
 
-class CustomErrorForm : public MatrixFormVol<double>
+class CustomErrorForm : public NormFormVol<double>
 {
 public:
-  CustomErrorForm(double d, double c) : MatrixFormVol<double>(0, 0), d(d), c(c) {};
+  CustomErrorForm(int i, int j, double d, double c) : NormFormVol<double>(i, j), d(d), c(c) {};
 
-  template<typename Real, typename Scalar>
-  Scalar laplace_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Scalar> *u, 
-      Func<Scalar> *v, Geom<Real> *e, Func<Scalar>* *ext) const
+  virtual double value(int n, double *wt, Func<double> *u, Func<double> *v, Geom<double> *e) const
   {
-    return d / c * int_grad_u_grad_v<Scalar, Scalar>(n, wt, u, v);
-  }
-
-  virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
-      Func<double> *v, Geom<double> *e, Func<double>* *ext) const
-  {
-    return laplace_form<double, double>(n, wt, u_ext, u, v, e, ext);
-  }
-
-  virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, 
-      Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const
-  {
-    return laplace_form<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
-  }
-
-  MatrixFormVol<double>* clone() const
-  {
-    return new CustomErrorForm(*this);
+    return d / c * int_grad_u_grad_v<double, double>(n, wt, u, v);
   }
 
   double d, c;

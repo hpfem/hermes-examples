@@ -1,5 +1,3 @@
-#define HERMES_REPORT_ALL
-#define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
 
 //  This example uses adaptivity with dynamical meshes to solve
@@ -116,14 +114,6 @@ bool is_in_mat_3(double x, double y) {
 #include "constitutive_gardner.cpp"
 #endif
 
-// Boundary markers.
-const int BDY_1 = 1;
-const int BDY_2 = 2;
-const int BDY_3 = 3;
-const int BDY_4 = 4;
-const int BDY_5 = 5;
-const int BDY_6 = 6;
-
 // Initial condition.
 double init_cond(double x, double y, double& dx, double& dy) {
   dx = 0;
@@ -137,9 +127,6 @@ double essential_bc_values(double x, double y, double time)
   if (STARTUP_TIME > time) return -y + H_INIT + time/STARTUP_TIME*H_ELEVATION;
   else return -y + H_INIT + H_ELEVATION;
 }
-
-// Weak forms.
-#include "definitions.cpp"
 
 int main(int argc, char* argv[])
 {
@@ -228,34 +215,7 @@ SpaceSharedPtr<double> init_space(&basemesh, &bc_types, &bc_values, P_INIT);
   while (done == false);
   
   // Initialize the weak formulation.
-  WeakForm<double> wf;
-  if (TIME_INTEGRATION == 1) {
-    wf.add_matrix_form(jac_form_vol_euler, jac_form_vol_ord, HERMES_NONSYM, HERMES_ANY, 
-                       &sln_prev_time);
-    wf.add_matrix_form_surf(jac_form_surf_1_euler, jac_form_surf_1_ord, BDY_1);
-    wf.add_matrix_form_surf(jac_form_surf_4_euler, jac_form_surf_4_ord, BDY_4);
-    wf.add_matrix_form_surf(jac_form_surf_6_euler, jac_form_surf_6_ord, BDY_6);
-    wf.add_vector_form(res_form_vol_euler, res_form_vol_ord, HERMES_ANY, 
-                       &sln_prev_time);
-    wf.add_vector_form_surf(res_form_surf_1_euler, res_form_surf_1_ord, BDY_1); 
-    wf.add_vector_form_surf(res_form_surf_4_euler, res_form_surf_4_ord, BDY_4);
-    wf.add_vector_form_surf(res_form_surf_6_euler, res_form_surf_6_ord, BDY_6);
-  }
-  else {
-    wf.add_matrix_form(jac_form_vol_cranic, jac_form_vol_ord, HERMES_NONSYM, HERMES_ANY, 
-                       &sln_prev_time);
-    wf.add_matrix_form_surf(jac_form_surf_1_cranic, jac_form_surf_1_ord, BDY_1);
-    wf.add_matrix_form_surf(jac_form_surf_4_cranic, jac_form_surf_4_ord, BDY_4);
-    wf.add_matrix_form_surf(jac_form_surf_6_cranic, jac_form_surf_6_ord, BDY_6); 
-    wf.add_vector_form(res_form_vol_cranic, res_form_vol_ord, HERMES_ANY, 
-                       &sln_prev_time);
-    wf.add_vector_form_surf(res_form_surf_1_cranic, res_form_surf_1_ord, BDY_1, 
-			    &sln_prev_time);
-    wf.add_vector_form_surf(res_form_surf_4_cranic, res_form_surf_4_ord, BDY_4, 
-			    &sln_prev_time);
-    wf.add_vector_form_surf(res_form_surf_6_cranic, res_form_surf_6_ord, BDY_6, 
-			    &sln_prev_time);
-  }
+  CustomWeakForm wf;
 
   // Error estimate and discrete problem size as a function of physical time.
   SimpleGraph graph_time_err_est, graph_time_err_exact, graph_time_dof, graph_time_cpu;
