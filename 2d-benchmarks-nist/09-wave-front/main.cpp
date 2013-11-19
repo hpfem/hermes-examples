@@ -111,7 +111,7 @@ int main(int argc, char* argv[])
   // Initialize the weak formulation.
   CustomWeakForm wf(&rhs);
   // Equivalent, but slower:
-  // WeakFormsH1::DefaultWeakFormPoisson wf(HERMES_ANY, HERMES_ONE, &rhs);
+  // WeakFormsH1::DefaultWeakFormPoisson wf(HERMES_ANY, nullptr, &rhs);
 
   // Initialize boundary conditions.
   DefaultEssentialBCNonConst<double> bc("Bdy", exact_sln);
