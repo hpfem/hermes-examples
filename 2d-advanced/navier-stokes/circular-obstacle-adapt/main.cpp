@@ -1,5 +1,3 @@
-
-
 #include "definitions.h"
 
 // The time-dependent laminar incompressible Navier-Stokes equations are
@@ -31,7 +29,7 @@ const bool STOKES = false;
 // Number of initial uniform mesh refinements.
 const int INIT_REF_NUM = 0;                       
 // Number of initial mesh refinements towards boundary.
-const int INIT_REF_NUM_BDY = 3;                   
+const int INIT_REF_NUM_BDY = 1;                   
 // If this is defined, the pressure is approximated using
 // discontinuous L2 elements (making the velocity discreetely
 // divergence-free, more accurate than using a continuous
@@ -49,9 +47,6 @@ const int P_INIT_PRESSURE = 1;
 // Adaptivity
 // Every UNREF_FREQth time step the mesh is unrefined.
 const int UNREF_FREQ = 1;                         
-// This is a quantitative parameter of the adapt(...) function and
-// it has different meanings for various adaptive strategies.
-const double THRESHOLD = 0.3;                     
 // Error calculation & adaptivity.
 class CustomErrorCalculator : public DefaultErrorCalculator<double, HERMES_H1_NORM>
 {
@@ -63,6 +58,7 @@ public:
   }
 } errorCalculator(RelativeErrorToGlobalNorm);
 // Stopping criterion for an adaptivity step.
+const double THRESHOLD = 0.3;
 AdaptStoppingCriterionSingleElement<double> stoppingCriterion(THRESHOLD);      
 // Adaptivity processor class.
 Adapt<double> adaptivity(&errorCalculator, &stoppingCriterion);
@@ -71,7 +67,7 @@ Adapt<double> adaptivity(&errorCalculator, &stoppingCriterion);
 // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
 const CandList CAND_LIST = H2D_H_ISO;           
 // Stopping criterion for adaptivity.
-const double ERR_STOP = 1e-3;
+const double ERR_STOP = 1e-4;
 
 // Problem parameters
 // Reynolds number.
@@ -106,45 +102,19 @@ const std::string BDY_OBSTACLE = "b5";
 // Current time (used in weak forms).
 double current_time = 0;
 
-/*// Boundary condition values for x-velocity
-double essential_bc_values_xvel(double x, double y, double time) {
-// time-dependent inlet velocity (parabolic profile)
-double val_y = VEL_INLET * y*(H-y) / (H/2.)/(H/2.); //parabolic profile with peak VEL_INLET at y = H/2
-if (time <= STARTUP_TIME) return val_y * time/STARTUP_TIME;
-else return val_y;
-}
-*/
-
-/*
-void mag(int n, double* a, double* dadx, double* dady,
-double* b, double* dbdx, double* dbdy,
-double* out, double* outdx, double* outdy)
-{
-for (int i = 0; i < n; i++)
-{
-out[i] = sqrt(sqr(a[i]) + sqr(b[i]));
-outdx[i] = (0.5 / out[i]) * (2.0 * a[i] * dadx[i] + 2.0 * b[i] * dbdx[i]);
-outdy[i] = (0.5 / out[i]) * (2.0 * a[i] * dady[i] + 2.0 * b[i] * dbdy[i]);
-}
-}
-*/
-
 int main(int argc, char* argv[])
 {
-  HermesCommonApi.set_integral_param_value(numThreads, 1);
-
   // Load the mesh.
   MeshSharedPtr mesh(new Mesh), basemesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("domain.mesh", basemesh);
 
   // Initial mesh refinements.
-  //mesh->refine_all_elements();
-  basemesh->refine_towards_boundary(BDY_OBSTACLE, 1, false);
-  // '4' is the number of levels.
-  basemesh->refine_towards_boundary(BDY_TOP, 1, true);     
-  // 'true' stands for anisotropic refinements.
-  basemesh->refine_towards_boundary(BDY_BOTTOM, 1, true);  
+  for(int i = 0; i < INIT_REF_NUM; i++)
+    basemesh->refine_all_elements();
+  basemesh->refine_towards_boundary(BDY_OBSTACLE, INIT_REF_NUM_BDY, false);
+  basemesh->refine_towards_boundary(BDY_TOP, INIT_REF_NUM_BDY, true);     
+  basemesh->refine_towards_boundary(BDY_BOTTOM, INIT_REF_NUM_BDY, true);  
 
   mesh->copy(basemesh);
 
@@ -163,6 +133,7 @@ int main(int argc, char* argv[])
   SpaceSharedPtr<double> p_space(new H1Space<double>(mesh, P_INIT_PRESSURE));
 #endif
   Hermes::vector<SpaceSharedPtr<double> > spaces(xvel_space, yvel_space, p_space);
+  adaptivity.set_spaces(spaces);
 
   // Calculate and report the number of degrees of freedom.
   int ndof = Space<double>::get_num_dofs(spaces);
@@ -187,6 +158,7 @@ int main(int argc, char* argv[])
   MeshFunctionSharedPtr<double>  xvel_prev_time(new ZeroSolution<double>(mesh));
   MeshFunctionSharedPtr<double>  yvel_prev_time(new ZeroSolution<double>(mesh));
   MeshFunctionSharedPtr<double>  p_prev_time(new ZeroSolution<double>(mesh));
+  Hermes::vector<MeshFunctionSharedPtr<double> > prev_time(xvel_prev_time, yvel_prev_time, p_prev_time);
 
   MeshFunctionSharedPtr<double>  xvel_sln(new ZeroSolution<double>(mesh));
   MeshFunctionSharedPtr<double>  yvel_sln(new ZeroSolution<double>(mesh));
@@ -196,14 +168,21 @@ int main(int argc, char* argv[])
   WeakFormNSNewton wf(STOKES, RE, TAU, xvel_prev_time, yvel_prev_time);
 
   // Initialize the FE problem.
-  DiscreteProblem<double> dp(&wf, spaces);
-
+  NewtonSolver<double> newton(&wf, spaces);
+  newton.set_max_allowed_iterations(NEWTON_MAX_ITER);
+  newton.set_tolerance(NEWTON_TOL, Hermes::Solvers::ResidualNormAbsolute);
+        
   // Initialize refinement selector.
-  H1ProjBasedSelector<double> selector(CAND_LIST);
+  H1ProjBasedSelector<double> selector_h1(CAND_LIST);
+  L2ProjBasedSelector<double> selector_l2(CAND_LIST);
 
   // Initialize views.
-  VectorView vview("velocity [m/s]", new WinGeom(0, 0, 750, 240));
-  ScalarView pview("pressure [Pa]", new WinGeom(0, 290, 750, 240));
+  VectorView vview("velocity [m/s]", new WinGeom(0, 0, 500, 220));
+  ScalarView pview("pressure [Pa]", new WinGeom(520, 0, 500, 220));
+  ScalarView eview_x("Error", new WinGeom(0, 250, 500, 220));
+  ScalarView eview_y("Error", new WinGeom(520, 250, 500, 220));
+  ScalarView eview_p("Error", new WinGeom(0, 500, 500, 220));
+  ScalarView aview("Adapted", new WinGeom(520, 500, 500, 220));
   vview.set_min_max_range(0, 1.6);
   vview.fix_scale_width(80);
   pview.fix_scale_width(80);
@@ -234,13 +213,9 @@ int main(int argc, char* argv[])
       p_space->assign_dofs();
     }
 
-    DiscreteProblem<double> dp(&wf, spaces);
-    Hermes::Hermes2D::NewtonSolver<double> newton(&dp);
-
     // Spatial adaptivity loop. Note: xvel_prev_time, yvel_prev_time and pvel_prev_time
     // must not be changed during spatial adaptivity. 
     bool done = false; int as = 1;
-    double err_est;
     do {
       Hermes::Mixins::Loggable::Static::info("Time step %d, adaptivity step %d:", ts, as);
 
@@ -263,24 +238,20 @@ int main(int argc, char* argv[])
 
       if (ts == 1) {
         Hermes::Mixins::Loggable::Static::info("Projecting coarse mesh solution to obtain coefficient vector on new fine mesh.");
-        OGProjection<double> ogProj; ogProj.project_global(ref_spaces, Hermes::vector<MeshFunctionSharedPtr<double> >(xvel_sln, yvel_sln, p_sln), 
-          coeff_vec);
+        OGProjection<double>::project_global(ref_spaces, prev_time, coeff_vec);
       }
       else {
         Hermes::Mixins::Loggable::Static::info("Projecting previous fine mesh solution to obtain coefficient vector on new fine mesh.");
-        OGProjection<double> ogProj; ogProj.project_global(ref_spaces, Hermes::vector<MeshFunctionSharedPtr<double> >(xvel_prev_time, yvel_prev_time, p_prev_time), 
-          coeff_vec);
+        OGProjection<double>::project_global(ref_spaces, prev_time, coeff_vec);
       }
+
+      OGProjection<double>::project_global(ref_spaces, prev_time, prev_time);
 
       // Perform Newton's iteration.
       Hermes::Mixins::Loggable::Static::info("Solving nonlinear problem:");
       try
       {
         newton.set_spaces(ref_spaces);
-        newton.set_max_allowed_iterations(NEWTON_MAX_ITER);
-        newton.set_tolerance(NEWTON_TOL, Hermes::Solvers::ResidualNormAbsolute);
-        if(as == 2)
-          newton.output_matrix();
         newton.solve(coeff_vec);
       }
       catch(Hermes::Exceptions::Exception e)
@@ -300,12 +271,13 @@ int main(int argc, char* argv[])
 
       // Calculate element errors and total error estimate.
       Hermes::Mixins::Loggable::Static::info("Calculating error estimate.");
-      adaptivity.set_spaces(Hermes::vector<SpaceSharedPtr<double> >(xvel_space, yvel_space, p_space));
 
       errorCalculator.calculate_errors(Hermes::vector<MeshFunctionSharedPtr<double> >(xvel_sln, yvel_sln, p_sln), 
         Hermes::vector<MeshFunctionSharedPtr<double> >(xvel_ref_sln, yvel_ref_sln, p_ref_sln));
       double err_est_rel_total = errorCalculator.get_total_error_squared() * 100;
-
+      eview_x.show(errorCalculator.get_errorMeshFunction(0));
+      eview_y.show(errorCalculator.get_errorMeshFunction(1));
+      eview_p.show(errorCalculator.get_errorMeshFunction(2));
       // Report results.
       Hermes::Mixins::Loggable::Static::info("ndof: %d, ref_ndof: %d, err_est_rel: %g%%", 
         Space<double>::get_num_dofs(Hermes::vector<SpaceSharedPtr<double> >(xvel_space, yvel_space, p_space)), 
@@ -324,8 +296,8 @@ int main(int argc, char* argv[])
       else 
       {
         Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh.");
-        done = adaptivity.adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&selector, &selector, &selector));
-
+        done = adaptivity.adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&selector_h1, &selector_h1, &selector_l2));
+        aview.show(adaptivity.get_refinementInfoMeshFunction());
         // Increase the counter of performed adaptivity steps.
         as++;
       }
