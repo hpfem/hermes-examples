@@ -46,7 +46,11 @@ const int P_INIT_PRESSURE = 1;
 
 // Adaptivity
 // Every UNREF_FREQth time step the mesh is unrefined.
-const int UNREF_FREQ = 1;                         
+const int UNREF_FREQ = 5;
+bool FORCE_DEREFINEMENT = false;
+const int NOT_ADAPTING_REF_SPACES_SIZE = 6e4;
+const int FORCE_DEREFINEMENT_REF_SPACES_SIZE = 1e5;
+
 // Error calculation & adaptivity.
 class CustomErrorCalculator : public DefaultErrorCalculator<double, HERMES_H1_NORM>
 {
@@ -65,7 +69,7 @@ Adapt<double> adaptivity(&errorCalculator, &stoppingCriterion);
 // Predefined list of element refinement candidates. Possible values are
 // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
 // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
-const CandList CAND_LIST = H2D_H_ISO;           
+const CandList CAND_LIST = H2D_H_ANISO;           
 // Stopping criterion for adaptivity.
 const double ERR_STOP = 1e-4;
 
@@ -146,6 +150,7 @@ int main(int argc, char* argv[])
 #else
   NormType p_proj_norm = HERMES_H1_NORM;
 #endif
+  Hermes::vector<NormType> proj_norms(vel_proj_norm, vel_proj_norm, p_proj_norm);
 
   // Solutions for the Newton's iteration and time stepping.
   Hermes::Mixins::Loggable::Static::info("Setting initial conditions.");
@@ -154,18 +159,24 @@ int main(int argc, char* argv[])
   MeshFunctionSharedPtr<double>  xvel_ref_sln(new Solution<double>());
   MeshFunctionSharedPtr<double>  yvel_ref_sln(new Solution<double>());
   MeshFunctionSharedPtr<double>  p_ref_sln(new Solution<double>());
+  Hermes::vector<MeshFunctionSharedPtr<double> > ref_slns(xvel_ref_sln, yvel_ref_sln, p_ref_sln);
 
   MeshFunctionSharedPtr<double>  xvel_prev_time(new ZeroSolution<double>(mesh));
   MeshFunctionSharedPtr<double>  yvel_prev_time(new ZeroSolution<double>(mesh));
   MeshFunctionSharedPtr<double>  p_prev_time(new ZeroSolution<double>(mesh));
   Hermes::vector<MeshFunctionSharedPtr<double> > prev_time(xvel_prev_time, yvel_prev_time, p_prev_time);
+  MeshFunctionSharedPtr<double>  xvel_prev_time_projected(new ZeroSolution<double>(mesh));
+  MeshFunctionSharedPtr<double>  yvel_prev_time_projected(new ZeroSolution<double>(mesh));
+  MeshFunctionSharedPtr<double>  p_prev_time_projected(new ZeroSolution<double>(mesh));
+  Hermes::vector<MeshFunctionSharedPtr<double> > prev_time_projected(xvel_prev_time_projected, yvel_prev_time_projected, p_prev_time_projected);
 
   MeshFunctionSharedPtr<double>  xvel_sln(new ZeroSolution<double>(mesh));
   MeshFunctionSharedPtr<double>  yvel_sln(new ZeroSolution<double>(mesh));
   MeshFunctionSharedPtr<double>  p_sln(new ZeroSolution<double>(mesh));
+  Hermes::vector<MeshFunctionSharedPtr<double> > slns(xvel_sln, yvel_sln, p_sln);
 
   // Initialize weak formulation.
-  WeakFormNSNewton wf(STOKES, RE, TAU, xvel_prev_time, yvel_prev_time);
+  WeakFormNSNewton wf(STOKES, RE, TAU, xvel_prev_time_projected, yvel_prev_time_projected);
 
   // Initialize the FE problem.
   NewtonSolver<double> newton(&wf, spaces);
@@ -175,14 +186,15 @@ int main(int argc, char* argv[])
   // Initialize refinement selector.
   H1ProjBasedSelector<double> selector_h1(CAND_LIST);
   L2ProjBasedSelector<double> selector_l2(CAND_LIST);
+  Hermes::vector<RefinementSelectors::Selector<double> *> selectors(&selector_h1, &selector_h1, &selector_l2);
 
   // Initialize views.
   VectorView vview("velocity [m/s]", new WinGeom(0, 0, 500, 220));
   ScalarView pview("pressure [Pa]", new WinGeom(520, 0, 500, 220));
-  ScalarView eview_x("Error", new WinGeom(0, 250, 500, 220));
-  ScalarView eview_y("Error", new WinGeom(520, 250, 500, 220));
-  ScalarView eview_p("Error", new WinGeom(0, 500, 500, 220));
-  ScalarView aview("Adapted", new WinGeom(520, 500, 500, 220));
+  ScalarView eview_x("Error - Velocity-x", new WinGeom(0, 250, 500, 220));
+  ScalarView eview_y("Error - Velocity-y", new WinGeom(520, 250, 500, 220));
+  ScalarView eview_p("Error - Pressure", new WinGeom(0, 500, 500, 220));
+  ScalarView aview("Adapted elements", new WinGeom(520, 500, 500, 220));
   vview.set_min_max_range(0, 1.6);
   vview.fix_scale_width(80);
   pview.fix_scale_width(80);
@@ -201,7 +213,8 @@ int main(int argc, char* argv[])
     Space<double>::update_essential_bc_values(spaces, current_time);
 
     // Periodic global derefinements.
-    if (ts > 1 && ts % UNREF_FREQ == 0) {
+    if ((ts > 1) && (ts % UNREF_FREQ == 0 || FORCE_DEREFINEMENT))
+    {
       Hermes::Mixins::Loggable::Static::info("Global mesh derefinement.");
       mesh->copy(basemesh);
       xvel_space->set_uniform_order(P_INIT_VEL);
@@ -211,10 +224,10 @@ int main(int argc, char* argv[])
       xvel_space->assign_dofs();
       yvel_space->assign_dofs();
       p_space->assign_dofs();
+
+      FORCE_DEREFINEMENT = false;
     }
 
-    // Spatial adaptivity loop. Note: xvel_prev_time, yvel_prev_time and pvel_prev_time
-    // must not be changed during spatial adaptivity. 
     bool done = false; int as = 1;
     do {
       Hermes::Mixins::Loggable::Static::info("Time step %d, adaptivity step %d:", ts, as);
@@ -244,8 +257,9 @@ int main(int argc, char* argv[])
         Hermes::Mixins::Loggable::Static::info("Projecting previous fine mesh solution to obtain coefficient vector on new fine mesh.");
         OGProjection<double>::project_global(ref_spaces, prev_time, coeff_vec);
       }
-
-      OGProjection<double>::project_global(ref_spaces, prev_time, prev_time);
+      
+      Hermes::Mixins::Loggable::Static::info("Projecting previous fine mesh solution to the new mesh - without this, the calculation fails.");
+      OGProjection<double>::project_global(ref_spaces, prev_time, prev_time_projected);
 
       // Perform Newton's iteration.
       Hermes::Mixins::Loggable::Static::info("Solving nonlinear problem:");
@@ -260,27 +274,23 @@ int main(int argc, char* argv[])
       };
 
       // Update previous time level solutions.
-      Solution<double>::vector_to_solutions(newton.get_sln_vector(), ref_spaces, Hermes::vector<MeshFunctionSharedPtr<double> >(xvel_ref_sln, yvel_ref_sln, p_ref_sln));
+      Solution<double>::vector_to_solutions(newton.get_sln_vector(), ref_spaces, ref_slns);
 
       // Project the fine mesh solution onto the coarse mesh.
       Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
-      OGProjection<double> ogProj; ogProj.project_global(Hermes::vector<SpaceSharedPtr<double> >(xvel_space, yvel_space, p_space), 
-        Hermes::vector<MeshFunctionSharedPtr<double> >(xvel_ref_sln, yvel_ref_sln, p_ref_sln), 
-        Hermes::vector<MeshFunctionSharedPtr<double> >(xvel_sln, yvel_sln, p_sln), 
-        Hermes::vector<NormType>(vel_proj_norm, vel_proj_norm, p_proj_norm) );
+      OGProjection<double> ogProj; ogProj.project_global(spaces, ref_slns, slns, proj_norms);
 
       // Calculate element errors and total error estimate.
       Hermes::Mixins::Loggable::Static::info("Calculating error estimate.");
 
-      errorCalculator.calculate_errors(Hermes::vector<MeshFunctionSharedPtr<double> >(xvel_sln, yvel_sln, p_sln), 
-        Hermes::vector<MeshFunctionSharedPtr<double> >(xvel_ref_sln, yvel_ref_sln, p_ref_sln));
+      errorCalculator.calculate_errors(slns, ref_slns);
       double err_est_rel_total = errorCalculator.get_total_error_squared() * 100;
+
       eview_x.show(errorCalculator.get_errorMeshFunction(0));
       eview_y.show(errorCalculator.get_errorMeshFunction(1));
       eview_p.show(errorCalculator.get_errorMeshFunction(2));
       // Report results.
-      Hermes::Mixins::Loggable::Static::info("ndof: %d, ref_ndof: %d, err_est_rel: %g%%", 
-        Space<double>::get_num_dofs(Hermes::vector<SpaceSharedPtr<double> >(xvel_space, yvel_space, p_space)), 
+      Hermes::Mixins::Loggable::Static::info("ndof: %d, ref_ndof: %d, err_est_rel: %g%%", Space<double>::get_num_dofs(spaces),
         Space<double>::get_num_dofs(ref_spaces), err_est_rel_total);
 
       // Show the solution at the end of time step.
@@ -292,14 +302,18 @@ int main(int argc, char* argv[])
       pview.show(p_ref_sln);
 
       // If err_est too large, adapt the mesh.
-      if (err_est_rel_total < ERR_STOP) done = true;
+      if (err_est_rel_total < ERR_STOP || Space<double>::get_num_dofs(ref_spaces) > NOT_ADAPTING_REF_SPACES_SIZE)
+        done = true;
       else 
       {
         Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh.");
-        done = adaptivity.adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&selector_h1, &selector_h1, &selector_l2));
+        done = adaptivity.adapt(selectors);
         aview.show(adaptivity.get_refinementInfoMeshFunction());
         // Increase the counter of performed adaptivity steps.
         as++;
+
+        if (Space<double>::get_num_dofs(ref_spaces) > FORCE_DEREFINEMENT_REF_SPACES_SIZE)
+          FORCE_DEREFINEMENT = false;
       }
 
       // Clean up.
@@ -313,7 +327,7 @@ int main(int argc, char* argv[])
     p_prev_time->copy(p_ref_sln);
   }
 
-  ndof = Space<double>::get_num_dofs(Hermes::vector<SpaceSharedPtr<double> >(xvel_space, yvel_space, p_space));
+  ndof = Space<double>::get_num_dofs(spaces);
   Hermes::Mixins::Loggable::Static::info("ndof = %d", ndof);
 
   // Wait for all views to be closed.
