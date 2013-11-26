@@ -29,14 +29,15 @@ const bool STOKES = false;
 // Number of initial uniform mesh refinements.
 const int INIT_REF_NUM = 0;                       
 // Number of initial mesh refinements towards boundary.
-const int INIT_REF_NUM_BDY = 1;                   
+const int INIT_REF_NUM_BDY = 0;
+const int INIT_REF_NUM_OBSTACLE = 0;
 // If this is defined, the pressure is approximated using
 // discontinuous L2 elements (making the velocity discreetely
 // divergence-free, more accurate than using a continuous
 // pressure approximation). Otherwise the standard continuous
 // elements are used. The results are striking - check the
 // tutorial for comparisons.
-//#define PRESSURE_IN_L2                            
+#define PRESSURE_IN_L2
 // Initial polynomial degree for velocity components.
 // Note: P_INIT_VEL should always be greater than
 // P_INIT_PRESSURE because of the inf-sup condition.
@@ -62,14 +63,14 @@ public:
   }
 } errorCalculator(RelativeErrorToGlobalNorm);
 // Stopping criterion for an adaptivity step.
-const double THRESHOLD = 0.3;
+const double THRESHOLD = 0.7;
 AdaptStoppingCriterionSingleElement<double> stoppingCriterion(THRESHOLD);      
 // Adaptivity processor class.
 Adapt<double> adaptivity(&errorCalculator, &stoppingCriterion);
 // Predefined list of element refinement candidates. Possible values are
 // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
 // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
-const CandList CAND_LIST = H2D_H_ANISO;           
+const CandList CAND_LIST = H2D_H_ISO;           
 // Stopping criterion for adaptivity.
 const double ERR_STOP = 1e-4;
 
@@ -82,7 +83,7 @@ const double VEL_INLET = 1.0;
 // from 0 to VEL_INLET, then it stays constant.
 const double STARTUP_TIME = 1.0;                  
 // Time step.
-const double TAU = 0.001;                          
+const double TAU = 0.1;                          
 // Time interval length.
 const double T_FINAL = 30000.0;                   
 // Stopping criterion for Newton on fine mesh.
@@ -92,9 +93,6 @@ const int NEWTON_MAX_ITER = 20;
 // Domain height (necessary to define the parabolic
 // velocity profile at inlet).
 const double H = 5;                                    
-
-// Current time (defined as global since needed in weak forms).
-double TIME = 0;
 
 // Boundary markers.
 const std::string BDY_BOTTOM = "b1";
@@ -116,9 +114,9 @@ int main(int argc, char* argv[])
   // Initial mesh refinements.
   for(int i = 0; i < INIT_REF_NUM; i++)
     basemesh->refine_all_elements();
-  basemesh->refine_towards_boundary(BDY_OBSTACLE, INIT_REF_NUM_BDY, false);
-  basemesh->refine_towards_boundary(BDY_TOP, INIT_REF_NUM_BDY, true);     
-  basemesh->refine_towards_boundary(BDY_BOTTOM, INIT_REF_NUM_BDY, true);  
+  basemesh->refine_towards_boundary(BDY_OBSTACLE, INIT_REF_NUM_OBSTACLE, false);
+  basemesh->refine_towards_boundary(BDY_TOP, INIT_REF_NUM_BDY, false);     
+  basemesh->refine_towards_boundary(BDY_BOTTOM, INIT_REF_NUM_BDY, false);  
 
   mesh->copy(basemesh);
 
@@ -182,7 +180,8 @@ int main(int argc, char* argv[])
   NewtonSolver<double> newton(&wf, spaces);
   newton.set_max_allowed_iterations(NEWTON_MAX_ITER);
   newton.set_tolerance(NEWTON_TOL, Hermes::Solvers::ResidualNormAbsolute);
-        
+  newton.output_matrix();
+
   // Initialize refinement selector.
   H1ProjBasedSelector<double> selector_h1(CAND_LIST);
   L2ProjBasedSelector<double> selector_l2(CAND_LIST);
@@ -246,6 +245,9 @@ int main(int argc, char* argv[])
 
       Hermes::vector<SpaceSharedPtr<double> > ref_spaces(ref_xvel_space, ref_yvel_space, ref_p_space);
 
+      Hermes::Mixins::Loggable::Static::info("Updating time-dependent essential BC.");
+      Space<double>::update_essential_bc_values(ref_spaces, current_time);
+
       // Calculate initial coefficient vector for Newton on the fine mesh.
       double* coeff_vec = new double[Space<double>::get_num_dofs(ref_spaces)];
 
@@ -259,7 +261,7 @@ int main(int argc, char* argv[])
       }
       
       Hermes::Mixins::Loggable::Static::info("Projecting previous fine mesh solution to the new mesh - without this, the calculation fails.");
-      OGProjection<double>::project_global(ref_spaces, prev_time, prev_time_projected);
+      //OGProjection<double>::project_global(ref_spaces, prev_time, prev_time_projected);
 
       // Perform Newton's iteration.
       Hermes::Mixins::Loggable::Static::info("Solving nonlinear problem:");
@@ -294,10 +296,10 @@ int main(int argc, char* argv[])
         Space<double>::get_num_dofs(ref_spaces), err_est_rel_total);
 
       // Show the solution at the end of time step.
-      sprintf(title, "Velocity, time %g", TIME);
+      sprintf(title, "Velocity, time %g", current_time);
       vview.set_title(title);
       vview.show(xvel_ref_sln, yvel_ref_sln);
-      sprintf(title, "Pressure, time %g", TIME);
+      sprintf(title, "Pressure, time %g", current_time);
       pview.set_title(title);
       pview.show(p_ref_sln);
 
