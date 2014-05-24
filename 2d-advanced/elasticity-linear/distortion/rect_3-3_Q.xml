@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mesh:mesh xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:mesh="XMLMesh"
+  xmlns:element="XMLMesh"
+  xsi:schemaLocation="XMLMesh ../../xml_schemas/mesh_h2d_xml.xsd">
+  <variables>
+    <var name="a" value="1.0" />
+    <var name="a3" value="0.333333333333333" />
+    <var name="a23" value="0.666666666666667" />
+    <var name="b" value="1.0" />
+    <var name="b3" value="0.333333333333333" />
+    <var name="b23" value="0.666666666666667" />
+  </variables>
+
+  <vertices>
+    <v x="0"   y="0"   i="0"/>
+    <v x="a3"  y="0"   i="1"/>
+    <v x="a23" y="0"   i="2"/>
+    <v x="a"   y="0"   i="3"/>
+    <v x="a"   y="b3"  i="4"/>
+    <v x="a"   y="b23" i="5"/>
+    <v x="a"   y="b"   i="6"/>
+    <v x="a23" y="b"   i="7"/>
+    <v x="a3"  y="b"   i="8"/>
+    <v x="0"   y="b"   i="9"/>
+    <v x="0"   y="b23" i="10"/>
+    <v x="0"   y="b3"  i="11"/>
+    <v x="a3"  y="b3"  i="12"/>
+    <v x="a23" y="b3"  i="13"/>
+    <v x="a23" y="b23" i="14"/>
+    <v x="a3"  y="b23" i="15"/>
+  </vertices>
+
+  <elements>
+    <mesh:q v1="0" v2="1" v3="12" v4="11" m="Material" />
+    <mesh:q v1="1" v2="2" v3="13" v4="12" m="Material" />
+    <mesh:q v1="2" v2="3" v3="4" v4="13" m="Material" />
+    <mesh:q v1="13" v2="4" v3="5" v4="14" m="Material" />
+    <mesh:q v1="14" v2="5" v3="6" v4="7" m="Material" />
+    <mesh:q v1="15" v2="14" v3="7" v4="8" m="Material" />
+    <mesh:q v1="10" v2="15" v3="8" v4="9" m="Material" />
+    <mesh:q v1="11" v2="12" v3="15" v4="10" m="Material" />
+    <mesh:q v1="12" v2="13" v3="14" v4="15" m="Material" />
+  </elements>
+
+  <edges>
+    <ed v1="0" v2="1" m="Bottom" />
+    <ed v1="1" v2="2" m="Bottom" />
+    <ed v1="2" v2="3" m="Bottom" />
+    <ed v1="3" v2="4" m="BndR" />
+    <ed v1="4" v2="5" m="BndR" />
+    <ed v1="5" v2="6" m="BndR" />
+    <ed v1="6" v2="7" m="Top" />
+    <ed v1="7" v2="8" m="Top" />
+    <ed v1="8" v2="9" m="Top" />
+    <ed v1="9" v2="10" m="BndL" />
+    <ed v1="10" v2="11" m="BndL" />
+    <ed v1="11" v2="0" m="BndL" />
+  </edges>
+</mesh:mesh>

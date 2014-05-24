@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mesh:mesh xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:mesh="XMLMesh"
+  xmlns:element="XMLMesh"
+  xsi:schemaLocation="XMLMesh ../../xml_schemas/mesh_h2d_xml.xsd">
+  <variables>
+    <var name="a" value="1.0" />
+    <var name="b" value="1.0" />
+    <var name="b3" value="0.333333333333333" />
+    <var name="b23" value="0.666666666666667" />
+  </variables>
+
+  <vertices>
+    <v x="0" y="0" i="0"/>
+    <v x="a" y="0" i="1"/>
+    <v x="a" y="b3" i="2"/>
+    <v x="a" y="b23" i="3"/>
+    <v x="a" y="b" i="4"/>
+    <v x="0" y="b" i="5"/>
+    <v x="0" y="b23" i="6"/>
+    <v x="0" y="b3" i="7"/>
+  </vertices>
+
+  <elements>
+    <mesh:q v1="0" v2="1" v3="2" v4="7" m="Material" />
+    <mesh:q v1="7" v2="2" v3="3" v4="6" m="Material" />
+    <mesh:q v1="6" v2="3" v3="4" v4="5" m="Material" />
+  </elements>
+
+  <edges>
+    <ed v1="0" v2="1" m="Bottom" />
+    <ed v1="1" v2="2" m="BndR" />
+    <ed v1="2" v2="3" m="BndR" />
+    <ed v1="3" v2="4" m="BndR" />
+    <ed v1="4" v2="5" m="Top" />
+    <ed v1="5" v2="6" m="BndL" />
+    <ed v1="6" v2="7" m="BndL" />
+    <ed v1="7" v2="0" m="BndL" />
+  </edges>
+</mesh:mesh>

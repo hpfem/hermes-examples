@@ -1,0 +1,32 @@
+a = 1.0
+b = 1.0
+b3 = 0.333333333333333
+b23 = 0.666666666666667
+
+vertices = [
+  [ 0, 0 ],       # vertex 0
+  [ a, 0 ],       # vertex 1
+  [ a, b3 ],     # vertex 2
+  [ a, b23 ], # vertex 3
+  [ a, b ],       # vertex 4
+  [ 0, b ],       # vertex 5
+  [ 0, b23 ], # vertex 6
+  [ 0, b3 ]      # vertex 7
+]
+
+elements = [
+  [ 0, 1, 2, 7, "Mat" ]   # quad 0
+  [ 7, 2, 3, 6, "Mat" ]   # quad 1
+  [ 6, 3, 4, 5, "Mat" ]   # quad 2
+]
+
+boundaries = [
+  [ 0, 1, "Bottom" ],
+  [ 1, 2, "BndR" ],
+  [ 2, 3, "BndR" ],
+  [ 3, 4, "BndR" ],
+  [ 4, 5, "Top" ],
+  [ 5, 6, "BndL" ],
+  [ 6, 7, "BndL" ],
+  [ 7, 0, "BndL" ]
+]

@@ -1,0 +1,52 @@
+a = 1.0
+a3 = 0.333333333333333
+a23 = 0.666666666666667
+b = 1.0
+b3 = 0.333333333333333
+b23 = 0.666666666666667
+
+vertices = [
+  [ 0,     0 ],   # vertex 0
+  [ a3,    0 ],   # vertex 1
+  [ a23,   0 ],   # vertex 2
+  [ a,     0 ],   # vertex 3
+  [ a,    b3 ],   # vertex 4
+  [ a,   b23 ],   # vertex 5
+  [ a,     b ],   # vertex 6
+  [ a23,   b ],   # vertex 7
+  [ a3,    b ],   # vertex 8
+  [ 0,     b ],   # vertex 9
+  [ 0,   b23 ],   # vertex 10
+  [ 0,    b3 ],   # vertex 11
+  [ a3,   b3 ],   # vertex 12
+  [ a23,  b3 ],   # vertex 13
+  [ a23, b23 ],   # vertex 14
+  [ a3,  b23 ]    # vertex 15
+]
+
+elements = [
+  [ 0, 1, 12, 11, "Mat" ]     # quad 0
+  [ 1, 2, 13, 12, "Mat" ]     # quad 1
+  [ 2, 3, 4, 13, "Mat" ]      # quad 2
+  [ 13, 4, 5, 14, "Mat" ]     # quad 3
+  [ 14, 5, 6, 7, "Mat" ]      # quad 4
+  [ 15, 14, 7, 8, "Mat" ]     # quad 5
+  [ 10, 15, 8, 9, "Mat" ]     # quad 6
+  [ 11, 12, 15, 10, "Mat" ]   # quad 7
+  [ 12, 13, 14, 15, "Mat" ]   # quad 8
+]
+
+boundaries = [
+  [ 0, 1, "Bottom" ],
+  [ 1, 2, "Bottom" ],
+  [ 2, 3, "Bottom" ],
+  [ 3, 4, "BndR" ],
+  [ 4, 5, "BndR" ],
+  [ 5, 6, "BndR" ],
+  [ 6, 7, "Top" ],
+  [ 7, 8, "Top" ],
+  [ 8, 9, "Top" ],
+  [ 9, 10, "BndL" ],
+  [ 10, 11, "BndL" ],
+  [ 11, 0, "BndL" ]
+]

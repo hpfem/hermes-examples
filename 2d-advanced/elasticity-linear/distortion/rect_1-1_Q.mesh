@@ -1,0 +1,20 @@
+a = 1.0
+b = 1.0
+
+vertices = [
+  [ 0, 0 ],    # vertex 0
+  [ a, 0 ],    # vertex 1
+  [ a, b ],    # vertex 2
+  [ 0, b ]    # vertex 3
+]
+
+elements = [
+  [ 0, 1, 2, 3, "Mat"  ]   # quad 0
+]
+
+boundaries = [
+  [ 0, 1, "Bottom" ],
+  [ 1, 2, "BndR" ],
+  [ 2, 3, "Top" ],
+  [ 3, 0, "BndL" ]
+]
