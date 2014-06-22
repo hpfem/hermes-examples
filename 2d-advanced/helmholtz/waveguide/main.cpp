@@ -49,7 +49,7 @@ const double mur = 1.0;
 const double mu0 = 4*M_PI*1e-7;             
 const double mu = mur * mu0;
 // Frequency MHz.
-double frequency = 16e9;
+double frequency = 12e9;
 // Angular velocity.
 double omega = 2*M_PI * frequency;    
 // Conductivity Ohm/m.
@@ -101,13 +101,17 @@ int main(int argc, char* argv[])
   newton.set_max_allowed_iterations(NEWTON_MAX_ITER);
   
   ScalarView viewEr("Er [V/m]", new WinGeom(600, 0, 700, 200));
+  viewEr.get_linearizer()->set_criterion(LinearizerCriterionFixed(2));
   viewEr.show_mesh(false);
   ScalarView viewEi("Ei [V/m]", new WinGeom(600, 220, 700, 200));
-  
-  ScalarView viewMagnitude("Magnitude of E [V/m]", new WinGeom(600, 440, 700, 200));
+  viewEi.get_linearizer()->set_criterion(LinearizerCriterionFixed(2));
+
+  ScalarView viewMagnitude("Magnitude of E [V/m]", new WinGeom(600, 440, 700, 150));
   viewMagnitude.show_mesh(false);
-  viewMagnitude.show_contours(50., 0.);
-  
+  //viewMagnitude.show_contours(200., 0.);
+  viewMagnitude.get_linearizer()->set_criterion(LinearizerCriterionFixed(2));
+
+  int it = 1;
   while(true)
   {
     std::cout << "Frequency: " << frequency << " Hz" << std::endl;
@@ -126,29 +130,35 @@ int main(int argc, char* argv[])
         Hermes::vector<MeshFunctionSharedPtr<double> >(e_r_sln, e_i_sln));
 
     // Visualize the solution.
-    viewEr.show(e_r_sln, 0.1);
-    // viewEr.save_screenshot("real_part.bmp");
+    //viewEr.show(e_r_sln);
+    //viewEr.save_numbered_screenshot("real_part%i.bmp", it, true);
 
-    viewEi.show(e_i_sln, 0.1);
-    // viewEi.save_screenshot("imaginary_part.bmp");
+    //viewEi.show(e_i_sln);
+    //viewEi.save_numbered_screenshot("imaginary_part%i.bmp", it, true);
 
     MeshFunctionSharedPtr<double> magnitude(new MagFilter<double>(Hermes::vector<MeshFunctionSharedPtr<double> >(e_r_sln, e_i_sln)));
-    viewMagnitude.show(magnitude, HERMES_EPS_LOW);
+    viewMagnitude.show(magnitude);
+    viewMagnitude.save_numbered_screenshot("magnitude%i.bmp", it, true);
 
     char* change_state = new char[1000];
     std::cout << "Done?";
+    std::cin.clear();
+    fflush(stdin);
     std::cin.getline(change_state, 1);
-    if(!strcmp(change_state, "y"))
+    if (!strcmp(change_state, "y"))
       break;
     std::cout << std::endl;
     std::cout << "Frequency change [1e9 Hz]: ";
     double frequency_change;
+    std::cin.clear();
+    fflush(stdin);
     std::cin >> frequency_change;
-    
+
     frequency += 1e9 * frequency_change;
     omega = 2*M_PI * frequency;  
     wf.set_parameters(eps, mu, omega, sigma, beta, E0, h);
     newton.set_weak_formulation(&wf);
+    it++;
   }
 
   // Wait for the view to be closed.

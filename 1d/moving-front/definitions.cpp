@@ -43,8 +43,8 @@ CustomVectorFormVol::CustomVectorFormVol(int i,
   : VectorFormVol<double>(i), coeff(coeff), gt(gt)
 {
   this->set_area(area);
-  // If coeff is HERMES_ONE, initialize it to be constant 1.0.
-  if (coeff == HERMES_ONE) this->coeff = new Hermes::Hermes2DFunction<double>(1.0);
+  // If coeff is nullptr, initialize it to be constant 1.0.
+  if (coeff == nullptr) this->coeff = new Hermes::Hermes2DFunction<double>(1.0);
 }
 
 CustomVectorFormVol::CustomVectorFormVol(int i, 
@@ -52,14 +52,14 @@ CustomVectorFormVol::CustomVectorFormVol(int i,
   : VectorFormVol<double>(i), coeff(coeff), gt(gt)
 {
   this->set_areas(areas);
-  // If coeff is HERMES_ONE, initialize it to be constant 1.0.
-  if (coeff == HERMES_ONE) this->coeff = new Hermes::Hermes2DFunction<double>(1.0);
+  // If coeff is nullptr, initialize it to be constant 1.0.
+  if (coeff == nullptr) this->coeff = new Hermes::Hermes2DFunction<double>(1.0);
 }
 
 CustomVectorFormVol::~CustomVectorFormVol() 
 {
   // FIXME: Should be deleted here only if it was created here.
-  //if (coeff != HERMES_ONE) delete coeff;
+  //if (coeff != nullptr) delete coeff;
 };
 
 double CustomVectorFormVol::value(int n, double *wt, Func<double> *u_ext[], Func<double> *v,

@@ -1,8 +1,7 @@
-
-
 #include "definitions.h"
 
 using namespace RefinementSelectors;
+using namespace Views;
 
 //  This is another example that allows you to compare h- and hp-adaptivity from the point of view
 //  of both CPU time requirements and discrete problem size, look at the quality of the a-posteriori
@@ -36,7 +35,7 @@ Adapt<double> adaptivity(&errorCalculator, &stoppingCriterion);
 // Predefined list of element refinement candidates.
 const CandList CAND_LIST = H2D_HP_ANISO;
 // Stopping criterion for adaptivity.
-const double ERR_STOP = 1e-1;
+const double ERR_STOP = 1e-10;
 
 // Problem parameters.
 // Slope of the layer.
@@ -50,7 +49,11 @@ int main(int argc, char* argv[])
   // Quadrilaterals.
   mloader.load("square_quad.mesh", mesh);     
   // Triangles.
-  // mloader.load("square_tri.mesh", mesh);   
+  // mloader.load("square_tri.mesh", mesh);
+
+  MeshView m;
+  m.show(mesh);
+  m.save_screenshot("initialMesh.bmp", true);
 
   // Perform initial mesh refinements.
   for (int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
@@ -91,6 +94,8 @@ int main(int argc, char* argv[])
   Hermes::Mixins::TimeMeasurable cpu_time;
   cpu_time.tick();
 
+  ScalarView s;
+  
   // Adaptivity loop:
   int as = 1; bool done = false;
   do
@@ -156,8 +161,11 @@ int main(int argc, char* argv[])
     double accum_time = cpu_time.accumulated();
     
     // View the coarse mesh solution and polynomial orders.
-    sview.show(sln);
-    oview.show(space);
+    sview.show(ref_sln);
+    sview.save_numbered_screenshot("solution%i.bmp", as, true);
+    oview.show(ref_space);
+    oview.set_b_orders(true);
+    oview.save_numbered_screenshot("space%i.bmp", as, true);
 
     // Add entry to DOF and CPU convergence graphs.
     graph_dof_est.add_values(space->get_num_dofs(), err_est_rel);

@@ -226,7 +226,7 @@ int main(int argc, char* argv[])
     s_view_v.show(v_sln); 
     o_view_v.show(v_space);
     MeshFunctionSharedPtr<double> stress(new VonMisesFilter(Hermes::vector<MeshFunctionSharedPtr<double> >(u_sln, v_sln), lambda, mu));
-    mises_view.show(stress, HERMES_EPS_NORMAL, H2D_FN_VAL_0, u_sln, v_sln, 0.03);
+    mises_view.show(stress, H2D_FN_VAL_0, u_sln, v_sln, 0.03);
 
     // Add entry to DOF and CPU convergence graphs.
     graph_dof_est.add_values(Space<double>::get_num_dofs(Hermes::vector<SpaceSharedPtr<double> >(u_space, v_space)), err_est_rel_total);

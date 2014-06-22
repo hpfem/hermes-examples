@@ -125,7 +125,7 @@ int main(int argc, char* argv[])
     if (VTK_VISUALIZATION) 
     {
       // Output solution in VTK format.
-      Views::Linearizer lin;
+      Views::Linearizer lin(FileExport);
       char* title = new char[100];
       sprintf(title, "sln-%d.vtk", as);
       lin.save_solution_vtk(sln, title, "Potential", false);

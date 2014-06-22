@@ -24,14 +24,14 @@ public:
     }
 
     double value(int n, double *wt, DiscontinuousFunc<double> *u_ext[], Func<double> *v, 
-      Geom<double> *e, DiscontinuousFunc<double>* *ext) const 
+      Geom<double> *e, DiscontinuousFunc<double>** ext) const 
     {
       double result = 0;
       
       for (int i = 0;i < n;i++)
         result += wt[i] * v->val[i] * (ext[0]->val[i] - ext[0]->val_neighbor[i]) * (ext[0]->val[i] - ext[0]->val_neighbor[i]);
 
-      return result / (e->diam * std::pow(e->area, 0.75));
+      return result / (e->get_diam_approximation(n) * std::pow(e->get_area(n, wt), 0.75));
     }
 
     Ord ord(int n, double *wt, DiscontinuousFunc<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
@@ -909,12 +909,12 @@ public:
     EulerEquationsFormStabilizationVol(int i, double nu_1) : MatrixFormVol<double>(i, i), nu_1(nu_1) {}
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
-      Geom<double> *e, Func<double>* *ext) const 
+      Geom<double> *e, Func<double>* *ext) const
     {
       double result = 0.;
       if(static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->discreteIndicator[e->id]) 
-        result = int_grad_u_grad_v<double, double>(n, wt, u, v) * nu_1 * e->diam;
-      return result;
+        result = int_grad_u_grad_v<double, double>(n, wt, u, v);
+      return result * nu_1 * e->get_diam_approximation(n);
     }
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, 

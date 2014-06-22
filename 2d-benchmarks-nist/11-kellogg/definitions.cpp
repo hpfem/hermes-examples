@@ -63,9 +63,9 @@ CustomWeakFormPoisson::CustomWeakFormPoisson(std::string area_1, double r, std::
 {
   // Jacobian.
   add_matrix_form(new WeakFormsH1::DefaultJacobianDiffusion<double>(0, 0, area_1, new Hermes1DFunction<double>(r)));
-  add_matrix_form(new WeakFormsH1::DefaultJacobianDiffusion<double>(0, 0, area_2, HERMES_ONE));
+  add_matrix_form(new WeakFormsH1::DefaultJacobianDiffusion<double>(0, 0, area_2, nullptr));
 
   // Residual.
   add_vector_form(new WeakFormsH1::DefaultResidualDiffusion<double>(0, area_1, new Hermes1DFunction<double>(r)));
-  add_vector_form(new WeakFormsH1::DefaultResidualDiffusion<double>(0, area_2, HERMES_ONE));
+  add_vector_form(new WeakFormsH1::DefaultResidualDiffusion<double>(0, area_2, nullptr));
 }

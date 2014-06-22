@@ -188,23 +188,10 @@ int main(int argc, char* argv[])
       // Show the solution at the end of time step.
       sprintf(title, "Velocity, time %g", current_time);
       vview.set_title(title);
-      vview.show(xvel_prev_time, yvel_prev_time, HERMES_EPS_LOW);
+      vview.show(xvel_prev_time, yvel_prev_time);
       sprintf(title, "Pressure, time %g", current_time);
       pview.set_title(title);
       pview.show(p_prev_time);
-    }
-    // Output solution in VTK format.
-    if(VTK_VISUALIZATION) 
-    {
-      Linearizer lin;
-      Hermes::vector<MeshFunctionSharedPtr<double> > slns_prev_time = Hermes::vector<MeshFunctionSharedPtr<double> >(xvel_prev_time, yvel_prev_time);
-      MeshFunctionSharedPtr<double> mag(new MagFilter<double>(slns_prev_time, Hermes::vector<int>(H2D_FN_VAL, H2D_FN_VAL)));
-      std::stringstream ss_vel;
-      ss_vel << "Velocity-" << ts << ".vtk";
-      lin.save_solution_vtk(mag, ss_vel.str().c_str(), "VelocityMagnitude");
-      std::stringstream ss_pres;
-      ss_pres << "Pressure-" << ts << ".vtk";
-      lin.save_solution_vtk(p_prev_time, ss_pres.str().c_str(), "Pressure");
     }
   }
 

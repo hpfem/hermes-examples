@@ -119,13 +119,13 @@ int main(int argc, char* argv[])
     char title[100];
     sprintf(title, "E1, t = %g", current_time);
     E1_view.set_title(title);
-    E1_view.show(E_sln, HERMES_EPS_NORMAL, H2D_FN_VAL_0);
+    E1_view.show(E_sln, H2D_FN_VAL_0);
     sprintf(title, "E2, t = %g", current_time);
     E2_view.set_title(title);
-    E2_view.show(E_sln, HERMES_EPS_NORMAL, H2D_FN_VAL_1);
+    E2_view.show(E_sln, H2D_FN_VAL_1);
     sprintf(title, "B, t = %g", current_time);
     B_view.set_title(title);
-    B_view.show(B_sln, HERMES_EPS_NORMAL, H2D_FN_VAL_0);
+    B_view.show(B_sln, H2D_FN_VAL_0);
 
     // Update time.
     current_time += time_step;

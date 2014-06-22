@@ -214,7 +214,7 @@ int main(int argc, char* argv[])
     double lambda = (E * nu) / ((1 + nu) * (1 - 2*nu));
     double mu = E / (2*(1 + nu));
     MeshFunctionSharedPtr<double> stress(new VonMisesFilter(Hermes::vector<MeshFunctionSharedPtr<double> >(u1_sln, u2_sln), lambda, mu));
-    mises_view.show(stress, HERMES_EPS_NORMAL, H2D_FN_VAL_0, u1_sln, u2_sln, 1e3);
+    mises_view.show(stress, H2D_FN_VAL_0, u1_sln, u2_sln, 1e3);
 
     // Skip visualization time.
     cpu_time.tick(Hermes::Mixins::TimeMeasurable::HERMES_SKIP);
@@ -275,7 +275,7 @@ int main(int argc, char* argv[])
   double lambda = (E * nu) / ((1 + nu) * (1 - 2*nu));
   double mu = E / (2*(1 + nu));
   MeshFunctionSharedPtr<double> stress(new VonMisesFilter(Hermes::vector<MeshFunctionSharedPtr<double> >(u1_sln_ref, u2_sln_ref), lambda, mu));
-  mises_view.show(stress, HERMES_EPS_NORMAL, H2D_FN_VAL_0, u1_sln_ref, u2_sln_ref, 1e3);
+  mises_view.show(stress, H2D_FN_VAL_0, u1_sln_ref, u2_sln_ref, 1e3);
 
   // Wait for all views to be closed.
   View::wait();

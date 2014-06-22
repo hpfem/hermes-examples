@@ -36,7 +36,7 @@ enum shockCapturingType
   KRIVODONOVA
 };
 bool SHOCK_CAPTURING = true;
-shockCapturingType SHOCK_CAPTURING_TYPE = KRIVODONOVA;
+shockCapturingType SHOCK_CAPTURING_TYPE = KUZMIN;
 // Quantitative parameter of the discontinuity detector in case of Krivodonova.
 double DISCONTINUITY_DETECTOR_PARAM = 1.0;
 // Quantitative parameter of the shock capturing in case of Feistauer.
@@ -48,7 +48,7 @@ const int P_INIT = 1;
 // Number of initial uniform mesh refinements.      
 const int INIT_REF_NUM = 3;                                              
 // CFL value.
-double CFL_NUMBER = 0.1;                                
+double CFL_NUMBER = 0.5;                                
 // Initial time step.
 double time_step_n = 1E-4;
 

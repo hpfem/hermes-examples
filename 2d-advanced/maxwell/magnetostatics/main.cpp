@@ -143,7 +143,7 @@ int main(int argc, char* argv[])
   s_view2.show(flux_density);
 
   // Output solution in VTK format.
-  Linearizer lin;
+  Linearizer lin(FileExport);
   bool mode_3D = true;
   lin.save_solution_vtk(flux_density, "sln.vtk", "Flux-density", mode_3D);
   Hermes::Mixins::Loggable::Static::info("Solution in VTK format saved to file %s.", "sln.vtk");
