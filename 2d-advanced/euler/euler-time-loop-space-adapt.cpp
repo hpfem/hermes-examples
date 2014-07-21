@@ -158,7 +158,7 @@ for(double t = 0.0; t < TIME_INTERVAL_LENGTH; t += time_step_n)
       if(VTK_VISUALIZATION)
       {
         pressure->reinit();
-        Linearizer lin;
+        Linearizer lin(FileExport);
         char filename[40];
         sprintf(filename, "Pressure-%i.vtk", iteration - 1);
         lin.save_solution_vtk(pressure, filename, "Pressure", false);

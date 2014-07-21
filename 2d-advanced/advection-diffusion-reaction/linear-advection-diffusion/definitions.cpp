@@ -11,7 +11,7 @@ Scalar WeakFormLinearAdvectionDiffusion::MatrixFormVolAdvectionDiffusion::matrix
                                                                                       Func<Real> *v, Geom<Real> *e, Func<Scalar>* *ext) const 
 {
   Scalar result = Scalar(0);
-  Real h_e = Real(e->diam);
+  Scalar h_e = e->get_diam_approximation(n);
   Real s_c = Real(0.9);
   for (int i=0; i < n; i++) 
   {

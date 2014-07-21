@@ -175,7 +175,7 @@ int main(int argc, char* argv[])
   oview.show(space);
 
   // Output solution in VTK format.
-  Linearizer lin;
+  Linearizer lin(FileExport);
   bool mode_3D = true;
   lin.save_solution_vtk(ref_mag, "sln.vtk", "Acoustic pressure", mode_3D);
   Hermes::Mixins::Loggable::Static::info("Solution in VTK format saved to file %s.", "sln.vtk");

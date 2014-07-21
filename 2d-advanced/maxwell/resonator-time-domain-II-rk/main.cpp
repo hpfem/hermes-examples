@@ -147,17 +147,17 @@ int main(int argc, char* argv[])
     char title[100];
     sprintf(title, "E1, t = %g", current_time + time_step);
     E1_view.set_title(title);
-    E1_view.show(E_time_new, HERMES_EPS_NORMAL, H2D_FN_VAL_0);
+    E1_view.show(E_time_new, H2D_FN_VAL_0);
     sprintf(title, "E2, t = %g", current_time + time_step);
     E2_view.set_title(title);
-    E2_view.show(E_time_new, HERMES_EPS_NORMAL, H2D_FN_VAL_1);
+    E2_view.show(E_time_new, H2D_FN_VAL_1);
 
     sprintf(title, "F1, t = %g", current_time + time_step);
     F1_view.set_title(title);
-    F1_view.show(F_time_new, HERMES_EPS_NORMAL, H2D_FN_VAL_0);
+    F1_view.show(F_time_new, H2D_FN_VAL_0);
     sprintf(title, "F2, t = %g", current_time + time_step);
     F2_view.set_title(title);
-    F2_view.show(F_time_new, HERMES_EPS_NORMAL, H2D_FN_VAL_1);
+    F2_view.show(F_time_new, H2D_FN_VAL_1);
 
     //View::wait();
 

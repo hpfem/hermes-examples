@@ -62,7 +62,8 @@ void CFLCalculation::calculate(Hermes::vector<MeshFunctionSharedPtr<double> > so
     constant_energy_space->get_element_assembly_list(e, &al);
     double energy = sln_vector[al.get_dof()[0]];
 
-    double condition = e->get_area() * CFL_number / (std::sqrt(v1*v1 + v2*v2) + QuantityCalculator::calc_sound_speed(rho, rho*v1, rho*v2, energy, kappa));
+    e->calc_area();
+    double condition = e->area * CFL_number / (std::sqrt(v1*v1 + v2*v2) + QuantityCalculator::calc_sound_speed(rho, rho*v1, rho*v2, energy, kappa));
 
     if(condition < min_condition || min_condition == 0.)
       min_condition = condition;
@@ -148,8 +149,8 @@ void CFLCalculation::calculate_semi_implicit(Hermes::vector<MeshFunctionSharedPt
       delete geom;
     }
 
-
-    double condition = e->get_area() * CFL_number / edge_length_max_lambda;
+    e->calc_area();
+    double condition = e->area * CFL_number / edge_length_max_lambda;
 
     if(condition < min_condition || min_condition == 0.)
       min_condition = condition;
@@ -196,8 +197,10 @@ void ADEStabilityCalculation::calculate(Hermes::vector<MeshFunctionSharedPtr<dou
     constant_rho_v_y_space->get_element_assembly_list(e, &al);
     double v2 = sln_vector[al.get_dof()[0] + 2 * constant_rho_space->get_num_dofs()] / rho;
 
-    double condition_advection = AdvectionRelativeConstant * e->get_diameter() / std::sqrt(v1*v1 + v2*v2);
-    double condition_diffusion = DiffusionRelativeConstant * e->get_area() / epsilon;
+    e->calc_area();
+    e->calc_diameter();
+    double condition_advection = AdvectionRelativeConstant * e->diameter / std::sqrt(v1*v1 + v2*v2);
+    double condition_diffusion = DiffusionRelativeConstant * e->area / epsilon;
 
     if(condition_advection < min_condition_advection || min_condition_advection == 0.)
       min_condition_advection = condition_advection;
@@ -321,8 +324,6 @@ double KrivodonovaDiscontinuityDetector::calculate_relative_flow_direction(Eleme
   geom->free();
   delete geom;
   delete [] jwt;
-  density_vel_x->free_fn();
-  density_vel_y->free_fn();
   delete density_vel_x;
   delete density_vel_y;
 
@@ -415,14 +416,6 @@ void KrivodonovaDiscontinuityDetector::calculate_jumps(Element* e, int edge_i, d
     geom->free();
     delete geom;
     delete [] jwt;
-    density->free_fn();
-    density_vel_x->free_fn();
-    density_vel_y->free_fn();
-    energy->free_fn();
-    density_neighbor->free_fn();
-    density_vel_x_neighbor->free_fn();
-    density_vel_y_neighbor->free_fn();
-    energy_neighbor->free_fn();
 
     delete density;
     delete density_vel_x;
@@ -485,11 +478,6 @@ void KrivodonovaDiscontinuityDetector::calculate_norms(Element* e, int edge_i, d
   geom->free();
   delete geom;
   delete [] jwt;
-
-  density->free_fn();
-  density_vel_x->free_fn();
-  density_vel_y->free_fn();
-  energy->free_fn();
 
   delete density;
   delete density_vel_x;
