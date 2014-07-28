@@ -8,7 +8,7 @@ public:
         ScaledWeakFormPNPCranic::Residual* vector_form =
             new ScaledWeakFormPNPCranic::Residual(i, tau, epsilon);
         if(i == 0) {
-          vector_form->set_ext(Hermes::vector<MeshFunctionSharedPtr<double> >(C_prev_time, phi_prev_time));
+          vector_form->set_ext({C_prev_time, phi_prev_time});
         }
         add_vector_form(vector_form);
         for(unsigned int j = 0; j < 2; j++)
@@ -159,7 +159,7 @@ public:
       WeakFormPNPCranic::Residual* vector_form =
           new WeakFormPNPCranic::Residual(i, tau, C0, K, L, D);
       if(i == 0) {
-        vector_form->set_ext(Hermes::vector<MeshFunctionSharedPtr<double> >(C_prev_time, phi_prev_time));
+        vector_form->set_ext({C_prev_time, phi_prev_time});
       }
       add_vector_form(vector_form);
       for(unsigned int j = 0; j < 2; j++)

@@ -1,29 +1,28 @@
 #include "definitions.h"
 
-void CustomExactSolution::derivatives(double x, double y, double& dx, double& dy) const 
+void CustomExactSolution::derivatives(double x, double y, double& dx, double& dy) const
 {
   dx = Hermes::cos(x);
   dy = 0;
 }
 
-double CustomExactSolution::value(double x, double y) const 
+double CustomExactSolution::value(double x, double y) const
 {
   return sin(x);
 }
 
-Ord CustomExactSolution::ord(double x, double y) const 
+Ord CustomExactSolution::ord(double x, double y) const
 {
   return Ord(20);
 }
 
-MeshFunction<double>* CustomExactSolution::clone() const 
+MeshFunction<double>* CustomExactSolution::clone() const
 {
   return new CustomExactSolution(this->mesh);
 }
 
-
 double CustomJacobian::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u,
-                             Func<double> *v, Geom<double> *e, Func<double>* *ext) const 
+  Func<double> *v, Geom<double> *e, Func<double>* *ext) const
 {
   double result = 0;
   for (int i = 0; i < n; i++)
@@ -32,18 +31,18 @@ double CustomJacobian::value(int n, double *wt, Func<double> *u_ext[], Func<doub
 }
 
 Ord CustomJacobian::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v,
-                        Geom<Ord> *e, Func<Ord>* *ext) const 
+  Geom<Ord> *e, Func<Ord>* *ext) const
 {
   return Ord(20);
 }
 
-MatrixFormVol<double>* CustomJacobian::clone() const 
+MatrixFormVol<double>* CustomJacobian::clone() const
 {
   return new CustomJacobian(*this);
 }
 
 double CustomResidual::value(int n, double *wt, Func<double> *u_ext[],
-                             Func<double> *v, Geom<double> *e, Func<double>* *ext) const 
+  Func<double> *v, Geom<double> *e, Func<double>* *ext) const
 {
   double result = 0;
   for (int i = 0; i < n; i++)
@@ -52,17 +51,17 @@ double CustomResidual::value(int n, double *wt, Func<double> *u_ext[],
 }
 
 Ord CustomResidual::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v,
-                        Geom<Ord> *e, Func<Ord>* *ext) const 
+  Geom<Ord> *e, Func<Ord>* *ext) const
 {
   return Ord(20);
 }
 
-VectorFormVol<double>* CustomResidual::clone() const 
+VectorFormVol<double>* CustomResidual::clone() const
 {
   return new CustomResidual(*this);
 }
 
-CustomWeakForm::CustomWeakForm(std::string marker_bdy_right) : WeakForm<double>(1) 
+CustomWeakForm::CustomWeakForm(std::string marker_bdy_right) : WeakForm<double>(1)
 {
   // Jacobian.
   add_matrix_form(new DefaultJacobianDiffusion<double>(0, 0));

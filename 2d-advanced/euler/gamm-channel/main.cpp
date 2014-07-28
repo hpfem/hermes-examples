@@ -17,7 +17,7 @@ using namespace Hermes::Hermes2D::Views;
 //
 
 // Visualization.
-// Set to "true" to enable Hermes OpenGL visualization. 
+// Set to "true" to enable Hermes OpenGL visualization.
 const bool HERMES_VISUALIZATION = true;
 // Set to "true" to enable VTK output.
 const bool VTK_VISUALIZATION = false;
@@ -50,13 +50,13 @@ double time_step_n = 1E-6;
 
 // Equation parameters.
 // Exterior pressure (dimensionless).
-const double P_EXT = 2.5;         
-// Inlet density (dimensionless).   
-const double RHO_EXT = 1.0;       
+const double P_EXT = 2.5;
+// Inlet density (dimensionless).
+const double RHO_EXT = 1.0;
 // Inlet x-velocity (dimensionless).
-const double V1_EXT = 1.25;       
+const double V1_EXT = 1.25;
 // Inlet y-velocity (dimensionless).
-const double V2_EXT = 0.0;        
+const double V2_EXT = 0.0;
 // Kappa.
 const double KAPPA = 1.4;
 
@@ -82,18 +82,18 @@ int main(int argc, char* argv[])
 
   // Set initial conditions.
   MeshFunctionSharedPtr<double> prev_rho(new ConstantSolution<double>(mesh, RHO_EXT));
-  MeshFunctionSharedPtr<double> prev_rho_v_x(new ConstantSolution<double> (mesh, RHO_EXT * V1_EXT));
-  MeshFunctionSharedPtr<double> prev_rho_v_y(new ConstantSolution<double> (mesh, RHO_EXT * V2_EXT));
-  MeshFunctionSharedPtr<double> prev_e(new ConstantSolution<double> (mesh, QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA)));
+  MeshFunctionSharedPtr<double> prev_rho_v_x(new ConstantSolution<double>(mesh, RHO_EXT * V1_EXT));
+  MeshFunctionSharedPtr<double> prev_rho_v_y(new ConstantSolution<double>(mesh, RHO_EXT * V2_EXT));
+  MeshFunctionSharedPtr<double> prev_e(new ConstantSolution<double>(mesh, QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA)));
 
   // Initialize weak formulation.
-  Hermes::vector<std::string> solid_wall_markers(BDY_SOLID_WALL_BOTTOM, BDY_SOLID_WALL_TOP);
-  Hermes::vector<std::string> inlet_markers;
+  std::vector<std::string> solid_wall_markers(BDY_SOLID_WALL_BOTTOM, BDY_SOLID_WALL_TOP);
+  std::vector<std::string> inlet_markers;
   inlet_markers.push_back(BDY_INLET);
-  Hermes::vector<std::string> outlet_markers;
+  std::vector<std::string> outlet_markers;
   outlet_markers.push_back(BDY_OUTLET);
 
-  EulerEquationsWeakFormSemiImplicit wf(KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT,solid_wall_markers,
+  EulerEquationsWeakFormSemiImplicit wf(KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, solid_wall_markers,
     inlet_markers, outlet_markers, prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e, (P_INIT == 0));
 
 #include "../euler-time-loop.cpp"

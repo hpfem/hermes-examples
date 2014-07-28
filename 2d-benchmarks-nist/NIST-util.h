@@ -11,11 +11,7 @@ public:
   {
   }
 private:
-  void evaluate_cands_score(Hermes::vector<Cand>& candidates, Element* e)
-  {
-    //calculate score of candidates
-    Cand& unrefined = candidates[0];
-    const int num_cands = (int)candidates.size();
+  void evaluate_cands_score({int}candidates.size();
     unrefined.score = 0;
 
     for (int i = 1; i < num_cands; i++)

@@ -1,11 +1,7 @@
-
-
 #include "definitions.h"
 
-
-
-//  This example solves the Tracy problem with arbitrary Runge-Kutta 
-//  methods in time. 
+//  This example solves the Tracy problem with arbitrary Runge-Kutta
+//  methods in time.
 //
 //  PDE: C(h)dh/dt - div(K(h)grad(h)) - (dK/dh)*(dh/dy) = 0
 //  where K(h) = K_S*exp(alpha*h)                          for h < 0,
@@ -16,7 +12,7 @@
 //  Domain: square (0, 100)^2.
 //
 //  BC: Dirichlet, given by the initial condition.
-//  IC: Flat in all elements except the top layer, within this 
+//  IC: Flat in all elements except the top layer, within this
 //      layer the solution rises linearly to match the Dirichlet condition.
 //
 //  NOTE: The pressure head 'h' is between -1000 and 0. For convenience, we
@@ -26,18 +22,18 @@
 //  The following parameters can be changed:
 
 // Number of initial uniform mesh refinements.
-const int INIT_GLOB_REF_NUM = 3;                  
+const int INIT_GLOB_REF_NUM = 3;
 // Number of initial refinements towards boundary.
-const int INIT_REF_NUM_BDY = 5;                   
+const int INIT_REF_NUM_BDY = 5;
 // Initial polynomial degree.
-const int P_INIT = 2;                             
+const int P_INIT = 2;
 // Time step.
-double time_step = 5e-4;                          
+double time_step = 5e-4;
 // Time interval length.
-const double T_FINAL = 0.4;                       
+const double T_FINAL = 0.4;
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;
 
 // Problem parameters.
 double K_S = 20.464;
@@ -49,34 +45,34 @@ double M, N, STORATIVITY;
 
 // Constitutive relations.
 enum CONSTITUTIVE_RELATIONS {
-    CONSTITUTIVE_GENUCHTEN,    // Van Genuchten.
-    CONSTITUTIVE_GARDNER       // Gardner.
+  CONSTITUTIVE_GENUCHTEN,    // Van Genuchten.
+  CONSTITUTIVE_GARDNER       // Gardner.
 };
 // Use van Genuchten's constitutive relations, or Gardner's.
 CONSTITUTIVE_RELATIONS constitutive_relations_type = CONSTITUTIVE_GARDNER;
 
 // Newton's method.
 // Stopping criterion for the Newton's method.
-const double NEWTON_TOL = 1e-5;                   
+const double NEWTON_TOL = 1e-5;
 // Maximum allowed number of Newton iterations.
-const int NEWTON_MAX_ITER = 500;                  
+const int NEWTON_MAX_ITER = 500;
 const double DAMPING_COEFF = 1.0;
 
-// Choose one of the following time-integration methods, or define your own Butcher's table. The last number 
+// Choose one of the following time-integration methods, or define your own Butcher's table. The last number
 // in the name of each method is its order. The one before last, if present, is the number of stages.
 // Explicit methods:
 //   Explicit_RK_1, Explicit_RK_2, Explicit_RK_3, Explicit_RK_4.
-// Implicit methods: 
-//   Implicit_RK_1, Implicit_Crank_Nicolson_2_2, Implicit_SIRK_2_2, Implicit_ESIRK_2_2, Implicit_SDIRK_2_2, 
-//   Implicit_Lobatto_IIIA_2_2, Implicit_Lobatto_IIIB_2_2, Implicit_Lobatto_IIIC_2_2, Implicit_Lobatto_IIIA_3_4, 
+// Implicit methods:
+//   Implicit_RK_1, Implicit_Crank_Nicolson_2_2, Implicit_SIRK_2_2, Implicit_ESIRK_2_2, Implicit_SDIRK_2_2,
+//   Implicit_Lobatto_IIIA_2_2, Implicit_Lobatto_IIIB_2_2, Implicit_Lobatto_IIIC_2_2, Implicit_Lobatto_IIIA_3_4,
 //   Implicit_Lobatto_IIIB_3_4, Implicit_Lobatto_IIIC_3_4, Implicit_Radau_IIA_3_5, Implicit_SDIRK_5_4.
 // Embedded explicit methods:
 //   Explicit_HEUN_EULER_2_12_embedded, Explicit_BOGACKI_SHAMPINE_4_23_embedded, Explicit_FEHLBERG_6_45_embedded,
 //   Explicit_CASH_KARP_6_45_embedded, Explicit_DORMAND_PRINCE_7_45_embedded.
 // Embedded implicit methods:
-//   Implicit_SDIRK_CASH_3_23_embedded, Implicit_ESDIRK_TRBDF2_3_23_embedded, Implicit_ESDIRK_TRX2_3_23_embedded, 
-//   Implicit_SDIRK_BILLINGTON_3_23_embedded, Implicit_SDIRK_CASH_5_24_embedded, Implicit_SDIRK_CASH_5_34_embedded, 
-//   Implicit_DIRK_ISMAIL_7_45_embedded. 
+//   Implicit_SDIRK_CASH_3_23_embedded, Implicit_ESDIRK_TRBDF2_3_23_embedded, Implicit_ESDIRK_TRX2_3_23_embedded,
+//   Implicit_SDIRK_BILLINGTON_3_23_embedded, Implicit_SDIRK_CASH_5_24_embedded, Implicit_SDIRK_CASH_5_34_embedded,
+//   Implicit_DIRK_ISMAIL_7_45_embedded.
 ButcherTableType butcher_table_type = Implicit_SDIRK_2_2;
 
 int main(int argc, char* argv[])
@@ -87,17 +83,17 @@ int main(int argc, char* argv[])
   if (bt.is_diagonally_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage diagonally implicit R-K method.", bt.get_size());
   if (bt.is_fully_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage fully implicit R-K method.", bt.get_size());
 
-  // Load the mesh.
+  // Load the mesh->
   MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("square.mesh", mesh);
 
   // Initial mesh refinements.
-  for(int i = 0; i < INIT_GLOB_REF_NUM; i++) mesh->refine_all_elements();
+  for (int i = 0; i < INIT_GLOB_REF_NUM; i++) mesh->refine_all_elements();
   mesh->refine_towards_boundary("Top", INIT_REF_NUM_BDY);
 
   // Initialize boundary conditions.
-  CustomEssentialBCNonConst bc_essential(Hermes::vector<std::string>("Bottom", "Right", "Top", "Left"));
+  CustomEssentialBCNonConst bc_essential({"Bottom", "Right", "Top", "Left"});
   EssentialBCs<double> bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.
@@ -117,27 +113,27 @@ int main(int argc, char* argv[])
 
   // Initialize the constitutive relations.
   ConstitutiveRelations* constitutive_relations;
-  if(constitutive_relations_type == CONSTITUTIVE_GENUCHTEN)
+  if (constitutive_relations_type == CONSTITUTIVE_GENUCHTEN)
     constitutive_relations = new ConstitutiveRelationsGenuchten(ALPHA, M, N, THETA_S, THETA_R, K_S, STORATIVITY);
   else
     constitutive_relations = new ConstitutiveRelationsGardner(ALPHA, THETA_S, THETA_R, K_S);
 
   // Initialize the weak formulation.
-  CustomWeakFormRichardsRK wf(constitutive_relations);
+  WeakFormSharedPtr<double> wf(new CustomWeakFormRichardsRK(constitutive_relations));
 
   // Initialize Runge-Kutta time stepping.
-  RungeKutta<double> runge_kutta(&wf, space, &bt);
+  RungeKutta<double> runge_kutta(wf, space, &bt);
 
   // Time stepping:
   double current_time = 0;
   int ts = 1;
-  do 
+  do
   {
     Hermes::Mixins::Loggable::Static::info("---- Time step %d, time %3.5f s", ts, current_time);
 
     // Perform one Runge-Kutta time step according to the selected Butcher's table.
-    Hermes::Mixins::Loggable::Static::info("Runge-Kutta time step (t = %g s, time step = %g s, stages: %d).", 
-         current_time, time_step, bt.get_size());
+    Hermes::Mixins::Loggable::Static::info("Runge-Kutta time step (t = %g s, time step = %g s, stages: %d).",
+      current_time, time_step, bt.get_size());
     try
     {
       runge_kutta.set_time(current_time);
@@ -146,7 +142,7 @@ int main(int argc, char* argv[])
       runge_kutta.set_tolerance(NEWTON_TOL);
       runge_kutta.rk_time_step_newton(h_time_prev, h_time_new);
     }
-    catch(Exceptions::Exception& e)
+    catch (Exceptions::Exception& e)
     {
       e.print_msg();
       throw Hermes::Exceptions::Exception("Runge-Kutta time step failed");
@@ -166,11 +162,9 @@ int main(int argc, char* argv[])
 
     // Increase time step counter.
     ts++;
-  }
-  while (current_time < T_FINAL);
+  } while (current_time < T_FINAL);
 
   // Wait for the view to be closed.
   View::wait();
   return 0;
 }
-

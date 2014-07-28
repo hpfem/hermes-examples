@@ -5,9 +5,9 @@
 #include "definitions.h"
 
 CustomWeakForm::CustomWeakForm(const MaterialPropertyMaps& matprop,
-                                Hermes::vector<MeshFunctionSharedPtr<double> >& iterates,
-                                double init_keff, std::string bdy_vacuum)
-                                : DefaultWeakFormSourceIteration<double>(matprop, const_cast<Mesh*>(iterates[0]->get_mesh()), iterates, init_keff, HERMES_AXISYM_Y)
+  std::vector<MeshFunctionSharedPtr<double> >& iterates,
+  double init_keff, std::string bdy_vacuum)
+  : DefaultWeakFormSourceIteration<double>(matprop, const_cast<Mesh*>(iterates[0]->get_mesh()), iterates, init_keff, HERMES_AXISYM_Y)
 {
   for (unsigned int g = 0; g < matprop.get_G(); g++)
   {
@@ -17,34 +17,34 @@ CustomWeakForm::CustomWeakForm(const MaterialPropertyMaps& matprop,
 }
 
 double ErrorForm::value(int n, double *wt, Func<double> *u_ext[],
-                        Func<double> *u, Func<double> *v, Geom<double> *e,
-                        Func<double>* *ext) const
+  Func<double> *u, Func<double> *v, Geom<double> *e,
+  Func<double>* *ext) const
 {
   switch (projNormType)
   {
-    case HERMES_L2_NORM:
-      return l2_error_form_axisym<double, double>(n, wt, u_ext, u, v, e, ext);
-    case HERMES_H1_NORM:
-      return h1_error_form_axisym<double, double>(n, wt, u_ext, u, v, e, ext);
-    default:
-      throw Hermes::Exceptions::Exception("Only the H1 and L2 norms are currently implemented.");
-      return 0.0;
+  case HERMES_L2_NORM:
+    return l2_error_form_axisym<double, double>(n, wt, u_ext, u, v, e, ext);
+  case HERMES_H1_NORM:
+    return h1_error_form_axisym<double, double>(n, wt, u_ext, u, v, e, ext);
+  default:
+    throw Hermes::Exceptions::Exception("Only the H1 and L2 norms are currently implemented.");
+    return 0.0;
   }
 }
 
 Ord ErrorForm::ord(int n, double *wt, Func<Ord> *u_ext[],
-                   Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e,
-                   Func<Ord>* *ext) const
+  Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e,
+  Func<Ord>* *ext) const
 {
   switch (projNormType)
   {
-    case HERMES_L2_NORM:
-      return l2_error_form_axisym<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
-    case HERMES_H1_NORM:
-      return h1_error_form_axisym<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
-    default:
-      throw Hermes::Exceptions::Exception("Only the H1 and L2 norms are currently implemented.");
-      return Ord();
+  case HERMES_L2_NORM:
+    return l2_error_form_axisym<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
+  case HERMES_H1_NORM:
+    return h1_error_form_axisym<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
+  default:
+    throw Hermes::Exceptions::Exception("Only the H1 and L2 norms are currently implemented.");
+    return Ord();
   }
 }
 
@@ -53,12 +53,12 @@ double integrate(MeshFunction<double>* sln, std::string area)
 {
   Quad2D* quad = &g_quad_2d_std;
   sln->set_quad_2d(quad);
-  
+
   double integral = 0.0;
   Element* e;
   MeshSharedPtr mesh = const_cast<Mesh*>(sln->get_mesh());
   int marker = mesh->get_element_markers_conversion().get_internal_marker(area).marker;
-  
+
   for_all_active_elements(e, mesh)
   {
     if (e->marker == marker)
@@ -76,7 +76,7 @@ double integrate(MeshFunction<double>* sln, std::string area)
       integral += result;
     }
   }
-  
+
   return 2.0 * M_PI * integral;
 }
 
@@ -87,9 +87,9 @@ int get_num_of_neg(MeshFunction<double> *sln)
   sln->set_quad_2d(quad);
   Element* e;
   const MeshSharedPtr mesh = sln->get_mesh();
-  
+
   int n = 0;
-  
+
   for_all_active_elements(e, mesh)
   {
     update_limit_table(e->get_mode());
@@ -100,45 +100,45 @@ int get_num_of_neg(MeshFunction<double> *sln)
     sln->set_quad_order(o, H2D_FN_VAL);
     double *uval = sln->get_fn_values();
     int np = quad->get_num_points(o, e->get_mode());
-    
+
     for (int i = 0; i < np; i++)
       if (uval[i] < -1e-12)
         n++;
   }
-  
+
   return n;
 }
 
-int power_iteration(const MaterialPropertyMaps& matprop, 
-                    const Hermes::vector<const Space<double>*>& spaces, DefaultWeakFormSourceIteration<double>* wf, 
-                    const Hermes::vector<MeshFunction<double> *>& solutions, const std::string& fission_region, 
-                    double tol, Hermes::MatrixSolverType matrix_solver)
+int power_iteration(const MaterialPropertyMaps& matprop,
+  const std::vector<const Space<double>*>& spaces, DefaultWeakFormSourceIteration<double>* wf,
+  const std::vector<MeshFunction<double> *>& solutions, const std::string& fission_region,
+  double tol, Hermes::MatrixSolverType matrix_solver)
 {
   // Sanity checks.
-  if (spaces.size() != solutions.size()) 
-    throw Hermes::Exceptions::Exception("Spaces and solutions supplied to power_iteration do not match."); 
- 
+  if (spaces.size() != solutions.size())
+    throw Hermes::Exceptions::Exception("Spaces and solutions supplied to power_iteration do not match.");
+
   // Number of energy groups.
   int G = spaces.size();
-  
+
   // Initialize the discrete problem.
-  DiscreteProblem<double> dp(&wf, spaces);
+  DiscreteProblem<double> dp(wf, spaces);
   int ndof = Space<double>::get_num_dofs(spaces);
-    
-  // The following variables will store pointers to solutions obtained at each iteration and will be needed for 
-  // updating the eigenvalue. 
-  Hermes::vector<Solution<double>*> new_solutions;
-  for (int g = 0; g < G; g++) 
+
+  // The following variables will store pointers to solutions obtained at each iteration and will be needed for
+  // updating the eigenvalue.
+  std::vector<Solution<double>*> new_solutions;
+  for (int g = 0; g < G; g++)
     new_solutions.push_back(new Solution<double>(solutions[g]->get_mesh()));
-  
+
   // Initial coefficient vector for the Newton's method.
   double* coeff_vec = new double[ndof];
-  
+
   // Force the Jacobian assembling in the first iteration.
   bool Jacobian_changed = true;
-  
+
   bool eigen_done = false; int it = 0;
-  do 
+  do
   {
     memset(coeff_vec, 0.0, ndof*sizeof(double));
 
@@ -148,7 +148,7 @@ int power_iteration(const MaterialPropertyMaps& matprop,
     {
       newton.solve(coeff_vec);
     }
-    catch(Hermes::Exceptions::Exception e)
+    catch (Hermes::Exceptions::Exception e)
     {
       e.print_msg();
       throw Hermes::Exceptions::Exception("Newton's iteration failed.");
@@ -174,16 +174,15 @@ int power_iteration(const MaterialPropertyMaps& matprop,
     wf->update_keff(k_new);
 
     it++;
-        
+
     // Store the new eigenvector approximation in the result.
-    for (int g = 0; g < G; g++) 
-      (static_cast<Solution<double>*>(solutions[g]))->copy((static_cast<Solution<double>*>(new_solutions[g]))); 
-  }
-  while (!eigen_done);
-  
+    for (int g = 0; g < G; g++)
+      (static_cast<Solution<double>*>(solutions[g]))->copy((static_cast<Solution<double>*>(new_solutions[g])));
+  } while (!eigen_done);
+
   // Free memory.
-  for (int g = 0; g < G; g++) 
+  for (int g = 0; g < G; g++)
     delete new_solutions[g];
-  
+
   return it;
 }

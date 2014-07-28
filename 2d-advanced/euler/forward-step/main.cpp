@@ -20,7 +20,7 @@ using namespace Hermes::Hermes2D::Views;
 // The following parameters can be changed:
 
 // Visualization.
-// Set to "true" to enable Hermes OpenGL visualization. 
+// Set to "true" to enable Hermes OpenGL visualization.
 const bool HERMES_VISUALIZATION = true;
 // Set to "true" to enable VTK output.
 const bool VTK_VISUALIZATION = false;
@@ -41,29 +41,29 @@ double DISCONTINUITY_DETECTOR_PARAM = 1.0;
 const double NU_1 = 0.1;
 const double NU_2 = 0.1;
 
-// Initial polynomial degree.   
+// Initial polynomial degree.
 // Do not change this.
 const int P_INIT = 1;
-// Number of initial uniform mesh refinements.          
-const int INIT_REF_NUM = 2;                                          
-// Number of initial localized mesh refinements.   
-const int INIT_REF_NUM_STEP = 2;                                            
+// Number of initial uniform mesh refinements.
+const int INIT_REF_NUM = 2;
+// Number of initial localized mesh refinements.
+const int INIT_REF_NUM_STEP = 2;
 // CFL value.
-double CFL_NUMBER = 0.25;                                
+double CFL_NUMBER = 0.25;
 // Initial time step.
 double time_step_n = 1E-6;
 
 // Equation parameters.
 // Exterior pressure (dimensionless).
-const double P_EXT = 1.0;         
-// Inlet density (dimensionless).   
-const double RHO_EXT = 1.4;       
+const double P_EXT = 1.0;
+// Inlet density (dimensionless).
+const double RHO_EXT = 1.4;
 // Inlet x-velocity (dimensionless).
-const double V1_EXT = 3.0;        
+const double V1_EXT = 3.0;
 // Inlet y-velocity (dimensionless).
-const double V2_EXT = 0.0;        
+const double V2_EXT = 0.0;
 // Kappa.
-const double KAPPA = 1.4;         
+const double KAPPA = 1.4;
 
 double TIME_INTERVAL_LENGTH = 20.;
 
@@ -84,7 +84,7 @@ const std::string BDY_INLET = "4";
 // Criterion for mesh refinement.
 int refinement_criterion(Element* e)
 {
-  if(e->vn[2]->y <= 0.4 && e->vn[1]->x <= 0.6)
+  if (e->vn[2]->y <= 0.4 && e->vn[1]->x <= 0.6)
     return 0;
   else
     return -1;
@@ -96,18 +96,18 @@ int main(int argc, char* argv[])
 
   // Set initial conditions.
   MeshFunctionSharedPtr<double> prev_rho(new ConstantSolution<double>(mesh, RHO_EXT));
-  MeshFunctionSharedPtr<double> prev_rho_v_x(new ConstantSolution<double> (mesh, RHO_EXT * V1_EXT));
-  MeshFunctionSharedPtr<double> prev_rho_v_y(new ConstantSolution<double> (mesh, RHO_EXT * V2_EXT));
-  MeshFunctionSharedPtr<double> prev_e(new ConstantSolution<double> (mesh, QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA)));
+  MeshFunctionSharedPtr<double> prev_rho_v_x(new ConstantSolution<double>(mesh, RHO_EXT * V1_EXT));
+  MeshFunctionSharedPtr<double> prev_rho_v_y(new ConstantSolution<double>(mesh, RHO_EXT * V2_EXT));
+  MeshFunctionSharedPtr<double> prev_e(new ConstantSolution<double>(mesh, QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA)));
 
   // Initialize weak formulation.
-  Hermes::vector<std::string> solid_wall_markers(BDY_SOLID_WALL_BOTTOM, BDY_SOLID_WALL_TOP);
-  Hermes::vector<std::string> inlet_markers;
+  std::vector<std::string> solid_wall_markers(BDY_SOLID_WALL_BOTTOM, BDY_SOLID_WALL_TOP);
+  std::vector<std::string> inlet_markers;
   inlet_markers.push_back(BDY_INLET);
-  Hermes::vector<std::string> outlet_markers;
+  std::vector<std::string> outlet_markers;
   outlet_markers.push_back(BDY_OUTLET);
 
-  EulerEquationsWeakFormSemiImplicit wf(KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT,solid_wall_markers, 
+  EulerEquationsWeakFormSemiImplicit wf(KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, solid_wall_markers,
     inlet_markers, outlet_markers, prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e, (P_INIT == 0));
 
 #include "../euler-time-loop.cpp"

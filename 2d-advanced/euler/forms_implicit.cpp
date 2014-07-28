@@ -545,13 +545,13 @@ public:
     pressure_ext(pressure_ext), energy_ext(QuantityCalculator::calc_energy(rho_ext, 
     rho_ext * v1_ext, rho_ext * v2_ext, pressure_ext, kappa)), euler_fluxes(new EulerFluxes(kappa))
   {
-    Hermes::vector<std::pair<unsigned int, unsigned int> > matrix_coordinates;
+    std::vector<std::pair<unsigned int, unsigned int> > matrix_coordinates;
     matrix_coordinates.push_back(std::pair<unsigned int, unsigned int>(0, 0));
     matrix_coordinates.push_back(std::pair<unsigned int, unsigned int>(1, 1));
     matrix_coordinates.push_back(std::pair<unsigned int, unsigned int>(2, 2));
     matrix_coordinates.push_back(std::pair<unsigned int, unsigned int>(3, 3));
 
-    Hermes::vector<std::pair<unsigned int, unsigned int> > matrix_coordinates_precon_vol;
+    std::vector<std::pair<unsigned int, unsigned int> > matrix_coordinates_precon_vol;
     matrix_coordinates_precon_vol.push_back(std::pair<unsigned int, unsigned int>(0, 0));
     matrix_coordinates_precon_vol.push_back(std::pair<unsigned int, unsigned int>(0, 1));
     matrix_coordinates_precon_vol.push_back(std::pair<unsigned int, unsigned int>(0, 2));
@@ -569,7 +569,7 @@ public:
     matrix_coordinates_precon_vol.push_back(std::pair<unsigned int, unsigned int>(3, 2));
     matrix_coordinates_precon_vol.push_back(std::pair<unsigned int, unsigned int>(3, 3));
 
-    Hermes::vector<unsigned int> vector_coordinates;
+    std::vector<unsigned int> vector_coordinates;
     vector_coordinates.push_back(0);
     vector_coordinates.push_back(1);
     vector_coordinates.push_back(2);
@@ -631,34 +631,10 @@ protected:
   class EulerEquationsMatrixFormVolPreconditioning : public MultiComponentMatrixFormVol<double>
   {
   public:
-    EulerEquationsMatrixFormVolPreconditioning(Hermes::vector<std::pair<unsigned int, 
-      unsigned int> >coordinates, double kappa) 
-      : MultiComponentMatrixFormVol<double>(coordinates), kappa(kappa) {}
+    EulerEquationsMatrixFormVolPreconditioning({coordinates}, kappa(kappa) {}
 
     void value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, 
-      ExtData<double> *ext, Hermes::vector<double>& result) const
-    {
-      double result_0_0 = 0;
-      double result_0_1 = 0;
-      double result_0_2 = 0;
-      double result_0_3 = 0;
-
-      double result_1_0 = 0;
-      double result_1_1 = 0;
-      double result_1_2 = 0;
-      double result_1_3 = 0;
-
-      double result_2_0 = 0;
-      double result_2_1 = 0;
-      double result_2_2 = 0;
-      double result_2_3 = 0;
-
-      double result_3_0 = 0;
-      double result_3_1 = 0;
-      double result_3_2 = 0;
-      double result_3_3 = 0;
-
-      for (int i = 0;i < n;i++) {
+      ExtData<double> *ext,{int i = 0;i < n;i++} {
         result_0_0 += wt[i] * u->val[i]
         * (static_cast<EulerEquationsWeakFormImplicitMultiComponent*>(wf))->euler_fluxes->A_1_0_0<double>(u_ext[0]->val[i], u_ext[1]->val[i], u_ext[2]->val[i], 0) 
           * v->dx[i];
@@ -792,14 +768,12 @@ protected:
   class EulerEquationsMatrixFormSurfPreconditioning : public MultiComponentMatrixFormSurf<double>
   {
   public:
-    EulerEquationsMatrixFormSurfPreconditioning(Hermes::vector<std::pair<unsigned int, 
-      unsigned int> >coordinates, double kappa) 
-      : MultiComponentMatrixFormSurf<double>(coordinates, H2D_DG_INNER_EDGE), 
+    EulerEquationsMatrixFormSurfPreconditioning({coordinates, H2D_DG_INNER_EDGE}, 
       num_flux(new StegerWarmingNumericalFlux(kappa)) { }
 
     void value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
       Func<double> *v, Geom<double> *e, ExtData<double> *ext, 
-      Hermes::vector<double>& result) const
+      std::vector<double>& result) const
     {
       double result_0_0 = 0;
       double result_0_1 = 0;
@@ -935,14 +909,10 @@ protected:
     : public MultiComponentMatrixFormVol<double>
   {
   public:
-    EulerEquationsMatrixFormVolPreconditioningSimple(Hermes::vector<std::pair<unsigned int, 
-      unsigned int> >coordinates) 
-      : MultiComponentMatrixFormVol<double>(coordinates) {}
+    EulerEquationsMatrixFormVolPreconditioningSimple({coordinates} {}
 
     void value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
-      Geom<double> *e, ExtData<double> *ext, Hermes::vector<double>& result) const
-    {
-      double result_n = int_u_v<double, double>(n, wt, u, v);
+      Geom<double> *e, ExtData<double> *ext,{n, wt, u, v};
 
       result.push_back(result_n);
       result.push_back(result_n);
@@ -960,17 +930,10 @@ protected:
   class EulerEquationsLinearForm : public MultiComponentVectorFormVol<double>
   {
   public:
-    EulerEquationsLinearForm(Hermes::vector<unsigned int> coordinates, double kappa) 
-      : MultiComponentVectorFormVol<double>(coordinates), kappa(kappa) { }
+    EulerEquationsLinearForm({coordinates}, kappa(kappa) { }
 
     void value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, 
-      ExtData<double> *ext, Hermes::vector<double>& result) const
-    {
-      double result_0 = 0;
-      double result_1 = 0;
-      double result_2 = 0;
-      double result_3 = 0;
-      for (int i = 0;i < n;i++) {
+      ExtData<double> *ext,{int i = 0;i < n;i++} {
         result_0 += wt[i] * u_ext[0]->val[i] 
         * (static_cast<EulerEquationsWeakFormImplicitMultiComponent*>(wf))->euler_fluxes->A_1_0_0<double>(u_ext[0]->val[i], u_ext[1]->val[i], u_ext[2]->val[i], 0) 
           * v->dx[i];
@@ -1088,13 +1051,10 @@ protected:
   class EulerEquationsLinearFormTime : public MultiComponentVectorFormVol<double>
   {
   public:
-    EulerEquationsLinearFormTime(Hermes::vector<unsigned int> coordinates) 
-      : MultiComponentVectorFormVol<double>(coordinates) {}
+    EulerEquationsLinearFormTime({coordinates} {}
 
     void value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, 
-      ExtData<double> *ext, Hermes::vector<double>& result) const
-    {
-      result.push_back(int_u_v<double, double>(n, wt, ext->fn[0], v) 
+      ExtData<double> *ext,{int_u_v<double, double>(n, wt, ext->fn[0], v} 
         - int_u_v<double, double>(n, wt, u_ext[0], v));
       result.push_back(int_u_v<double, double>(n, wt, ext->fn[1], v) 
         - int_u_v<double, double>(n, wt, u_ext[1], v));
@@ -1114,19 +1074,10 @@ protected:
   class EulerEquationsLinearFormInterface : public MultiComponentVectorFormSurf<double>
   {
   public:
-    EulerEquationsLinearFormInterface(Hermes::vector<unsigned int> coordinates, 
-      NumericalFlux* num_flux) 
-      : MultiComponentVectorFormSurf<double>(coordinates, H2D_DG_INNER_EDGE), num_flux(num_flux) {}
+    EulerEquationsLinearFormInterface({coordinates, H2D_DG_INNER_EDGE}, num_flux(num_flux) {}
 
     void value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
-      Geom<double> *e, ExtData<double> *ext, Hermes::vector<double>& result) const
-    {
-      double result_0 = 0;
-      double result_1 = 0;
-      double result_2 = 0;
-      double result_3 = 0;
-      double w_L[4], w_R[4];
-      for (int i = 0;i < n;i++) {
+      Geom<double> *e, ExtData<double> *ext,{int i = 0;i < n;i++} {
         w_L[0] = u_ext[0]->get_val_central(i);
         w_R[0] = u_ext[0]->get_val_neighbor(i);
 
@@ -1158,7 +1109,7 @@ protected:
               info("Flux is not conservative.");
 
         num_flux->Q(w_L, w_L, e->nx[i], e->ny[i]);
-        EulerEquationsLinearForm form(Hermes::vector<unsigned int>(), num_flux->kappa);
+        EulerEquationsLinearForm form(std::vector<unsigned int>(), num_flux->kappa);
         flux_testing_flux_1[0] = form.(static_cast<EulerEquationsWeakFormImplicitMultiComponent*>(wf))->euler_fluxes->A_1_0_0<double>(w_L[0], w_L[1], w_L[2], w_L[3]) * w_L[0]
         + form.(static_cast<EulerEquationsWeakFormImplicitMultiComponent*>(wf))->euler_fluxes->A_1_0_1<double>(w_L[0], w_L[1], w_L[2], w_L[3]) * w_L[1]
         + form.(static_cast<EulerEquationsWeakFormImplicitMultiComponent*>(wf))->euler_fluxes->A_1_0_2<double>(w_L[0], w_L[1], w_L[2], w_L[3]) * w_L[2]
@@ -1210,18 +1161,10 @@ protected:
   class EulerEquationsLinearFormSolidWall : public MultiComponentVectorFormSurf<double>
   {
   public:
-    EulerEquationsLinearFormSolidWall(Hermes::vector<unsigned int> coordinates, 
-      std::string marker, NumericalFlux* num_flux) 
-      : MultiComponentVectorFormSurf<double>(coordinates, marker), num_flux(num_flux) {}
+    EulerEquationsLinearFormSolidWall({coordinates, marker}, num_flux(num_flux) {}
 
     void value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, 
-      ExtData<double> *ext, Hermes::vector<double>& result) const
-    {
-      double result_0 = 0;
-      double result_1 = 0;
-      double result_2 = 0;
-      double result_3 = 0;
-      for (int i = 0;i < n;i++) {
+      ExtData<double> *ext,{int i = 0;i < n;i++} {
         double w_L[4];
         w_L[0] = u_ext[0]->val[i];
         w_L[1] = u_ext[1]->val[i];
@@ -1254,20 +1197,10 @@ protected:
   class EulerEquationsLinearFormInlet : public MultiComponentVectorFormSurf<double>
   {
   public:
-    EulerEquationsLinearFormInlet(Hermes::vector<unsigned int> coordinates, 
-      std::string marker, NumericalFlux* num_flux) : 
-    MultiComponentVectorFormSurf<double>(coordinates, marker), num_flux(num_flux) {}
+    EulerEquationsLinearFormInlet({coordinates, marker}, num_flux(num_flux) {}
 
     void value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, 
-      ExtData<double> *ext, Hermes::vector<double>& result) const
-    {
-      double result_0 = 0;
-      double result_1 = 0;
-      double result_2 = 0;
-      double result_3 = 0;
-      double w_L[4], w_B[4];
-
-      for (int i = 0;i < n;i++) {
+      ExtData<double> *ext,{int i = 0;i < n;i++} {
         // Left (inner) state from the previous time level solution.
         w_L[0] = u_ext[0]->val[i];
         w_L[1] = u_ext[1]->val[i];
@@ -1307,19 +1240,10 @@ protected:
   class EulerEquationsLinearFormOutlet : public MultiComponentVectorFormSurf<double>
   {
   public:
-    EulerEquationsLinearFormOutlet(Hermes::vector<unsigned int> coordinates, 
-      std::string marker, NumericalFlux* num_flux) : 
-    MultiComponentVectorFormSurf<double>(coordinates, marker), num_flux(num_flux) {}
+    EulerEquationsLinearFormOutlet({coordinates, marker}, num_flux(num_flux) {}
 
     void value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, 
-      ExtData<double> *ext, Hermes::vector<double>& result) const
-    {
-      double result_0 = 0;
-      double result_1 = 0;
-      double result_2 = 0;
-      double result_3 = 0;
-      double w_L[4];
-      for (int i = 0;i < n;i++) {
+      ExtData<double> *ext,{int i = 0;i < n;i++} {
         w_L[0] = u_ext[0]->val[i];
         w_L[1] = u_ext[1]->val[i];
         w_L[2] = u_ext[2]->val[i];
@@ -1371,7 +1295,7 @@ public:
     double rho_ext, double v1_ext, double v2_ext, 
     double pressure_ext, std::string solid_wall_marker,
     std::string inlet_marker, std::string outlet_marker, 
-    Hermes::vector<std::string> natural_bc_concentration_markers,
+    std::vector<std::string> natural_bc_concentration_markers,
     Solution<double>* prev_density, Solution<double>* prev_density_vel_x, 
     Solution<double>* prev_density_vel_y, Solution<double>* prev_energy, 
     Solution<double>* prev_concentration, bool preconditioning, double epsilon, bool fvm_only = false)
@@ -1403,7 +1327,7 @@ public:
     double rho_ext, double v1_ext, double v2_ext, 
     double pressure_ext, std::string solid_wall_marker_bottom, std::string solid_wall_marker_top,
     std::string inlet_marker, std::string outlet_marker, 
-    Hermes::vector<std::string> natural_bc_concentration_markers,
+    std::vector<std::string> natural_bc_concentration_markers,
     Solution<double>* prev_density, Solution<double>* prev_density_vel_x, 
     Solution<double>* prev_density_vel_y, Solution<double>* prev_energy, 
     Solution<double>* prev_concentration, bool preconditioning, double epsilon, bool fvm_only = false)

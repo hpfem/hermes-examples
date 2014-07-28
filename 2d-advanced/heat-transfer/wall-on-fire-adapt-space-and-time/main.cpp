@@ -1,16 +1,15 @@
-
 #define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
 
 //  This example models a nonstationary distribution of temperature within a wall
-//  exposed to ISO fire. Spatial adaptivity is ON by default, adaptivity in time 
+//  exposed to ISO fire. Spatial adaptivity is ON by default, adaptivity in time
 //  can be turned ON and OFF using the flag ADAPTIVE_TIME_STEP_ON.
 //
 //  PDE: non-stationary heat transfer equation
 //       HEATCAP * RHO * dT/dt - div (LAMBDA grad T) = 0.
 //  Here LAMBDA(x, y) is an external, user-defined function.
 //
-//  For the sake of using arbitrary RK methods, this equation is written in such 
+//  For the sake of using arbitrary RK methods, this equation is written in such
 //  a way that the time-derivative is on the left and everything else on the right:
 //
 //  dT/dt = div(LAMBDA grad T) / (HEATCAP * RHO)
@@ -19,33 +18,33 @@
 //
 //  IC:  T = TEMP_INIT.
 //  BC:  Bottom edge: LAMBDA * dT/dn = ALPHA_BOTTOM*(T_fire(x, time) - T)
-//       Vertical edges: dT/dn = 0 
+//       Vertical edges: dT/dn = 0
 //       Top edge: LAMBDA * dT/dn = ALPHA_TOP*(TEMP_EXT_AIR - T)
 //
-//  Time-stepping: Arbitrary Runge-Kutta methods (choose one of the predefined 
+//  Time-stepping: Arbitrary Runge-Kutta methods (choose one of the predefined
 //                 Butcher's tables below or create your own).
 //
 //  The following parameters can be changed:
 
 // Polynomial degree of all mesh elements.
-const int P_INIT = 1;                             
+const int P_INIT = 1;
 // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM = 1;                       
+const int INIT_REF_NUM = 1;
 // Number of initial uniform mesh refinements towards the boundary.
-const int INIT_REF_NUM_BDY = 1;                   
+const int INIT_REF_NUM_BDY = 1;
 // Time step in seconds.
-double time_step = 20;                            
+double time_step = 20;
 
 // Spatial adaptivity.
 // Every UNREF_FREQth time step the mesh is derefined.
-const int UNREF_FREQ = 1;                         
-// 1... mesh reset to basemesh and poly degrees to P_INIT.   
+const int UNREF_FREQ = 1;
+// 1... mesh reset to basemesh and poly degrees to P_INIT.
 // 2... one ref. layer shaved off, poly degrees reset to P_INIT.
-// 3... one ref. layer shaved off, poly degrees decreased by one. 
-const int UNREF_METHOD = 3;                       
+// 3... one ref. layer shaved off, poly degrees decreased by one.
+const int UNREF_METHOD = 3;
 // This is a quantitative parameter of the adapt(...) function and
 // it has different meanings for various adaptive strategies.
-const double THRESHOLD = 0.3;                     
+const double THRESHOLD = 0.3;
 // Error calculation & adaptivity.
 DefaultErrorCalculator<double, HERMES_H1_NORM> errorCalculator(RelativeErrorToGlobalNorm, 1);
 // Stopping criterion for an adaptivity step.
@@ -60,66 +59,66 @@ const double ERR_STOP = 1e-1;
 // Temporal adaptivity.
 // This flag decides whether adaptive time stepping will be done.
 // The methods for the adaptive and fixed-step versions are set
-// below. An embedded method must be used with adaptive time stepping. 
-bool ADAPTIVE_TIME_STEP_ON = false;               
-// If rel. temporal error is greater than this threshold, decrease time 
+// below. An embedded method must be used with adaptive time stepping.
+bool ADAPTIVE_TIME_STEP_ON = false;
+// If rel. temporal error is greater than this threshold, decrease time
 // step size and repeat time step.
-const double TIME_ERR_TOL_UPPER = 1.0;                
+const double TIME_ERR_TOL_UPPER = 1.0;
 // If rel. temporal error is less than this threshold, increase time step
 // but do not repeat time step (this might need further research).
-const double TIME_ERR_TOL_LOWER = 0.5;                
+const double TIME_ERR_TOL_LOWER = 0.5;
 // Time step increase ratio (applied when rel. temporal error is too small).
-const double TIME_STEP_INC_RATIO = 1.1;           
+const double TIME_STEP_INC_RATIO = 1.1;
 // Time step decrease ratio (applied when rel. temporal error is too large).
-const double TIME_STEP_DEC_RATIO = 0.8;           
+const double TIME_STEP_DEC_RATIO = 0.8;
 
 // Newton's method.
 // Stopping criterion for Newton on fine mesh->
-const double NEWTON_TOL_COARSE = 0.001;           
+const double NEWTON_TOL_COARSE = 0.001;
 // Stopping criterion for Newton on fine mesh->
-const double NEWTON_TOL_FINE = 0.005;             
+const double NEWTON_TOL_FINE = 0.005;
 // Maximum allowed number of Newton iterations.
-const int NEWTON_MAX_ITER = 100;                  
+const int NEWTON_MAX_ITER = 100;
 
-// Choose one of the following time-integration methods, or define your own Butcher's table. The last number 
+// Choose one of the following time-integration methods, or define your own Butcher's table. The last number
 // in the name of each method is its order. The one before last, if present, is the number of stages.
 // Explicit methods:
 //   Explicit_RK_1, Explicit_RK_2, Explicit_RK_3, Explicit_RK_4.
-// Implicit methods: 
-//   Implicit_RK_1, Implicit_Crank_Nicolson_2_2, Implicit_SIRK_2_2, Implicit_ESIRK_2_2, Implicit_SDIRK_2_2, 
-//   Implicit_Lobatto_IIIA_2_2, Implicit_Lobatto_IIIB_2_2, Implicit_Lobatto_IIIC_2_2, Implicit_Lobatto_IIIA_3_4, 
+// Implicit methods:
+//   Implicit_RK_1, Implicit_Crank_Nicolson_2_2, Implicit_SIRK_2_2, Implicit_ESIRK_2_2, Implicit_SDIRK_2_2,
+//   Implicit_Lobatto_IIIA_2_2, Implicit_Lobatto_IIIB_2_2, Implicit_Lobatto_IIIC_2_2, Implicit_Lobatto_IIIA_3_4,
 //   Implicit_Lobatto_IIIB_3_4, Implicit_Lobatto_IIIC_3_4, Implicit_Radau_IIA_3_5, Implicit_SDIRK_5_4.
 // Embedded explicit methods:
 //   Explicit_HEUN_EULER_2_12_embedded, Explicit_BOGACKI_SHAMPINE_4_23_embedded, Explicit_FEHLBERG_6_45_embedded,
 //   Explicit_CASH_KARP_6_45_embedded, Explicit_DORMAND_PRINCE_7_45_embedded.
 // Embedded implicit methods:
-//   Implicit_SDIRK_CASH_3_23_embedded, Implicit_ESDIRK_TRBDF2_3_23_embedded, Implicit_ESDIRK_TRX2_3_23_embedded, 
-//   Implicit_SDIRK_BILLINGTON_3_23_embedded, Implicit_SDIRK_CASH_5_24_embedded, Implicit_SDIRK_CASH_5_34_embedded, 
-//   Implicit_DIRK_ISMAIL_7_45_embedded. 
+//   Implicit_SDIRK_CASH_3_23_embedded, Implicit_ESDIRK_TRBDF2_3_23_embedded, Implicit_ESDIRK_TRX2_3_23_embedded,
+//   Implicit_SDIRK_BILLINGTON_3_23_embedded, Implicit_SDIRK_CASH_5_24_embedded, Implicit_SDIRK_CASH_5_34_embedded,
+//   Implicit_DIRK_ISMAIL_7_45_embedded.
 ButcherTableType butcher_table_type = Implicit_SDIRK_CASH_3_23_embedded;
 
 // Boundary markers.
 const std::string BDY_FIRE = "Bottom";
 const std::string BDY_LEFT = "Left";
 const std::string BDY_RIGHT = "Right";
-const std::string BDY_AIR  = "Top";
+const std::string BDY_AIR = "Top";
 
 // Problem parameters.
 // Initial temperature.
-const double TEMP_INIT = 20;       
+const double TEMP_INIT = 20;
 // Exterior temperature top;
-const double TEMP_EXT_AIR = 20;    
+const double TEMP_EXT_AIR = 20;
 
 // Heat flux coefficient on the bottom edge.
-const double ALPHA_FIRE = 25;      
+const double ALPHA_FIRE = 25;
 // Heat flux coefficient on the top edge.
-const double ALPHA_AIR = 8;        
+const double ALPHA_AIR = 8;
 // Heat capacity.
-const double HEATCAP = 1020;       
+const double HEATCAP = 1020;
 // Material density.
-const double RHO = 2200;           
+const double RHO = 2200;
 // Length of time interval in seconds.
-const double T_FINAL = 18000;      
+const double T_FINAL = 18000;
 
 int main(int argc, char* argv[])
 {
@@ -135,14 +134,14 @@ int main(int argc, char* argv[])
     ADAPTIVE_TIME_STEP_ON = false;
   }
 
-  // Load the mesh.
+  // Load the mesh->
   MeshSharedPtr mesh(new Mesh), basemesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("wall.mesh", basemesh);
   mesh->copy(basemesh);
 
   // Perform initial mesh refinements.
-  for(int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
+  for (int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
   mesh->refine_towards_boundary(BDY_RIGHT, 2);
   mesh->refine_towards_boundary(BDY_FIRE, INIT_REF_NUM_BDY);
 
@@ -155,7 +154,7 @@ int main(int argc, char* argv[])
   Hermes::Mixins::Loggable::Static::info("ndof = %d.", ndof);
 
   // Convert initial condition into a Solution.
-  MeshFunctionSharedPtr<double> sln_prev_time(new ConstantSolution<double> (mesh, TEMP_INIT));
+  MeshFunctionSharedPtr<double> sln_prev_time(new ConstantSolution<double>(mesh, TEMP_INIT));
 
   // Initialize the weak formulation.
   double current_time = 0;
@@ -163,7 +162,7 @@ int main(int argc, char* argv[])
     RHO, HEATCAP, TEMP_EXT_AIR, TEMP_INIT, &current_time);
 
   // Initialize the FE problem.
-  DiscreteProblem<double> dp(&wf, space);
+  DiscreteProblem<double> dp(wf, space);
 
   // Create a refinement selector.
   H1ProjBasedSelector<double> selector(CAND_LIST);
@@ -188,11 +187,11 @@ int main(int argc, char* argv[])
 
   // Time stepping loop:
   int ts = 1;
-  do 
+  do
   {
     Hermes::Mixins::Loggable::Static::info("Begin time step %d.", ts);
     // Periodic global derefinement.
-    if (ts > 1 && ts % UNREF_FREQ == 0) 
+    if (ts > 1 && ts % UNREF_FREQ == 0)
     {
       Hermes::Mixins::Loggable::Static::info("Global mesh derefinement.");
       switch (UNREF_METHOD) {
@@ -213,8 +212,8 @@ int main(int argc, char* argv[])
       ndof = Space<double>::get_num_dofs(space);
     }
 
-    // Spatial adaptivity loop. Note: sln_prev_time must not be 
-    // changed during spatial adaptivity. 
+    // Spatial adaptivity loop. Note: sln_prev_time must not be
+    // changed during spatial adaptivity.
     MeshFunctionSharedPtr<double> ref_sln(new Solution<double>());
     MeshFunctionSharedPtr<double> time_error_fn(new Solution<double>(mesh));
     bool done = false; int as = 1;
@@ -227,15 +226,15 @@ int main(int argc, char* argv[])
       Space<double>::ReferenceSpaceCreator refSpaceCreator(space, ref_mesh);
       SpaceSharedPtr<double> ref_space = refSpaceCreator.create_ref_space();
 
-      // Initialize Runge-Kutta time stepping on the reference mesh.
-      RungeKutta<double> runge_kutta(&wf, ref_space, &bt);
+      // Initialize Runge-Kutta time stepping on the reference mesh->
+      RungeKutta<double> runge_kutta(wf, ref_space, &bt);
 
       try
       {
-        ogProjection.project_global(ref_space, sln_prev_time, 
+        ogProjection.project_global(ref_space, sln_prev_time,
           sln_prev_time);
       }
-      catch(Exceptions::Exception& e)
+      catch (Exceptions::Exception& e)
       {
         std::cout << e.what() << std::endl;
         Hermes::Mixins::Loggable::Static::error("Projection failed.");
@@ -244,7 +243,7 @@ int main(int argc, char* argv[])
       }
 
       // Runge-Kutta step on the fine mesh->
-      Hermes::Mixins::Loggable::Static::info("Runge-Kutta time step on fine mesh (t = %g s, tau = %g s, stages: %d).", 
+      Hermes::Mixins::Loggable::Static::info("Runge-Kutta time step on fine mesh (t = %g s, tau = %g s, stages: %d).",
         current_time, time_step, bt.get_size());
       bool verbose = true;
       bool jacobian_changed = false;
@@ -257,7 +256,7 @@ int main(int argc, char* argv[])
         runge_kutta.set_tolerance(NEWTON_TOL_FINE);
         runge_kutta.rk_time_step_newton(sln_prev_time, ref_sln, bt.is_embedded() ? time_error_fn : NULL);
       }
-      catch(Exceptions::Exception& e)
+      catch (Exceptions::Exception& e)
       {
         std::cout << e.what() << std::endl;
         Hermes::Mixins::Loggable::Static::error("Runge-Kutta time step failed");
@@ -265,45 +264,45 @@ int main(int argc, char* argv[])
         return -1;
       }
 
-      /* If ADAPTIVE_TIME_STEP_ON == true, estimate temporal error. 
+      /* If ADAPTIVE_TIME_STEP_ON == true, estimate temporal error.
       If too large or too small, then adjust it and restart the time step. */
 
       double rel_err_time = 0;
-      if (bt.is_embedded() == true) 
+      if (bt.is_embedded() == true)
       {
         Hermes::Mixins::Loggable::Static::info("Calculating temporal error estimate.");
 
         // Show temporal error.
         char title[100];
-        sprintf(title, "Temporal error est, spatial adaptivity step %d", as);     
+        sprintf(title, "Temporal error est, spatial adaptivity step %d", as);
         time_error_view.set_title(title);
         //time_error_view.show_mesh(false);
         time_error_view.show(time_error_fn);
 
-        rel_err_time = Global<double>::calc_norm(time_error_fn.get(), HERMES_H1_NORM) 
+        rel_err_time = Global<double>::calc_norm(time_error_fn.get(), HERMES_H1_NORM)
           / Global<double>::calc_norm(ref_sln.get(), HERMES_H1_NORM) * 100;
         if (ADAPTIVE_TIME_STEP_ON == false) Hermes::Mixins::Loggable::Static::info("rel_err_time: %g%%", rel_err_time);
       }
 
-      if (ADAPTIVE_TIME_STEP_ON) 
+      if (ADAPTIVE_TIME_STEP_ON)
       {
-        if (rel_err_time > TIME_ERR_TOL_UPPER) 
+        if (rel_err_time > TIME_ERR_TOL_UPPER)
         {
           Hermes::Mixins::Loggable::Static::info("rel_err_time %g%% is above upper limit %g%%", rel_err_time, TIME_ERR_TOL_UPPER);
-          Hermes::Mixins::Loggable::Static::info("Decreasing tau from %g to %g s and restarting time step.", 
+          Hermes::Mixins::Loggable::Static::info("Decreasing tau from %g to %g s and restarting time step.",
             time_step, time_step * TIME_STEP_DEC_RATIO);
           time_step *= TIME_STEP_DEC_RATIO;
           continue;
         }
-        else if (rel_err_time < TIME_ERR_TOL_LOWER) 
+        else if (rel_err_time < TIME_ERR_TOL_LOWER)
         {
           Hermes::Mixins::Loggable::Static::info("rel_err_time = %g%% is below lower limit %g%%", rel_err_time, TIME_ERR_TOL_LOWER);
           Hermes::Mixins::Loggable::Static::info("Increasing tau from %g to %g s.", time_step, time_step * TIME_STEP_INC_RATIO);
           time_step *= TIME_STEP_INC_RATIO;
         }
-        else 
+        else
         {
-          Hermes::Mixins::Loggable::Static::info("rel_err_time = %g%% is in acceptable interval (%g%%, %g%%)", 
+          Hermes::Mixins::Loggable::Static::info("rel_err_time = %g%% is in acceptable interval (%g%%, %g%%)",
             rel_err_time, TIME_ERR_TOL_LOWER, TIME_ERR_TOL_UPPER);
         }
 
@@ -316,14 +315,14 @@ int main(int argc, char* argv[])
 
       Hermes::Mixins::Loggable::Static::info("Spatial adaptivity step %d.", as);
 
-      // Project the fine mesh solution onto the coarse mesh.
+      // Project the fine mesh solution onto the coarse mesh->
       MeshFunctionSharedPtr<double> sln(new Solution<double>());
       Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh for error estimation.");
-      ogProjection.project_global(space, ref_sln, sln); 
+      ogProjection.project_global(space, ref_sln, sln);
 
       // Show spatial error.
-      sprintf(title, "Spatial error est, spatial adaptivity step %d", as);  
-      MeshFunctionSharedPtr<double> space_error_fn(new DiffFilter<double>(Hermes::vector<MeshFunctionSharedPtr<double> >(ref_sln, sln)));
+      sprintf(title, "Spatial error est, spatial adaptivity step %d", as);
+      MeshFunctionSharedPtr<double> space_error_fn(new DiffFilter<double>({ref_sln, sln}));
       space_error_view.set_title(title);
       //space_error_view.show_mesh(false);
       MeshFunctionSharedPtr<double> abs_sef(new AbsFilter(space_error_fn));
@@ -336,17 +335,17 @@ int main(int argc, char* argv[])
       double err_rel_space = errorCalculator.get_total_error_squared() * 100;
 
       // Report results.
-      Hermes::Mixins::Loggable::Static::info("ndof: %d, ref_ndof: %d, err_rel_space: %g%%", 
+      Hermes::Mixins::Loggable::Static::info("ndof: %d, ref_ndof: %d, err_rel_space: %g%%",
         Space<double>::get_num_dofs(space), Space<double>::get_num_dofs(ref_space), err_rel_space);
 
-      // If err_est too large, adapt the mesh.
+      // If err_est too large, adapt the mesh->
       if (err_rel_space < SPACE_ERR_TOL) done = true;
-      else 
+      else
       {
-        Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh.");
+        Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh->");
         done = adaptivity.adapt(&selector);
 
-        if (Space<double>::get_num_dofs(space) >= NDOF_STOP) 
+        if (Space<double>::get_num_dofs(space) >= NDOF_STOP)
           done = true;
         else
           // Increase the counter of performed adaptivity steps.
@@ -354,11 +353,8 @@ int main(int argc, char* argv[])
       }
 
       // Clean up.
-      if(!done)
-
-        
-    }
-    while (done == false);
+      if (!done)
+    } while (done == false);
 
     // Visualize the solution and mesh->
     char title[100];
@@ -376,8 +372,7 @@ int main(int argc, char* argv[])
     // Increase current time and counter of time steps.
     current_time += time_step;
     ts++;
-  }
-  while (current_time < T_FINAL);
+  } while (current_time < T_FINAL);
 
   // Wait for all views to be closed.
   View::wait();

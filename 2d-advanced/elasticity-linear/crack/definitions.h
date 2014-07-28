@@ -8,9 +8,9 @@ using namespace Hermes::Hermes2D::WeakFormsElasticity;
 using namespace Hermes::Hermes2D::Views;
 using namespace RefinementSelectors;
 
-class CustomWeakFormLinearElasticity : public WeakForm<double>
+class CustomWeakFormLinearElasticity : public WeakForm < double >
 {
 public:
   CustomWeakFormLinearElasticity(double E, double nu, double rho_g,
-      std::string surface_force_bdy, double f0, double f1);
+    std::string surface_force_bdy, double f0, double f1);
 };

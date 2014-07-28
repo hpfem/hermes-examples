@@ -1,11 +1,9 @@
-
-
 #include "definitions.h"
 
 //  This example uses adaptivity with dynamical meshes to solve
-//  the time-dependent Richard's equation. The time discretization 
-//  is backward Euler or Crank-Nicolson, and the nonlinear solver 
-//  in each time step is either Newton or Picard. 
+//  the time-dependent Richard's equation. The time discretization
+//  is backward Euler or Crank-Nicolson, and the nonlinear solver
+//  in each time step is either Newton or Picard.
 //
 //  PDE: C(h)dh/dt - div(K(h)grad(h)) - (dK/dh)*(dh/dy) = 0
 //  where K(h) = K_S*exp(alpha*h)                          for h < 0,
@@ -31,40 +29,40 @@ std::string mesh_file = "domain-half.mesh";
 
 // Methods.
 // 1 = Newton, 2 = Picard.
-const int ITERATIVE_METHOD = 1;		          
+const int ITERATIVE_METHOD = 1;
 // 1 = implicit Euler, 2 = Crank-Nicolson.
-const int TIME_INTEGRATION = 1;                   
+const int TIME_INTEGRATION = 1;
 
 // Adaptive time stepping.
 // Time step (in days).
-double time_step = 0.5;                           
+double time_step = 0.5;
 // Timestep decrease ratio after unsuccessful nonlinear solve.
-double time_step_dec = 0.5;                       
+double time_step_dec = 0.5;
 // Timestep increase ratio after successful nonlinear solve.
-double time_step_inc = 1.1;                       
-// Computation will stop if time step drops below this value. 
-double time_step_min = 1e-8; 			                
+double time_step_inc = 1.1;
+// Computation will stop if time step drops below this value.
+double time_step_min = 1e-8;
 // Maximal time step.
-double time_step_max = 1.0;                       
+double time_step_max = 1.0;
 
 // Elements orders and initial refinements.
 // Initial polynomial degree of all mesh elements.
-const int P_INIT = 1;                             
+const int P_INIT = 1;
 // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM = 1;                       
+const int INIT_REF_NUM = 1;
 // Number of initial mesh refinements towards the top edge.
-const int INIT_REF_NUM_BDY_TOP = 0;               
+const int INIT_REF_NUM_BDY_TOP = 0;
 
 // Adaptivity.
 // Every UNREF_FREQth time step the mesh is unrefined.
-const int UNREF_FREQ = 1;                         
-// 1... mesh reset to basemesh and poly degrees to P_INIT.   
+const int UNREF_FREQ = 1;
+// 1... mesh reset to basemesh and poly degrees to P_INIT.
 // 2... one ref. layer shaved off, poly degrees reset to P_INIT.
-// 3... one ref. layer shaved off, poly degrees decreased by one. 
-const int UNREF_METHOD = 3;                       
+// 3... one ref. layer shaved off, poly degrees decreased by one.
+const int UNREF_METHOD = 3;
 // This is a quantitative parameter of the adapt(...) function and
 // it has different meanings for various adaptive strategies.
-const double THRESHOLD = 0.3;                     
+const double THRESHOLD = 0.3;
 // Error calculation & adaptivity.
 DefaultErrorCalculator<double, HERMES_H1_NORM> errorCalculator(RelativeErrorToGlobalNorm, 1);
 // Stopping criterion for an adaptivity step.
@@ -78,75 +76,75 @@ const double ERR_STOP = 1e-2;
 
 // Constitutive relations.
 enum CONSTITUTIVE_RELATIONS {
-    CONSTITUTIVE_GENUCHTEN,    // Van Genuchten.
-    CONSTITUTIVE_GARDNER       // Gardner.
+  CONSTITUTIVE_GENUCHTEN,    // Van Genuchten.
+  CONSTITUTIVE_GARDNER       // Gardner.
 };
 // Use van Genuchten's constitutive relations, or Gardner's.
 CONSTITUTIVE_RELATIONS constitutive_relations_type = CONSTITUTIVE_GENUCHTEN;
 
 // Newton's and Picard's methods.
-// Stopping criterion for Newton on fine mesh.
-const double NEWTON_TOL = 1e-5;                   
+// Stopping criterion for Newton on fine mesh->
+const double NEWTON_TOL = 1e-5;
 // Maximum allowed number of Newton iterations.
-int NEWTON_MAX_ITER = 10;                         
-// Stopping criterion for Picard on fine mesh.
-const double PICARD_TOL = 1e-2;                   
+int NEWTON_MAX_ITER = 10;
+// Stopping criterion for Picard on fine mesh->
+const double PICARD_TOL = 1e-2;
 // Maximum allowed number of Picard iterations.
-int PICARD_MAX_ITER = 23;                         
+int PICARD_MAX_ITER = 23;
 
 // Times.
 // Start-up time for time-dependent Dirichlet boundary condition.
-const double STARTUP_TIME = 5.0;                  
+const double STARTUP_TIME = 5.0;
 // Time interval length.
-const double T_FINAL = 1000.0;                    
+const double T_FINAL = 1000.0;
 // Time interval of the top layer infiltration.
-const double PULSE_END_TIME = 1000.0;             
+const double PULSE_END_TIME = 1000.0;
 // Global time variable.
-double current_time = time_step;                          
+double current_time = time_step;
 
 // Problem parameters.
 // Initial pressure head.
-double H_INIT = -15.0;                            
+double H_INIT = -15.0;
 // Top constant pressure head -- an infiltration experiment.
-double H_ELEVATION = 10.0;                        
-double K_S_vals[4] = {350.2, 712.8, 1.68, 18.64}; 
-double ALPHA_vals[4] = {0.01, 1.0, 0.01, 0.01};
-double N_vals[4] = {2.5, 2.0, 1.23, 2.5};
-double M_vals[4] = {0.864, 0.626, 0.187, 0.864};
+double H_ELEVATION = 10.0;
+double K_S_vals[4] = { 350.2, 712.8, 1.68, 18.64 };
+double ALPHA_vals[4] = { 0.01, 1.0, 0.01, 0.01 };
+double N_vals[4] = { 2.5, 2.0, 1.23, 2.5 };
+double M_vals[4] = { 0.864, 0.626, 0.187, 0.864 };
 
-double THETA_R_vals[4] = {0.064, 0.0, 0.089, 0.064};
-double THETA_S_vals[4] = {0.14, 0.43, 0.43, 0.24};
-double STORATIVITY_vals[4] = {0.1, 0.1, 0.1, 0.1};
+double THETA_R_vals[4] = { 0.064, 0.0, 0.089, 0.064 };
+double THETA_S_vals[4] = { 0.14, 0.43, 0.43, 0.24 };
+double STORATIVITY_vals[4] = { 0.1, 0.1, 0.1, 0.1 };
 
 // Precalculation of constitutive tables.
 const int MATERIAL_COUNT = 4;
 // 0 - constitutive functions are evaluated directly (slow performance).
-// 1 - constitutive functions are linearly approximated on interval 
-//     <TABLE_LIMIT; LOW_LIMIT> (very efficient CPU utilization less 
+// 1 - constitutive functions are linearly approximated on interval
+//     <TABLE_LIMIT; LOW_LIMIT> (very efficient CPU utilization less
 //     efficient memory consumption (depending on TABLE_PRECISION)).
 // 2 - constitutive functions are aproximated by quintic splines.
 const int CONSTITUTIVE_TABLE_METHOD = 2;
-						  
-/* Use only if CONSTITUTIVE_TABLE_METHOD == 2 */					  
-// Number of intervals.        
-const int NUM_OF_INTERVALS = 16;                                
+
+/* Use only if CONSTITUTIVE_TABLE_METHOD == 2 */
+// Number of intervals.
+const int NUM_OF_INTERVALS = 16;
 // Low limits of intervals approximated by quintic splines.
-double INTERVALS_4_APPROX[16] = 
-      {-1.0, -2.0, -3.0, -4.0, -5.0, -8.0, -10.0, -12.0, 
-      -15.0, -20.0, -30.0, -50.0, -75.0, -100.0,-300.0, -1000.0}; 
+double INTERVALS_4_APPROX[16] =
+{ -1.0, -2.0, -3.0, -4.0, -5.0, -8.0, -10.0, -12.0,
+-15.0, -20.0, -30.0, -50.0, -75.0, -100.0, -300.0, -1000.0 };
 // This array contains for each integer of h function appropriate polynomial ID.
-                      
-// First DIM is the interval ID, second DIM is the material ID, 
+
+// First DIM is the interval ID, second DIM is the material ID,
 // third DIM is the derivative degree, fourth DIM are the coefficients.
 
-/* END OF Use only if CONSTITUTIVE_TABLE_METHOD == 2 */					  
+/* END OF Use only if CONSTITUTIVE_TABLE_METHOD == 2 */
 
 /* Use only if CONSTITUTIVE_TABLE_METHOD == 1 */
-// Limit of precalculated functions (should be always negative value lower 
+// Limit of precalculated functions (should be always negative value lower
 // then the lowest expect value of the solution (consider DMP!!)
-double TABLE_LIMIT = -1000.0; 		          
+double TABLE_LIMIT = -1000.0;
 // Precision of precalculated table use 1.0, 0,1, 0.01, etc.....
-const double TABLE_PRECISION = 0.1;               
+const double TABLE_PRECISION = 0.1;
 
 bool CONSTITUTIVE_TABLES_READY = false;
 // Polynomial approximation of the K(h) function close to saturation.
@@ -154,9 +152,9 @@ bool CONSTITUTIVE_TABLES_READY = false;
 // First dimension is material ID
 // Second dimension is the polynomial derivative.
 // Third dimension are the polynomial's coefficients.
-double*** POLYNOMIALS;                            	  
-// Lower bound of K(h) function approximated by polynomials.						  
-const double LOW_LIMIT = -1.0;                    
+double*** POLYNOMIALS;
+// Lower bound of K(h) function approximated by polynomials.
+const double LOW_LIMIT = -1.0;
 const int NUM_OF_INSIDE_PTS = 0;
 /* END OF Use only if CONSTITUTIVE_TABLE_METHOD == 1 */
 
@@ -171,46 +169,45 @@ int main(int argc, char* argv[])
 {
   ConstitutiveRelationsGenuchtenWithLayer constitutive_relations(CONSTITUTIVE_TABLE_METHOD, NUM_OF_INSIDE_PTS, LOW_LIMIT, TABLE_PRECISION, TABLE_LIMIT, K_S_vals, ALPHA_vals, N_vals, M_vals, THETA_R_vals, THETA_S_vals, STORATIVITY_vals);
 
-  // Either use exact constitutive relations (slow) (method 0) or precalculate 
+  // Either use exact constitutive relations (slow) (method 0) or precalculate
   // their linear approximations (faster) (method 1) or
-  // precalculate their quintic polynomial approximations (method 2) -- managed by 
+  // precalculate their quintic polynomial approximations (method 2) -- managed by
   // the following loop "Initializing polynomial approximation".
   if (CONSTITUTIVE_TABLE_METHOD == 1)
     constitutive_relations.constitutive_tables_ready = get_constitutive_tables(1, &constitutive_relations, MATERIAL_COUNT);  // 1 stands for the Newton's method.
 
-
-  // The van Genuchten + Mualem K(h) function is approximated by polynomials close 
+  // The van Genuchten + Mualem K(h) function is approximated by polynomials close
   // to zero in case of CONSTITUTIVE_TABLE_METHOD==1.
   // In case of CONSTITUTIVE_TABLE_METHOD==2, all constitutive functions are approximated by polynomials.
   Hermes::Mixins::Loggable::Static::info("Initializing polynomial approximations.");
-  for (int i=0; i < MATERIAL_COUNT; i++)
+  for (int i = 0; i < MATERIAL_COUNT; i++)
   {
     // Points to be used for polynomial approximation of K(h).
     double* points = new double[NUM_OF_INSIDE_PTS];
 
     init_polynomials(6 + NUM_OF_INSIDE_PTS, LOW_LIMIT, points, NUM_OF_INSIDE_PTS, i, &constitutive_relations, MATERIAL_COUNT, NUM_OF_INTERVALS, INTERVALS_4_APPROX);
   }
-  
+
   constitutive_relations.polynomials_ready = true;
   if (CONSTITUTIVE_TABLE_METHOD == 2)
   {
     constitutive_relations.constitutive_tables_ready = true;
     //Assign table limit to global definition.
-    constitutive_relations.table_limit = INTERVALS_4_APPROX[NUM_OF_INTERVALS-1];
+    constitutive_relations.table_limit = INTERVALS_4_APPROX[NUM_OF_INTERVALS - 1];
   }
 
   // Time measurement.
   Hermes::Mixins::TimeMeasurable cpu_time;
   cpu_time.tick();
 
-  // Load the mesh.
+  // Load the mesh->
   MeshSharedPtr mesh(new Mesh), basemesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load(mesh_file.c_str(), basemesh);
-  
+
   // Perform initial mesh refinements.
   mesh->copy(basemesh);
-  for(int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements(0, true);
+  for (int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements(0, true);
   mesh->refine_towards_boundary(BDY_TOP, INIT_REF_NUM_BDY_TOP, true, true);
 
   // Initialize boundary conditions.
@@ -254,9 +251,9 @@ int main(int argc, char* argv[])
   }
 
   // Error estimate and discrete problem size as a function of physical time.
-  SimpleGraph graph_time_err_est, graph_time_err_exact, 
+  SimpleGraph graph_time_err_est, graph_time_err_exact,
     graph_time_dof, graph_time_cpu, graph_time_step;
- 
+
   // Visualize the projection and mesh->
   ScalarView view("Initial condition", new WinGeom(0, 0, 630, 350));
   view.fix_scale_width(50);
@@ -268,8 +265,8 @@ int main(int argc, char* argv[])
   //View::wait();
 
   // Time stepping loop.
-  int num_time_steps = (int)(T_FINAL/time_step + 0.5);
-  for(int ts = 1; ts <= num_time_steps; ts++)
+  int num_time_steps = (int)(T_FINAL / time_step + 0.5);
+  for (int ts = 1; ts <= num_time_steps; ts++)
   {
     Hermes::Mixins::Loggable::Static::info("---- Time step %d:", ts);
 
@@ -277,21 +274,21 @@ int main(int argc, char* argv[])
     cpu_time.tick();
 
     // Periodic global derefinement.
-    if (ts > 1 && ts % UNREF_FREQ == 0) 
+    if (ts > 1 && ts % UNREF_FREQ == 0)
     {
       Hermes::Mixins::Loggable::Static::info("Global mesh derefinement.");
       switch (UNREF_METHOD) {
-        case 1: mesh->copy(basemesh);
-                space->set_uniform_order(P_INIT);
-                break;
-        case 2: mesh->unrefine_all_elements();
-                space->set_uniform_order(P_INIT);
-                break;
-        case 3: mesh->unrefine_all_elements();
-                //space->adjust_element_order(-1, P_INIT);
-                space->adjust_element_order(-1, -1, P_INIT, P_INIT);
-                break;
-        default: throw Hermes::Exceptions::Exception("Wrong global derefinement method.");
+      case 1: mesh->copy(basemesh);
+        space->set_uniform_order(P_INIT);
+        break;
+      case 2: mesh->unrefine_all_elements();
+        space->set_uniform_order(P_INIT);
+        break;
+      case 3: mesh->unrefine_all_elements();
+        //space->adjust_element_order(-1, P_INIT);
+        space->adjust_element_order(-1, -1, P_INIT, P_INIT);
+        break;
+      default: throw Hermes::Exceptions::Exception("Wrong global derefinement method.");
       }
 
       space->assign_dofs();
@@ -317,41 +314,41 @@ int main(int argc, char* argv[])
 
       // Next we need to calculate the reference solution.
       // Newton's method:
-      if(ITERATIVE_METHOD == 1) {
+      if (ITERATIVE_METHOD == 1) {
         double* coeff_vec = new double[ref_space->get_num_dofs()];
-     
-        // Calculate initial coefficient vector for Newton on the fine mesh.
+
+        // Calculate initial coefficient vector for Newton on the fine mesh->
         if (as == 1 && ts == 1) {
-          Hermes::Mixins::Loggable::Static::info("Projecting coarse mesh solution to obtain initial vector on new fine mesh.");
+          Hermes::Mixins::Loggable::Static::info("Projecting coarse mesh solution to obtain initial vector on new fine mesh->");
           OGProjection<double> ogProjection; ogProjection.project_global(ref_space, sln_prev_time, coeff_vec);
         }
         else {
-          Hermes::Mixins::Loggable::Static::info("Projecting previous fine mesh solution to obtain initial vector on new fine mesh.");
+          Hermes::Mixins::Loggable::Static::info("Projecting previous fine mesh solution to obtain initial vector on new fine mesh->");
           OGProjection<double> ogProjection; ogProjection.project_global(ref_space, ref_sln, coeff_vec);
         }
 
         // Initialize the FE problem.
         DiscreteProblem<double> dp(wf, ref_space);
 
-        // Perform Newton's iteration on the reference mesh. If necessary, 
-        // reduce time step to make it converge, but then restore time step 
+        // Perform Newton's iteration on the reference mesh-> If necessary,
+        // reduce time step to make it converge, but then restore time step
         // size to its original value.
         Hermes::Mixins::Loggable::Static::info("Performing Newton's iteration (tau = %g days):", time_step);
         bool success, verbose = true;
         double* save_coeff_vec = new double[ndof];
-        
+
         // Save coefficient vector.
-        for (int i=0; i < ndof; i++) 
+        for (int i = 0; i < ndof; i++)
           save_coeff_vec[i] = coeff_vec[i];
 
         bc_essential.set_current_time(current_time);
-        
+
         // Perform Newton's iteration.
         Hermes::Mixins::Loggable::Static::info("Solving nonlinear problem:");
         Hermes::Hermes2D::NewtonSolver<double> newton(&dp);
         newton.set_sufficient_improvement_factor(1.1);
         bool newton_converged = false;
-        while(!newton_converged)
+        while (!newton_converged)
         {
           try
           {
@@ -360,47 +357,47 @@ int main(int argc, char* argv[])
             newton.solve(coeff_vec);
             newton_converged = true;
           }
-          catch(Hermes::Exceptions::Exception e)
+          catch (Hermes::Exceptions::Exception e)
           {
             e.print_msg();
             newton_converged = false;
           };
-        
-          if(!newton_converged)
+
+          if (!newton_converged)
           {
             // Restore solution from the beginning of time step.
-            for (int i=0; i < ndof; i++) coeff_vec[i] = save_coeff_vec[i];
+            for (int i = 0; i < ndof; i++) coeff_vec[i] = save_coeff_vec[i];
             // Reducing time step to 50%.
-            Hermes::Mixins::Loggable::Static::info("Reducing time step size from %g to %g days for the rest of this time step.", 
-                 time_step, time_step * time_step_dec);
+            Hermes::Mixins::Loggable::Static::info("Reducing time step size from %g to %g days for the rest of this time step.",
+              time_step, time_step * time_step_dec);
             time_step *= time_step_dec;
             // If time_step less than the prescribed minimum, stop.
             if (time_step < time_step_min) throw Hermes::Exceptions::Exception("Time step dropped below prescribed minimum value.");
           }
         }
         // Delete the saved coefficient vector.
-        delete [] save_coeff_vec;
+        delete[] save_coeff_vec;
 
-        // Translate the resulting coefficient vector 
-        // into the desired reference solution. 
+        // Translate the resulting coefficient vector
+        // into the desired reference solution.
         Solution<double>::vector_to_solution(newton.get_sln_vector(), ref_space, ref_sln);
 
         // Cleanup.
-        delete [] coeff_vec;
+        delete[] coeff_vec;
       }
       else {
-        // Calculate initial condition for Picard on the fine mesh.
+        // Calculate initial condition for Picard on the fine mesh->
         if (as == 1 && ts == 1) {
-          Hermes::Mixins::Loggable::Static::info("Projecting coarse mesh solution to obtain initial vector on new fine mesh.");
+          Hermes::Mixins::Loggable::Static::info("Projecting coarse mesh solution to obtain initial vector on new fine mesh->");
           OGProjection<double> ogProjection; ogProjection.project_global(ref_space, sln_prev_time, sln_prev_iter);
         }
         else {
-          Hermes::Mixins::Loggable::Static::info("Projecting previous fine mesh solution to obtain initial vector on new fine mesh.");
+          Hermes::Mixins::Loggable::Static::info("Projecting previous fine mesh solution to obtain initial vector on new fine mesh->");
           OGProjection<double> ogProjection; ogProjection.project_global(ref_space, ref_sln, sln_prev_iter);
         }
 
-        // Perform Picard iteration on the reference mesh. If necessary, 
-        // reduce time step to make it converge, but then restore time step 
+        // Perform Picard iteration on the reference mesh-> If necessary,
+        // reduce time step to make it converge, but then restore time step
         // size to its original value.
         Hermes::Mixins::Loggable::Static::info("Performing Picard's iteration (tau = %g days):", time_step);
         bool verbose = true;
@@ -413,7 +410,7 @@ int main(int argc, char* argv[])
         picard.set_verbose_output(verbose);
         picard.set_max_allowed_iterations(PICARD_MAX_ITER);
         picard.set_tolerance(PICARD_TOL, Hermes::Solvers::SolutionChangeRelative);
-        while(true)
+        while (true)
         {
           try
           {
@@ -421,50 +418,49 @@ int main(int argc, char* argv[])
             Solution<double>::vector_to_solution(picard.get_sln_vector(), ref_space, ref_sln);
             break;
           }
-          catch(std::exception& e)
+          catch (std::exception& e)
           {
             std::cout << e.what();
-            
+
             // Restore solution from the beginning of time step.
             sln_prev_iter->copy(sln_prev_time);
             // Reducing time step to 50%.
             Hermes::Mixins::Loggable::Static::info("Reducing time step size from %g to %g days for the rest of this time step", time_step, time_step * time_step_inc);
             time_step *= time_step_dec;
-            
+
             // If time_step less than the prescribed minimum, stop.
             if (time_step < time_step_min) throw Hermes::Exceptions::Exception("Time step dropped below prescribed minimum value.");
           }
-        }	
+        }
       }
 
       /*** ADAPTIVITY ***/
 
-      // Project the fine mesh solution on the coarse mesh.
+      // Project the fine mesh solution on the coarse mesh->
       Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh for error calculation.");
-      if(space->get_mesh() == NULL) throw Hermes::Exceptions::Exception("it is NULL");
+      if (space->get_mesh() == NULL) throw Hermes::Exceptions::Exception("it is NULL");
       OGProjection<double> ogProjection; ogProjection.project_global(space, ref_sln, sln);
 
       // Calculate element errors.
-      Hermes::Mixins::Loggable::Static::info("Calculating error estimate."); 
+      Hermes::Mixins::Loggable::Static::info("Calculating error estimate.");
       adaptivity.set_space(space);
-      
+
       // Calculate error estimate wrt. fine mesh solution.
       errorCalculator.calculate_errors(sln, ref_sln);
       err_est_rel = errorCalculator.get_total_error_squared() * 100;
 
       // Report results.
-      Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d, space_err_est_rel: %g%%", 
+      Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d, space_err_est_rel: %g%%",
         Space<double>::get_num_dofs(space), Space<double>::get_num_dofs(ref_space), err_est_rel);
 
-      // If space_err_est too large, adapt the mesh.
+      // If space_err_est too large, adapt the mesh->
       if (err_est_rel < ERR_STOP) done = true;
       else {
-        Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
+        Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh->");
         done = adaptivity.adapt(&selector);
         as++;
       }
-    }
-    while (!done);
+    } while (!done);
 
     // Add entries to graphs.
     graph_time_err_est.add_values(current_time, err_est_rel);
@@ -484,7 +480,7 @@ int main(int argc, char* argv[])
     sprintf(title, "Mesh, time %g days", current_time);
     ordview.set_title(title);
     ordview.show(space);
-    
+
     // Save complete Solution.
     char* filename = new char[100];
     sprintf(filename, "outputs/tsln_%f.dat", current_time);

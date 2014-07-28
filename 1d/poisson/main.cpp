@@ -1,4 +1,3 @@
-
 #include "definitions.h"
 
 using namespace Hermes::Hermes2D;
@@ -13,62 +12,62 @@ using namespace Hermes::Hermes2D;
 //
 // The following parameters can be changed:
 
-// Set to "false" to suppress Hermes OpenGL visualization. 
-const bool HERMES_VISUALIZATION = true;           
+// Set to "false" to suppress Hermes OpenGL visualization.
+const bool HERMES_VISUALIZATION = true;
 // Set to "true" to enable VTK output.
-const bool VTK_VISUALIZATION = false;              
+const bool VTK_VISUALIZATION = false;
 // Uniform polynomial degree of mesh elements.
-const int P_INIT = 5;                             
+const int P_INIT = 5;
 // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM = 3;                       
+const int INIT_REF_NUM = 3;
 
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-Hermes::MatrixSolverType matrix_solver = Hermes::SOLVER_UMFPACK;  
+Hermes::MatrixSolverType matrix_solver = Hermes::SOLVER_UMFPACK;
 
 // Problem parameters.
 // Thermal cond. of Al for temperatures around 20 deg Celsius.
-const double LAMBDA_AL = 236.0;            
+const double LAMBDA_AL = 236.0;
 // Thermal cond. of Cu for temperatures around 20 deg Celsius.
-const double LAMBDA_CU = 386.0;            
-// Volume heat sources generated (for example) by electric current.  
-const double VOLUME_HEAT_SRC = 5e3;              
+const double LAMBDA_CU = 386.0;
+// Volume heat sources generated (for example) by electric current.
+const double VOLUME_HEAT_SRC = 5e3;
 // Fixed temperature on the boundary.
-const double FIXED_BDY_TEMP = 20.0;        
+const double FIXED_BDY_TEMP = 20.0;
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh.
+  // Load the mesh->
   MeshSharedPtr mesh(new Mesh);
   MeshReaderH1DXML mloader;
   mloader.load("domain.xml", mesh);
 
   // Perform initial mesh refinements (optional).
   // Split elements vertically.
-  int refinement_type = 2;            
+  int refinement_type = 2;
   for (int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements(refinement_type);
 
   // Initialize the weak formulation.
-  CustomWeakFormPoisson wf("Al", new Hermes::Hermes1DFunction<double>(LAMBDA_AL), "Cu", 
-      new Hermes::Hermes1DFunction<double>(LAMBDA_CU), 
-      new Hermes::Hermes2DFunction<double>(-VOLUME_HEAT_SRC));
+  CustomWeakFormPoisson wf("Al", new Hermes::Hermes1DFunction<double>(LAMBDA_AL), "Cu",
+    new Hermes::Hermes1DFunction<double>(LAMBDA_CU),
+    new Hermes::Hermes2DFunction<double>(-VOLUME_HEAT_SRC));
 
   // Initialize essential boundary conditions.
-  DefaultEssentialBCConst<double> bc_essential(Hermes::vector<std::string>("Left", "Right"), 
-      FIXED_BDY_TEMP);
+  DefaultEssentialBCConst<double> bc_essential({"Left", "Right"},
+    FIXED_BDY_TEMP);
   EssentialBCs<double> bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.
   SpaceSharedPtr<double> space(new H1Space<double>(mesh, &bcs, P_INIT));
   int ndof = space->get_num_dofs();
   Hermes::Mixins::Loggable::Static::info("ndof = %d", ndof);
-  
+
   // Show the mesh and poly degrees.
   Views::OrderView oview("Mesh", new Views::WinGeom(0, 0, 900, 250));
   if (HERMES_VISUALIZATION) oview.show(space);
 
   // Initialize the FE problem.
-  DiscreteProblem<double> dp(&wf, space);
+  DiscreteProblem<double> dp(wf, space);
 
   // Perform Newton's iteration and translate the resulting coefficient vector into a Solution.
   MeshFunctionSharedPtr<double> sln(new Solution<double>());
@@ -77,7 +76,7 @@ int main(int argc, char* argv[])
   {
     newton.solve();
   }
-  catch(Hermes::Exceptions::Exception e)
+  catch (Hermes::Exceptions::Exception e)
   {
     e.print_msg();
     throw Hermes::Exceptions::Exception("Newton's iteration failed.");
@@ -107,9 +106,9 @@ int main(int argc, char* argv[])
   {
     Views::ScalarView view("Solution", new Views::WinGeom(0, 300, 900, 350));
     // Hermes uses adaptive FEM to approximate higher-order FE solutions with linear
-    // triangles for OpenGL. The second parameter of View::show() sets the error 
-    // tolerance for that. Options are HERMES_EPS_LOW, HERMES_EPS_NORMAL (default), 
-    // HERMES_EPS_HIGH and HERMES_EPS_VERYHIGH. The size of the graphics file grows 
+    // triangles for OpenGL. The second parameter of View::show() sets the error
+    // tolerance for that. Options are HERMES_EPS_LOW, HERMES_EPS_NORMAL (default),
+    // HERMES_EPS_HIGH and HERMES_EPS_VERYHIGH. The size of the graphics file grows
     // considerably with more accurate representation, so use it wisely.
     view.show(sln, Views::HERMES_EPS_HIGH);
     Views::View::wait();
@@ -117,4 +116,3 @@ int main(int argc, char* argv[])
 
   return 0;
 }
-

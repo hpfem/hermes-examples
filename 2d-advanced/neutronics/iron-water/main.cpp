@@ -96,21 +96,21 @@ const std::string ZERO_FLUX_BOUNDARY = "2";
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh.
-  Mesh mesh;
+  // Load the mesh->
+  MeshSharedPtr mesh;
   MeshReaderExodusII mloader;
-  if (!mloader.load("iron-water.e", &mesh))
+  if (!mloader.load("iron-water.e", mesh))
 		throw Hermes::Exceptions::Exception("ExodusII mesh load failed.");
    
   // Perform initial uniform mesh refinement.
-  for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
+  for (int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
   
   // Set essential boundary conditions.
   DefaultEssentialBCConst<double> bc_essential(ZERO_FLUX_BOUNDARY, 0.0);
   EssentialBCs<double> bcs(&bc_essential);
 SpaceSharedPtr<double> space(new 
   // Create an H1 space with default shapeset.
-  H1Space<double>(&mesh, &bcs, P_INIT));
+  H1Space<double>(mesh, &bcs, P_INIT));
   
   // Initialize coarse and fine mesh solution.
   Solution<double> sln, ref_sln;
@@ -118,10 +118,10 @@ SpaceSharedPtr<double> space(new
   // Associate element markers (corresponding to physical regions) 
   // with material properties (diffusion coefficient, absorption 
   // cross-section, external sources).
-  Hermes::vector<std::string> regions(WATER_1, WATER_2, IRON);
-  Hermes::vector<double> D_map(D_WATER, D_WATER, D_IRON);
-  Hermes::vector<double> Sigma_a_map(SIGMA_A_WATER, SIGMA_A_WATER, SIGMA_A_IRON);
-  Hermes::vector<double> Sources_map(Q_EXT, 0.0, 0.0);
+  std::vector<std::string> regions(WATER_1, WATER_2, IRON);
+  std::vector<double> D_map(D_WATER, D_WATER, D_IRON);
+  std::vector<double> Sigma_a_map(SIGMA_A_WATER, SIGMA_A_WATER, SIGMA_A_IRON);
+  std::vector<double> Sources_map(Q_EXT, 0.0, 0.0);
   
   // Initialize the weak formulation.
   WeakFormsNeutronics::Monoenergetic::Diffusion::DefaultWeakFormFixedSource<double>
@@ -146,7 +146,7 @@ SpaceSharedPtr<double> space(new
     Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d:", as);
     
     // Construct globally refined mesh and setup fine mesh space.
-		Mesh::ReferenceMeshCreator refMeshCreator(&mesh);
+		Mesh::ReferenceMeshCreator refMeshCreator(mesh);
 		Mesh* ref_mesh = refMeshCreator.create_ref_mesh();
 
 		Space<double>::ReferenceSpaceCreator refSpaceCreator(space, ref_mesh);
@@ -154,8 +154,8 @@ SpaceSharedPtr<double> space(new
     int ndof_ref = ref_space->get_num_dofs();
 
     // Initialize fine mesh problem.
-    Hermes::Mixins::Loggable::Static::info("Solving on fine mesh.");
-    DiscreteProblem<double> dp(&wf, ref_space);
+    Hermes::Mixins::Loggable::Static::info("Solving on fine mesh->");
+    DiscreteProblem<double> dp(wf, ref_space);
     
     NewtonSolver<double> newton(&dp);
     newton.set_verbose_output(false);
@@ -173,13 +173,13 @@ SpaceSharedPtr<double> space(new
     // Translate the resulting coefficient vector into the instance of Solution.
     Solution<double>::vector_to_solution(newton.get_sln_vector(), ref_space, ref_sln);
     
-    // Project the fine mesh solution onto the coarse mesh.
-    Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh.");
+    // Project the fine mesh solution onto the coarse mesh->
+    Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh->");
     OGProjection<double> ogProjection;
-		ogProjection.project_global(space, &ref_sln, &sln);
+		ogProjection.project_global(space, &ref_sln, sln);
 
-    // Visualize the solution and mesh.
-    sview.show(&sln);
+    // Visualize the solution and mesh->
+    sview.show(sln);
     oview.show(&space);
 
     // Calculate element errors and total error estimate.
@@ -193,12 +193,12 @@ SpaceSharedPtr<double> space(new
     Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d, err_est_rel: %g%%",
       space.get_num_dofs(), ref_space->get_num_dofs(), err_est_rel);
 
-    // If err_est too large, adapt the mesh.
+    // If err_est too large, adapt the mesh->
     if (err_est_rel < ERR_STOP) 
       done = true;
     else
     {
-      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
+      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh->");
       done = adaptivity.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
 
       // Increase the counter of performed adaptivity steps.

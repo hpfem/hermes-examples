@@ -1,6 +1,6 @@
 #include "definitions.h"
 
-double CustomExactFunction::fn(double x, double y) 
+double CustomExactFunction::fn(double x, double y)
 {
   if (x <= 0) return Hermes::cos(k * y);
   else return Hermes::cos(k * y) + Hermes::pow(x, alpha);
@@ -20,8 +20,8 @@ double CustomRightHandSide::value(double x, double y) const
 {
   if (x < 0) return -cef->fn(x, y) * k * k;
   else return -(cef->fn(x, y) * k * k
-              - alpha *(alpha - 1) * Hermes::pow(x, alpha - 2.)
-              - k * k * Hermes::pow(x, alpha));
+    - alpha *(alpha - 1) * Hermes::pow(x, alpha - 2.)
+    - k * k * Hermes::pow(x, alpha));
 }
 
 Ord CustomRightHandSide::value(Ord x, Ord y) const
@@ -34,12 +34,12 @@ CustomExactSolution::CustomExactSolution(MeshSharedPtr mesh, double k, double al
   cef = new CustomExactFunction(k, alpha);
 }
 
-CustomExactSolution::~CustomExactSolution() 
-{ 
-  delete cef; 
+CustomExactSolution::~CustomExactSolution()
+{
+  delete cef;
 }
 
-double CustomExactSolution::value(double x, double y) const 
+double CustomExactSolution::value(double x, double y) const
 {
   return cef->fn(x, y);
 }

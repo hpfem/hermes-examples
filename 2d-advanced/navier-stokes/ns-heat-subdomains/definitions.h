@@ -10,14 +10,14 @@ using namespace Hermes::Hermes2D::RefinementSelectors;
 /* These numbers must be compatible with mesh file */
 
 // These numbers must be compatible with mesh file.
-const double H = 1.0;                               
-const double OBSTACLE_DIAMETER = 0.3 * 1.4142136;    
+const double H = 1.0;
+const double OBSTACLE_DIAMETER = 0.3 * 1.4142136;
 const double HOLE_MID_X = 0.5;
 const double HOLE_MID_Y = 0.5;
 
 /* Custom initial condition for temperature*/
 
-class CustomInitialConditionTemperature : public ExactSolutionScalar<double>
+class CustomInitialConditionTemperature : public ExactSolutionScalar < double >
 {
 public:
   CustomInitialConditionTemperature(MeshSharedPtr mesh, double mid_x, double mid_y, double radius, double temp_fluid, double temp_graphite);
@@ -36,15 +36,15 @@ public:
 
 /* Weak forms */
 
-class CustomWeakFormHeatAndFlow : public WeakForm<double>
+class CustomWeakFormHeatAndFlow : public WeakForm < double >
 {
 public:
-  CustomWeakFormHeatAndFlow(bool Stokes, double Reynolds, double time_step, MeshFunctionSharedPtr<double> x_vel_previous_time, 
-    MeshFunctionSharedPtr<double> y_vel_previous_time, MeshFunctionSharedPtr<double> T_prev_time, double heat_source, double specific_heat_graphite, 
-    double specific_heat_fluid, double rho_graphite, double rho_fluid, double thermal_conductivity_graphite, 
+  CustomWeakFormHeatAndFlow(bool Stokes, double Reynolds, double time_step, MeshFunctionSharedPtr<double> x_vel_previous_time,
+    MeshFunctionSharedPtr<double> y_vel_previous_time, MeshFunctionSharedPtr<double> T_prev_time, double heat_source, double specific_heat_graphite,
+    double specific_heat_fluid, double rho_graphite, double rho_fluid, double thermal_conductivity_graphite,
     double thermal_conductivity_fluid, bool simple_temp_advection);
 
-  class BilinearFormTime: public MatrixFormVol<double>
+  class BilinearFormTime : public MatrixFormVol < double >
   {
   public:
     BilinearFormTime(int i, int j, std::string area, double time_step) : MatrixFormVol<double>(i, j), time_step(time_step) {
@@ -71,17 +71,17 @@ public:
     double time_step;
   };
 
-  class BilinearFormSymVel : public MatrixFormVol<double>
+  class BilinearFormSymVel : public MatrixFormVol < double >
   {
   public:
-    BilinearFormSymVel(int i, int j, bool Stokes, double Reynolds, double time_step) : MatrixFormVol<double>(i, j), Stokes(Stokes), 
+    BilinearFormSymVel(int i, int j, bool Stokes, double Reynolds, double time_step) : MatrixFormVol<double>(i, j), Stokes(Stokes),
       Reynolds(Reynolds), time_step(time_step) {
       this->setSymFlag(sym);
     }
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, Func<double>* *ext) const{
       double result = int_grad_u_grad_v<double, double>(n, wt, u, v) / Reynolds;
-      if(!Stokes)
+      if (!Stokes)
         result += int_u_v<double, double>(n, wt, u, v) / time_step;
       return result;
     }
@@ -89,7 +89,7 @@ public:
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const
     {
       Ord result = int_grad_u_grad_v<Ord, Ord>(n, wt, u, v) / Reynolds;
-      if(!Stokes)
+      if (!Stokes)
         result += int_u_v<Ord, Ord>(n, wt, u, v) / time_step;
       return result;
     }
@@ -104,7 +104,7 @@ public:
     double time_step;
   };
 
-  class BilinearFormUnSymVel_0_0 : public MatrixFormVol<double>
+  class BilinearFormUnSymVel_0_0 : public MatrixFormVol < double >
   {
   public:
     BilinearFormUnSymVel_0_0(int i, int j, bool Stokes) : MatrixFormVol<double>(i, j), Stokes(Stokes) {
@@ -112,24 +112,24 @@ public:
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, Func<double>* *ext) const{
       double result = 0;
-      if(!Stokes) {
+      if (!Stokes) {
         Func<double>* xvel_prev_newton = u_ext[0];
         Func<double>* yvel_prev_newton = u_ext[1];
         for (int i = 0; i < n; i++)
           result += wt[i] * ((xvel_prev_newton->val[i] * u->dx[i] + yvel_prev_newton->val[i]
-        * u->dy[i]) * v->val[i] + u->val[i] * v->val[i] * xvel_prev_newton->dx[i]);
+          * u->dy[i]) * v->val[i] + u->val[i] * v->val[i] * xvel_prev_newton->dx[i]);
       }
       return result;
     }
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const{
       Ord result = Ord(0);
-      if(!Stokes) {
+      if (!Stokes) {
         Func<Ord>* xvel_prev_newton = u_ext[0];
         Func<Ord>* yvel_prev_newton = u_ext[1];
         for (int i = 0; i < n; i++)
           result += wt[i] * ((xvel_prev_newton->val[i] * u->dx[i] + yvel_prev_newton->val[i]
-        * u->dy[i]) * v->val[i] + u->val[i] * v->val[i] * xvel_prev_newton->dx[i]);
+          * u->dy[i]) * v->val[i] + u->val[i] * v->val[i] * xvel_prev_newton->dx[i]);
       }
       return result;
     }
@@ -142,7 +142,7 @@ public:
     bool Stokes;
   };
 
-  class BilinearFormUnSymVel_0_1 : public MatrixFormVol<double>
+  class BilinearFormUnSymVel_0_1 : public MatrixFormVol < double >
   {
   public:
     BilinearFormUnSymVel_0_1(int i, int j, bool Stokes) : MatrixFormVol<double>(i, j), Stokes(Stokes) {
@@ -150,7 +150,7 @@ public:
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, Func<double>* *ext) const{
       double result = 0;
-      if(!Stokes) {
+      if (!Stokes) {
         Func<double>* xvel_prev_newton = u_ext[0];
         for (int i = 0; i < n; i++)
           result += wt[i] * (u->val[i] * v->val[i] * xvel_prev_newton->dy[i]);
@@ -160,7 +160,7 @@ public:
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const {
       Ord result = Ord(0);
-      if(!Stokes) {
+      if (!Stokes) {
         Func<Ord>* xvel_prev_newton = u_ext[0];
         for (int i = 0; i < n; i++)
           result += wt[i] * (u->val[i] * v->val[i] * xvel_prev_newton->dy[i]);
@@ -176,7 +176,7 @@ public:
     bool Stokes;
   };
 
-  class BilinearFormUnSymVel_1_0 : public MatrixFormVol<double>
+  class BilinearFormUnSymVel_1_0 : public MatrixFormVol < double >
   {
   public:
     BilinearFormUnSymVel_1_0(int i, int j, bool Stokes) : MatrixFormVol<double>(i, j), Stokes(Stokes) {
@@ -184,7 +184,7 @@ public:
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, Func<double>* *ext) const{
       double result = 0;
-      if(!Stokes) {
+      if (!Stokes) {
         Func<double>* yvel_prev_newton = u_ext[1];
         for (int i = 0; i < n; i++)
           result += wt[i] * (u->val[i] * v->val[i] * yvel_prev_newton->dx[i]);
@@ -194,7 +194,7 @@ public:
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const{
       Ord result = Ord(0);
-      if(!Stokes) {
+      if (!Stokes) {
         Func<Ord>* yvel_prev_newton = u_ext[1];
         for (int i = 0; i < n; i++)
           result += wt[i] * (u->val[i] * v->val[i] * yvel_prev_newton->dx[i]);
@@ -210,7 +210,7 @@ public:
     bool Stokes;
   };
 
-  class BilinearFormUnSymVel_1_1 : public MatrixFormVol<double>
+  class BilinearFormUnSymVel_1_1 : public MatrixFormVol < double >
   {
   public:
     BilinearFormUnSymVel_1_1(int i, int j, bool Stokes) : MatrixFormVol<double>(i, j), Stokes(Stokes) {
@@ -218,24 +218,24 @@ public:
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, Func<double>* *ext) const{
       double result = 0;
-      if(!Stokes) {
+      if (!Stokes) {
         Func<double>* xvel_prev_newton = u_ext[0];
         Func<double>* yvel_prev_newton = u_ext[1];
         for (int i = 0; i < n; i++)
           result += wt[i] * ((xvel_prev_newton->val[i] * u->dx[i] + yvel_prev_newton->val[i] * u->dy[i]) * v->val[i] + u->val[i]
-        * v->val[i] * yvel_prev_newton->dy[i]);
+          * v->val[i] * yvel_prev_newton->dy[i]);
       }
       return result;
     }
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const {
       Ord result = Ord(0);
-      if(!Stokes) {
+      if (!Stokes) {
         Func<Ord>* xvel_prev_newton = u_ext[0];
         Func<Ord>* yvel_prev_newton = u_ext[1];
         for (int i = 0; i < n; i++)
           result += wt[i] * ((xvel_prev_newton->val[i] * u->dx[i] + yvel_prev_newton->val[i] * u->dy[i]) * v->val[i] + u->val[i]
-        * v->val[i] * yvel_prev_newton->dy[i]);
+          * v->val[i] * yvel_prev_newton->dy[i]);
       }
       return result;
     }
@@ -248,7 +248,7 @@ public:
     bool Stokes;
   };
 
-  class BilinearFormUnSymXVelPressure : public MatrixFormVol<double>
+  class BilinearFormUnSymXVelPressure : public MatrixFormVol < double >
   {
   public:
     BilinearFormUnSymXVelPressure(int i, int j) : MatrixFormVol<double>(i, j) {
@@ -256,11 +256,11 @@ public:
     }
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, Func<double>* *ext) const{
-      return - int_u_dvdx<double, double>(n, wt, u, v);
+      return -int_u_dvdx<double, double>(n, wt, u, v);
     }
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const {
-      return - int_u_dvdx<Ord, Ord>(n, wt, u, v);
+      return -int_u_dvdx<Ord, Ord>(n, wt, u, v);
     }
     MatrixFormVol<double>* clone() const
     {
@@ -268,7 +268,7 @@ public:
     }
   };
 
-  class BilinearFormUnSymYVelPressure : public MatrixFormVol<double>
+  class BilinearFormUnSymYVelPressure : public MatrixFormVol < double >
   {
   public:
     BilinearFormUnSymYVelPressure(int i, int j) : MatrixFormVol<double>(i, j) {
@@ -276,11 +276,11 @@ public:
     }
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, Func<double>* *ext) const{
-      return - int_u_dvdy<double, double>(n, wt, u, v);
+      return -int_u_dvdy<double, double>(n, wt, u, v);
     }
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const {
-      return - int_u_dvdy<Ord, Ord>(n, wt, u, v);
+      return -int_u_dvdy<Ord, Ord>(n, wt, u, v);
     }
     MatrixFormVol<double>* clone() const
     {
@@ -288,10 +288,10 @@ public:
     }
   };
 
-  class CustomJacobianTempAdvection_3_0 : public MatrixFormVol<double>
+  class CustomJacobianTempAdvection_3_0 : public MatrixFormVol < double >
   {
   public:
-    CustomJacobianTempAdvection_3_0(int i, int j, std::string area) : MatrixFormVol<double>(i, j) 
+    CustomJacobianTempAdvection_3_0(int i, int j, std::string area) : MatrixFormVol<double>(i, j)
     {
       this->set_area(area);
     }
@@ -300,7 +300,7 @@ public:
     {
       double result = 0;
       Func<double>* T_prev_newton = u_ext[3];
-      for (int i = 0; i < n; i++) 
+      for (int i = 0; i < n; i++)
       {
         result += wt[i] * u->val[i] * T_prev_newton->dx[i] * v->val[i];
       }
@@ -311,7 +311,7 @@ public:
     {
       Ord result = Ord(0);
       Func<Ord>* T_prev_newton = u_ext[3];
-      for (int i = 0; i < n; i++) 
+      for (int i = 0; i < n; i++)
       {
         result += wt[i] * u->val[i] * T_prev_newton->dx[i] * v->val[i];
       }
@@ -323,10 +323,10 @@ public:
     }
   };
 
-  class CustomJacobianTempAdvection_3_3_simple : public MatrixFormVol<double>
+  class CustomJacobianTempAdvection_3_3_simple : public MatrixFormVol < double >
   {
   public:
-    CustomJacobianTempAdvection_3_3_simple(int i, int j, std::string area) : MatrixFormVol<double>(i, j) 
+    CustomJacobianTempAdvection_3_3_simple(int i, int j, std::string area) : MatrixFormVol<double>(i, j)
     {
       this->set_area(area);
     }
@@ -336,7 +336,7 @@ public:
       double result = 0;
       Func<double>* xvel_prev_time = ext[0];
       Func<double>* yvel_prev_time = ext[1];
-      for (int i = 0; i < n; i++) 
+      for (int i = 0; i < n; i++)
       {
         result += wt[i] * (xvel_prev_time->val[i] * u->dx[i] + yvel_prev_time->val[i] * u->dy[i]) * v->val[i];
       }
@@ -348,7 +348,7 @@ public:
       Ord result = Ord(0);
       Func<Ord>* xvel_prev_time = ext[0];
       Func<Ord>* yvel_prev_time = ext[1];
-      for (int i = 0; i < n; i++) 
+      for (int i = 0; i < n; i++)
       {
         result += wt[i] * (xvel_prev_time->val[i] * u->dx[i] + yvel_prev_time->val[i] * u->dy[i]) * v->val[i];
       }
@@ -360,10 +360,10 @@ public:
     }
   };
 
-  class CustomJacobianTempAdvection_3_1 : public MatrixFormVol<double>
+  class CustomJacobianTempAdvection_3_1 : public MatrixFormVol < double >
   {
   public:
-    CustomJacobianTempAdvection_3_1(int i, int j, std::string area) : MatrixFormVol<double>(i, j) 
+    CustomJacobianTempAdvection_3_1(int i, int j, std::string area) : MatrixFormVol<double>(i, j)
     {
       this->set_area(area);
     }
@@ -371,7 +371,7 @@ public:
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, Func<double>* *ext) const{
       double result = 0;
       Func<double>* T_prev_newton = u_ext[3];
-      for (int i = 0; i < n; i++) 
+      for (int i = 0; i < n; i++)
       {
         result += wt[i] * u->val[i] * T_prev_newton->dy[i] * v->val[i];
       }
@@ -394,10 +394,10 @@ public:
     }
   };
 
-  class CustomJacobianTempAdvection_3_3 : public MatrixFormVol<double>
+  class CustomJacobianTempAdvection_3_3 : public MatrixFormVol < double >
   {
   public:
-    CustomJacobianTempAdvection_3_3(int i, int j, std::string area) : MatrixFormVol<double>(i, j) 
+    CustomJacobianTempAdvection_3_3(int i, int j, std::string area) : MatrixFormVol<double>(i, j)
     {
       this->set_area(area);
     }
@@ -407,9 +407,9 @@ public:
       double result = 0;
       Func<double>* xvel_prev_newton = u_ext[0];
       Func<double>* yvel_prev_newton = u_ext[1];
-      for (int i = 0; i < n; i++) 
+      for (int i = 0; i < n; i++)
       {
-        result += wt[i] * (  xvel_prev_newton->val[i] * u->dx[i] + yvel_prev_newton->val[i] * u->dy[i] ) * v->val[i];
+        result += wt[i] * (xvel_prev_newton->val[i] * u->dx[i] + yvel_prev_newton->val[i] * u->dy[i]) * v->val[i];
       }
       return result;
     }
@@ -421,7 +421,7 @@ public:
       Func<Ord>* yvel_prev_newton = u_ext[1];
       for (int i = 0; i < n; i++)
       {
-        result += wt[i] * (  xvel_prev_newton->val[i] * u->dx[i] + yvel_prev_newton->val[i] * u->dy[i] ) * v->val[i];
+        result += wt[i] * (xvel_prev_newton->val[i] * u->dx[i] + yvel_prev_newton->val[i] * u->dy[i]) * v->val[i];
       }
       return result;
     }
@@ -431,10 +431,10 @@ public:
     }
   };
 
-  class VectorFormTime: public VectorFormVol<double>
+  class VectorFormTime : public VectorFormVol < double >
   {
   public:
-    VectorFormTime(int i, std::string area, double time_step) : VectorFormVol<double>(i), time_step(time_step) 
+    VectorFormTime(int i, std::string area, double time_step) : VectorFormVol<double>(i), time_step(time_step)
     {
       this->set_area(area);
     }
@@ -461,10 +461,10 @@ public:
     double time_step;
   };
 
-  class CustomResidualTempAdvection : public VectorFormVol<double>
+  class CustomResidualTempAdvection : public VectorFormVol < double >
   {
   public:
-    CustomResidualTempAdvection(int i, std::string area) : VectorFormVol<double>(i) 
+    CustomResidualTempAdvection(int i, std::string area) : VectorFormVol<double>(i)
     {
       this->set_area(area);
     }
@@ -475,9 +475,9 @@ public:
       Func<double>* xvel_prev_newton = u_ext[0];
       Func<double>* yvel_prev_newton = u_ext[1];
       Func<double>* T_prev_newton = u_ext[3];
-      for (int i = 0; i < n; i++) 
+      for (int i = 0; i < n; i++)
       {
-        result += wt[i] * ( xvel_prev_newton->val[i] * T_prev_newton->dx[i] + yvel_prev_newton->val[i] * T_prev_newton->dy[i] ) * v->val[i]; 
+        result += wt[i] * (xvel_prev_newton->val[i] * T_prev_newton->dx[i] + yvel_prev_newton->val[i] * T_prev_newton->dy[i]) * v->val[i];
       }
       return result;
     }
@@ -488,9 +488,9 @@ public:
       Func<Ord>* xvel_prev_newton = u_ext[0];
       Func<Ord>* yvel_prev_newton = u_ext[1];
       Func<Ord>* T_prev_newton = u_ext[3];
-      for (int i = 0; i < n; i++) 
+      for (int i = 0; i < n; i++)
       {
-        result += wt[i] * ( xvel_prev_newton->val[i] * T_prev_newton->dx[i] + yvel_prev_newton->val[i] * T_prev_newton->dy[i] ) * v->val[i]; 
+        result += wt[i] * (xvel_prev_newton->val[i] * T_prev_newton->dx[i] + yvel_prev_newton->val[i] * T_prev_newton->dy[i]) * v->val[i];
       }
       return result;
     }
@@ -500,10 +500,10 @@ public:
     }
   };
 
-  class CustomResidualTempAdvection_simple : public VectorFormVol<double>
+  class CustomResidualTempAdvection_simple : public VectorFormVol < double >
   {
   public:
-    CustomResidualTempAdvection_simple(int i, std::string area) : VectorFormVol<double>(i) 
+    CustomResidualTempAdvection_simple(int i, std::string area) : VectorFormVol<double>(i)
     {
       this->set_area(area);
     }
@@ -514,9 +514,9 @@ public:
       Func<double>* xvel_prev_time = ext[0];
       Func<double>* yvel_prev_time = ext[1];
       Func<double>* T_prev_newton = u_ext[0];
-      for (int i = 0; i < n; i++) 
+      for (int i = 0; i < n; i++)
       {
-        result += wt[i] * ( xvel_prev_time->val[i] * T_prev_newton->dx[i] + yvel_prev_time->val[i] * T_prev_newton->dy[i] ) * v->val[i]; 
+        result += wt[i] * (xvel_prev_time->val[i] * T_prev_newton->dx[i] + yvel_prev_time->val[i] * T_prev_newton->dy[i]) * v->val[i];
       }
       return result;
     }
@@ -527,9 +527,9 @@ public:
       Func<Ord>* xvel_prev_time = ext[0];
       Func<Ord>* yvel_prev_time = ext[1];
       Func<Ord>* T_prev_newton = u_ext[0];
-      for (int i = 0; i < n; i++) 
+      for (int i = 0; i < n; i++)
       {
-        result += wt[i] * ( xvel_prev_time->val[i] * T_prev_newton->dx[i] + yvel_prev_time->val[i] * T_prev_newton->dy[i] ) * v->val[i]; 
+        result += wt[i] * (xvel_prev_time->val[i] * T_prev_newton->dx[i] + yvel_prev_time->val[i] * T_prev_newton->dy[i]) * v->val[i];
       }
       return result;
     }
@@ -539,10 +539,10 @@ public:
     }
   };
 
-  class VectorFormNS_0 : public VectorFormVol<double>
+  class VectorFormNS_0 : public VectorFormVol < double >
   {
   public:
-    VectorFormNS_0(int i, bool Stokes, double Reynolds, double time_step) : VectorFormVol<double>(i), Stokes(Stokes), Reynolds(Reynolds), time_step(time_step) 
+    VectorFormNS_0(int i, bool Stokes, double Reynolds, double time_step) : VectorFormVol<double>(i), Stokes(Stokes), Reynolds(Reynolds), time_step(time_step)
     {
     }
 
@@ -550,28 +550,28 @@ public:
       double result = 0;
       Func<double>* xvel_prev_time = ext[0];
       Func<double>* yvel_prev_time = ext[1];
-      Func<double>* xvel_prev_newton = u_ext[0];  
-      Func<double>* yvel_prev_newton = u_ext[1];  
+      Func<double>* xvel_prev_newton = u_ext[0];
+      Func<double>* yvel_prev_newton = u_ext[1];
       Func<double>* p_prev_newton = u_ext[2];
       for (int i = 0; i < n; i++)
         result += wt[i] * ((xvel_prev_newton->dx[i] * v->dx[i] + xvel_prev_newton->dy[i] * v->dy[i]) / Reynolds - (p_prev_newton->val[i] * v->dx[i]));
-      if(!Stokes)
+      if (!Stokes)
         for (int i = 0; i < n; i++)
-          result += wt[i] * (((xvel_prev_newton->val[i] - xvel_prev_time->val[i]) * v->val[i] / time_step )
+          result += wt[i] * (((xvel_prev_newton->val[i] - xvel_prev_time->val[i]) * v->val[i] / time_step)
           + ((xvel_prev_newton->val[i] * xvel_prev_newton->dx[i] + yvel_prev_newton->val[i] * xvel_prev_newton->dy[i]) * v->val[i]));
       return result;
     }
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const {
       Ord result = Ord(0);
-      Func<Ord>* xvel_prev_time = ext[0];  
+      Func<Ord>* xvel_prev_time = ext[0];
       Func<Ord>* yvel_prev_time = ext[1];
-      Func<Ord>* xvel_prev_newton = u_ext[0];  
-      Func<Ord>* yvel_prev_newton = u_ext[1];  
+      Func<Ord>* xvel_prev_newton = u_ext[0];
+      Func<Ord>* yvel_prev_newton = u_ext[1];
       Func<Ord>* p_prev_newton = u_ext[2];
       for (int i = 0; i < n; i++)
         result += wt[i] * ((xvel_prev_newton->dx[i] * v->dx[i] + xvel_prev_newton->dy[i] * v->dy[i]) / Reynolds - (p_prev_newton->val[i] * v->dx[i]));
-      if(!Stokes)
+      if (!Stokes)
         for (int i = 0; i < n; i++)
           result += wt[i] * (((xvel_prev_newton->val[i] - xvel_prev_time->val[i]) * v->val[i] / time_step)
           + ((xvel_prev_newton->val[i] * xvel_prev_newton->dx[i] + yvel_prev_newton->val[i] * xvel_prev_newton->dy[i]) * v->val[i]));
@@ -588,7 +588,7 @@ public:
     double time_step;
   };
 
-  class VectorFormNS_1 : public VectorFormVol<double>
+  class VectorFormNS_1 : public VectorFormVol < double >
   {
   public:
     VectorFormNS_1(int i, bool Stokes, double Reynolds, double time_step) : VectorFormVol<double>(i), Stokes(Stokes), Reynolds(Reynolds), time_step(time_step) {
@@ -596,32 +596,32 @@ public:
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, Func<double>* *ext) const{
       double result = 0;
-      Func<double>* xvel_prev_time = ext[0];  
+      Func<double>* xvel_prev_time = ext[0];
       Func<double>* yvel_prev_time = ext[1];
-      Func<double>* xvel_prev_newton = u_ext[0];  
-      Func<double>* yvel_prev_newton = u_ext[1];  
+      Func<double>* xvel_prev_newton = u_ext[0];
+      Func<double>* yvel_prev_newton = u_ext[1];
       Func<double>* p_prev_newton = u_ext[2];
       for (int i = 0; i < n; i++)
         result += wt[i] * ((yvel_prev_newton->dx[i] * v->dx[i] + yvel_prev_newton->dy[i] * v->dy[i]) / Reynolds - (p_prev_newton->val[i] * v->dy[i]));
-      if(!Stokes)
+      if (!Stokes)
         for (int i = 0; i < n; i++)
-          result += wt[i] * (((yvel_prev_newton->val[i] - yvel_prev_time->val[i]) * v->val[i] / time_step )
+          result += wt[i] * (((yvel_prev_newton->val[i] - yvel_prev_time->val[i]) * v->val[i] / time_step)
           + ((xvel_prev_newton->val[i] * yvel_prev_newton->dx[i] + yvel_prev_newton->val[i] * yvel_prev_newton->dy[i]) * v->val[i]));
       return result;
     }
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const{
       Ord result = Ord(0);
-      Func<Ord>* xvel_prev_time = ext[0];  
+      Func<Ord>* xvel_prev_time = ext[0];
       Func<Ord>* yvel_prev_time = ext[1];
-      Func<Ord>* xvel_prev_newton = u_ext[0];  
-      Func<Ord>* yvel_prev_newton = u_ext[1];  
+      Func<Ord>* xvel_prev_newton = u_ext[0];
+      Func<Ord>* yvel_prev_newton = u_ext[1];
       Func<Ord>* p_prev_newton = u_ext[2];
       for (int i = 0; i < n; i++)
         result += wt[i] * ((xvel_prev_newton->dx[i] * v->dx[i] + xvel_prev_newton->dy[i] * v->dy[i]) / Reynolds - (p_prev_newton->val[i] * v->dx[i]));
-      if(!Stokes)
+      if (!Stokes)
         for (int i = 0; i < n; i++)
-          result += wt[i] * (((xvel_prev_newton->val[i] - xvel_prev_time->val[i]) * v->val[i] / time_step )
+          result += wt[i] * (((xvel_prev_newton->val[i] - xvel_prev_time->val[i]) * v->val[i] / time_step)
           + ((xvel_prev_newton->val[i] * yvel_prev_newton->dx[i] + yvel_prev_newton->val[i] * yvel_prev_newton->dy[i]) * v->val[i]));
       return result;
     }
@@ -636,7 +636,7 @@ public:
     double time_step;
   };
 
-  class VectorFormNS_2 : public VectorFormVol<double>
+  class VectorFormNS_2 : public VectorFormVol < double >
   {
   public:
     VectorFormNS_2(int i) : VectorFormVol<double>(i) {
@@ -644,8 +644,8 @@ public:
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e, Func<double>* *ext) const{
       double result = 0;
-      Func<double>* xvel_prev_newton = u_ext[0];  
-      Func<double>* yvel_prev_newton = u_ext[1];  
+      Func<double>* xvel_prev_newton = u_ext[0];
+      Func<double>* yvel_prev_newton = u_ext[1];
 
       for (int i = 0; i < n; i++)
         result += wt[i] * (xvel_prev_newton->dx[i] * v->val[i] + yvel_prev_newton->dy[i] * v->val[i]);
@@ -654,8 +654,8 @@ public:
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const {
       Ord result = Ord(0);
-      Func<Ord>* xvel_prev_newton = u_ext[0];  
-      Func<Ord>* yvel_prev_newton = u_ext[1];  
+      Func<Ord>* xvel_prev_newton = u_ext[0];
+      Func<Ord>* yvel_prev_newton = u_ext[1];
 
       for (int i = 0; i < n; i++)
         result += wt[i] * (xvel_prev_newton->dx[i] * v->val[i] + yvel_prev_newton->dy[i] * v->val[i]);
@@ -676,30 +676,30 @@ protected:
   MeshFunctionSharedPtr<double> y_vel_previous_time;
 };
 
-class EssentialBCNonConst : public EssentialBoundaryCondition<double>
+class EssentialBCNonConst : public EssentialBoundaryCondition < double >
 {
 public:
-  EssentialBCNonConst(Hermes::vector<std::string> markers, double vel_inlet, double H, double startup_time) : 
-      EssentialBoundaryCondition<double>(markers), vel_inlet(vel_inlet), H(H), startup_time(startup_time) {};
-      EssentialBCNonConst(std::string marker, double vel_inlet, double H, double startup_time) : 
-      EssentialBoundaryCondition<double>(Hermes::vector<std::string>()), vel_inlet(vel_inlet), H(H), startup_time(startup_time) {
-        markers.push_back(marker);
-      };
+  EssentialBCNonConst(std::vector<std::string> markers, double vel_inlet, double H, double startup_time) :
+    EssentialBoundaryCondition<double>(markers), vel_inlet(vel_inlet), H(H), startup_time(startup_time) {};
+  EssentialBCNonConst(std::string marker, double vel_inlet, double H, double startup_time) :
+    EssentialBoundaryCondition<double>(std::vector<std::string>()), vel_inlet(vel_inlet), H(H), startup_time(startup_time) {
+    markers.push_back(marker);
+  };
 
-      ~EssentialBCNonConst() {};
+  ~EssentialBCNonConst() {};
 
-      virtual EssentialBCValueType get_value_type() const { 
-        return BC_FUNCTION; 
-      };
+  virtual EssentialBCValueType get_value_type() const {
+    return BC_FUNCTION;
+  };
 
-      virtual double value(double x, double y, double n_x, double n_y, double t_x, double t_y) const {
-        double val_y = vel_inlet * y*(H-y) / (H/2.)/(H/2.);  // Parabolic profile.
-        //double val_y = vel_inlet;                            // Constant profile.
-        if (current_time <= startup_time) 
-          return val_y * current_time/startup_time;
-        else 
-          return val_y;
-      };
+  virtual double value(double x, double y) const {
+    double val_y = vel_inlet * y*(H - y) / (H / 2.) / (H / 2.);  // Parabolic profile.
+    //double val_y = vel_inlet;                            // Constant profile.
+    if (current_time <= startup_time)
+      return val_y * current_time / startup_time;
+    else
+      return val_y;
+  };
 
 protected:
   // Members.

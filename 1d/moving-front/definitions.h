@@ -45,7 +45,7 @@ public:
     GeomType gt = HERMES_PLANAR);
 
   CustomVectorFormVol(int i, 
-    Hermes::Hermes2DFunction<double>* coeff, Hermes::vector<std::string> areas,
+    Hermes::Hermes2DFunction<double>* coeff, std::vector<std::string> areas,
     GeomType gt = HERMES_PLANAR);
 
   ~CustomVectorFormVol();

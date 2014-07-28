@@ -1,4 +1,4 @@
-Hermes::vector<MeshFunctionSharedPtr<double> > prev_slns(prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e);
+std::vector<MeshFunctionSharedPtr<double> > prev_slns(prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e);
 EulerEquationsWeakFormStabilization wf_stabilization(prev_rho);
 
 if(SHOCK_CAPTURING && SHOCK_CAPTURING_TYPE == FEISTAUER)
@@ -52,7 +52,7 @@ for(double t = 0.0; t < TIME_INTERVAL_LENGTH; t += time_step_n)
     SpaceSharedPtr<double> ref_space_rho_v_y = refSpaceCreatorRhoVy.create_ref_space();
     Space<double>::ReferenceSpaceCreator refSpaceCreatorE(space_e, ref_mesh, order_increase);
     SpaceSharedPtr<double> ref_space_e = refSpaceCreatorE.create_ref_space();
-    Hermes::vector<SpaceSharedPtr<double>  > ref_spaces(ref_space_rho, ref_space_rho_v_x, ref_space_rho_v_y, ref_space_e);
+    std::vector<SpaceSharedPtr<double>  > ref_spaces(ref_space_rho, ref_space_rho_v_x, ref_space_rho_v_y, ref_space_e);
     solver.set_spaces(ref_spaces);
     
     if(ndofs_prev != 0)
@@ -120,7 +120,7 @@ for(double t = 0.0; t < TIME_INTERVAL_LENGTH; t += time_step_n)
 #pragma region 7.2. Project to coarse mesh -> error estimation -> space adaptivity
     // Project the fine mesh solution onto the coarse mesh.
     Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
-    OGProjection<double>::project_global(spaces, rslns, slns, Hermes::vector<NormType>(HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM)); 
+    OGProjection<double>::project_global(spaces, rslns, slns, std::vector<NormType>(HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM)); 
 
     // Calculate element errors and total error estimate.
     Hermes::Mixins::Loggable::Static::info("Calculating error estimate.");
@@ -136,7 +136,7 @@ for(double t = 0.0; t < TIME_INTERVAL_LENGTH; t += time_step_n)
     else
     {
       Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
-      done = adaptivity.adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&selector, &selector, &selector, &selector));
+      done = adaptivity.adapt({&selector, &selector, &selector, &selector});
       REFINEMENT_COUNT++;
       as++;
     }

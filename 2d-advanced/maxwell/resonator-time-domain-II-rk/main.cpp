@@ -1,17 +1,15 @@
-
-
 #include "definitions.h"
 
-// This example solves a time-domain resonator problem for the Maxwell's equation. 
-// It is very similar to resonator-time-domain-I but B is eliminated from the 
+// This example solves a time-domain resonator problem for the Maxwell's equation.
+// It is very similar to resonator-time-domain-I but B is eliminated from the
 // equations, thus converting the first-order system into one second -order
-// equation in time. The second-order equation in time is decomposed back into 
-// a first-order system in time in the standard way (see example wave-1). Time 
-// discretization is performed using arbitrary Runge-Kutta methods entered via 
-// their Butcher's tables. For a list of available R-K methods see the file 
+// equation in time. The second-order equation in time is decomposed back into
+// a first-order system in time in the standard way (see example wave-1). Time
+// discretization is performed using arbitrary Runge-Kutta methods entered via
+// their Butcher's tables. For a list of available R-K methods see the file
 // hermes_common/tables.h.
 //
-// The function rk_time_step_newton() needs more optimisation, see a todo list at 
+// The function rk_time_step_newton() needs more optimisation, see a todo list at
 // the beginning of file src/runge-kutta.h.
 //
 // PDE: \frac{1}{SPEED_OF_LIGHT**2}\frac{\partial^2 E}{\partial t^2} + curl curl E = 0,
@@ -30,42 +28,42 @@
 // The following parameters can be changed:
 
 // Initial polynomial degree of mesh elements.
-const int P_INIT = 6;                              
+const int P_INIT = 6;
 // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM = 1;                        
+const int INIT_REF_NUM = 1;
 // Time step.
-const double time_step = 0.05;                     
+const double time_step = 0.05;
 // Final time.
-const double T_FINAL = 35.0;                       
+const double T_FINAL = 35.0;
 // Stopping criterion for the Newton's method.
-const double NEWTON_TOL = 1e-5;                  
+const double NEWTON_TOL = 1e-5;
 // Maximum allowed number of Newton iterations.
-const int NEWTON_MAX_ITER = 100;                  
+const int NEWTON_MAX_ITER = 100;
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;   
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;
 
-// Choose one of the following time-integration methods, or define your own Butcher's table. The last number 
+// Choose one of the following time-integration methods, or define your own Butcher's table. The last number
 // in the name of each method is its order. The one before last, if present, is the number of stages.
 // Explicit methods:
 //   Explicit_RK_1, Explicit_RK_2, Explicit_RK_3, Explicit_RK_4.
-// Implicit methods: 
-//   Implicit_RK_1, Implicit_Crank_Nicolson_2_2, Implicit_SIRK_2_2, Implicit_ESIRK_2_2, Implicit_SDIRK_2_2, 
-//   Implicit_Lobatto_IIIA_2_2, Implicit_Lobatto_IIIB_2_2, Implicit_Lobatto_IIIC_2_2, Implicit_Lobatto_IIIA_3_4, 
+// Implicit methods:
+//   Implicit_RK_1, Implicit_Crank_Nicolson_2_2, Implicit_SIRK_2_2, Implicit_ESIRK_2_2, Implicit_SDIRK_2_2,
+//   Implicit_Lobatto_IIIA_2_2, Implicit_Lobatto_IIIB_2_2, Implicit_Lobatto_IIIC_2_2, Implicit_Lobatto_IIIA_3_4,
 //   Implicit_Lobatto_IIIB_3_4, Implicit_Lobatto_IIIC_3_4, Implicit_Radau_IIA_3_5, Implicit_SDIRK_5_4.
 // Embedded explicit methods:
 //   Explicit_HEUN_EULER_2_12_embedded, Explicit_BOGACKI_SHAMPINE_4_23_embedded, Explicit_FEHLBERG_6_45_embedded,
 //   Explicit_CASH_KARP_6_45_embedded, Explicit_DORMAND_PRINCE_7_45_embedded.
 // Embedded implicit methods:
-//   Implicit_SDIRK_CASH_3_23_embedded, Implicit_ESDIRK_TRBDF2_3_23_embedded, Implicit_ESDIRK_TRX2_3_23_embedded, 
-//   Implicit_SDIRK_BILLINGTON_3_23_embedded, Implicit_SDIRK_CASH_5_24_embedded, Implicit_SDIRK_CASH_5_34_embedded, 
-//   Implicit_DIRK_ISMAIL_7_45_embedded. 
+//   Implicit_SDIRK_CASH_3_23_embedded, Implicit_ESDIRK_TRBDF2_3_23_embedded, Implicit_ESDIRK_TRX2_3_23_embedded,
+//   Implicit_SDIRK_BILLINGTON_3_23_embedded, Implicit_SDIRK_CASH_5_24_embedded, Implicit_SDIRK_CASH_5_34_embedded,
+//   Implicit_DIRK_ISMAIL_7_45_embedded.
 ButcherTableType butcher_table = Implicit_RK_1;
 //ButcherTableType butcher_table = Implicit_SDIRK_2_2;
 
 // Problem parameters.
-// Square of wave speed.      
-const double C_SQUARED = 1;                                     
+// Square of wave speed.
+const double C_SQUARED = 1;
 
 int main(int argc, char* argv[])
 {
@@ -75,7 +73,7 @@ int main(int argc, char* argv[])
   if (bt.is_diagonally_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage diagonally implicit R-K method.", bt.get_size());
   if (bt.is_fully_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage fully implicit R-K method.", bt.get_size());
 
-  // Load the mesh.
+  // Load the mesh->
   MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("domain.mesh", mesh);
@@ -87,13 +85,13 @@ int main(int argc, char* argv[])
   MeshFunctionSharedPtr<double> E_time_prev(new CustomInitialConditionWave(mesh));
   MeshFunctionSharedPtr<double>  F_time_prev(new ZeroSolutionVector<double>(mesh));
 
-  Hermes::vector<MeshFunctionSharedPtr<double> > slns_time_prev(E_time_prev, F_time_prev);
+  std::vector<MeshFunctionSharedPtr<double> > slns_time_prev(E_time_prev, F_time_prev);
 
   MeshFunctionSharedPtr<double> E_time_new(new Solution<double>);
 
   MeshFunctionSharedPtr<double> F_time_new(new Solution<double>);
 
-  Hermes::vector<MeshFunctionSharedPtr<double> > slns_time_new(E_time_new, F_time_new);
+  std::vector<MeshFunctionSharedPtr<double> > slns_time_new(E_time_new, F_time_new);
 
   // Initialize the weak formulation.
   CustomWeakFormWaveRK wf(C_SQUARED);
@@ -104,7 +102,7 @@ int main(int argc, char* argv[])
 
   SpaceSharedPtr<double> E_space(new HcurlSpace<double>(mesh, &bcs, P_INIT));
   SpaceSharedPtr<double> F_space(new HcurlSpace<double>(mesh, &bcs, P_INIT));
-  Hermes::vector<SpaceSharedPtr<double> > spaces(E_space, F_space);
+  std::vector<SpaceSharedPtr<double> > spaces(E_space, F_space);
 
   int ndof = HcurlSpace<double>::get_num_dofs(spaces);
   Hermes::Mixins::Loggable::Static::info("ndof = %d.", ndof);
@@ -120,14 +118,14 @@ int main(int argc, char* argv[])
   F2_view.fix_scale_width(50);
 
   // Initialize Runge-Kutta time stepping.
-  RungeKutta<double> runge_kutta(&wf, spaces, &bt);
+  RungeKutta<double> runge_kutta(wf, spaces, &bt);
 
   // Time stepping loop.
   double current_time = 0; int ts = 1;
   do
   {
     // Perform one Runge-Kutta time step according to the selected Butcher's table.
-    Hermes::Mixins::Loggable::Static::info("Runge-Kutta time step (t = %g s, time_step = %g s, stages: %d).", 
+    Hermes::Mixins::Loggable::Static::info("Runge-Kutta time step (t = %g s, time_step = %g s, stages: %d).",
       current_time, time_step, bt.get_size());
     try
     {
@@ -137,7 +135,7 @@ int main(int argc, char* argv[])
       runge_kutta.set_tolerance(NEWTON_TOL);
       runge_kutta.rk_time_step_newton(slns_time_prev, slns_time_new);
     }
-    catch(Exceptions::Exception& e)
+    catch (Exceptions::Exception& e)
     {
       e.print_msg();
       throw Hermes::Exceptions::Exception("Runge-Kutta time step failed");
@@ -167,7 +165,6 @@ int main(int argc, char* argv[])
 
     // Update time.
     current_time += time_step;
-
   } while (current_time < T_FINAL);
 
   // Wait for the view to be closed.

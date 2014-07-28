@@ -4,7 +4,7 @@ using namespace RefinementSelectors;
 
 //  This is the fifth in the series of NIST benchmarks with unknown exact solution.
 //
-//  Reference: W. Mitchell, A Collection of 2D Elliptic Problems for Testing Adaptive Algorithms, 
+//  Reference: W. Mitchell, A Collection of 2D Elliptic Problems for Testing Adaptive Algorithms,
 //                          NIST Report 7668, February 2010.
 //
 //  PDE: -\frac{\partial }{\partial x}\left(p(x, y)\frac{\partial u}{\partial x}\right)
@@ -25,7 +25,7 @@ const int INIT_REF_NUM = 1;
 // This is a quantitative parameter of Adaptivity.
 const double THRESHOLD = 0.3;
 // This is a stopping criterion for Adaptivity.
-AdaptStoppingCriterionSingleElement<double> stoppingCriterion(THRESHOLD);   
+AdaptStoppingCriterionSingleElement<double> stoppingCriterion(THRESHOLD);
 
 // Predefined list of element refinement candidates.
 const CandList CAND_LIST = H2D_HP_ANISO_H;
@@ -43,7 +43,7 @@ bool VTK_VISUALIZATION = false;
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh.
+  // Load the mesh->
   MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("battery.mesh", mesh);
@@ -55,12 +55,12 @@ int main(int argc, char* argv[])
   SpaceSharedPtr<double> space(new H1Space<double>(mesh, P_INIT));
 
   // Initialize weak formulation.
-  CustomWeakFormPoisson wf("e1", "e2", "e3", "e4", "e5", 
-                           "Bdy_left", "Bdy_top", "Bdy_right", "Bdy_bottom", mesh);
+  CustomWeakFormPoisson wf("e1", "e2", "e3", "e4", "e5",
+    "Bdy_left", "Bdy_top", "Bdy_right", "Bdy_bottom", mesh);
 
   // Initialize coarse and fine mesh solution.
   MeshFunctionSharedPtr<double> sln(new Solution<double>), ref_sln(new Solution<double>);
-  
+
   // Initialize refinement selector.
   MySelector selector(CAND_LIST);
 
@@ -69,10 +69,10 @@ int main(int argc, char* argv[])
   sview.fix_scale_width(50);
   sview.show_mesh(false);
   OrderView  oview("Polynomial orders", new WinGeom(330, 0, 300, 600));
-  
+
   // DOF and CPU convergence graphs initialization.
   SimpleGraph graph_dof, graph_cpu;
-  
+
   // Time measurement.
   Hermes::Mixins::TimeMeasurable cpu_time;
 
@@ -81,7 +81,7 @@ int main(int argc, char* argv[])
   do
   {
     Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d:", as);
-    
+
     // Time measurement.
     cpu_time.tick();
 
@@ -94,9 +94,9 @@ int main(int argc, char* argv[])
     int ndof_ref = ref_space->get_num_dofs();
 
     // Initialize fine mesh problem.
-    Hermes::Mixins::Loggable::Static::info("Solving on fine mesh.");
-    DiscreteProblem<double> dp(&wf, ref_space);
-    
+    Hermes::Mixins::Loggable::Static::info("Solving on fine mesh->");
+    DiscreteProblem<double> dp(wf, ref_space);
+
     NewtonSolver<double> newton(&dp);
     newton.set_verbose_output(true);
 
@@ -105,7 +105,7 @@ int main(int argc, char* argv[])
     {
       newton.solve();
     }
-    catch(Hermes::Exceptions::Exception e)
+    catch (Hermes::Exceptions::Exception e)
     {
       e.print_msg();
       throw Hermes::Exceptions::Exception("Newton's iteration failed.");
@@ -113,16 +113,16 @@ int main(int argc, char* argv[])
 
     // Translate the resulting coefficient vector into the instance of Solution.
     Solution<double>::vector_to_solution(newton.get_sln_vector(), ref_space, ref_sln);
-    
-    // Project the fine mesh solution onto the coarse mesh.
-    Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh.");
+
+    // Project the fine mesh solution onto the coarse mesh->
+    Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh->");
     OGProjection<double> ogProjection; ogProjection.project_global(space, ref_sln, sln);
 
     // Time measurement.
     cpu_time.tick();
 
     // VTK output.
-    if (VTK_VISUALIZATION) 
+    if (VTK_VISUALIZATION)
     {
       // Output solution in VTK format.
       Views::Linearizer lin(FileExport);
@@ -139,7 +139,7 @@ int main(int argc, char* argv[])
     }
 
     // View the coarse mesh solution and polynomial orders.
-    if (HERMES_VISUALIZATION) 
+    if (HERMES_VISUALIZATION)
     {
       sview.show(sln);
       oview.show(space);
@@ -156,34 +156,33 @@ int main(int argc, char* argv[])
 
     Adapt<double> adaptivity(space, &error_calculator);
     adaptivity.set_strategy(&stoppingCriterion);
-    
+
     // Report results.
     Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d, err_est_rel: %g%%", space->get_num_dofs(), ref_space->get_num_dofs(), err_est_rel);
 
     // Add entry to DOF and CPU convergence graphs.
-    cpu_time.tick();    
+    cpu_time.tick();
     graph_cpu.add_values(cpu_time.accumulated(), err_est_rel);
     graph_cpu.save("conv_cpu_est.dat");
     graph_dof.add_values(space->get_num_dofs(), err_est_rel);
     graph_dof.save("conv_dof_est.dat");
-    
+
     // Skip the time spent to save the convergence graphs.
     cpu_time.tick(Hermes::Mixins::TimeMeasurable::HERMES_SKIP);
 
-    // If err_est too large, adapt the mesh.
-    if (err_est_rel < ERR_STOP) 
+    // If err_est too large, adapt the mesh->
+    if (err_est_rel < ERR_STOP)
       done = true;
     else
     {
-      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
+      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh->");
       done = adaptivity.adapt(&selector);
 
       // Increase the counter of performed adaptivity steps.
-      if (done == false)  
+      if (done == false)
         as++;
     }
-  }
-  while (done == false);
+  } while (done == false);
 
   Hermes::Mixins::Loggable::Static::info("Total running time: %g s", cpu_time.accumulated());
 
@@ -197,4 +196,3 @@ int main(int argc, char* argv[])
 
   return 0;
 }
-

@@ -2,19 +2,19 @@
 
 /* Weak forms */
 
-class WeakFormRayleighBenard : public WeakForm<double>
+class WeakFormRayleighBenard : public WeakForm < double >
 {
 public:
   WeakFormRayleighBenard(double Pr, double Ra, std::string bdy_top, double temp_ext, double alpha_air,
-                         double time_step, MeshFunctionSharedPtr<double>  x_vel_previous_time,
-                         MeshFunctionSharedPtr<double>  y_vel_previous_time, MeshFunctionSharedPtr<double>  temp_previous_time)
+    double time_step, MeshFunctionSharedPtr<double>  x_vel_previous_time,
+    MeshFunctionSharedPtr<double>  y_vel_previous_time, MeshFunctionSharedPtr<double>  temp_previous_time)
     : WeakForm<double>(4), Pr(Pr), Ra(Ra), time_step(time_step), x_vel_previous_time(x_vel_previous_time),
-                y_vel_previous_time(y_vel_previous_time), temp_previous_time(temp_previous_time) {
+    y_vel_previous_time(y_vel_previous_time), temp_previous_time(temp_previous_time) {
     /* Jacobian terms - first velocity equation */
     // Time derivative in the first velocity equation.
-    add_matrix_form(new DefaultMatrixFormVol<double>(0, 0, HERMES_ANY, new Hermes2DFunction<double>(1./time_step)));
+    add_matrix_form(new DefaultMatrixFormVol<double>(0, 0, HERMES_ANY, new Hermes2DFunction<double>(1. / time_step)));
     // Laplacian divided by Pr in the first velocity equation.
-    add_matrix_form(new DefaultJacobianDiffusion<double>(0, 0, HERMES_ANY, new Hermes1DFunction<double>(1./Pr)));
+    add_matrix_form(new DefaultJacobianDiffusion<double>(0, 0, HERMES_ANY, new Hermes1DFunction<double>(1. / Pr)));
     // First part of the convective term in the first velocity equation.
     BilinearFormNonsymVel_0_0* nonsym_vel_form_0_0 = new BilinearFormNonsymVel_0_0(0, 0);
     add_matrix_form(nonsym_vel_form_0_0);
@@ -27,9 +27,9 @@ public:
 
     /* Jacobian terms - second velocity equation, continuity equation */
     // Time derivative in the second velocity equation.
-    add_matrix_form(new DefaultMatrixFormVol<double>(1, 1, HERMES_ANY, new Hermes2DFunction<double>(1./time_step)));
+    add_matrix_form(new DefaultMatrixFormVol<double>(1, 1, HERMES_ANY, new Hermes2DFunction<double>(1. / time_step)));
     // Laplacian divided by Pr in the second velocity equation.
-    add_matrix_form(new DefaultJacobianDiffusion<double>(1, 1, HERMES_ANY, new Hermes1DFunction<double>(1./Pr)));
+    add_matrix_form(new DefaultJacobianDiffusion<double>(1, 1, HERMES_ANY, new Hermes1DFunction<double>(1. / Pr)));
     // First part of the convective term in the second velocity equation.
     BilinearFormNonsymVel_1_0* nonsym_vel_form_1_0 = new BilinearFormNonsymVel_1_0(1, 0);
     add_matrix_form(nonsym_vel_form_1_0);
@@ -44,7 +44,7 @@ public:
 
     /* Jacobian terms - temperature equation */
     // Time derivative in the temperature equation.
-    add_matrix_form(new DefaultMatrixFormVol<double>(3, 3, HERMES_ANY, new Hermes2DFunction<double>(1./time_step)));
+    add_matrix_form(new DefaultMatrixFormVol<double>(3, 3, HERMES_ANY, new Hermes2DFunction<double>(1. / time_step)));
     // Laplacian in the temperature equation.
     add_matrix_form(new DefaultJacobianDiffusion<double>(3, 3));
     // First part of temperature advection term.
@@ -76,56 +76,55 @@ public:
     add_vector_form_surf(new CustomResidualSurfConst(3, bdy_top, alpha_air));
   };
 
-  class BilinearFormNonsymVel_0_0 : public MatrixFormVol<double>
+  class BilinearFormNonsymVel_0_0 : public MatrixFormVol < double >
   {
   public:
     BilinearFormNonsymVel_0_0(int i, int j) : MatrixFormVol<double>(i, j) {
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
-                         Geom<double> *e, Func<double>* *ext) const {
+      Geom<double> *e, Func<double>* *ext) const {
       double result = 0;
       Func<double>* xvel_prev_newton = u_ext[0];
       Func<double>* yvel_prev_newton = u_ext[1];
       for (int i = 0; i < n; i++)
         result += wt[i] * ((xvel_prev_newton->val[i] * u->dx[i] + yvel_prev_newton->val[i] * u->dy[i]) * v->val[i]
-         + u->val[i] * xvel_prev_newton->dx[i] * v->val[i]);
+        + u->val[i] * xvel_prev_newton->dx[i] * v->val[i]);
       return result;
     }
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e,
-                    Func<Ord>* *ext) const {
-    Ord result = Ord(0);
+      Func<Ord>* *ext) const {
+      Ord result = Ord(0);
       Func<Ord>* xvel_prev_newton = u_ext[0];
       Func<Ord>* yvel_prev_newton = u_ext[1];
       for (int i = 0; i < n; i++)
         result += wt[i] * ((xvel_prev_newton->val[i] * u->dx[i] + yvel_prev_newton->val[i] * u->dy[i]) * v->val[i]
-         + u->val[i] * xvel_prev_newton->dx[i] * v->val[i]);
+        + u->val[i] * xvel_prev_newton->dx[i] * v->val[i]);
       return result;
     }
 
     virtual MatrixFormVol<double>* clone() const { return new BilinearFormNonsymVel_0_0(i, j); }
   };
 
-  class BilinearFormNonsymVel_0_1 : public MatrixFormVol<double>
+  class BilinearFormNonsymVel_0_1 : public MatrixFormVol < double >
   {
   public:
     BilinearFormNonsymVel_0_1(int i, int j) : MatrixFormVol<double>(i, j) {
-      
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
-                         Geom<double> *e, Func<double>* *ext) const {
+      Geom<double> *e, Func<double>* *ext) const {
       double result = 0;
       Func<double>* xvel_prev_newton = u_ext[0];
       for (int i = 0; i < n; i++)
-        result += wt[i] * u->val[i] * xvel_prev_newton->dy[i] * v->val[i] ;
+        result += wt[i] * u->val[i] * xvel_prev_newton->dy[i] * v->val[i];
 
       return result;
     }
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e,
-                    Func<Ord>* *ext) const {
+      Func<Ord>* *ext) const {
       Ord result = Ord(0);
 
       Func<Ord>* xvel_prev_newton = u_ext[0];
@@ -136,15 +135,14 @@ public:
     }
     virtual MatrixFormVol<double>* clone() const { return new BilinearFormNonsymVel_0_1(i, j); }
   };
-  class BilinearFormNonsymVel_1_0 : public MatrixFormVol<double>
+  class BilinearFormNonsymVel_1_0 : public MatrixFormVol < double >
   {
   public:
     BilinearFormNonsymVel_1_0(int i, int j) : MatrixFormVol<double>(i, j) {
-      
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
-                         Geom<double> *e, Func<double>* *ext) const {
+      Geom<double> *e, Func<double>* *ext) const {
       double result = 0;
       Func<double>* yvel_prev_newton = u_ext[1];
       for (int i = 0; i < n; i++)
@@ -153,7 +151,7 @@ public:
     }
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e,
-                    Func<Ord>* *ext) const {
+      Func<Ord>* *ext) const {
       Ord result = Ord(0);
       Func<Ord>* yvel_prev_newton = u_ext[1];
       for (int i = 0; i < n; i++)
@@ -162,38 +160,37 @@ public:
     }
     virtual MatrixFormVol<double>* clone() const { return new BilinearFormNonsymVel_1_0(i, j); }
   };
-  class BilinearFormNonsymVel_1_1 : public MatrixFormVol<double>
+  class BilinearFormNonsymVel_1_1 : public MatrixFormVol < double >
   {
   public:
     BilinearFormNonsymVel_1_1(int i, int j) : MatrixFormVol<double>(i, j) {
-      
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
-                         Geom<double> *e, Func<double>* *ext) const {
+      Geom<double> *e, Func<double>* *ext) const {
       double result = 0;
       Func<double>* xvel_prev_newton = u_ext[0];
       Func<double>* yvel_prev_newton = u_ext[1];
       for (int i = 0; i < n; i++)
         result += wt[i] * ((xvel_prev_newton->val[i] * u->dx[i] + yvel_prev_newton->val[i] * u->dy[i]) * v->val[i]
-                           + u->val[i] * yvel_prev_newton->dy[i] * v->val[i]);
+        + u->val[i] * yvel_prev_newton->dy[i] * v->val[i]);
       return result;
     }
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e,
-                    Func<Ord>* *ext) const {
+      Func<Ord>* *ext) const {
       Ord result = Ord(0);
       Func<Ord>* xvel_prev_newton = u_ext[0];
       Func<Ord>* yvel_prev_newton = u_ext[1];
       for (int i = 0; i < n; i++)
         result += wt[i] * ((xvel_prev_newton->val[i] * u->dx[i] + yvel_prev_newton->val[i] * u->dy[i]) * v->val[i]
-                           + u->val[i] * yvel_prev_newton->dy[i] * v->val[i]);
+        + u->val[i] * yvel_prev_newton->dy[i] * v->val[i]);
       return result;
     }
     virtual MatrixFormVol<double>* clone() const { return new BilinearFormNonsymVel_1_1(i, j); }
   };
 
-  class BilinearFormNonsymXVelPressure : public MatrixFormVol<double>
+  class BilinearFormNonsymXVelPressure : public MatrixFormVol < double >
   {
   public:
     // The antisym flag is used here to generate a term in the continuity equation.
@@ -202,17 +199,17 @@ public:
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
-                         Geom<double> *e, Func<double>* *ext) const {
-      return - int_u_dvdx<double, double>(n, wt, u, v);
+      Geom<double> *e, Func<double>* *ext) const {
+      return -int_u_dvdx<double, double>(n, wt, u, v);
     }
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e,
-                    Func<Ord>* *ext) const {
-      return - int_u_dvdx<Ord, Ord>(n, wt, u, v);
+      Func<Ord>* *ext) const {
+      return -int_u_dvdx<Ord, Ord>(n, wt, u, v);
     }
     virtual MatrixFormVol<double>* clone() const { return new BilinearFormNonsymXVelPressure(i, j); }
   };
-  class BilinearFormNonsymYVelPressure : public MatrixFormVol<double>
+  class BilinearFormNonsymYVelPressure : public MatrixFormVol < double >
   {
   public:
     // The antisym flag is used here to generate a term in the continuity equation.
@@ -221,26 +218,25 @@ public:
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
-                         Geom<double> *e, Func<double>* *ext) const {
-      return - int_u_dvdy<double, double>(n, wt, u, v);
+      Geom<double> *e, Func<double>* *ext) const {
+      return -int_u_dvdy<double, double>(n, wt, u, v);
     }
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e,
-                    Func<Ord>* *ext) const {
-      return - int_u_dvdy<Ord, Ord>(n, wt, u, v);
+      Func<Ord>* *ext) const {
+      return -int_u_dvdy<Ord, Ord>(n, wt, u, v);
     }
     virtual MatrixFormVol<double>* clone() const { return new BilinearFormNonsymYVelPressure(i, j); }
   };
 
-  class VectorFormNS_0 : public VectorFormVol<double>
+  class VectorFormNS_0 : public VectorFormVol < double >
   {
   public:
     VectorFormNS_0(int i, double Pr, double time_step) : VectorFormVol<double>(i), Pr(Pr), time_step(time_step) {
-      
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e,
-                         Func<double>* *ext) const {
+      Func<double>* *ext) const {
       double result = 0;
       Func<double>* xvel_prev_time = ext[0];
       Func<double>* xvel_prev_newton = u_ext[0];
@@ -248,11 +244,11 @@ public:
       Func<double>* p_prev_newton = u_ext[2];
       for (int i = 0; i < n; i++)
         result += wt[i] * ((xvel_prev_newton->dx[i] * v->dx[i] + xvel_prev_newton->dy[i] * v->dy[i]) / Pr
-                          - (p_prev_newton->val[i] * v->dx[i]));
+        - (p_prev_newton->val[i] * v->dx[i]));
       for (int i = 0; i < n; i++)
         result += wt[i] * ((xvel_prev_newton->val[i] - xvel_prev_time->val[i]) * v->val[i] / time_step
-                          + ((xvel_prev_newton->val[i] * xvel_prev_newton->dx[i]
-                          + yvel_prev_newton->val[i] * xvel_prev_newton->dy[i]) * v->val[i]));
+        + ((xvel_prev_newton->val[i] * xvel_prev_newton->dx[i]
+        + yvel_prev_newton->val[i] * xvel_prev_newton->dy[i]) * v->val[i]));
       return result;
     }
 
@@ -264,11 +260,11 @@ public:
       Func<Ord>* p_prev_newton = u_ext[2];
       for (int i = 0; i < n; i++)
         result += wt[i] * ((xvel_prev_newton->dx[i] * v->dx[i] + xvel_prev_newton->dy[i] * v->dy[i]) / Pr
-                          - (p_prev_newton->val[i] * v->dx[i]));
+        - (p_prev_newton->val[i] * v->dx[i]));
       for (int i = 0; i < n; i++)
         result += wt[i] * ((xvel_prev_newton->val[i] - xvel_prev_time->val[i]) * v->val[i] / time_step
-                          + ((xvel_prev_newton->val[i] * xvel_prev_newton->dx[i]
-                          + yvel_prev_newton->val[i] * xvel_prev_newton->dy[i]) * v->val[i]));
+        + ((xvel_prev_newton->val[i] * xvel_prev_newton->dx[i]
+        + yvel_prev_newton->val[i] * xvel_prev_newton->dy[i]) * v->val[i]));
       return result;
     }
     virtual VectorFormVol<double>* clone() const { return new VectorFormNS_0(i, Pr, time_step); }
@@ -276,16 +272,15 @@ public:
     double Pr, time_step;
   };
 
-  class VectorFormNS_1 : public VectorFormVol<double>
+  class VectorFormNS_1 : public VectorFormVol < double >
   {
   public:
     VectorFormNS_1(int i, double Pr, double Ra, double time_step)
       : VectorFormVol<double>(i), Pr(Pr), Ra(Ra), time_step(time_step) {
-      
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e,
-                         Func<double>* *ext) const {
+      Func<double>* *ext) const {
       double result = 0;
       Func<double>* yvel_prev_time = ext[0];
       Func<double>* xvel_prev_newton = u_ext[0];
@@ -294,12 +289,12 @@ public:
       Func<double>* temp_prev_newton = u_ext[3];
       for (int i = 0; i < n; i++)
         result += wt[i] * ((yvel_prev_newton->dx[i] * v->dx[i] + yvel_prev_newton->dy[i] * v->dy[i]) / Pr
-                          - (p_prev_newton->val[i] * v->dy[i]));
+        - (p_prev_newton->val[i] * v->dy[i]));
       for (int i = 0; i < n; i++)
         result += wt[i] * ((yvel_prev_newton->val[i] - yvel_prev_time->val[i]) * v->val[i] / time_step
-                          + ((xvel_prev_newton->val[i] * yvel_prev_newton->dx[i]
-            + yvel_prev_newton->val[i] * yvel_prev_newton->dy[i]) * v->val[i])
-         + Pr*Ra*temp_prev_newton->val[i]*v->val[i] );
+        + ((xvel_prev_newton->val[i] * yvel_prev_newton->dx[i]
+        + yvel_prev_newton->val[i] * yvel_prev_newton->dy[i]) * v->val[i])
+        + Pr*Ra*temp_prev_newton->val[i] * v->val[i]);
       return result;
     }
 
@@ -312,12 +307,12 @@ public:
       Func<Ord>* temp_prev_newton = u_ext[3];
       for (int i = 0; i < n; i++)
         result += wt[i] * ((xvel_prev_newton->dx[i] * v->dx[i] + xvel_prev_newton->dy[i] * v->dy[i]) / Pr
-                  - (p_prev_newton->val[i] * v->dx[i]));
+        - (p_prev_newton->val[i] * v->dx[i]));
       for (int i = 0; i < n; i++)
         result += wt[i] * ((yvel_prev_newton->val[i] - yvel_prev_time->val[i]) * v->val[i] / time_step
-                          + ((xvel_prev_newton->val[i] * xvel_prev_newton->dx[i]
-                          + yvel_prev_newton->val[i] * xvel_prev_newton->dy[i]) * v->val[i])
-                           + Pr*Ra*temp_prev_newton->val[i]*v->val[i]);
+        + ((xvel_prev_newton->val[i] * xvel_prev_newton->dx[i]
+        + yvel_prev_newton->val[i] * xvel_prev_newton->dy[i]) * v->val[i])
+        + Pr*Ra*temp_prev_newton->val[i] * v->val[i]);
       return result;
     }
     virtual VectorFormVol<double>* clone() const { return new VectorFormNS_1(i, Pr, Ra, time_step); }
@@ -325,15 +320,14 @@ public:
     double Pr, Ra, time_step;
   };
 
-  class VectorFormNS_2 : public VectorFormVol<double>
+  class VectorFormNS_2 : public VectorFormVol < double >
   {
   public:
     VectorFormNS_2(int i) : VectorFormVol<double>(i) {
-      
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e,
-                         Func<double>* *ext) const {
+      Func<double>* *ext) const {
       double result = 0;
       Func<double>* xvel_prev_newton = u_ext[0];
       Func<double>* yvel_prev_newton = u_ext[1];
@@ -355,15 +349,14 @@ public:
     virtual VectorFormVol<double>* clone() const { return new VectorFormNS_2(i); }
   };
 
-  class VectorFormNS_3 : public VectorFormVol<double>
+  class VectorFormNS_3 : public VectorFormVol < double >
   {
   public:
     VectorFormNS_3(int i, double time_step) : VectorFormVol<double>(i), time_step(time_step) {
-      
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e,
-                         Func<double>* *ext) const {
+      Func<double>* *ext) const {
       double result = 0;
       Func<double>* temp_prev_time = ext[0];
       Func<double>* xvel_prev_newton = u_ext[0];
@@ -372,10 +365,10 @@ public:
 
       for (int i = 0; i < n; i++)
         result += wt[i] * (((temp_prev_newton->val[i] - temp_prev_time->val[i]) / time_step
-                           + xvel_prev_newton->val[i] * temp_prev_newton->dx[i]
-         + yvel_prev_newton->val[i] * temp_prev_newton->dy[i]) * v->val[i]
-                     + temp_prev_newton->dx[i] * v->dx[i] + temp_prev_newton->dy[i] * v->dy[i]
-         );
+        + xvel_prev_newton->val[i] * temp_prev_newton->dx[i]
+        + yvel_prev_newton->val[i] * temp_prev_newton->dy[i]) * v->val[i]
+        + temp_prev_newton->dx[i] * v->dx[i] + temp_prev_newton->dy[i] * v->dy[i]
+        );
       return result;
     }
 
@@ -388,27 +381,26 @@ public:
 
       for (int i = 0; i < n; i++)
         result += wt[i] * (((temp_prev_newton->val[i] - temp_prev_time->val[i]) / time_step
-                           + xvel_prev_newton->val[i] * temp_prev_newton->dx[i]
-         + yvel_prev_newton->val[i] * temp_prev_newton->dy[i]) * v->val[i]
-                     + temp_prev_newton->dx[i] * v->dx[i] + temp_prev_newton->dy[i] * v->dy[i]
-         );
+        + xvel_prev_newton->val[i] * temp_prev_newton->dx[i]
+        + yvel_prev_newton->val[i] * temp_prev_newton->dy[i]) * v->val[i]
+        + temp_prev_newton->dx[i] * v->dx[i] + temp_prev_newton->dy[i] * v->dy[i]
+        );
       return result;
     }
 
     virtual VectorFormVol<double>* clone() const { return new VectorFormNS_3(i, time_step); }
-    private:
-      double time_step;
+  private:
+    double time_step;
   };
 
-  class BilinearFormNonsymTemp_3_0 : public MatrixFormVol<double>
+  class BilinearFormNonsymTemp_3_0 : public MatrixFormVol < double >
   {
   public:
     BilinearFormNonsymTemp_3_0(int i, int j) : MatrixFormVol<double>(i, j) {
-      
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
-                         Geom<double> *e, Func<double>* *ext) const {
+      Geom<double> *e, Func<double>* *ext) const {
       double result = 0;
       Func<double>* temp_prev_newton = u_ext[3];
       for (int i = 0; i < n; i++)
@@ -417,7 +409,7 @@ public:
     }
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e,
-                    Func<Ord>* *ext) const {
+      Func<Ord>* *ext) const {
       Ord result = Ord(0);
       Func<Ord>* temp_prev_newton = u_ext[3];
       for (int i = 0; i < n; i++)
@@ -427,15 +419,14 @@ public:
     virtual MatrixFormVol<double>* clone() const { return new BilinearFormNonsymTemp_3_0(i, j); }
   };
 
-  class BilinearFormNonsymTemp_3_1 : public MatrixFormVol<double>
+  class BilinearFormNonsymTemp_3_1 : public MatrixFormVol < double >
   {
   public:
     BilinearFormNonsymTemp_3_1(int i, int j) : MatrixFormVol<double>(i, j) {
-      
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
-                         Geom<double> *e, Func<double>* *ext) const {
+      Geom<double> *e, Func<double>* *ext) const {
       double result = 0;
       Func<double>* temp_prev_newton = u_ext[3];
       for (int i = 0; i < n; i++)
@@ -444,7 +435,7 @@ public:
     }
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e,
-                    Func<Ord>* *ext) const {
+      Func<Ord>* *ext) const {
       Ord result = Ord(0);
       Func<Ord>* temp_prev_newton = u_ext[3];
       for (int i = 0; i < n; i++)
@@ -454,50 +445,49 @@ public:
     virtual MatrixFormVol<double>* clone() const { return new BilinearFormNonsymTemp_3_1(i, j); }
   };
 
-  class BilinearFormNonsymTemp_3_3 : public MatrixFormVol<double>
+  class BilinearFormNonsymTemp_3_3 : public MatrixFormVol < double >
   {
   public:
     BilinearFormNonsymTemp_3_3(int i, int j) : MatrixFormVol<double>(i, j) {
-      
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
-                         Geom<double> *e, Func<double>* *ext) const {
+      Geom<double> *e, Func<double>* *ext) const {
       double result = 0;
       Func<double>* xvel_prev_newton = u_ext[0];
       Func<double>* yvel_prev_newton = u_ext[1];
       for (int i = 0; i < n; i++)
         result += wt[i] * (xvel_prev_newton->val[i] * u->dx[i]
-                           + yvel_prev_newton->val[i] * u->dy[i]) * v->val[i];
+        + yvel_prev_newton->val[i] * u->dy[i]) * v->val[i];
       return result;
     }
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e,
-                    Func<Ord>* *ext) const {
+      Func<Ord>* *ext) const {
       Ord result = Ord(0);
       Func<Ord>* xvel_prev_newton = u_ext[0];
       Func<Ord>* yvel_prev_newton = u_ext[1];
       for (int i = 0; i < n; i++)
         result += wt[i] * (xvel_prev_newton->val[i] * u->dx[i]
-                           + yvel_prev_newton->val[i] * u->dy[i]) * v->val[i];
+        + yvel_prev_newton->val[i] * u->dy[i]) * v->val[i];
       return result;
     }
     virtual MatrixFormVol<double>* clone() const { return new BilinearFormNonsymTemp_3_3(i, j); }
   };
 
-  class CustomResidualSurfConst : public VectorFormSurf<double>
+  class CustomResidualSurfConst : public VectorFormSurf < double >
   {
   public:
     CustomResidualSurfConst(int i, double coeff = 1.0,
-                             GeomType gt = HERMES_PLANAR)
-           : VectorFormSurf<double>(i), coeff(coeff), gt(gt) { }
+      GeomType gt = HERMES_PLANAR)
+      : VectorFormSurf<double>(i), coeff(coeff), gt(gt) { }
     CustomResidualSurfConst(int i, std::string area, double coeff = 1.0,
-                             GeomType gt = HERMES_PLANAR)
-                             : VectorFormSurf<double>(i), coeff(coeff), gt(gt) { this->set_area(area); }
+      GeomType gt = HERMES_PLANAR)
+      : VectorFormSurf<double>(i), coeff(coeff), gt(gt) { this->set_area(area); }
 
     template<typename Real, typename Scalar>
     Scalar vector_form_surf(int n, double *wt, Func<Scalar> *u_ext[],
-                            Func<Real> *v, Geom<Real> *e, Func<Scalar>* *ext) const {
+      Func<Real> *v, Geom<Real> *e, Func<Scalar>* *ext) const {
       Scalar result = Scalar(0);
       for (int i = 0; i < n; i++) {
         result += wt[i] * u_ext[3]->val[i] * v->val[i];
@@ -506,12 +496,12 @@ public:
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v,
-                         Geom<double> *e, Func<double>* *ext) const {
+      Geom<double> *e, Func<double>* *ext) const {
       return vector_form_surf<double, double>(n, wt, u_ext, v, e, ext);
     }
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v,
-                    Geom<Ord> *e, Func<Ord>* *ext) const {
+      Geom<Ord> *e, Func<Ord>* *ext) const {
       return vector_form_surf<Ord, Ord>(n, wt, u_ext, v, e, ext);
     }
 
@@ -520,9 +510,9 @@ public:
       return new CustomResidualSurfConst(*this);
     }
 
-    private:
-      double coeff;
-      GeomType gt;
+  private:
+    double coeff;
+    GeomType gt;
   };
 protected:
   double Pr, Ra, time_step;
@@ -530,4 +520,3 @@ protected:
   MeshFunctionSharedPtr<double>  y_vel_previous_time;
   MeshFunctionSharedPtr<double>  temp_previous_time;
 };
-

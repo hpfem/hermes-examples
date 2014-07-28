@@ -1,13 +1,11 @@
-
-
 #include "definitions.h"
 
 // The time-dependent laminar incompressible Navier-Stokes equations are
 // discretized in time via the implicit Euler method. If NEWTON == true,
 // the Newton's method is used to solve the nonlinear problem at each time
-// step. We also show how to use discontinuous ($L^2$) elements for pressure 
-// and thus make the velocity discreetely divergence free. Comparison to 
-// approximating the pressure with the standard (continuous) Taylor-Hood elements 
+// step. We also show how to use discontinuous ($L^2$) elements for pressure
+// and thus make the velocity discreetely divergence free. Comparison to
+// approximating the pressure with the standard (continuous) Taylor-Hood elements
 // is enabled. The Reynolds number Re = 200 which is embarrassingly low. You
 // can increase it but then you will need to make the mesh finer, and the
 // computation will take more time.
@@ -27,47 +25,47 @@
 // The following parameters can be changed:
 
 // Visualization.
-// Set to "true" to enable Hermes OpenGL visualization. 
+// Set to "true" to enable Hermes OpenGL visualization.
 const bool HERMES_VISUALIZATION = true;
 // Set to "true" to enable VTK output.
 const bool VTK_VISUALIZATION = true;
 
 // For application of Stokes flow (creeping flow).
-const bool STOKES = false;                        
+const bool STOKES = false;
 // If this is defined, the pressure is approximated using
 // discontinuous L2 elements (making the velocity discreetely
 // divergence-free, more accurate than using a continuous
 // pressure approximation). Otherwise the standard continuous
 // elements are used. The results are striking - check the
 // tutorial for comparisons.
-#define PRESSURE_IN_L2                            
+#define PRESSURE_IN_L2
 // Initial polynomial degree for velocity components.
-const int P_INIT_VEL = 2;                         
+const int P_INIT_VEL = 2;
 // Initial polynomial degree for pressure.
 // Note: P_INIT_VEL should always be greater than
 // P_INIT_PRESSURE because of the inf-sup condition.
-const int P_INIT_PRESSURE = 1;                    
+const int P_INIT_PRESSURE = 1;
 // Reynolds number.
-const double RE = 2000.0;                          
+const double RE = 2000.0;
 // Inlet velocity (reached after STARTUP_TIME).
-const double VEL_INLET = 1.0;                     
+const double VEL_INLET = 1.0;
 // During this time, inlet velocity increases gradually
 // from 0 to VEL_INLET, then it stays constant.
-const double STARTUP_TIME = 1.0;                  
+const double STARTUP_TIME = 1.0;
 // Time step.
-const double TAU = 0.01;                           
+const double TAU = 0.01;
 // Time interval length.
-const double T_FINAL = 30000.0;                   
+const double T_FINAL = 30000.0;
 // Stopping criterion for the Newton's method.
-const double NEWTON_TOL = 1e-4;                   
+const double NEWTON_TOL = 1e-4;
 // Maximum allowed number of Newton iterations.
-const int NEWTON_MAX_ITER = 50;                   
+const int NEWTON_MAX_ITER = 50;
 // Domain height - necessary to define the parabolic
 // velocity profile at inlet (if relevant).
-const double H = 5;                               
+const double H = 5;
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;
 
 // Boundary markers.
 const std::string BDY_BOTTOM = "b1";
@@ -81,7 +79,7 @@ double current_time = 0;
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh.
+  // Load the mesh->
   MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("domain.mesh", mesh);
@@ -91,8 +89,8 @@ int main(int argc, char* argv[])
   mesh->refine_all_elements();
   mesh->refine_towards_boundary(BDY_OBSTACLE, 2, false);
   // 'true' stands for anisotropic refinements.
-  mesh->refine_towards_boundary(BDY_TOP, 2, true);     
-  mesh->refine_towards_boundary(BDY_BOTTOM, 2, true);  
+  mesh->refine_towards_boundary(BDY_TOP, 2, true);
+  mesh->refine_towards_boundary(BDY_BOTTOM, 2, true);
 
   // Show mesh->
   MeshView mv;
@@ -101,9 +99,9 @@ int main(int argc, char* argv[])
 
   // Initialize boundary conditions.
   EssentialBCNonConst bc_left_vel_x(BDY_LEFT, VEL_INLET, H, STARTUP_TIME);
-  DefaultEssentialBCConst<double> bc_other_vel_x(Hermes::vector<std::string>(BDY_BOTTOM, BDY_TOP, BDY_OBSTACLE), 0.0);
-  EssentialBCs<double> bcs_vel_x(Hermes::vector<EssentialBoundaryCondition<double> *>(&bc_left_vel_x, &bc_other_vel_x));
-  DefaultEssentialBCConst<double> bc_vel_y(Hermes::vector<std::string>(BDY_LEFT, BDY_BOTTOM, BDY_TOP, BDY_OBSTACLE), 0.0);
+  DefaultEssentialBCConst<double> bc_other_vel_x({BDY_BOTTOM, BDY_TOP, BDY_OBSTACLE}, 0.0);
+  EssentialBCs<double> bcs_vel_x({&bc_left_vel_x, &bc_other_vel_x});
+  DefaultEssentialBCConst<double> bc_vel_y({BDY_LEFT, BDY_BOTTOM, BDY_TOP, BDY_OBSTACLE}, 0.0);
   EssentialBCs<double> bcs_vel_y(&bc_vel_y);
 
   SpaceSharedPtr<double> xvel_space(new H1Space<double>(mesh, &bcs_vel_x, P_INIT_VEL));
@@ -113,7 +111,7 @@ int main(int argc, char* argv[])
 #else
   SpaceSharedPtr<double> p_space(new H1Space<double>(mesh, P_INIT_PRESSURE));
 #endif
-  Hermes::vector<SpaceSharedPtr<double> > spaces(xvel_space, yvel_space, p_space);
+  std::vector<SpaceSharedPtr<double> > spaces(xvel_space, yvel_space, p_space);
 
   // Calculate and report the number of degrees of freedom.
   int ndof = Space<double>::get_num_dofs(spaces);
@@ -132,19 +130,19 @@ int main(int argc, char* argv[])
   MeshFunctionSharedPtr<double>  xvel_prev_time(new ZeroSolution<double>(mesh));
   MeshFunctionSharedPtr<double>  yvel_prev_time(new ZeroSolution<double>(mesh));
   MeshFunctionSharedPtr<double>  p_prev_time(new ZeroSolution<double>(mesh));
-  Hermes::vector<MeshFunctionSharedPtr<double>  > slns_prev_time = Hermes::vector<MeshFunctionSharedPtr<double>  >(xvel_prev_time, yvel_prev_time, p_prev_time);
+  std::vector<MeshFunctionSharedPtr<double>  > slns_prev_time = std::vector<MeshFunctionSharedPtr<double>  >(xvel_prev_time, yvel_prev_time, p_prev_time);
 
   // Initialize weak formulation.
   WeakFormNSNewton wf(STOKES, RE, TAU, xvel_prev_time, yvel_prev_time);
 
   // Initialize the FE problem.
-  DiscreteProblem<double> dp(&wf, spaces);
+  DiscreteProblem<double> dp(wf, spaces);
   Hermes::Hermes2D::NewtonSolver<double> newton(&dp);
   Hermes::Mixins::Loggable::Static::info("Solving nonlinear problem:");
   newton.set_max_allowed_iterations(NEWTON_MAX_ITER);
   newton.set_tolerance(NEWTON_TOL, Hermes::Solvers::ResidualNormAbsolute);
   newton.set_jacobian_constant();
-    
+
   // Initialize views.
   VectorView vview("velocity [m/s]", new WinGeom(0, 0, 750, 240));
   ScalarView pview("pressure [Pa]", new WinGeom(0, 290, 750, 240));
@@ -173,7 +171,7 @@ int main(int argc, char* argv[])
     {
       newton.solve();
     }
-    catch(Hermes::Exceptions::Exception e)
+    catch (Hermes::Exceptions::Exception e)
     {
       e.print_msg();
     };
@@ -183,7 +181,7 @@ int main(int argc, char* argv[])
 
     // Visualization.
     // Hermes visualization.
-    if(HERMES_VISUALIZATION) 
+    if (HERMES_VISUALIZATION)
     {
       // Show the solution at the end of time step.
       sprintf(title, "Velocity, time %g", current_time);

@@ -22,7 +22,7 @@ public:
   double get_time() {return time;};
 
   // true if next time step can be run, false if the time step must be re-run with smaller time step.
-  bool end_step(Hermes::vector<MeshFunctionSharedPtr<double> > solutions, Hermes::vector<MeshFunctionSharedPtr<double> > prev_solutions);
+  bool end_step(std::vector<MeshFunctionSharedPtr<double> > solutions, std::vector<MeshFunctionSharedPtr<double> > prev_solutions);
   void begin_step();
   bool has_next();
 
@@ -64,10 +64,7 @@ void PidTimestepController::begin_step() {
  Hermes::Mixins::Loggable::Static::info("begin_step processed, new step number: %i and cumulative time: %g", step_number, time);
 }
 
-bool PidTimestepController::end_step(Hermes::vector<MeshFunctionSharedPtr<double> > solutions,
-    Hermes::vector<MeshFunctionSharedPtr<double> > prev_solutions) {
-
-  if (pid) {
+bool PidTimestepController::end_step({pid} {
 
     unsigned int neq = solutions.size();
     if (neq == 0) {

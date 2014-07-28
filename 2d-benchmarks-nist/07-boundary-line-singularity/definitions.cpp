@@ -5,12 +5,12 @@ double CustomRightHandSide::value(double x, double y) const
   return alpha * (alpha - 1.) * Hermes::pow(x, alpha - 2.);
 }
 
-Ord CustomRightHandSide::value (Ord x, Ord y) const
+Ord CustomRightHandSide::value(Ord x, Ord y) const
 {
   return Ord((int)(alpha + 3.1));
 }
 
-double CustomExactSolution::value(double x, double y) const 
+double CustomExactSolution::value(double x, double y) const
 {
   return Hermes::pow(x, alpha);
 }
@@ -21,7 +21,7 @@ void CustomExactSolution::derivatives(double x, double y, double& dx, double& dy
   dy = 0;
 }
 
-Ord CustomExactSolution::ord (double x, double y) const
+Ord CustomExactSolution::ord(double x, double y) const
 {
   return Ord((int)(alpha + 1));
 }

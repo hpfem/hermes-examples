@@ -127,56 +127,56 @@ const std::string BDY_SOLID_WALL = "Solid";
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh.
-  Mesh mesh;
+  // Load the mesh->
+  MeshSharedPtr mesh;
   MeshReaderH2DXML mloader;
-  mloader.load("domain-arcs.xml", &mesh);
+  mloader.load("domain-arcs.xml", mesh);
 
-  mesh.refine_towards_boundary(BDY_SOLID_WALL_PROFILE, INIT_REF_NUM_BOUNDARY_ANISO, true, true);
-  mesh.refine_towards_vertex(0, INIT_REF_NUM_VERTEX, true);
+  mesh->refine_towards_boundary(BDY_SOLID_WALL_PROFILE, INIT_REF_NUM_BOUNDARY_ANISO, true, true);
+  mesh->refine_towards_vertex(0, INIT_REF_NUM_VERTEX, true);
 
   MeshView m;
-  m.show(&mesh);
+  m.show(mesh);
   m.wait_for_close();
 
-SpaceSharedPtr<double>space_rho(&mesh, P_INIT);
-  L2Space<double>space_rho_v_x(&mesh, P_INIT);
-  L2Space<double>space_rho_v_y(&mesh, P_INIT);
+SpaceSharedPtr<double>space_rho(mesh, P_INIT);
+  L2Space<double>space_rho_v_x(mesh, P_INIT);
+  L2Space<double>space_rho_v_y(mesh, P_INIT);
   L2Space<double>space_e(new // Initialize boundary condition types and spaces with default shapesets.
-  L2Space<double>(&mesh, P_INIT));
-  int ndof = Space<double>::get_num_dofs(Hermes::vector<const Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e));
+  L2Space<double>(mesh, P_INIT));
+  int ndof = Space<double>::get_num_dofs({&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e});
   Hermes::Mixins::Loggable::Static::info("Initial coarse ndof: %d", ndof);
 
   // Initialize solutions, set initial conditions.
-  ConstantSolution<double> sln_rho(&mesh, RHO_EXT);
-  ConstantSolution<double> sln_rho_v_x(&mesh, RHO_EXT * V1_EXT);
-  ConstantSolution<double> sln_rho_v_y(&mesh, RHO_EXT * V2_EXT);
-  ConstantSolution<double> sln_e(&mesh, QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA));
+  ConstantSolution<double> sln_rho(mesh, RHO_EXT);
+  ConstantSolution<double> sln_rho_v_x(mesh, RHO_EXT * V1_EXT);
+  ConstantSolution<double> sln_rho_v_y(mesh, RHO_EXT * V2_EXT);
+  ConstantSolution<double> sln_e(mesh, QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA));
 
-  ConstantSolution<double> prev_rho(&mesh, RHO_EXT);
-  ConstantSolution<double> prev_rho_v_x(&mesh, RHO_EXT * V1_EXT);
-  ConstantSolution<double> prev_rho_v_y(&mesh, RHO_EXT * V2_EXT);
-  ConstantSolution<double> prev_e(&mesh, QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA));
+  ConstantSolution<double> prev_rho(mesh, RHO_EXT);
+  ConstantSolution<double> prev_rho_v_x(mesh, RHO_EXT * V1_EXT);
+  ConstantSolution<double> prev_rho_v_y(mesh, RHO_EXT * V2_EXT);
+  ConstantSolution<double> prev_e(mesh, QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA));
 
   Solution<double> rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e;
 
   // Initialize weak formulation.
-  Hermes::vector<std::string> solid_wall_markers;
+  std::vector<std::string> solid_wall_markers;
   solid_wall_markers.push_back(BDY_SOLID_WALL);
   solid_wall_markers.push_back(BDY_SOLID_WALL_PROFILE);
   
-  Hermes::vector<std::string> inlet_markers;
+  std::vector<std::string> inlet_markers;
   inlet_markers.push_back(BDY_INLET);
-  Hermes::vector<std::string> outlet_markers;
+  std::vector<std::string> outlet_markers;
   outlet_markers.push_back(BDY_OUTLET);
 
   EulerEquationsWeakFormSemiImplicit wf(KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT,solid_wall_markers, 
     inlet_markers, outlet_markers, &prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e);
 
   // Filters for visualization of Mach number, pressure and entropy.
-  MachNumberFilter Mach_number(Hermes::vector<MeshFunctionSharedPtr<double> >(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA);
-  PressureFilter pressure(Hermes::vector<MeshFunctionSharedPtr<double> >(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA);
-  EntropyFilter entropy(Hermes::vector<MeshFunctionSharedPtr<double> >(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA, RHO_EXT, P_EXT);
+  MachNumberFilter Mach_number({&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e}, KAPPA);
+  PressureFilter pressure({&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e}, KAPPA);
+  EntropyFilter entropy({&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e}, KAPPA, RHO_EXT, P_EXT);
 
   ScalarView pressure_view("Pressure", new WinGeom(0, 0, 600, 300));
   ScalarView Mach_number_view("Mach number", new WinGeom(700, 0, 600, 300));
@@ -197,12 +197,12 @@ SpaceSharedPtr<double>space_rho(&mesh, P_INIT);
 
   if(REUSE_SOLUTION && continuity.have_record_available())
   {
-    continuity.get_last_record()->load_mesh(&mesh);
-SpaceSharedPtr<double> *> spaceVector = continuity.get_last_record()->load_spaces(new   Hermes::vector<Space<double>(Hermes::vector<Mesh *>(&mesh, &mesh, &mesh, &mesh)));
-    space_rho.copy(spaceVector[0], &mesh);
-    space_rho_v_x.copy(spaceVector[1], &mesh);
-    space_rho_v_y.copy(spaceVector[2], &mesh);
-    space_e.copy(spaceVector[3], &mesh);
+    continuity.get_last_record()->load_mesh(mesh);
+SpaceSharedPtr<double> *> spaceVector = continuity.get_last_record()->load_spaces(new   std::vector<Space<double>({mesh, mesh, mesh, mesh}));
+    space_rho.copy(spaceVector[0], mesh);
+    space_rho_v_x.copy(spaceVector[1], mesh);
+    space_rho_v_y.copy(spaceVector[2], mesh);
+    space_e.copy(spaceVector[3], mesh);
     continuity.get_last_record()->load_time_step_length(time_step);
     t = continuity.get_last_record()->get_time() + time_step;
     iteration = continuity.get_num() * EVERY_NTH_STEP + 1;
@@ -240,7 +240,7 @@ SpaceSharedPtr<double> *> spaceVector = continuity.get_last_record()->load_space
       // Construct globally refined reference mesh and setup reference space.
       int order_increase = 1;
 
-      Mesh::ReferenceMeshCreator refMeshCreatorFlow(&mesh);
+      Mesh::ReferenceMeshCreator refMeshCreatorFlow(mesh);
       Mesh* ref_mesh_flow = refMeshCreatorFlow.create_ref_mesh();
 
       Space<double>::ReferenceSpaceCreator refSpaceCreatorRho(space_rho, ref_mesh_flow, order_increase);
@@ -252,7 +252,7 @@ SpaceSharedPtr<double>* ref_space_rho_v_y = refSpaceCreatorRhoVy.create_ref_spac
       Space<double>::ReferenceSpaceCreator refSpaceCreatorE(space_e, ref_mesh_flow, order_increase);
 SpaceSharedPtr<double>* ref_space_e = refSpaceCreatorE.create_ref_space(new     Space<double>());
 
-SpaceSharedPtr<double>*> ref_spaces_const(new     Hermes::vector<const Space<double>(ref_space_rho, ref_space_rho_v_x, ref_space_rho_v_y, ref_space_e));
+SpaceSharedPtr<double>*> ref_spaces_const(new     std::vector<const Space<double>(ref_space_rho, ref_space_rho_v_x, ref_space_rho_v_y, ref_space_e));
 
       if(ndofs_prev != 0)
         if(Space<double>::get_num_dofs(ref_spaces_const) == ndofs_prev)
@@ -262,29 +262,29 @@ SpaceSharedPtr<double>*> ref_spaces_const(new     Hermes::vector<const Space<dou
 
       ndofs_prev = Space<double>::get_num_dofs(ref_spaces_const);
 
-      // Project the previous time level solution onto the new fine mesh.
-      Hermes::Mixins::Loggable::Static::info("Projecting the previous time level solution onto the new fine mesh.");
+      // Project the previous time level solution onto the new fine mesh->
+      Hermes::Mixins::Loggable::Static::info("Projecting the previous time level solution onto the new fine mesh->");
       if(loaded_now)
       {
         loaded_now = false;
 
-        continuity.get_last_record()->load_solutions(Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), 
-SpaceSharedPtr<double> *>(new         Hermes::vector<Space<double>(ref_space_rho, ref_space_rho_v_x, ref_space_rho_v_y, ref_space_e)));
+        continuity.get_last_record()->load_solutions({&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e}, 
+SpaceSharedPtr<double> *>(new         std::vector<Space<double>(ref_space_rho, ref_space_rho_v_x, ref_space_rho_v_y, ref_space_e)));
       }
       else
       {
-      OGProjection<double> ogProjection; ogProjection.project_global(ref_spaces_const, Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), 
-        Hermes::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), Hermes::vector<Hermes::Hermes2D::ProjNormType>());
+      OGProjection<double> ogProjection; ogProjection.project_global(ref_spaces_const,{&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e}, 
+        std::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), std::vector<Hermes::Hermes2D::ProjNormType>());
       }
 
       // Report NDOFs.
       Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d.", 
-        Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
-        space_rho_v_y, &space_e)), Space<double>::get_num_dofs(ref_spaces_const));
+        Space<double>::get_num_dofs({&space_rho, &space_rho_v_x, 
+        space_rho_v_y, &space_e}), Space<double>::get_num_dofs(ref_spaces_const));
 
       // Assemble the reference problem.
-      Hermes::Mixins::Loggable::Static::info("Solving on reference mesh.");
-      DiscreteProblem<double> dp(&wf, ref_spaces_const);
+      Hermes::Mixins::Loggable::Static::info("Solving on reference mesh->");
+      DiscreteProblem<double> dp(wf, ref_spaces_const);
 
       SparseMatrix<double>* matrix = create_matrix<double>();
       Vector<double>* rhs = create_vector<double>();
@@ -301,54 +301,54 @@ SpaceSharedPtr<double> *>(new         Hermes::vector<Space<double>(ref_space_rho
       if(solver->solve())
         if(!SHOCK_CAPTURING)
           Solution<double>::vector_to_solutions(solver->get_sln_vector(), ref_spaces_const, 
-          Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e));
+          std::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e));
         else
         {      
           FluxLimiter flux_limiter(FluxLimiter::Kuzmin, solver->get_sln_vector(), ref_spaces_const, true);
           
-          flux_limiter.limit_second_orders_according_to_detector(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-            &space_rho_v_y, &space_e));
+          flux_limiter.limit_second_orders_according_to_detector({&space_rho, &space_rho_v_x, 
+            &space_rho_v_y, &space_e});
           
-          flux_limiter.limit_according_to_detector(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-            &space_rho_v_y, &space_e));
+          flux_limiter.limit_according_to_detector({&space_rho, &space_rho_v_x, 
+            &space_rho_v_y, &space_e});
 
-          flux_limiter.get_limited_solutions(Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e));
+          flux_limiter.get_limited_solutions({&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e});
         }
       else
         throw Hermes::Exceptions::Exception("Matrix solver failed.\n");
       
-      // Project the fine mesh solution onto the coarse mesh.
-      Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
-      OGProjection<double> ogProjection; ogProjection.project_global(Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
-        &space_rho_v_y, &space_e), Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), 
-        Hermes::vector<Solution<double>*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y, &sln_e), 
-        Hermes::vector<ProjNormType>(HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM)); 
+      // Project the fine mesh solution onto the coarse mesh->
+      Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh->");
+      OGProjection<double> ogProjection; ogProjection.project_global({&space_rho, &space_rho_v_x, 
+        &space_rho_v_y, &space_e},{&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e}, 
+        std::vector<Solution<double>*>(sln_rho, sln_rho_v_x, sln_rho_v_y, sln_e), 
+        std::vector<ProjNormType>(HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM)); 
 
       // Calculate element errors and total error estimate.
       Hermes::Mixins::Loggable::Static::info("Calculating error estimate.");
-      Adapt<double>* adaptivity = new Adapt<double>(Hermes::vector<Space<double> *>(&space_rho, &space_rho_v_x, 
-        &space_rho_v_y, &space_e), Hermes::vector<ProjNormType>(HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM));
-      double err_est_rel_total = adaptivity->calc_err_est(Hermes::vector<Solution<double>*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y, &sln_e),
-        Hermes::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e)) * 100;
+      Adapt<double>* adaptivity = new Adapt<double>({&space_rho, &space_rho_v_x, 
+        &space_rho_v_y, &space_e},{HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM});
+      double err_est_rel_total = adaptivity->calc_err_est({sln_rho, sln_rho_v_x, sln_rho_v_y, sln_e},
+        std::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e)) * 100;
 
-      CFL.calculate_semi_implicit(Hermes::vector<Solution<double> *>(rsln_rho, rsln_rho_v_x, &rsln_rho_v_y, &rsln_e), ref_space_rho->get_mesh(), time_step);
+      CFL.calculate_semi_implicit({rsln_rho, rsln_rho_v_x, &rsln_rho_v_y, &rsln_e}, ref_space_rho->get_mesh(), time_step);
 
       // Report results.
       Hermes::Mixins::Loggable::Static::info("err_est_rel: %g%%", err_est_rel_total);
 
-      // If err_est too large, adapt the mesh.
+      // If err_est too large, adapt the mesh->
       if (err_est_rel_total < ERR_STOP)
         done = true;
       else
       {
-        Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
-        if (Space<double>::get_num_dofs(Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
-          &space_rho_v_y, &space_e)) >= NDOF_STOP) 
+        Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh->");
+        if (Space<double>::get_num_dofs({&space_rho, &space_rho_v_x, 
+          &space_rho_v_y, &space_e}) >= NDOF_STOP) 
           done = true;
         else
         {
           REFINEMENT_COUNT++;
-          done = adaptivity->adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&selector, &selector, &selector, &selector), 
+          done = adaptivity->adapt({&selector, &selector, &selector, &selector}, 
           THRESHOLD, STRATEGY, MESH_REGULARITY);
         }
 

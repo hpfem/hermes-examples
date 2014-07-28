@@ -1,13 +1,13 @@
 #include "definitions.h"
 
-// Flow in between two circles, inner circle is rotating with surface 
+// Flow in between two circles, inner circle is rotating with surface
 // velocity VEL. The time-dependent laminar incompressible Navier-Stokes equations
-// are discretized in time via the implicit Euler method. The Newton's method is 
+// are discretized in time via the implicit Euler method. The Newton's method is
 // used to solve the nonlinear problem at each time step. We also show how
 // to use discontinuous ($L^2$) elements for pressure and thus make the
 // velocity discretely divergence-free. Comparison to approximating the
 // pressure with the standard (continuous) Taylor-Hood elements is enabled.
-// 
+//
 // PDE: incompressible Navier-Stokes equations in the form
 //     \partial v / \partial t - \Delta v / Re + (v \cdot \nabla) v + \nabla p = 0,
 //     div v = 0.
@@ -20,45 +20,45 @@
 //
 // The following parameters can be changed:
 
-// Number of initial uniform mesh refinements. 
-const int INIT_REF_NUM = 2;                       
-// Number of initial mesh refinements towards inner boundary. 
-const int INIT_BDY_REF_NUM_INNER = 2;             
-// Number of initial mesh refinements towards outer boundary. 
-const int INIT_BDY_REF_NUM_OUTER = 2;             
+// Number of initial uniform mesh refinements.
+const int INIT_REF_NUM = 2;
+// Number of initial mesh refinements towards inner boundary.
+const int INIT_BDY_REF_NUM_INNER = 2;
+// Number of initial mesh refinements towards outer boundary.
+const int INIT_BDY_REF_NUM_OUTER = 2;
 // For application of Stokes flow (creeping flow).
-const bool STOKES = false;                        
+const bool STOKES = false;
 // If this is defined, the pressure is approximated using
 // discontinuous L2 elements (making the velocity discreetely
 // divergence-free, more accurate than using a continuous
 // pressure approximation). Otherwise the standard continuous
 // elements are used. The results are striking - check the
 // tutorial for comparisons.
-#define PRESSURE_IN_L2                            
+#define PRESSURE_IN_L2
 // Initial polynomial degree for velocity components.
-const int P_INIT_VEL = 2;                         
+const int P_INIT_VEL = 2;
 // Initial polynomial degree for pressure.
 // Note: P_INIT_VEL should always be greater than
 // P_INIT_PRESSURE because of the inf-sup condition.
-const int P_INIT_PRESSURE = 1;                    
+const int P_INIT_PRESSURE = 1;
 // Reynolds number.
-const double RE = 5000.0;                         
+const double RE = 5000.0;
 // Surface velocity of inner circle.
-const double VEL = 0.1;                           
-// During this time, surface velocity of the inner circle increases 
+const double VEL = 0.1;
+// During this time, surface velocity of the inner circle increases
 // gradually from 0 to VEL, then it stays constant.
-const double STARTUP_TIME = 1.0;                  
+const double STARTUP_TIME = 1.0;
 // Time step.
-const double TAU = 10.0;                          
+const double TAU = 10.0;
 // Time interval length.
-const double T_FINAL = 3600.0;                    
+const double T_FINAL = 3600.0;
 // Stopping criterion for the Newton's method.
-const double NEWTON_TOL = 1e-5;                   
+const double NEWTON_TOL = 1e-5;
 // Maximum allowed number of Newton iterations.
-const int NEWTON_MAX_ITER = 10;                   
+const int NEWTON_MAX_ITER = 10;
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;
 
 // Current time (used in weak forms).
 double current_time = 0;
@@ -75,7 +75,7 @@ double integrate_over_wall(MeshFunction<double>* meshfn, int marker)
 
   for_all_active_elements(e, mesh)
   {
-    for(int edge = 0; edge < e->get_nvert(); edge++)
+    for (int edge = 0; edge < e->get_nvert(); edge++)
     {
       if ((e->en[edge]->bnd) && (e->en[edge]->marker == marker))
       {
@@ -98,27 +98,25 @@ double integrate_over_wall(MeshFunction<double>* meshfn, int marker)
 
 int main(int argc, char* argv[])
 {
-  
-
-  // Load the mesh.
+  // Load the mesh->
   MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("domain-excentric.mesh", mesh);
   //mloader.load("domain-concentric.mesh", mesh);
 
   // Initial mesh refinements.
-  for (int i=0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
+  for (int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
   // Use 'true' for anisotropic refinements.
-  mesh->refine_towards_boundary("Inner", INIT_BDY_REF_NUM_INNER, false);  
+  mesh->refine_towards_boundary("Inner", INIT_BDY_REF_NUM_INNER, false);
   // Use 'false' for isotropic refinements.
-  mesh->refine_towards_boundary("Outer", INIT_BDY_REF_NUM_OUTER, false);  
+  mesh->refine_towards_boundary("Outer", INIT_BDY_REF_NUM_OUTER, false);
 
   // Initialize boundary conditions.
   EssentialBCNonConstX bc_inner_vel_x(std::string("Inner"), VEL, STARTUP_TIME);
   EssentialBCNonConstY bc_inner_vel_y(std::string("Inner"), VEL, STARTUP_TIME);
   DefaultEssentialBCConst<double> bc_outer_vel(std::string("Outer"), 0.0);
-  EssentialBCs<double> bcs_vel_x(Hermes::vector<EssentialBoundaryCondition<double> *>(&bc_inner_vel_x, &bc_outer_vel));
-  EssentialBCs<double> bcs_vel_y(Hermes::vector<EssentialBoundaryCondition<double> *>(&bc_inner_vel_y, &bc_outer_vel));
+  EssentialBCs<double> bcs_vel_x({&bc_inner_vel_x, &bc_outer_vel});
+  EssentialBCs<double> bcs_vel_y({&bc_inner_vel_y, &bc_outer_vel});
 
   // Spaces for velocity components and pressure.
   SpaceSharedPtr<double> xvel_space(new H1Space<double>(mesh, &bcs_vel_x, P_INIT_VEL));
@@ -128,7 +126,7 @@ int main(int argc, char* argv[])
 #else
   SpaceSharedPtr<double> p_space(new H1Space<double>(mesh, P_INIT_PRESSURE));
 #endif
-  Hermes::vector<SpaceSharedPtr<double> > spaces(xvel_space, yvel_space, p_space);
+  std::vector<SpaceSharedPtr<double> > spaces(xvel_space, yvel_space, p_space);
 
   // Calculate and report the number of degrees of freedom.
   int ndof = Space<double>::get_num_dofs(spaces);
@@ -144,12 +142,12 @@ int main(int argc, char* argv[])
 
   // Solutions for the Newton's iteration and time stepping.
   Hermes::Mixins::Loggable::Static::info("Setting initial conditions.");
-  MeshFunctionSharedPtr<double> xvel_prev_time(new ZeroSolution<double> (mesh));
-  MeshFunctionSharedPtr<double> yvel_prev_time(new ZeroSolution<double> (mesh));
-  MeshFunctionSharedPtr<double> p_prev_time(new ZeroSolution<double> (mesh));
- 
-  Hermes::vector<MeshFunctionSharedPtr<double> > slns = Hermes::vector<MeshFunctionSharedPtr<double> >(xvel_prev_time, yvel_prev_time, 
-      p_prev_time);
+  MeshFunctionSharedPtr<double> xvel_prev_time(new ZeroSolution<double>(mesh));
+  MeshFunctionSharedPtr<double> yvel_prev_time(new ZeroSolution<double>(mesh));
+  MeshFunctionSharedPtr<double> p_prev_time(new ZeroSolution<double>(mesh));
+
+  std::vector<MeshFunctionSharedPtr<double> > slns = std::vector<MeshFunctionSharedPtr<double> >(xvel_prev_time, yvel_prev_time,
+    p_prev_time);
 
   // Initialize weak formulation.
   WeakFormNSNewton wf(STOKES, RE, TAU, xvel_prev_time, yvel_prev_time);
@@ -169,7 +167,7 @@ int main(int argc, char* argv[])
   for (int ts = 1; ts <= num_time_steps; ts++)
   {
     // Initialize the FE problem.
-    DiscreteProblem<double> dp(&wf, spaces);
+    DiscreteProblem<double> dp(wf, spaces);
 
     Hermes::Hermes2D::NewtonSolver<double> newton(&dp);
 
@@ -188,7 +186,7 @@ int main(int argc, char* argv[])
       newton.set_tolerance(NEWTON_TOL, Hermes::Solvers::ResidualNormAbsolute);
       newton.solve();
     }
-    catch(Hermes::Exceptions::Exception e)
+    catch (Hermes::Exceptions::Exception e)
     {
       e.print_msg();
       throw Hermes::Exceptions::Exception("Newton's iteration failed.");

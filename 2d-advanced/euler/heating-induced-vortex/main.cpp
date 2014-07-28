@@ -8,17 +8,16 @@ using namespace Hermes::Hermes2D::RefinementSelectors;
 using namespace Hermes::Hermes2D::Views;
 
 // Visualization.
-// Set to "true" to enable Hermes OpenGL visualization. 
+// Set to "true" to enable Hermes OpenGL visualization.
 const bool HERMES_VISUALIZATION = true;
 // Set to "true" to enable VTK output.
 const bool VTK_VISUALIZATION = false;
 // Set visual output for every nth step.
 const unsigned int EVERY_NTH_STEP = 1;
 
-
 // Initial polynomial degree.
 const int P_INIT = 0;
-// Number of initial uniform mesh refinements.    
+// Number of initial uniform mesh refinements.
 const int INIT_REF_NUM = 3;
 
 // Shock capturing.
@@ -38,26 +37,26 @@ const double NU_2 = 0.1;
 
 // Equation parameters.
 // Exterior pressure (dimensionless).
-const double P_EXT = 10.5;           
+const double P_EXT = 10.5;
 // Initial pressure (dimensionless).
-const double P_INITIAL_HIGH = 10.5;  
+const double P_INITIAL_HIGH = 10.5;
 // Initial pressure (dimensionless).
-const double P_INITIAL_LOW = 1.0;   
-// Inlet density (dimensionless).   
-const double RHO_EXT = 0.5;         
-// Initial density (dimensionless).   
+const double P_INITIAL_LOW = 1.0;
+// Inlet density (dimensionless).
+const double RHO_EXT = 0.5;
+// Initial density (dimensionless).
 const double RHO_INITIAL_HIGH = 0.5;
-// Initial density (dimensionless).   
+// Initial density (dimensionless).
 const double RHO_INITIAL_LOW = 0.3;
 // Inlet x-velocity (dimensionless).
-const double V1_EXT = 0.0;          
+const double V1_EXT = 0.0;
 // Inlet y-velocity (dimensionless).
-const double V2_EXT = 0.0;          
+const double V2_EXT = 0.0;
 // Kappa.
 const double KAPPA = 1.4;
 
 // CFL value.
-const double CFL_NUMBER = 0.1;                               
+const double CFL_NUMBER = 0.1;
 // Initial time step.
 double time_step_n = 1E-5;
 
@@ -84,19 +83,19 @@ int main(int argc, char* argv[])
 #include "../euler-init-main.cpp"
 
   // Set initial conditions.
-  MeshFunctionSharedPtr<double> prev_rho(new InitialSolutionLinearProgress (mesh, RHO_INITIAL_HIGH, RHO_INITIAL_LOW, MESH_SIZE));
-  MeshFunctionSharedPtr<double> prev_rho_v_x(new ConstantSolution<double> (mesh, 0.0));
-  MeshFunctionSharedPtr<double> prev_rho_v_y(new ConstantSolution<double> (mesh, 0.0));
-  MeshFunctionSharedPtr<double> prev_e(new InitialSolutionLinearProgress (mesh, QuantityCalculator::calc_energy(RHO_INITIAL_HIGH, RHO_INITIAL_HIGH * V1_EXT, RHO_INITIAL_HIGH * V2_EXT, P_INITIAL_HIGH, KAPPA), QuantityCalculator::calc_energy(RHO_INITIAL_LOW, RHO_INITIAL_LOW * V1_EXT, RHO_INITIAL_LOW * V2_EXT, P_INITIAL_LOW, KAPPA), MESH_SIZE));
+  MeshFunctionSharedPtr<double> prev_rho(new InitialSolutionLinearProgress(mesh, RHO_INITIAL_HIGH, RHO_INITIAL_LOW, MESH_SIZE));
+  MeshFunctionSharedPtr<double> prev_rho_v_x(new ConstantSolution<double>(mesh, 0.0));
+  MeshFunctionSharedPtr<double> prev_rho_v_y(new ConstantSolution<double>(mesh, 0.0));
+  MeshFunctionSharedPtr<double> prev_e(new InitialSolutionLinearProgress(mesh, QuantityCalculator::calc_energy(RHO_INITIAL_HIGH, RHO_INITIAL_HIGH * V1_EXT, RHO_INITIAL_HIGH * V2_EXT, P_INITIAL_HIGH, KAPPA), QuantityCalculator::calc_energy(RHO_INITIAL_LOW, RHO_INITIAL_LOW * V1_EXT, RHO_INITIAL_LOW * V2_EXT, P_INITIAL_LOW, KAPPA), MESH_SIZE));
 
   // Initialize weak formulation.
-  Hermes::vector<std::string> solid_wall_markers;
+  std::vector<std::string> solid_wall_markers;
   solid_wall_markers.push_back(BDY_SOLID_WALL);
-  Hermes::vector<std::string> inlet_markers;
+  std::vector<std::string> inlet_markers;
   inlet_markers.push_back(BDY_INLET);
-  Hermes::vector<std::string> outlet_markers;
+  std::vector<std::string> outlet_markers;
 
-  EulerEquationsWeakFormSemiImplicit wf(KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT,solid_wall_markers, 
+  EulerEquationsWeakFormSemiImplicit wf(KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, solid_wall_markers,
     inlet_markers, outlet_markers, prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e, (P_INIT == 0));
 
 #include "../euler-time-loop.cpp"

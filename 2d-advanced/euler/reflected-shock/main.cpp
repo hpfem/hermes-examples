@@ -7,7 +7,7 @@ using namespace Hermes::Hermes2D;
 using namespace Hermes::Hermes2D::Views;
 
 // This example solves the compressible Euler equations using a basic
-// piecewise-constant finite volume method, or Discontinuous Galerkin 
+// piecewise-constant finite volume method, or Discontinuous Galerkin
 // method of higher order with no adaptivity.
 //
 // Equations: Compressible Euler equations, perfect gas state equation.
@@ -21,7 +21,7 @@ using namespace Hermes::Hermes2D::Views;
 // The following parameters can be changed:
 
 // Visualization.
-// Set to "true" to enable Hermes OpenGL visualization. 
+// Set to "true" to enable Hermes OpenGL visualization.
 const bool HERMES_VISUALIZATION = true;
 // Set to "true" to enable VTK output.
 const bool VTK_VISUALIZATION = false;
@@ -43,12 +43,12 @@ double DISCONTINUITY_DETECTOR_PARAM = 1.0;
 const double NU_1 = 0.1;
 const double NU_2 = 0.1;
 
-// Initial polynomial degree.      
-const int P_INIT = 1;                                                   
-// Number of initial uniform mesh refinements.      
-const int INIT_REF_NUM = 3;                                              
+// Initial polynomial degree.
+const int P_INIT = 1;
+// Number of initial uniform mesh refinements.
+const int INIT_REF_NUM = 3;
 // CFL value.
-double CFL_NUMBER = 0.5;                                
+double CFL_NUMBER = 0.5;
 // Initial time step.
 double time_step_n = 1E-4;
 
@@ -95,21 +95,21 @@ int main(int argc, char* argv[])
 
   // Set initial conditions.
   MeshFunctionSharedPtr<double> prev_rho(new ConstantSolution<double>(mesh, RHO_INIT));
-  MeshFunctionSharedPtr<double> prev_rho_v_x(new ConstantSolution<double> (mesh, RHO_INIT * V1_INIT));
-  MeshFunctionSharedPtr<double> prev_rho_v_y(new ConstantSolution<double> (mesh, RHO_INIT * V2_INIT));
-  MeshFunctionSharedPtr<double> prev_e(new ConstantSolution<double> (mesh, QuantityCalculator::calc_energy(RHO_INIT, RHO_INIT * V1_INIT, RHO_INIT * V2_INIT, PRESSURE_INIT, KAPPA)));
+  MeshFunctionSharedPtr<double> prev_rho_v_x(new ConstantSolution<double>(mesh, RHO_INIT * V1_INIT));
+  MeshFunctionSharedPtr<double> prev_rho_v_y(new ConstantSolution<double>(mesh, RHO_INIT * V2_INIT));
+  MeshFunctionSharedPtr<double> prev_e(new ConstantSolution<double>(mesh, QuantityCalculator::calc_energy(RHO_INIT, RHO_INIT * V1_INIT, RHO_INIT * V2_INIT, PRESSURE_INIT, KAPPA)));
 
   // Initialize weak formulation.
-  Hermes::vector<std::string> solid_wall_markers;
+  std::vector<std::string> solid_wall_markers;
   solid_wall_markers.push_back(BDY_SOLID_WALL);
 
-  Hermes::vector<std::string> inlet_markers(BDY_INLET_LEFT, BDY_INLET_TOP);
-  Hermes::vector<double> rho_ext(RHO_LEFT, RHO_TOP);
-  Hermes::vector<double> v1_ext(V1_LEFT, V1_TOP);
-  Hermes::vector<double> v2_ext(V2_LEFT, V2_TOP);
-  Hermes::vector<double> pressure_ext(PRESSURE_LEFT, PRESSURE_TOP);
+  std::vector<std::string> inlet_markers(BDY_INLET_LEFT, BDY_INLET_TOP);
+  std::vector<double> rho_ext(RHO_LEFT, RHO_TOP);
+  std::vector<double> v1_ext(V1_LEFT, V1_TOP);
+  std::vector<double> v2_ext(V2_LEFT, V2_TOP);
+  std::vector<double> pressure_ext(PRESSURE_LEFT, PRESSURE_TOP);
 
-  Hermes::vector<std::string> outlet_markers;
+  std::vector<std::string> outlet_markers;
   outlet_markers.push_back(BDY_OUTLET);
 
   EulerEquationsWeakFormSemiImplicit wf(KAPPA, rho_ext, v1_ext, v2_ext, pressure_ext, solid_wall_markers, inlet_markers, outlet_markers, prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e, (P_INIT == 0));

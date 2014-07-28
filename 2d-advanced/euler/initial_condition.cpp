@@ -2,7 +2,7 @@
 class ConcentrationTimedepEssentialBC : public EssentialBoundaryCondition<double> {
 public:
   ConcentrationTimedepEssentialBC(std::string marker, double constant, double startup_time) 
-           : EssentialBoundaryCondition<double>(Hermes::vector<std::string>()), startup_time(startup_time), constant(constant)
+           : EssentialBoundaryCondition<double>(std::vector<std::string>()), startup_time(startup_time), constant(constant)
   {
     markers.push_back(marker);
   }

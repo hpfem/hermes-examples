@@ -1,14 +1,12 @@
-
-
 #include "definitions.h"
 
 using namespace RefinementSelectors;
 
 //  This benchmark can be used to test adaptivity algorithms for transient
-//  PDE. It has an exact solution that exhibits a moving front of arbitrary 
-//  steepness "s". Adaptivity is done in space only, i.e., the time step is 
-//  not changed during computation. Arbitrary RK method can be used for time 
-//  integration. 
+//  PDE. It has an exact solution that exhibits a moving front of arbitrary
+//  steepness "s". Adaptivity is done in space only, i.e., the time step is
+//  not changed during computation. Arbitrary RK method can be used for time
+//  integration.
 //
 //  PDE: time-dependent heat transfer equation, du/dt = Laplace u + f.
 //
@@ -21,24 +19,24 @@ using namespace RefinementSelectors;
 //  The following parameters can be changed:
 
 // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM = 1;                       
+const int INIT_REF_NUM = 1;
 // Initial polynomial degree of mesh elements.
-const int P_INIT = 2;                             
-// Time step. 
-const double time_step = 0.1;                     
+const int P_INIT = 2;
+// Time step.
+const double time_step = 0.1;
 // Time interval length.
-const double T_FINAL = 10.0;                      
+const double T_FINAL = 10.0;
 
 // Adaptivity
 // Every UNREF_FREQth time step the mesh is derefined.
-const int UNREF_FREQ = 1;                         
-// 1... mesh reset to basemesh and poly degrees to P_INIT.   
+const int UNREF_FREQ = 1;
+// 1... mesh reset to basemesh and poly degrees to P_INIT.
 // 2... one ref. layer shaved off, poly degrees reset to P_INIT.
-// 3... one ref. layer shaved off, poly degrees decreased by one. 
-const int UNREF_METHOD = 3;                       
+// 3... one ref. layer shaved off, poly degrees decreased by one.
+const int UNREF_METHOD = 3;
 // This is a quantitative parameter of the adapt(...) function and
 // it has different meanings for various adaptive strategies.
-const double THRESHOLD = 0.3;                     
+const double THRESHOLD = 0.3;
 // Error calculation & adaptivity.
 DefaultErrorCalculator<double, HERMES_H1_NORM> errorCalculator(RelativeErrorToGlobalNorm, 1);
 // Stopping criterion for an adaptivity step.
@@ -51,10 +49,10 @@ const CandList CAND_LIST = H2D_HP_ANISO;
 const double ERR_STOP = 1e-1;
 
 // Newton's method
-// Stopping criterion for Newton on fine mesh.
-const double NEWTON_TOL = 1e-5;                   
+// Stopping criterion for Newton on fine mesh->
+const double NEWTON_TOL = 1e-5;
 // Maximum allowed number of Newton iterations.
-const int NEWTON_MAX_ITER = 20;                   
+const int NEWTON_MAX_ITER = 20;
 
 // Choose one of the following time-integration methods, or define your own Butcher's table. The last number
 // in the name of each method is its order. The one before last, if present, is the number of stages.
@@ -79,7 +77,7 @@ double x_1 = 10.0;
 double y_0 = -5.0;
 double y_1 = 5.0;
 // Steepness of the moving front.
-double s = 20.0;          
+double s = 20.0;
 double c = 1000.0;
 
 // Current time.
@@ -93,15 +91,15 @@ int main(int argc, char* argv[])
   if (bt.is_diagonally_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage diagonally implicit R-K method.", bt.get_size());
   if (bt.is_fully_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage fully implicit R-K method.", bt.get_size());
 
-  // Load the mesh.
+  // Load the mesh->
   MeshSharedPtr mesh(new Mesh), basemesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("domain.mesh", basemesh);
 
   // Perform initial mesh refinements.
-  for(int i = 0; i < INIT_REF_NUM; i++) basemesh->refine_all_elements(0, true);
+  for (int i = 0; i < INIT_REF_NUM; i++) basemesh->refine_all_elements(0, true);
   mesh->copy(basemesh);
-  
+
   // Exact solution.
   CustomExactSolution exact_sln(mesh, x_0, x_1, y_0, y_1, &current_time, s, c);
 
@@ -130,36 +128,36 @@ int main(int argc, char* argv[])
   Views::OrderView oview("Initial mesh", new Views::WinGeom(445, 0, 410, 350));
   sview.show(sln_time_prev);
   oview.show(space);
-  
+
   // Graph for dof history.
   SimpleGraph dof_history_graph;
 
   // Time stepping loop.
   int ts = 1;
-  do 
+  do
   {
     // Periodic global derefinement.
-    if (ts > 1 && ts % UNREF_FREQ == 0) 
+    if (ts > 1 && ts % UNREF_FREQ == 0)
     {
       Hermes::Mixins::Loggable::Static::info("Global mesh derefinement.");
       switch (UNREF_METHOD) {
-        case 1: mesh->copy(basemesh);
-                space->set_uniform_order(P_INIT);
-                break;
-        case 2: mesh->unrefine_all_elements();
-                space->set_uniform_order(P_INIT);
-                break;
-        case 3: mesh->unrefine_all_elements();
-                space->adjust_element_order(-1, -1, P_INIT, P_INIT);
-                break;
+      case 1: mesh->copy(basemesh);
+        space->set_uniform_order(P_INIT);
+        break;
+      case 2: mesh->unrefine_all_elements();
+        space->set_uniform_order(P_INIT);
+        break;
+      case 3: mesh->unrefine_all_elements();
+        space->adjust_element_order(-1, -1, P_INIT, P_INIT);
+        break;
       }
 
       space->assign_dofs();
       ndof_coarse = space->get_num_dofs();
     }
 
-    // Spatial adaptivity loop. Note: sln_time_prev must not be changed 
-    // during spatial adaptivity. 
+    // Spatial adaptivity loop. Note: sln_time_prev must not be changed
+    // during spatial adaptivity.
     bool done = false; int as = 1;
     double err_est;
     do {
@@ -174,31 +172,31 @@ int main(int argc, char* argv[])
       int ndof_ref = ref_space->get_num_dofs();
 
       // Initialize Runge-Kutta time stepping.
-      RungeKutta<double> runge_kutta(&wf, ref_space, &bt);
+      RungeKutta<double> runge_kutta(wf, ref_space, &bt);
 
       // Perform one Runge-Kutta time step according to the selected Butcher's table.
       Hermes::Mixins::Loggable::Static::info("Runge-Kutta time step (t = %g s, tau = %g s, stages: %d).",
-           current_time, time_step, bt.get_size());
+        current_time, time_step, bt.get_size());
       bool freeze_jacobian = true;
       bool block_diagonal_jacobian = true;
       bool verbose = true;
-      
+
       try
       {
         runge_kutta.set_time(current_time);
         runge_kutta.set_time_step(time_step);
         runge_kutta.rk_time_step_newton(sln_time_prev, sln_time_new);
       }
-      catch(Exceptions::Exception& e)
+      catch (Exceptions::Exception& e)
       {
         e.print_msg();
       }
 
-      // Project the fine mesh solution onto the coarse mesh.
+      // Project the fine mesh solution onto the coarse mesh->
       MeshFunctionSharedPtr<double> sln_coarse(new Solution<double>);
       Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh for error estimation.");
       OGProjection<double> ogProjection;
-      ogProjection.project_global(space, sln_time_new, sln_coarse); 
+      ogProjection.project_global(space, sln_time_new, sln_coarse);
 
       // Calculate element errors and total error estimate.
       Hermes::Mixins::Loggable::Static::info("Calculating error estimate.");
@@ -207,19 +205,18 @@ int main(int argc, char* argv[])
       double err_est_rel_total = errorCalculator.get_total_error_squared() * 100;
 
       // Report results.
-      Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_ref: %d, err_est_rel: %g%%", 
-           space->get_num_dofs(), ref_space->get_num_dofs(), err_est_rel_total);
+      Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_ref: %d, err_est_rel: %g%%",
+        space->get_num_dofs(), ref_space->get_num_dofs(), err_est_rel_total);
 
-      // If err_est too large, adapt the mesh.
+      // If err_est too large, adapt the mesh->
       if (err_est_rel_total < ERR_STOP) done = true;
-      else 
+      else
       {
-        Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh.");
+        Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh->");
         done = adaptivity.adapt(&selector);
         as++;
       }
-    }
-    while (done == false);
+    } while (done == false);
 
     // Visualize the solution and mesh->
     char title[100];
@@ -241,8 +238,7 @@ int main(int argc, char* argv[])
     // Increase current time and counter of time steps.
     current_time += time_step;
     ts++;
-  }
-  while (current_time < T_FINAL);
+  } while (current_time < T_FINAL);
 
   // Wait for all views to be closed.
   Views::View::wait();

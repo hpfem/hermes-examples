@@ -73,7 +73,7 @@ const int NDOF_STOP = 60000;
 MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
 
 // Newton's method
-// Stopping criterion for Newton on fine mesh.
+// Stopping criterion for Newton on fine mesh->
 const double NEWTON_TOL = 0.0005;                 
 // Maximum allowed number of Newton iterations.
 const int NEWTON_MAX_ITER = 50;                   
@@ -134,28 +134,28 @@ int main(int argc, char* argv[])
   TimePeriod cpu_time;
 
   cpu_time.tick();
-  // Load the mesh.
-  Mesh mesh, basemesh;
+  // Load the mesh->
+  MeshSharedPtr mesh, basemesh;
   MeshReaderH2D mloader;
   mloader.load("domain.mesh", &basemesh);
 
   // Perform initial mesh refinements.
-  mesh.copy(&basemesh);
-  for(int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
-  mesh.refine_towards_boundary(BDY_3, INIT_REF_NUM_BDY);
+  mesh->copy(&basemesh);
+  for(int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
+  mesh->refine_towards_boundary(BDY_3, INIT_REF_NUM_BDY);
 
   // Initialize boundary conditions.
   BCTypes bc_types;
   bc_types.add_bc_dirichlet(BDY_3);
-  bc_types.add_bc_neumann(Hermes::vector<int>(BDY_2, BDY_5));
-  bc_types.add_bc_newton(Hermes::vector<int>(BDY_1, BDY_4, BDY_6));
+  bc_types.add_bc_neumann({BDY_2, BDY_5});
+  bc_types.add_bc_newton({BDY_1, BDY_4, BDY_6});
 
   // Enter Dirichlet boundary values.
   BCValues bc_values(&TIME);
   bc_values.add_timedep_function(BDY_3, essential_bc_values);
 
 SpaceSharedPtr<double> space(new // Create an H1 space with default shapeset.
-  H1Space<double>(&mesh, &bc_types, &bc_values, P_INIT));
+  H1Space<double>(mesh, &bc_types, &bc_values, P_INIT));
   int ndof = Space<double>::get_num_dofs(&space);
   info("ndof = %d.", ndof);
 
@@ -184,11 +184,11 @@ SpaceSharedPtr<double> init_space(&basemesh, &bc_types, &bc_values, P_INIT);
     // Setup space for the reference solution.
     Space<double>*rspace = Space<double>::construct_refined_space(init_space);
 
-    // Assign the function f() to the fine mesh.
+    // Assign the function f() to the fine mesh->
     ref_sln.set_exact(rspace->get_mesh(), init_cond);
 
-    // Project the function f() on the coarse mesh.
-    OGProjection<double>::project_global(init_space, ref_sln, &sln_prev_time, matrix_solver);
+    // Project the function f() on the coarse mesh->
+    OGProjection<double>::project_global(init_space, ref_sln, sln_prev_time, matrix_solver);
 
     // Calculate element errors and total error estimate.
     Adapt adaptivity(init_space);
@@ -196,7 +196,7 @@ SpaceSharedPtr<double> init_space(&basemesh, &bc_types, &bc_values, P_INIT);
 
     info("Step %d, ndof %d, proj_error %g%%", as, Space<double>::get_num_dofs(init_space), err_est_rel);
 
-    // If err_est_rel too large, adapt the mesh.
+    // If err_est_rel too large, adapt the mesh->
     if (err_est_rel < ERR_STOP) done = true;
     else {
       double to_be_processed = 0;
@@ -204,7 +204,7 @@ SpaceSharedPtr<double> init_space(&basemesh, &bc_types, &bc_values, P_INIT);
 
       if (Space<double>::get_num_dofs(init_space) >= NDOF_STOP) done = true;
 
-      view_init->show(&sln_prev_time);
+      view_init->show(sln_prev_time);
       char title_init[100];
       sprintf(title_init, "Initial mesh, step %d", as);
       ordview_init->set_title(title_init);
@@ -220,10 +220,10 @@ SpaceSharedPtr<double> init_space(&basemesh, &bc_types, &bc_values, P_INIT);
   // Error estimate and discrete problem size as a function of physical time.
   SimpleGraph graph_time_err_est, graph_time_err_exact, graph_time_dof, graph_time_cpu;
  
-  // Visualize the projection and mesh.
+  // Visualize the projection and mesh->
   ScalarView view("Initial condition", new WinGeom(0, 0, 440, 350));
   OrderView ordview("Initial mesh", new WinGeom(450, 0, 400, 350));
-  view.show(&sln_prev_time);
+  view.show(sln_prev_time);
   ordview.show(&space);
 
   // Time stepping loop.
@@ -242,13 +242,13 @@ SpaceSharedPtr<double> init_space(&basemesh, &bc_types, &bc_values, P_INIT);
     {
       info("Global mesh derefinement.");
       switch (UNREF_METHOD) {
-        case 1: mesh.copy(&basemesh);
+        case 1: mesh->copy(&basemesh);
                 space.set_uniform_order(P_INIT);
                 break;
-        case 2: mesh.unrefine_all_elements();
+        case 2: mesh->unrefine_all_elements();
                 space.set_uniform_order(P_INIT);
                 break;
-        case 3: mesh.unrefine_all_elements();
+        case 3: mesh->unrefine_all_elements();
                 //space.adjust_element_order(-1, P_INIT);
                 space.adjust_element_order(-1, -1, P_INIT, P_INIT);
                 break;
@@ -272,20 +272,20 @@ SpaceSharedPtr<double> init_space(&basemesh, &bc_types, &bc_values, P_INIT);
 
       double* coeff_vec = new double[ref_space->get_num_dofs()];
      
-      // Calculate initial coefficient vector for Newton on the fine mesh.
+      // Calculate initial coefficient vector for Newton on the fine mesh->
       if (as == 1 && ts == 1) {
-        info("Projecting coarse mesh solution to obtain initial vector on new fine mesh.");
-        OGProjection<double>::project_global(ref_space, &sln_prev_time, coeff_vec, matrix_solver);
+        info("Projecting coarse mesh solution to obtain initial vector on new fine mesh->");
+        OGProjection<double>::project_global(ref_space, sln_prev_time, coeff_vec, matrix_solver);
       }
       else {
-        info("Projecting previous fine mesh solution to obtain initial vector on new fine mesh.");
+        info("Projecting previous fine mesh solution to obtain initial vector on new fine mesh->");
         OGProjection<double>::project_global(ref_space, ref_sln, coeff_vec, matrix_solver);
         delete ref_sln.get_mesh();
       }
 
       // Initialize the FE problem.
       bool is_linear = false;
-      DiscreteProblem<double> dp(&wf, ref_space, is_linear);
+      DiscreteProblem<double> dp(wf, ref_space, is_linear);
 
       // Perform Newton's iteration.
       info("Solving nonlinear problem:");
@@ -296,9 +296,9 @@ SpaceSharedPtr<double> init_space(&basemesh, &bc_types, &bc_values, P_INIT);
       // Translate the resulting coefficient vector into the actual solutions. 
       Solution<double>::vector_to_solution(newton.get_sln_vector(), ref_space, ref_sln);
 
-      // Project the fine mesh solution on the coarse mesh.
+      // Project the fine mesh solution on the coarse mesh->
       info("Projecting fine mesh solution on coarse mesh for error calculation.");
-      OGProjection<double>::project_global(space, &ref_sln, &sln, matrix_solver);
+      OGProjection<double>::project_global(space, &ref_sln, sln, matrix_solver);
 
       // Calculate element errors.
       info("Calculating error estimate."); 
@@ -319,10 +319,10 @@ SpaceSharedPtr<double> init_space(&basemesh, &bc_types, &bc_values, P_INIT);
       graph_time_cpu.add_values(ts*TAU, cpu_time.accumulated());
       graph_time_cpu.save("time_cpu.dat");
 
-      // If space_err_est too large, adapt the mesh.
+      // If space_err_est too large, adapt the mesh->
       if (err_est_rel < ERR_STOP) done = true;
       else {
-        info("Adapting coarse mesh.");
+        info("Adapting coarse mesh->");
         done = adaptivity->adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
         if (Space<double>::get_num_dofs(&space) >= NDOF_STOP) {
           done = true;
@@ -338,11 +338,11 @@ SpaceSharedPtr<double> init_space(&basemesh, &bc_types, &bc_values, P_INIT);
     }
     while (!done);
 
-    // Visualize the solution and mesh.
+    // Visualize the solution and mesh->
     char title[100];
     sprintf(title, "Solution, time level %d", ts);
     view.set_title(title);
-    view.show(&sln);
+    view.show(sln);
     sprintf(title, "Mesh, time level %d", ts);
     ordview.set_title(title);
     ordview.show(&space);

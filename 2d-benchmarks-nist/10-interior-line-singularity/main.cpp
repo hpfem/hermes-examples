@@ -2,9 +2,9 @@
 
 using namespace RefinementSelectors;
 
-//  This is the 10th in the series of NIST benchmarks with known exact solutions. 
+//  This is the 10th in the series of NIST benchmarks with known exact solutions.
 //
-//  Reference: W. Mitchell, A Collection of 2D Elliptic Problems for Testing Adaptive Algorithms, 
+//  Reference: W. Mitchell, A Collection of 2D Elliptic Problems for Testing Adaptive Algorithms,
 //                          NIST Report 7668, February 2010.
 //
 //  Compare adaptivity with isotropic and anisotropic refinements.
@@ -20,17 +20,17 @@ using namespace RefinementSelectors;
 //
 //  The following parameters can be changed:
 
-const double K = M_PI/2;
+const double K = M_PI / 2;
 const double alpha = 2.01;
 
 // Initial polynomial degree of mesh elements.
-const int P_INIT = 2;  
+const int P_INIT = 2;
 // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM = 0; 
+const int INIT_REF_NUM = 0;
 // This is a quantitative parameter of Adaptivity.
 const double THRESHOLD = 0.3;
 // This is a stopping criterion for Adaptivity.
-AdaptStoppingCriterionSingleElement<double> stoppingCriterion(THRESHOLD);   
+AdaptStoppingCriterionSingleElement<double> stoppingCriterion(THRESHOLD);
 
 // Predefined list of element refinement candidates.
 const CandList CAND_LIST = H2D_HP_ANISO_H;
@@ -48,7 +48,7 @@ bool VTK_VISUALIZATION = false;
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh.
+  // Load the mesh->
   MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("square_quad.mesh", mesh);
@@ -75,7 +75,7 @@ int main(int argc, char* argv[])
 
   // Initialize approximate solution.
   MeshFunctionSharedPtr<double> sln(new Solution<double>());
-  
+
   // Initialize refinement selector.
   MySelector selector(CAND_LIST);
 
@@ -107,21 +107,20 @@ int main(int argc, char* argv[])
 
     Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d (%d DOF):", as, ndof_ref);
     cpu_time.tick();
-    
-    Hermes::Mixins::Loggable::Static::info("Solving on reference mesh.");
-    
-    // Assemble the discrete problem.    
-    DiscreteProblem<double> dp(&wf, ref_space);
-    
+
+    Hermes::Mixins::Loggable::Static::info("Solving on reference mesh->");
+
+    // Assemble the discrete problem.
+    DiscreteProblem<double> dp(wf, ref_space);
+
     NewtonSolver<double> newton(&dp);
-    
-    
+
     MeshFunctionSharedPtr<double> ref_sln(new Solution<double>());
     try
     {
       newton.solve();
     }
-    catch(Hermes::Exceptions::Exception e)
+    catch (Hermes::Exceptions::Exception e)
     {
       e.print_msg();
       throw Hermes::Exceptions::Exception("Newton's iteration failed.");
@@ -129,11 +128,11 @@ int main(int argc, char* argv[])
 
     // Translate the resulting coefficient vector into the instance of Solution.
     Solution<double>::vector_to_solution(newton.get_sln_vector(), ref_space, ref_sln);
-    
+
     cpu_time.tick();
     Hermes::Mixins::Loggable::Static::info("Solution: %g s", cpu_time.last());
-    
-    // Project the fine mesh solution onto the coarse mesh.
+
+    // Project the fine mesh solution onto the coarse mesh->
     Hermes::Mixins::Loggable::Static::info("Calculating error estimate and exact error.");
     OGProjection<double> ogProjection; ogProjection.project_global(space, ref_sln, sln);
 
@@ -149,7 +148,7 @@ int main(int argc, char* argv[])
 
     cpu_time.tick();
     Hermes::Mixins::Loggable::Static::info("Error calculation: %g s", cpu_time.last());
-    
+
     // Report results.
     Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d", space->get_num_dofs(), ref_space->get_num_dofs());
     Hermes::Mixins::Loggable::Static::info("err_est_rel: %g%%, err_exact_rel: %g%%", err_est_rel, err_exact_rel);
@@ -157,7 +156,7 @@ int main(int argc, char* argv[])
     // Time measurement.
     cpu_time.tick();
     double accum_time = cpu_time.accumulated();
-    
+
     // View the coarse mesh solution and polynomial orders.
     sview.show(sln);
     oview.show(space);
@@ -171,25 +170,24 @@ int main(int argc, char* argv[])
     graph_dof_exact.save("conv_dof_exact.dat");
     graph_cpu_exact.add_values(accum_time, err_exact_rel);
     graph_cpu_exact.save("conv_cpu_exact.dat");
-    
+
     cpu_time.tick(Hermes::Mixins::TimeMeasurable::HERMES_SKIP);
 
-    // If err_est too large, adapt the mesh. The NDOF test must be here, so that the solution may be visualized
+    // If err_est too large, adapt the mesh-> The NDOF test must be here, so that the solution may be visualized
     // after ending due to this criterion.
-    if (err_exact_rel < ERR_STOP) 
+    if (err_exact_rel < ERR_STOP)
       done = true;
     else
       done = adaptivity.adapt(&selector);
-   
+
     cpu_time.tick();
     Hermes::Mixins::Loggable::Static::info("Adaptation: %g s", cpu_time.last());
-    
+
     // Increase the counter of adaptivity steps.
-    if (done == false)  
+    if (done == false)
       as++;
-  }
-  while (done == false);
-  
+  } while (done == false);
+
   Hermes::Mixins::Loggable::Static::info("Total running time: %g s", cpu_time.accumulated());
 
   // Wait for all views to be closed.

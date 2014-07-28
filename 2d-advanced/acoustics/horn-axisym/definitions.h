@@ -11,9 +11,9 @@ typedef std::complex<double> complex;
 
 /* Weak forms */
 
-class CustomWeakFormAcoustics : public WeakForm<complex>
+class CustomWeakFormAcoustics : public WeakForm < complex >
 {
 public:
   CustomWeakFormAcoustics(std::string bdy_newton, double rho,
-                          double sound_speed, double omega);
+    double sound_speed, double omega);
 };

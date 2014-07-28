@@ -1,10 +1,8 @@
-
-
 #include "definitions.h"
 
-// This example is a simple test case for the Debye-Maxwell model solved in terms of 
-// E, H and P. Here E is electric field (vector), H magnetic field (scalar), and P 
-// electric polarization (vector). The example comes with a known exact solution. 
+// This example is a simple test case for the Debye-Maxwell model solved in terms of
+// E, H and P. Here E is electric field (vector), H magnetic field (scalar), and P
+// electric polarization (vector). The example comes with a known exact solution.
 // Time discretization is performed using an arbitrary Runge-Kutta method.
 //
 // PDE system:
@@ -36,21 +34,21 @@ const double NEWTON_TOL = 1e-4;
 // Maximum allowed number of Newton iterations.
 const int NEWTON_MAX_ITER = 100;
 
-// Choose one of the following time-integration methods, or define your own Butcher's table. The last number 
+// Choose one of the following time-integration methods, or define your own Butcher's table. The last number
 // in the name of each method is its order. The one before last, if present, is the number of stages.
 // Explicit methods:
 //   Explicit_RK_1, Explicit_RK_2, Explicit_RK_3, Explicit_RK_4.
-// Implicit methods: 
-//   Implicit_RK_1, Implicit_Crank_Nicolson_2_2, Implicit_SIRK_2_2, Implicit_ESIRK_2_2, Implicit_SDIRK_2_2, 
-//   Implicit_Lobatto_IIIA_2_2, Implicit_Lobatto_IIIB_2_2, Implicit_Lobatto_IIIC_2_2, Implicit_Lobatto_IIIA_3_4, 
+// Implicit methods:
+//   Implicit_RK_1, Implicit_Crank_Nicolson_2_2, Implicit_SIRK_2_2, Implicit_ESIRK_2_2, Implicit_SDIRK_2_2,
+//   Implicit_Lobatto_IIIA_2_2, Implicit_Lobatto_IIIB_2_2, Implicit_Lobatto_IIIC_2_2, Implicit_Lobatto_IIIA_3_4,
 //   Implicit_Lobatto_IIIB_3_4, Implicit_Lobatto_IIIC_3_4, Implicit_Radau_IIA_3_5, Implicit_SDIRK_5_4.
 // Embedded explicit methods:
 //   Explicit_HEUN_EULER_2_12_embedded, Explicit_BOGACKI_SHAMPINE_4_23_embedded, Explicit_FEHLBERG_6_45_embedded,
 //   Explicit_CASH_KARP_6_45_embedded, Explicit_DORMAND_PRINCE_7_45_embedded.
 // Embedded implicit methods:
-//   Implicit_SDIRK_CASH_3_23_embedded, Implicit_ESDIRK_TRBDF2_3_23_embedded, Implicit_ESDIRK_TRX2_3_23_embedded, 
-//   Implicit_SDIRK_BILLINGTON_3_23_embedded, Implicit_SDIRK_CASH_5_24_embedded, Implicit_SDIRK_CASH_5_34_embedded, 
-//   Implicit_DIRK_ISMAIL_7_45_embedded. 
+//   Implicit_SDIRK_CASH_3_23_embedded, Implicit_ESDIRK_TRBDF2_3_23_embedded, Implicit_ESDIRK_TRX2_3_23_embedded,
+//   Implicit_SDIRK_BILLINGTON_3_23_embedded, Implicit_SDIRK_CASH_5_24_embedded, Implicit_SDIRK_CASH_5_34_embedded,
+//   Implicit_DIRK_ISMAIL_7_45_embedded.
 ButcherTableType butcher_table = Implicit_RK_1;
 //ButcherTableType butcher_table = Implicit_SDIRK_2_2;
 // Every UNREF_FREQth time step the mesh is unrefined.
@@ -65,7 +63,7 @@ int REFINEMENT_COUNT = 0;
 // it has different meanings for various adaptive strategies (see below).
 const double THRESHOLD = 0.5;
 // Error calculation & adaptivity.
-class CustomErrorCalculator : public ErrorCalculator<double>
+class CustomErrorCalculator : public ErrorCalculator < double >
 {
 public:
   // Two first components are in the H1 space - we can use the classic class for that, for the last component, we will manually add the L2 norm for pressure.
@@ -98,7 +96,7 @@ const double EPS_S = 2.0;
 const double EPS_Q = EPS_S / EPS_INF;
 // Relaxation time of the medium.
 const double TAU = 1.0;
-// Angular frequency. Depends on wave number K. Must satisfy: 
+// Angular frequency. Depends on wave number K. Must satisfy:
 // omega^3 - 2 omega^2 + K^2 M_PI^2 omega - K^2 M_PI^2 = 0.
 // WARNING; Choosing wrong omega may lead to K**2 < 0.
 const double OMEGA = 1.5;
@@ -111,7 +109,7 @@ int main(int argc, char* argv[])
 {
   try
   {
-    // Sanity check for omega. 
+    // Sanity check for omega.
     double K_squared = Hermes::sqr(OMEGA / M_PI) * (OMEGA - 2) / (1 - OMEGA);
     if (K_squared <= 0) throw Hermes::Exceptions::Exception("Wrong choice of omega, K_squared < 0!");
     double K_norm_coeff = std::sqrt(K_squared) / std::sqrt(Hermes::sqr(K_x) + Hermes::sqr(K_y));
@@ -128,7 +126,7 @@ int main(int argc, char* argv[])
     if (bt.is_diagonally_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage diagonally implicit R-K method.", bt.get_size());
     if (bt.is_fully_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage fully implicit R-K method.", bt.get_size());
 
-    // Load the mesh.
+    // Load the mesh->
     MeshSharedPtr E_mesh(new Mesh), H_mesh(new Mesh), P_mesh(new Mesh);
     MeshReaderH2D mloader;
     mloader.load("domain.mesh", E_mesh);
@@ -148,10 +146,10 @@ int main(int argc, char* argv[])
     MeshFunctionSharedPtr<double> E_time_prev(new CustomInitialConditionE(E_mesh, current_time, OMEGA, K_x, K_y));
     MeshFunctionSharedPtr<double> H_time_prev(new CustomInitialConditionH(H_mesh, current_time, OMEGA, K_x, K_y));
     MeshFunctionSharedPtr<double> P_time_prev(new CustomInitialConditionP(P_mesh, current_time, OMEGA, K_x, K_y));
-    Hermes::vector<MeshFunctionSharedPtr<double> > slns_time_prev(E_time_prev, H_time_prev, P_time_prev);
+    std::vector<MeshFunctionSharedPtr<double> > slns_time_prev(E_time_prev, H_time_prev, P_time_prev);
     MeshFunctionSharedPtr<double> E_time_new(new Solution<double>(E_mesh)), H_time_new(new Solution<double>(H_mesh)), P_time_new(new Solution<double>(P_mesh));
     MeshFunctionSharedPtr<double> E_time_new_coarse(new Solution<double>(E_mesh)), H_time_new_coarse(new Solution<double>(H_mesh)), P_time_new_coarse(new Solution<double>(P_mesh));
-    Hermes::vector<MeshFunctionSharedPtr<double> > slns_time_new(E_time_new, H_time_new, P_time_new);
+    std::vector<MeshFunctionSharedPtr<double> > slns_time_new(E_time_new, H_time_new, P_time_new);
 
     // Initialize the weak formulation.
     CustomWeakFormMD wf(OMEGA, K_x, K_y, MU_0, EPS_0, EPS_INF, EPS_Q, TAU);
@@ -165,7 +163,7 @@ int main(int argc, char* argv[])
     //L2Space<double> H_space(mesh, P_INIT));
     SpaceSharedPtr<double> P_space(new HcurlSpace<double>(P_mesh, &bcs, P_INIT));
 
-    Hermes::vector<SpaceSharedPtr<double> > spaces = Hermes::vector<SpaceSharedPtr<double> >(E_space, H_space, P_space);
+    std::vector<SpaceSharedPtr<double> > spaces = std::vector<SpaceSharedPtr<double> >(E_space, H_space, P_space);
 
     // Initialize views.
     ScalarView E1_view("Solution E1", new WinGeom(0, 0, 400, 350));
@@ -200,7 +198,7 @@ int main(int argc, char* argv[])
     P2_view.show(P_time_prev, H2D_FN_VAL_1);
 
     // Initialize Runge-Kutta time stepping.
-    RungeKutta<double> runge_kutta(&wf, spaces, &bt);
+    RungeKutta<double> runge_kutta(wf, spaces, &bt);
     runge_kutta.set_max_allowed_iterations(NEWTON_MAX_ITER);
     runge_kutta.set_tolerance(NEWTON_TOL);
     runge_kutta.set_verbose_output(true);
@@ -259,8 +257,8 @@ int main(int argc, char* argv[])
         SpaceSharedPtr<double> ref_space_H = refSpaceCreatorH.create_ref_space();
         Space<double>::ReferenceSpaceCreator refSpaceCreatorP(P_space, ref_mesh_P, order_increase);
         SpaceSharedPtr<double> ref_space_P = refSpaceCreatorP.create_ref_space();
-        Hermes::vector<SpaceSharedPtr<double> > ref_spaces(ref_space_E, ref_space_H, ref_space_P);
-       
+        std::vector<SpaceSharedPtr<double> > ref_spaces(ref_space_E, ref_space_H, ref_space_P);
+
         int ndof = Space<double>::get_num_dofs(ref_spaces);
         Hermes::Mixins::Loggable::Static::info("ndof = %d.", ndof);
 
@@ -297,23 +295,23 @@ int main(int argc, char* argv[])
         P2_view.set_title(title);
         P2_view.show(P_time_new, H2D_FN_VAL_1);
 
-        // Project the fine mesh solution onto the coarse mesh.
-        Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
-        OGProjection<double> ogProjection; ogProjection.project_global(Hermes::vector<SpaceSharedPtr<double> >(E_space, H_space,
-          P_space), Hermes::vector<MeshFunctionSharedPtr<double> >(E_time_new, H_time_new, P_time_new), Hermes::vector<MeshFunctionSharedPtr<double> >(E_time_new_coarse, H_time_new_coarse, P_time_new_coarse));
+        // Project the fine mesh solution onto the coarse mesh->
+        Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh->");
+        OGProjection<double> ogProjection; ogProjection.project_global({E_space, H_space,
+          P_space}, std::vector<MeshFunctionSharedPtr<double> >(E_time_new, H_time_new, P_time_new), std::vector<MeshFunctionSharedPtr<double> >(E_time_new_coarse, H_time_new_coarse, P_time_new_coarse));
 
         // Calculate element errors and total error estimate.
         Hermes::Mixins::Loggable::Static::info("Calculating error estimate.");
-        adaptivity.set_spaces(Hermes::vector<SpaceSharedPtr<double> >(E_space, H_space, P_space));
-        errorCalculator.calculate_errors(Hermes::vector<MeshFunctionSharedPtr<double> >(E_time_new_coarse, H_time_new_coarse, P_time_new_coarse),
-          Hermes::vector<MeshFunctionSharedPtr<double> >(E_time_new, H_time_new, P_time_new));
+        adaptivity.set_spaces({E_space, H_space, P_space});
+        errorCalculator.calculate_errors({E_time_new_coarse, H_time_new_coarse, P_time_new_coarse},
+          std::vector<MeshFunctionSharedPtr<double> >(E_time_new, H_time_new, P_time_new));
 
         double err_est_rel_total = errorCalculator.get_total_error_squared() * 100.;
 
         // Report results.
         Hermes::Mixins::Loggable::Static::info("Error estimate: %g%%", err_est_rel_total);
 
-        // If err_est too large, adapt the mesh.
+        // If err_est too large, adapt the mesh->
         if (err_est_rel_total < ERR_STOP)
         {
           Hermes::Mixins::Loggable::Static::info("Error estimate under the specified threshold -> moving to next time step.");
@@ -321,9 +319,9 @@ int main(int argc, char* argv[])
         }
         else
         {
-          Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
+          Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh->");
           REFINEMENT_COUNT++;
-          done = adaptivity.adapt(Hermes::vector<RefinementSelectors::Selector<double> *>(&HcurlSelector, &H1selector, &HcurlSelector));
+          done = adaptivity.adapt({&HcurlSelector, &H1selector, &HcurlSelector});
 
           if (!done)
             as++;
@@ -338,7 +336,6 @@ int main(int argc, char* argv[])
       // Update time.
       current_time += time_step;
       ts++;
-
     } while (current_time < T_FINAL);
 
     // Wait for the view to be closed.

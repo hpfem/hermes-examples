@@ -13,7 +13,7 @@
 //  Known exact solution; atan(ALPHA * (sqrt(pow(x - X_LOC, 2) + pow(y - Y_LOC, 2)) - R_ZERO));
 //  See the class CustomExactSolution.
 //
-//  Domain: unit square (0, 1) x (0, 1), see the file square.mesh.
+//  Domain: unit square (0, 1) x (0, 1), see the file square.mesh->
 //
 //  BC:  Dirichlet, given by exact solution.
 //
@@ -194,26 +194,26 @@ int main(int argc, char* argv[])
   // Stop counting time for adaptation.
   wall_clock.tick(); 
 
-  // Load the mesh.
-  Mesh mesh;
+  // Load the mesh->
+  MeshSharedPtr mesh;
   MeshReaderH2D mloader;
-  mloader.load("square_quad.mesh", &mesh);    
+  mloader.load("square_quad.mesh", mesh);    
 
   // Perform initial mesh refinement.
-  for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
+  for (int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
   
   // Stop counting time for adaptation.
   wall_clock.tick(); 
   adapt_time += wall_clock.last();
   
   // Set exact solution.
-  CustomExactSolution exact(&mesh, alpha, x_loc, y_loc, r_zero);
+  CustomExactSolution exact(mesh, alpha, x_loc, y_loc, r_zero);
 
   // Define right-hand side.
   CustomRightHandSide rhs(alpha, x_loc, y_loc, r_zero);
 
   // Initialize the weak formulation.
-  CustomWeakForm wf(&rhs);
+  WeakFormSharedPtr<double> wf(new CustomWeakForm(&rhs));
   // Equivalent, but slower:
   // DefaultWeakFormPoisson<double> wf(Hermes::HERMES_ANY, HERMES_ONE, &rhs);
 
@@ -222,7 +222,7 @@ int main(int argc, char* argv[])
   EssentialBCs<double> bcs(&bc);
 
 SpaceSharedPtr<double> space(new // Create an H1 space with default shapeset.
-  H1Space<double>(&mesh, &bcs, P_INIT));
+  H1Space<double>(mesh, &bcs, P_INIT));
   
   // Initialize approximate solution.
   Solution<double> sln;
@@ -257,7 +257,7 @@ SpaceSharedPtr<double> space(new // Create an H1 space with default shapeset.
     wall_clock.tick(); 
     
     // Assemble the discrete problem.    
-    DiscreteProblem<double> dp(&wf, &space);
+    DiscreteProblem<double> dp(wf, &space);
 
     // Actual ndof.
     int ndof = space.get_num_dofs();
@@ -278,9 +278,9 @@ SpaceSharedPtr<double> space(new // Create an H1 space with default shapeset.
      
     // Start counting time for adaptation.
     wall_clock.tick();  
-    Solution<double>::vector_to_solution(newton.get_sln_vector(), &space, &sln);
+    Solution<double>::vector_to_solution(newton.get_sln_vector(), &space, sln);
     
-    double err_exact = Global<double>::calc_abs_error(&sln, &exact, HERMES_H1_NORM);
+    double err_exact = Global<double>::calc_abs_error(sln, &exact, HERMES_H1_NORM);
    
     // Report results.
     Hermes::Mixins::Loggable::Static::info(" Cycle %d:", as);
@@ -293,7 +293,7 @@ SpaceSharedPtr<double> space(new // Create an H1 space with default shapeset.
     adapt_time += wall_clock.last();
     
     // View the approximate solution and polynomial orders.
-    //sview.show(&sln);
+    //sview.show(sln);
     //oview.show(&space);
     //Views::View::wait(Views::HERMES_WAIT_KEYPRESS);
     
@@ -321,7 +321,7 @@ SpaceSharedPtr<double> space(new // Create an H1 space with default shapeset.
       if (use_energy_norm_normalization)
       {
         error_flags |= HERMES_ELEMENT_ERROR_REL;
-        adaptivity.set_error_form(new EnergyErrorForm(&wf));
+        adaptivity.set_error_form(new EnergyErrorForm(wf));
       }
       else
         error_flags |= HERMES_ELEMENT_ERROR_ABS;
@@ -329,7 +329,7 @@ SpaceSharedPtr<double> space(new // Create an H1 space with default shapeset.
       if (use_residual_estimator) 
         adaptivity.add_error_estimator_vol(new ResidualErrorForm(&rhs));
       
-      double err_est_rel = adaptivity.calc_err_est(&sln, error_flags);  
+      double err_est_rel = adaptivity.calc_err_est(sln, error_flags);  
       
       done = adaptivity.adapt(threshold, strategy, MESH_REGULARITY);
       
@@ -349,7 +349,7 @@ SpaceSharedPtr<double> space(new // Create an H1 space with default shapeset.
       Hermes::Mixins::Loggable::Static::info("   Solve:            %g s", solve_time);
       Hermes::Mixins::Loggable::Static::info("   Adapt:            %g s", adapt_time);
       
-      //sview.show(&sln);
+      //sview.show(sln);
       oview.show(&space);
       oview.save_screenshot(("final_mesh-"+itos(refinement_mode)+".bmp").c_str());
       oview.close();

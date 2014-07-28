@@ -1,7 +1,7 @@
 #include "definitions.h"
 
 // The time-dependent laminar incompressible Navier-Stokes equations are
-// discretized in time via the implicit Euler method. The Newton's method 
+// discretized in time via the implicit Euler method. The Newton's method
 // is used to solve the nonlinear problem at each time step. We show how
 // to use discontinuous ($L^2$) elements for pressure and thus make the
 // velocity discreetely divergence free. Comparison to approximating the
@@ -25,9 +25,9 @@
 // The following parameters can be changed:
 
 // For application of Stokes flow (creeping flow).
-const bool STOKES = false;                        
+const bool STOKES = false;
 // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM = 0;                       
+const int INIT_REF_NUM = 0;
 // Number of initial mesh refinements towards boundary.
 const int INIT_REF_NUM_BDY = 0;
 const int INIT_REF_NUM_OBSTACLE = 0;
@@ -41,9 +41,9 @@ const int INIT_REF_NUM_OBSTACLE = 0;
 // Initial polynomial degree for velocity components.
 // Note: P_INIT_VEL should always be greater than
 // P_INIT_PRESSURE because of the inf-sup condition.
-const int P_INIT_VEL = 2;                         
+const int P_INIT_VEL = 2;
 // Initial polynomial degree for pressure.
-const int P_INIT_PRESSURE = 1;                    
+const int P_INIT_PRESSURE = 1;
 
 // Adaptivity
 // Every UNREF_FREQth time step the mesh is unrefined.
@@ -53,7 +53,7 @@ const int NOT_ADAPTING_REF_SPACES_SIZE = 6e4;
 const int FORCE_DEREFINEMENT_REF_SPACES_SIZE = 1e5;
 
 // Error calculation & adaptivity.
-class CustomErrorCalculator : public DefaultErrorCalculator<double, HERMES_H1_NORM>
+class CustomErrorCalculator : public DefaultErrorCalculator < double, HERMES_H1_NORM >
 {
 public:
   // Two first components are in the H1 space - we can use the classic class for that, for the last component, we will manually add the L2 norm for pressure.
@@ -64,35 +64,35 @@ public:
 } errorCalculator(RelativeErrorToGlobalNorm);
 // Stopping criterion for an adaptivity step.
 const double THRESHOLD = 0.7;
-AdaptStoppingCriterionSingleElement<double> stoppingCriterion(THRESHOLD);      
+AdaptStoppingCriterionSingleElement<double> stoppingCriterion(THRESHOLD);
 // Adaptivity processor class.
 Adapt<double> adaptivity(&errorCalculator, &stoppingCriterion);
 // Predefined list of element refinement candidates. Possible values are
 // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
 // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
-const CandList CAND_LIST = H2D_H_ISO;           
+const CandList CAND_LIST = H2D_H_ISO;
 // Stopping criterion for adaptivity.
 const double ERR_STOP = 1e-4;
 
 // Problem parameters
 // Reynolds number.
-const double RE = 200.0;                          
+const double RE = 200.0;
 // Inlet velocity (reached after STARTUP_TIME).
-const double VEL_INLET = 1.0;                     
+const double VEL_INLET = 1.0;
 // During this time, inlet velocity increases gradually
 // from 0 to VEL_INLET, then it stays constant.
-const double STARTUP_TIME = 1.0;                  
+const double STARTUP_TIME = 1.0;
 // Time step.
-const double TAU = 0.1;                          
+const double TAU = 0.1;
 // Time interval length.
-const double T_FINAL = 30000.0;                   
-// Stopping criterion for Newton on fine mesh.
-const double NEWTON_TOL = 0.05;                   
+const double T_FINAL = 30000.0;
+// Stopping criterion for Newton on fine mesh->
+const double NEWTON_TOL = 0.05;
 // Maximum allowed number of Newton iterations.
-const int NEWTON_MAX_ITER = 20;                   
+const int NEWTON_MAX_ITER = 20;
 // Domain height (necessary to define the parabolic
 // velocity profile at inlet).
-const double H = 5;                                    
+const double H = 5;
 
 // Boundary markers.
 const std::string BDY_BOTTOM = "b1";
@@ -106,25 +106,25 @@ double current_time = 0;
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh.
+  // Load the mesh->
   MeshSharedPtr mesh(new Mesh), basemesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("domain.mesh", basemesh);
 
   // Initial mesh refinements.
-  for(int i = 0; i < INIT_REF_NUM; i++)
+  for (int i = 0; i < INIT_REF_NUM; i++)
     basemesh->refine_all_elements();
   basemesh->refine_towards_boundary(BDY_OBSTACLE, INIT_REF_NUM_OBSTACLE, false);
-  basemesh->refine_towards_boundary(BDY_TOP, INIT_REF_NUM_BDY, false);     
-  basemesh->refine_towards_boundary(BDY_BOTTOM, INIT_REF_NUM_BDY, false);  
+  basemesh->refine_towards_boundary(BDY_TOP, INIT_REF_NUM_BDY, false);
+  basemesh->refine_towards_boundary(BDY_BOTTOM, INIT_REF_NUM_BDY, false);
 
   mesh->copy(basemesh);
 
   // Initialize boundary conditions.
   EssentialBCNonConst bc_left_vel_x(BDY_LEFT, VEL_INLET, H, STARTUP_TIME);
-  DefaultEssentialBCConst<double> bc_other_vel_x(Hermes::vector<std::string>(BDY_BOTTOM, BDY_TOP, BDY_OBSTACLE), 0.0);
-  EssentialBCs<double> bcs_vel_x(Hermes::vector<EssentialBoundaryCondition<double> *>(&bc_left_vel_x, &bc_other_vel_x));
-  DefaultEssentialBCConst<double> bc_vel_y(Hermes::vector<std::string>(BDY_LEFT, BDY_BOTTOM, BDY_TOP, BDY_OBSTACLE), 0.0);
+  DefaultEssentialBCConst<double> bc_other_vel_x({BDY_BOTTOM, BDY_TOP, BDY_OBSTACLE}, 0.0);
+  EssentialBCs<double> bcs_vel_x({&bc_left_vel_x, &bc_other_vel_x});
+  DefaultEssentialBCConst<double> bc_vel_y({BDY_LEFT, BDY_BOTTOM, BDY_TOP, BDY_OBSTACLE}, 0.0);
   EssentialBCs<double> bcs_vel_y(&bc_vel_y);
 
   SpaceSharedPtr<double> xvel_space(new H1Space<double>(mesh, &bcs_vel_x, P_INIT_VEL));
@@ -134,7 +134,7 @@ int main(int argc, char* argv[])
 #else
   SpaceSharedPtr<double> p_space(new H1Space<double>(mesh, P_INIT_PRESSURE));
 #endif
-  Hermes::vector<SpaceSharedPtr<double> > spaces(xvel_space, yvel_space, p_space);
+  std::vector<SpaceSharedPtr<double> > spaces(xvel_space, yvel_space, p_space);
   adaptivity.set_spaces(spaces);
 
   // Calculate and report the number of degrees of freedom.
@@ -148,7 +148,7 @@ int main(int argc, char* argv[])
 #else
   NormType p_proj_norm = HERMES_H1_NORM;
 #endif
-  Hermes::vector<NormType> proj_norms(vel_proj_norm, vel_proj_norm, p_proj_norm);
+  std::vector<NormType> proj_norms(vel_proj_norm, vel_proj_norm, p_proj_norm);
 
   // Solutions for the Newton's iteration and time stepping.
   Hermes::Mixins::Loggable::Static::info("Setting initial conditions.");
@@ -157,27 +157,27 @@ int main(int argc, char* argv[])
   MeshFunctionSharedPtr<double>  xvel_ref_sln(new Solution<double>());
   MeshFunctionSharedPtr<double>  yvel_ref_sln(new Solution<double>());
   MeshFunctionSharedPtr<double>  p_ref_sln(new Solution<double>());
-  Hermes::vector<MeshFunctionSharedPtr<double> > ref_slns(xvel_ref_sln, yvel_ref_sln, p_ref_sln);
+  std::vector<MeshFunctionSharedPtr<double> > ref_slns(xvel_ref_sln, yvel_ref_sln, p_ref_sln);
 
   MeshFunctionSharedPtr<double>  xvel_prev_time(new ZeroSolution<double>(mesh));
   MeshFunctionSharedPtr<double>  yvel_prev_time(new ZeroSolution<double>(mesh));
   MeshFunctionSharedPtr<double>  p_prev_time(new ZeroSolution<double>(mesh));
-  Hermes::vector<MeshFunctionSharedPtr<double> > prev_time(xvel_prev_time, yvel_prev_time, p_prev_time);
+  std::vector<MeshFunctionSharedPtr<double> > prev_time(xvel_prev_time, yvel_prev_time, p_prev_time);
   MeshFunctionSharedPtr<double>  xvel_prev_time_projected(new ZeroSolution<double>(mesh));
   MeshFunctionSharedPtr<double>  yvel_prev_time_projected(new ZeroSolution<double>(mesh));
   MeshFunctionSharedPtr<double>  p_prev_time_projected(new ZeroSolution<double>(mesh));
-  Hermes::vector<MeshFunctionSharedPtr<double> > prev_time_projected(xvel_prev_time_projected, yvel_prev_time_projected, p_prev_time_projected);
+  std::vector<MeshFunctionSharedPtr<double> > prev_time_projected(xvel_prev_time_projected, yvel_prev_time_projected, p_prev_time_projected);
 
   MeshFunctionSharedPtr<double>  xvel_sln(new ZeroSolution<double>(mesh));
   MeshFunctionSharedPtr<double>  yvel_sln(new ZeroSolution<double>(mesh));
   MeshFunctionSharedPtr<double>  p_sln(new ZeroSolution<double>(mesh));
-  Hermes::vector<MeshFunctionSharedPtr<double> > slns(xvel_sln, yvel_sln, p_sln);
+  std::vector<MeshFunctionSharedPtr<double> > slns(xvel_sln, yvel_sln, p_sln);
 
   // Initialize weak formulation.
   WeakFormNSNewton wf(STOKES, RE, TAU, xvel_prev_time_projected, yvel_prev_time_projected);
 
   // Initialize the FE problem.
-  NewtonSolver<double> newton(&wf, spaces);
+  NewtonSolver<double> newton(wf, spaces);
   newton.set_max_allowed_iterations(NEWTON_MAX_ITER);
   newton.set_tolerance(NEWTON_TOL, Hermes::Solvers::ResidualNormAbsolute);
   newton.output_matrix();
@@ -185,7 +185,7 @@ int main(int argc, char* argv[])
   // Initialize refinement selector.
   H1ProjBasedSelector<double> selector_h1(CAND_LIST);
   L2ProjBasedSelector<double> selector_l2(CAND_LIST);
-  Hermes::vector<RefinementSelectors::Selector<double> *> selectors(&selector_h1, &selector_h1, &selector_l2);
+  std::vector<RefinementSelectors::Selector<double> *> selectors(&selector_h1, &selector_h1, &selector_l2);
 
   // Initialize views.
   VectorView vview("velocity [m/s]", new WinGeom(0, 0, 500, 220));
@@ -201,8 +201,8 @@ int main(int argc, char* argv[])
 
   // Time-stepping loop:
   char title[100];
-  int num_time_steps = (int)(T_FINAL/TAU + 0.5);
-  for(int ts = 1; ts <= num_time_steps; ts++)
+  int num_time_steps = (int)(T_FINAL / TAU + 0.5);
+  for (int ts = 1; ts <= num_time_steps; ts++)
   {
     current_time += TAU;
     Hermes::Mixins::Loggable::Static::info("---- Time step %d, time = %g:", ts, current_time);
@@ -243,23 +243,23 @@ int main(int argc, char* argv[])
       Space<double>::ReferenceSpaceCreator refSpaceCreatorP(p_space, ref_mesh, 0);
       SpaceSharedPtr<double> ref_p_space = refSpaceCreatorP.create_ref_space();
 
-      Hermes::vector<SpaceSharedPtr<double> > ref_spaces(ref_xvel_space, ref_yvel_space, ref_p_space);
+      std::vector<SpaceSharedPtr<double> > ref_spaces(ref_xvel_space, ref_yvel_space, ref_p_space);
 
       Hermes::Mixins::Loggable::Static::info("Updating time-dependent essential BC.");
       Space<double>::update_essential_bc_values(ref_spaces, current_time);
 
-      // Calculate initial coefficient vector for Newton on the fine mesh.
+      // Calculate initial coefficient vector for Newton on the fine mesh->
       double* coeff_vec = new double[Space<double>::get_num_dofs(ref_spaces)];
 
       if (ts == 1) {
-        Hermes::Mixins::Loggable::Static::info("Projecting coarse mesh solution to obtain coefficient vector on new fine mesh.");
+        Hermes::Mixins::Loggable::Static::info("Projecting coarse mesh solution to obtain coefficient vector on new fine mesh->");
         OGProjection<double>::project_global(ref_spaces, prev_time, coeff_vec);
       }
       else {
-        Hermes::Mixins::Loggable::Static::info("Projecting previous fine mesh solution to obtain coefficient vector on new fine mesh.");
+        Hermes::Mixins::Loggable::Static::info("Projecting previous fine mesh solution to obtain coefficient vector on new fine mesh->");
         OGProjection<double>::project_global(ref_spaces, prev_time, coeff_vec);
       }
-      
+
       Hermes::Mixins::Loggable::Static::info("Projecting previous fine mesh solution to the new mesh - without this, the calculation fails.");
       //OGProjection<double>::project_global(ref_spaces, prev_time, prev_time_projected);
 
@@ -270,7 +270,7 @@ int main(int argc, char* argv[])
         newton.set_spaces(ref_spaces);
         newton.solve(coeff_vec);
       }
-      catch(Hermes::Exceptions::Exception e)
+      catch (Hermes::Exceptions::Exception e)
       {
         e.print_msg();
       };
@@ -278,8 +278,8 @@ int main(int argc, char* argv[])
       // Update previous time level solutions.
       Solution<double>::vector_to_solutions(newton.get_sln_vector(), ref_spaces, ref_slns);
 
-      // Project the fine mesh solution onto the coarse mesh.
-      Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
+      // Project the fine mesh solution onto the coarse mesh->
+      Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh->");
       OGProjection<double> ogProj; ogProj.project_global(spaces, ref_slns, slns, proj_norms);
 
       // Calculate element errors and total error estimate.
@@ -303,12 +303,12 @@ int main(int argc, char* argv[])
       pview.set_title(title);
       pview.show(p_ref_sln);
 
-      // If err_est too large, adapt the mesh.
+      // If err_est too large, adapt the mesh->
       if (err_est_rel_total < ERR_STOP || Space<double>::get_num_dofs(ref_spaces) > NOT_ADAPTING_REF_SPACES_SIZE)
         done = true;
-      else 
+      else
       {
-        Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh.");
+        Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh->");
         done = adaptivity.adapt(selectors);
         aview.show(adaptivity.get_refinementInfoMeshFunction());
         // Increase the counter of performed adaptivity steps.
@@ -319,9 +319,8 @@ int main(int argc, char* argv[])
       }
 
       // Clean up.
-      delete [] coeff_vec;
-    }
-    while (done == false);
+      delete[] coeff_vec;
+    } while (done == false);
 
     // Copy new time level reference solution into prev_time.
     xvel_prev_time->copy(xvel_ref_sln);

@@ -1,17 +1,15 @@
-
-
 #include "definitions.h"
 
 // This example solves the Rayleigh-Benard convection problem
 // http://en.wikipedia.org/wiki/Rayleigh%E2%80%93B%C3%A9nard_convection.
-// In this problem, a steady fluid is heated from the bottom and 
-// it starts to move. The time-dependent laminar incompressible Navier-Stokes 
-// equations are coupled with a heat transfer equation and discretized 
-// in time via the implicit Euler method. The Newton's method is used 
-// to solve the nonlinear problem at each time step. Flow pressure can be 
+// In this problem, a steady fluid is heated from the bottom and
+// it starts to move. The time-dependent laminar incompressible Navier-Stokes
+// equations are coupled with a heat transfer equation and discretized
+// in time via the implicit Euler method. The Newton's method is used
+// to solve the nonlinear problem at each time step. Flow pressure can be
 // approximated using either continuous (H1) elements or discontinuous (L2)
 // elements. The L2 elements for pressure make the velocity dicreetely
-// divergence-free. 
+// divergence-free.
 //
 // PDE: incompressible Navier-Stokes equations in the form
 //      \partial v / \partial t = \Delta v / Pr - (v \cdot \nabla) v - \nabla p - Ra(T)Pr(0, -T),
@@ -33,62 +31,62 @@
 // pressure approximation). Otherwise the standard continuous
 // elements are used. The results are striking - check the
 // tutorial for comparisons.
-#define PRESSURE_IN_L2                            
+#define PRESSURE_IN_L2
 // Initial polynomial degree for velocity components.
-const int P_INIT_VEL = 2;                         
+const int P_INIT_VEL = 2;
 // Initial polynomial degree for pressure.
 // Note: P_INIT_VEL should always be greater than
 // P_INIT_PRESSURE because of the inf-sup condition.
-const int P_INIT_PRESSURE = 1;                    
+const int P_INIT_PRESSURE = 1;
 // Initial polynomial degree for temperature.
-const int P_INIT_TEMP = 1;                        
+const int P_INIT_TEMP = 1;
 // Time step.
-const double time_step = 0.1;                     
+const double time_step = 0.1;
 // Time interval length.
-const double T_FINAL = 3600.0;                    
+const double T_FINAL = 3600.0;
 // Stopping criterion for the Newton's method.
-const double NEWTON_TOL = 1e-5;                   
+const double NEWTON_TOL = 1e-5;
 // Maximum allowed number of Newton iterations.
-const int NEWTON_MAX_ITER = 100;                  
+const int NEWTON_MAX_ITER = 100;
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;
 
 // Problem parameters.
 // Prandtl number (water has 7.0 around 20 degrees Celsius).
-const double Pr = 7.0;                            
+const double Pr = 7.0;
 // Rayleigh number.
-const double Ra = 100;                             
+const double Ra = 100;
 const double TEMP_INIT = 20;
 const double TEMP_BOTTOM = 25;
 // External temperature above the surface of the water.
-const double TEMP_EXT = 20;                       
+const double TEMP_EXT = 20;
 // Heat transfer coefficient between water and air on top edge.
-const double ALPHA_AIR = 5.0;                     
+const double ALPHA_AIR = 5.0;
 
 // Weak forms.
 #include "definitions.cpp"
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh.
+  // Load the mesh->
   MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("domain.mesh", mesh);
 
   // Initial mesh refinements.
-  for (int i=0; i < 3; i++) mesh->refine_all_elements(2);
-  for (int i=0; i < 3; i++) mesh->refine_all_elements();
+  for (int i = 0; i < 3; i++) mesh->refine_all_elements(2);
+  for (int i = 0; i < 3; i++) mesh->refine_all_elements();
   mesh->refine_towards_boundary(HERMES_ANY, 2);
 
   // Initialize boundary conditions.
-  DefaultEssentialBCConst<double> zero_vel_bc(Hermes::vector<std::string>("Bottom", "Right", "Top", "Left"), 0.0);
+  DefaultEssentialBCConst<double> zero_vel_bc({"Bottom", "Right", "Top", "Left"}, 0.0);
   EssentialBCs<double> bcs_vel_x(&zero_vel_bc);
   EssentialBCs<double> bcs_vel_y(&zero_vel_bc);
   DefaultEssentialBCConst<double> bc_temp_bottom("Bottom", TEMP_BOTTOM);
   EssentialBCs<double> bcs_temp(&bc_temp_bottom);
 
-SpaceSharedPtr<double> xvel_space(new H1Space<double>(mesh, &bcs_vel_x, P_INIT_VEL));
+  SpaceSharedPtr<double> xvel_space(new H1Space<double>(mesh, &bcs_vel_x, P_INIT_VEL));
   SpaceSharedPtr<double> yvel_space(new H1Space<double>(mesh, &bcs_vel_y, P_INIT_VEL));
 #ifdef PRESSURE_IN_L2
   SpaceSharedPtr<double> p_space(new L2Space<double>(mesh, P_INIT_PRESSURE));
@@ -96,7 +94,7 @@ SpaceSharedPtr<double> xvel_space(new H1Space<double>(mesh, &bcs_vel_x, P_INIT_V
   SpaceSharedPtr<double> p_space(new H1Space<double>(mesh, P_INIT_PRESSURE));
 #endif
   SpaceSharedPtr<double> t_space(new H1Space<double>(mesh, &bcs_temp, P_INIT_TEMP));
-  Hermes::vector<SpaceSharedPtr<double> > spaces(xvel_space, yvel_space, p_space, t_space);
+  std::vector<SpaceSharedPtr<double> > spaces(xvel_space, yvel_space, p_space, t_space);
 
   // Calculate and report the number of degrees of freedom.
   int ndof = Space<double>::get_num_dofs(spaces);
@@ -117,15 +115,15 @@ SpaceSharedPtr<double> xvel_space(new H1Space<double>(mesh, &bcs_vel_x, P_INIT_V
   MeshFunctionSharedPtr<double> yvel_prev_time(new ZeroSolution<double>(mesh));
   MeshFunctionSharedPtr<double> p_prev_time(new ZeroSolution<double>(mesh));
   MeshFunctionSharedPtr<double> t_prev_time(new ConstantSolution<double>(mesh, TEMP_INIT));
-  Hermes::vector<MeshFunctionSharedPtr<double> > slns = Hermes::vector<MeshFunctionSharedPtr<double> >(xvel_prev_time, 
-      yvel_prev_time, p_prev_time, t_prev_time);
+  std::vector<MeshFunctionSharedPtr<double> > slns = std::vector<MeshFunctionSharedPtr<double> >(xvel_prev_time,
+    yvel_prev_time, p_prev_time, t_prev_time);
 
   // Initialize weak formulation.
-  WeakFormRayleighBenard wf(Pr, Ra, "Top", TEMP_EXT, ALPHA_AIR, time_step, 
-      xvel_prev_time, yvel_prev_time, t_prev_time);
+  WeakFormRayleighBenard wf(Pr, Ra, "Top", TEMP_EXT, ALPHA_AIR, time_step,
+    xvel_prev_time, yvel_prev_time, t_prev_time);
 
   // Initialize the FE problem.
-  DiscreteProblem<double> dp(&wf, spaces);
+  DiscreteProblem<double> dp(wf, spaces);
 
   // Initialize views.
   VectorView vview("velocity", new WinGeom(0, 0, 1000, 200));
@@ -141,10 +139,10 @@ SpaceSharedPtr<double> xvel_space(new H1Space<double>(mesh, &bcs_vel_x, P_INIT_V
   // coefficient vector for the Newton's method.
   double* coeff_vec = new double[Space<double>::get_num_dofs(spaces)];
   Hermes::Mixins::Loggable::Static::info("Projecting initial condition to obtain initial vector for the Newton's method.");
-  OGProjection<double> ogProjection; ogProjection.project_global(spaces, slns, coeff_vec, 
-      Hermes::vector<NormType>(vel_proj_norm, vel_proj_norm, p_proj_norm, t_proj_norm));
+  OGProjection<double> ogProjection; ogProjection.project_global(spaces, slns, coeff_vec,
+    std::vector<NormType>(vel_proj_norm, vel_proj_norm, p_proj_norm, t_proj_norm));
 
-    Hermes::Hermes2D::NewtonSolver<double> newton(&dp);
+  Hermes::Hermes2D::NewtonSolver<double> newton(&dp);
   // Time-stepping loop:
   char title[100];
   double current_time = 0;
@@ -161,7 +159,7 @@ SpaceSharedPtr<double> xvel_space(new H1Space<double>(mesh, &bcs_vel_x, P_INIT_V
       newton.set_tolerance(NEWTON_TOL, Hermes::Solvers::ResidualNormAbsolute);
       newton.solve(coeff_vec);
     }
-    catch(Hermes::Exceptions::Exception e)
+    catch (Hermes::Exceptions::Exception e)
     {
       e.print_msg();
       throw Hermes::Exceptions::Exception("Newton's iteration failed.");
@@ -184,7 +182,7 @@ SpaceSharedPtr<double> xvel_space(new H1Space<double>(mesh, &bcs_vel_x, P_INIT_V
   }
 
   // Clean up.
-  delete [] coeff_vec;
+  delete[] coeff_vec;
 
   // Wait for all views to be closed.
   View::wait();

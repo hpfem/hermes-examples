@@ -1,34 +1,32 @@
 #include "definitions.h"
 
-void CustomExactSolution::derivatives(double x, double y, double& dx, double& dy) const 
+void CustomExactSolution::derivatives(double x, double y, double& dx, double& dy) const
 {
   dx = 0;
   dy = Hermes::cos(y);
 }
 
-double CustomExactSolution::value(double x, double y) const 
+double CustomExactSolution::value(double x, double y) const
 {
   return Hermes::sin(y);
 }
 
-Ord CustomExactSolution::ord(double x, double y) const 
+Ord CustomExactSolution::ord(double x, double y) const
 {
   return Ord(7);
 }
 
-
-double CustomFunction::value(double x, double y) const 
+double CustomFunction::value(double x, double y) const
 {
   return -Hermes::sin(y);
 }
 
-Ord CustomFunction::value(Ord x, Ord y) const 
+Ord CustomFunction::value(Ord x, Ord y) const
 {
   return Ord(7);
 }
 
-
-CustomWeakFormPoisson::CustomWeakFormPoisson(std::string bdy_marker_top) : WeakForm<double>(1) 
+CustomWeakFormPoisson::CustomWeakFormPoisson(std::string bdy_marker_top) : WeakForm<double>(1)
 {
   // Jacobian.
   add_matrix_form(new DefaultJacobianDiffusion<double>(0, 0));

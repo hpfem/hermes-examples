@@ -1,5 +1,3 @@
-
-
 #include "definitions.h"
 
 //  This example solves a linear advection equation using Dicontinuous Galerkin (DG) method.
@@ -34,13 +32,13 @@ const double ERR_STOP = 1e-1;
 
 int main(int argc, char* args[])
 {
-  // Load the mesh.
+  // Load the mesh->
   MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("square.mesh", mesh);
 
   // Perform initial mesh refinement.
-  for (int i=0; i<INIT_REF; i++) mesh->refine_all_elements();
+  for (int i = 0; i < INIT_REF; i++) mesh->refine_all_elements();
 
   // Create an L2 space->
   SpaceSharedPtr<double>  space(new L2Space<double>(mesh, P_INIT));
@@ -54,7 +52,7 @@ int main(int argc, char* args[])
   // DOF and CPU convergence graphs.
   SimpleGraph graph_dof_est, graph_cpu_est;
 
-  // Display the mesh.
+  // Display the mesh->
   OrderView oview("Coarse mesh", new WinGeom(0, 0, 440, 350));
   oview.show(space);
 
@@ -62,13 +60,13 @@ int main(int argc, char* args[])
   MeshFunctionSharedPtr<double> ref_sln(new Solution<double>());
 
   // Initialize the weak formulation.
-  CustomWeakForm wf("Bdy_bottom_left", mesh);
+  WeakFormSharedPtr<double> wf(new CustomWeakForm("Bdy_bottom_left", mesh));
 
   ScalarView view1("Solution", new WinGeom(900, 0, 450, 350));
   view1.fix_scale_width(60);
 
   // Initialize linear solver.
-  Hermes::Hermes2D::LinearSolver<double> linear_solver(&wf, space);
+  Hermes::Hermes2D::LinearSolver<double> linear_solver(wf, space);
 
   int as = 1; bool done = false;
   do
@@ -88,11 +86,11 @@ int main(int argc, char* args[])
       linear_solver.solve();
       Solution<double>::vector_to_solution(linear_solver.get_sln_vector(), ref_space, ref_sln);
     }
-    catch(std::exception& e)
+    catch (std::exception& e)
     {
       std::cout << e.what();
     }
-    // Project the fine mesh solution onto the coarse mesh.
+    // Project the fine mesh solution onto the coarse mesh->
     OGProjection<double> ogProjection;
     ogProjection.project_global(space, ref_sln, sln, HERMES_L2_NORM);
 
@@ -112,16 +110,15 @@ int main(int argc, char* args[])
     graph_dof_est.add_values(Space<double>::get_num_dofs(space), err_est_rel);
     graph_dof_est.save("conv_dof_est.dat");
 
-    // If err_est_rel too large, adapt the mesh.
-    if(err_est_rel < ERR_STOP) done = true;
+    // If err_est_rel too large, adapt the mesh->
+    if (err_est_rel < ERR_STOP) done = true;
     else
     {
       done = adaptivity.adapt(&selector);
     }
-   
+
     as++;
-  }
-  while (done == false);
+  } while (done == false);
 
   // Wait for keyboard or mouse input.
   View::wait();

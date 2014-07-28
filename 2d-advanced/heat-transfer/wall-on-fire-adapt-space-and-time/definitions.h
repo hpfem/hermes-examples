@@ -19,23 +19,23 @@ Real T_fire_t(Real t);
 
 /* Weak forms */
 
-class CustomWeakFormHeatRK : public WeakForm<double>
+class CustomWeakFormHeatRK : public WeakForm < double >
 {
 public:
   CustomWeakFormHeatRK(std::string bdy_fire, std::string bdy_air,
-                       double alpha_fire, double alpha_air, double rho, double heatcap,
-                       double temp_ext_air, double temp_init, double* current_time_ptr);
+    double alpha_fire, double alpha_air, double rho, double heatcap,
+    double temp_ext_air, double temp_init, double* current_time_ptr);
 
 private:
   // This form is custom since it contains space-dependent thermal conductivity.
-  class CustomJacobianVol : public MatrixFormVol<double>
+  class CustomJacobianVol : public MatrixFormVol < double >
   {
   public:
     CustomJacobianVol(int i, int j, double rho, double heatcap)
-          : MatrixFormVol<double>(i, j), rho(rho), heatcap(heatcap) {};
+      : MatrixFormVol<double>(i, j), rho(rho), heatcap(heatcap) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e,
-                         Func<double>* *ext) const;
+      Func<double>* *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const;
 
@@ -46,14 +46,14 @@ private:
   };
 
   // This form is custom since it contains space-dependent thermal conductivity.
-  class CustomFormResidualVol : public VectorFormVol<double>
+  class CustomFormResidualVol : public VectorFormVol < double >
   {
   public:
     CustomFormResidualVol(int i, double rho, double heatcap)
-          : VectorFormVol<double>(i), rho(rho), heatcap(heatcap) {};
+      : VectorFormVol<double>(i), rho(rho), heatcap(heatcap) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e,
-                         Func<double>* *ext) const;
+      Func<double>* *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const;
 
@@ -64,20 +64,22 @@ private:
   };
 
   // Custom due to time-dependent exterior temperature.
-  class CustomFormResidualSurfFire : public VectorFormSurf<double>
+  class CustomFormResidualSurfFire : public VectorFormSurf < double >
   {
   public:
     CustomFormResidualSurfFire(int i, std::string area, double alpha_fire, double rho,
-                               double heatcap, double* current_time_ptr)
-          : VectorFormSurf<double>(i), alpha_fire(alpha_fire), rho(rho),
-          heatcap(heatcap), current_time_ptr(current_time_ptr) { this->set_area(area); };
+      double heatcap, double* current_time_ptr)
+      : VectorFormSurf<double>(i), alpha_fire(alpha_fire), rho(rho),
+      heatcap(heatcap), current_time_ptr(current_time_ptr) {
+      this->set_area(area);
+    };
 
     template<typename Real, typename Scalar>
     Scalar vector_form_surf(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v,
-                            Geom<Real> *e, Func<Scalar>* *ext) const;
+      Geom<Real> *e, Func<Scalar>* *ext) const;
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e,
-                         Func<double>* *ext) const;
+      Func<double>* *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const;
 
@@ -91,4 +93,3 @@ private:
     double alpha_fire, rho, heatcap, *current_time_ptr;
   };
 };
-

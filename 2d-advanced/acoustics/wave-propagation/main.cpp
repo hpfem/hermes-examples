@@ -4,16 +4,15 @@ using namespace Hermes;
 using namespace Hermes::Hermes2D;
 using namespace Hermes::Hermes2D::Views;
 
-
 const int P_INIT = 2;
 
 const double time_step = 4e-5;
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh.
+  // Load the mesh->
   MeshSharedPtr mesh(new Mesh);
-  Hermes::vector<MeshSharedPtr> meshes;
+  std::vector<MeshSharedPtr> meshes;
   meshes.push_back(mesh);
   Hermes::Hermes2D::MeshReaderH2DXML mloader;
   mloader.load("domain.mesh", meshes);
@@ -21,24 +20,20 @@ int main(int argc, char* argv[])
   MeshView m;
   m.show(mesh);
 
-  Hermes::vector<std::string> matched_boundaries("0", "1", "7");
-  Hermes::vector<double> matched_boundaries_values(345*1.25, 345*1.25, 345*1.25);
-  Hermes::vector<std::string> source_boundaries("3", "4", "5", "6");
-  Hermes::vector<std::string> soft_boundaries;
+  std::vector<std::string> soft_boundaries;
   soft_boundaries.push_back("2");
-  Hermes::vector<std::string> hard_boundaries("9", "8", "10");
 
-  CustomBCValue custom_bc_value(source_boundaries, 1., 1000.);
+  CustomBCValue custom_bc_value({"3", "4", "5", "6"}, 1., 1000.);
   DefaultEssentialBCConst<double> default_bc_value(soft_boundaries, 0.0);
-  Hermes::Hermes2D::EssentialBCs<double> bcs_value(Hermes::vector<EssentialBoundaryCondition<double>*>(&custom_bc_value, &default_bc_value));
+  Hermes::Hermes2D::EssentialBCs<double> bcs_value({&custom_bc_value, &default_bc_value});
 
-  CustomBCDerivative custom_bc_derivative(source_boundaries, 1., 1000.);
+  CustomBCDerivative custom_bc_derivative({"3", "4", "5", "6"}, 1., 1000.);
   DefaultEssentialBCConst<double> default_bc_derivative(soft_boundaries, 0.0);
-  Hermes::Hermes2D::EssentialBCs<double> bcs_derivative(Hermes::vector<EssentialBoundaryCondition<double>*>(&custom_bc_derivative, &default_bc_derivative));
+  Hermes::Hermes2D::EssentialBCs<double> bcs_derivative({&custom_bc_derivative, &default_bc_derivative});
 
   SpaceSharedPtr<double> space_value(new Hermes::Hermes2D::H1Space<double>(mesh, &bcs_value, P_INIT));
   SpaceSharedPtr<double> space_derivative(new Hermes::Hermes2D::H1Space<double>(mesh, &bcs_derivative, P_INIT));
-  Hermes::vector<SpaceSharedPtr<double> > spaces(space_value, space_derivative);
+  std::vector<SpaceSharedPtr<double> > spaces(space_value, space_derivative);
 
   BaseView<double> b;
   b.show(space_value);
@@ -46,21 +41,21 @@ int main(int argc, char* argv[])
   // Initialize the solution.
   MeshFunctionSharedPtr<double> sln_value(new ZeroSolution<double>(mesh));
   MeshFunctionSharedPtr<double> sln_derivative(new ZeroSolution<double>(mesh));
-  Hermes::vector<MeshFunctionSharedPtr<double> > slns(sln_value, sln_derivative);
+  std::vector<MeshFunctionSharedPtr<double> > slns(sln_value, sln_derivative);
 
   Hermes::Hermes2D::Views::ScalarView viewS("Solution", new Hermes::Hermes2D::Views::WinGeom(50, 50, 1000, 800));
   //viewS.set_min_max_range(-1.0, 1.0);
 
-  MyWeakForm wf(matched_boundaries, matched_boundaries_values, slns);
+  MyWeakForm wf({"0", "1", "7"}, {345 * 1.25, 345 * 1.25, 345 * 1.25}, slns);
   wf.set_current_time_step(time_step);
 
   // Initialize linear solver.
-  Hermes::Hermes2D::LinearSolver<double> linear_solver(&wf, spaces);
+  Hermes::Hermes2D::LinearSolver<double> linear_solver(wf, spaces);
   linear_solver.set_jacobian_constant();
-  
+
   // Solve the linear problem.
   unsigned int iteration = 0;
-  for(double time = time_step; time < 1.0; time += time_step)
+  for (double time = time_step; time < 1.0; time += time_step)
   {
     try
     {
@@ -80,7 +75,7 @@ int main(int argc, char* argv[])
       //viewS.wait_for_keypress();
     }
 
-    catch(std::exception& e)
+    catch (std::exception& e)
     {
       std::cout << e.what();
       return -1;

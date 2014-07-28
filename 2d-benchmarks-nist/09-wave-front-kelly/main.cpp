@@ -13,7 +13,7 @@
 //  Known exact solution; atan(ALPHA * (sqrt(pow(x - X_LOC, 2) + pow(y - Y_LOC, 2)) - R_ZERO));
 //  See the class CustomExactSolution.
 //
-//  Domain: unit square (0, 1) x (0, 1), see the file square.mesh.
+//  Domain: unit square (0, 1) x (0, 1), see the file square.mesh->
 //
 //  BC:  Dirichlet, given by exact solution.
 //
@@ -107,25 +107,25 @@ int main(int argc, char* argv[])
     break;
   }
 
-  // Load the mesh.
-  Mesh mesh;
+  // Load the mesh->
+  MeshSharedPtr mesh;
   MeshReaderH2D mloader;
   // Quadrilaterals.
-  mloader.load("square_quad.mesh", &mesh);     
+  mloader.load("square_quad.mesh", mesh);     
   // Triangles.
-  // mloader.load("square_tri.mesh", &mesh);   
+  // mloader.load("square_tri.mesh", mesh);   
 
   // Perform initial mesh refinement.
-  for (int i = 0; i < INIT_REF_NUM; i++) mesh.refine_all_elements();
+  for (int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
   
   // Set exact solution.
-  CustomExactSolution exact(&mesh, alpha, x_loc, y_loc, r_zero);
+  CustomExactSolution exact(mesh, alpha, x_loc, y_loc, r_zero);
 
   // Define right-hand side.
   CustomRightHandSide rhs(alpha, x_loc, y_loc, r_zero);
 
   // Initialize the weak formulation.
-  CustomWeakForm wf(&rhs);
+  WeakFormSharedPtr<double> wf(new CustomWeakForm(&rhs));
   // Equivalent, but slower:
   // DefaultWeakFormPoisson<double> wf(Hermes::HERMES_ANY, HERMES_ONE, &rhs);
 
@@ -134,7 +134,7 @@ int main(int argc, char* argv[])
   EssentialBCs<double> bcs(&bc);
 
 SpaceSharedPtr<double> space(new // Create an H1 space with default shapeset.
-  H1Space<double>(&mesh, &bcs, P_INIT));
+  H1Space<double>(mesh, &bcs, P_INIT));
   
   // Initialize approximate solution.
   Solution<double> sln;
@@ -159,7 +159,7 @@ SpaceSharedPtr<double> space(new // Create an H1 space with default shapeset.
     cpu_time.tick();
 
     // Assemble the discrete problem.    
-    DiscreteProblem<double> dp(&wf, &space);
+    DiscreteProblem<double> dp(wf, &space);
 
     // Initial coefficient vector for the Newton's method.  
     int ndof = space.get_num_dofs();
@@ -179,7 +179,7 @@ SpaceSharedPtr<double> space(new // Create an H1 space with default shapeset.
       throw Hermes::Exceptions::Exception("Newton's iteration failed.");
     };
 
-    Solution<double>::vector_to_solution(newton.get_sln_vector(), &space, &sln);
+    Solution<double>::vector_to_solution(newton.get_sln_vector(), &space, sln);
     
     cpu_time.tick();
     Hermes::Mixins::Loggable::Static::info("Solution: %g s", cpu_time.last());
@@ -189,13 +189,13 @@ SpaceSharedPtr<double> space(new // Create an H1 space with default shapeset.
     adaptivity.set_strategy(stoppingCriterion, THRESHOLD);
     
     if (USE_ENERGY_NORM_NORMALIZATION)
-      adaptivity.set_error_form(new EnergyErrorForm(&wf));
+      adaptivity.set_error_form(new EnergyErrorForm(wf));
 
     if (USE_RESIDUAL_ESTIMATOR) 
       adaptivity.add_error_estimator_vol(new ResidualErrorForm(&rhs));
     
-    double err_est_rel = adaptivity.calc_err_est(&sln) * 100;  
-    double err_exact_rel = Global<double>::calc_rel_error(&sln, &exact, HERMES_H1_NORM) * 100;
+    double err_est_rel = adaptivity.calc_err_est(sln) * 100;  
+    double err_exact_rel = Global<double>::calc_rel_error(sln, &exact, HERMES_H1_NORM) * 100;
     
     cpu_time.tick();
     Hermes::Mixins::Loggable::Static::info("Error calculation: %g s", cpu_time.last());
@@ -212,7 +212,7 @@ SpaceSharedPtr<double> space(new // Create an H1 space with default shapeset.
       adaptivity2.add_error_estimator_surf(new InterfaceErrorForm);
       
       if (USE_ENERGY_NORM_NORMALIZATION)
-        adaptivity2.set_error_form(new EnergyErrorForm(&wf));
+        adaptivity2.set_error_form(new EnergyErrorForm(wf));
       
       if (USE_RESIDUAL_ESTIMATOR) 
       {
@@ -220,8 +220,8 @@ SpaceSharedPtr<double> space(new // Create an H1 space with default shapeset.
         adaptivity2.set_volumetric_scaling_const(1./24.);
       }
       
-      double err_est_rel2 = adaptivity2.calc_err_est(&sln) * 100;  
-      double err_exact_rel2 = adaptivity2.calc_err_exact(&sln, &exact, false) * 100;
+      double err_est_rel2 = adaptivity2.calc_err_est(sln) * 100;  
+      double err_exact_rel2 = adaptivity2.calc_err_exact(sln, &exact, false) * 100;
       
       Hermes::Mixins::Loggable::Static::info("err_est_rel_2: %g%%, err_exact_rel_2: %g%%", err_est_rel2, err_exact_rel2);
       
@@ -241,7 +241,7 @@ SpaceSharedPtr<double> space(new // Create an H1 space with default shapeset.
     double accum_time = cpu_time.accumulated();
     
     // View the approximate solution and polynomial orders.
-    sview.show(&sln);
+    sview.show(sln);
     oview.show(&space);
        
     // Add entry to DOF and CPU convergence graphs.    
@@ -256,7 +256,7 @@ SpaceSharedPtr<double> space(new // Create an H1 space with default shapeset.
 
     cpu_time.tick(Hermes::Mixins::TimeMeasurable::HERMES_SKIP);
     
-    // If err_est too large, adapt the mesh. The NDOF test must be here, so that the solution may be visualized
+    // If err_est too large, adapt the mesh-> The NDOF test must be here, so that the solution may be visualized
     // after ending due to this criterion.
     if (err_exact_rel < ERR_STOP || space.get_num_dofs() >= NDOF_STOP) 
       done = true;
@@ -271,7 +271,7 @@ SpaceSharedPtr<double> space(new // Create an H1 space with default shapeset.
       as++;
 /*    else
     {
-      sview.show(&sln);
+      sview.show(sln);
       oview.show(&space);
       Hermes::Mixins::Loggable::Static::info("err_est_rel: %g%%, err_exact_rel: %g%%", err_est_rel, err_exact_rel);
     }

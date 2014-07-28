@@ -102,16 +102,16 @@ const std::string BDY_DIRICHLET_CONCENTRATION = "3";
 
 int main(int argc, char* argv[])
 {
-  Hermes::vector<std::string> BDY_NATURAL_CONCENTRATION;
+  std::vector<std::string> BDY_NATURAL_CONCENTRATION;
   BDY_NATURAL_CONCENTRATION.push_back("2");
 
-  // Load the mesh.
+  // Load the mesh->
   Mesh basemesh;
   MeshReaderH2D mloader;
   mloader.load("GAMM-channel-serial.mesh", &basemesh);
 
   // Initialize the meshes.
-  Mesh mesh_flow, mesh_concentration;
+  MeshSharedPtr mesh_flow, mesh_concentration;
   mesh_flow.copy(&basemesh);
   mesh_concentration.copy(&basemesh);
 
@@ -132,30 +132,30 @@ int main(int argc, char* argv[])
   bcs_concentration.add_boundary_condition(new ConcentrationTimedepEssentialBC(BDY_SOLID_WALL_TOP, 0.0, CONCENTRATION_EXT_STARTUP_TIME));
   bcs_concentration.add_boundary_condition(new ConcentrationTimedepEssentialBC(BDY_INLET, 0.0, CONCENTRATION_EXT_STARTUP_TIME));
 
-SpaceSharedPtr<double>space_rho(&mesh_flow, P_FLOW);
-  L2Space<double>space_rho_v_x(&mesh_flow, P_FLOW);
-  L2Space<double>space_rho_v_y(&mesh_flow, P_FLOW);
-  L2Space<double>space_e(&mesh_flow, P_FLOW);
-  L2Space<double> space_stabilization(&mesh_flow, 0);
+SpaceSharedPtr<double>space_rho(mesh_flow, P_FLOW);
+  L2Space<double>space_rho_v_x(mesh_flow, P_FLOW);
+  L2Space<double>space_rho_v_y(mesh_flow, P_FLOW);
+  L2Space<double>space_e(mesh_flow, P_FLOW);
+  L2Space<double> space_stabilization(mesh_flow, 0);
   
   // Space<double> for concentration.
-  H1Space<double> space_c(new L2Space<double>(&mesh_concentration, &bcs_concentration, P_CONCENTRATION));
+  H1Space<double> space_c(new L2Space<double>(mesh_concentration, &bcs_concentration, P_CONCENTRATION));
 
-  int ndof = Space<double>::get_num_dofs(Hermes::vector<const Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e, &space_c));
+  int ndof = Space<double>::get_num_dofs({&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e, &space_c});
   Hermes::Mixins::Loggable::Static::info("ndof: %d", ndof);
 
   // Initialize solutions, set initial conditions.
-  ConstantSolution<double> sln_rho(&mesh_flow, RHO_EXT);
-  ConstantSolution<double> sln_rho_v_x(&mesh_flow, RHO_EXT * V1_EXT);
-  ConstantSolution<double> sln_rho_v_y(&mesh_flow, RHO_EXT * V2_EXT);
-  ConstantSolution<double> sln_e(&mesh_flow, QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA));
-  ConstantSolution<double> sln_c(&mesh_concentration, 0.0);
+  ConstantSolution<double> sln_rho(mesh_flow, RHO_EXT);
+  ConstantSolution<double> sln_rho_v_x(mesh_flow, RHO_EXT * V1_EXT);
+  ConstantSolution<double> sln_rho_v_y(mesh_flow, RHO_EXT * V2_EXT);
+  ConstantSolution<double> sln_e(mesh_flow, QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA));
+  ConstantSolution<double> sln_c(mesh_concentration, 0.0);
 
-  ConstantSolution<double> prev_rho(&mesh_flow, RHO_EXT);
-  ConstantSolution<double> prev_rho_v_x(&mesh_flow, RHO_EXT * V1_EXT);
-  ConstantSolution<double> prev_rho_v_y(&mesh_flow, RHO_EXT * V2_EXT);
-  ConstantSolution<double> prev_e(&mesh_flow, QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA));
-  ConstantSolution<double> prev_c(&mesh_concentration, 0.0);
+  ConstantSolution<double> prev_rho(mesh_flow, RHO_EXT);
+  ConstantSolution<double> prev_rho_v_x(mesh_flow, RHO_EXT * V1_EXT);
+  ConstantSolution<double> prev_rho_v_y(mesh_flow, RHO_EXT * V2_EXT);
+  ConstantSolution<double> prev_e(mesh_flow, QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA));
+  ConstantSolution<double> prev_c(mesh_concentration, 0.0);
 
   // Initialize weak formulation.
   WeakForm<double>* wf = NULL;
@@ -174,14 +174,14 @@ SpaceSharedPtr<double>space_rho(&mesh_flow, P_FLOW);
   EulerEquationsWeakFormStabilization wf_stabilization(&prev_rho);
   
   // Initialize the FE problem.
-  DiscreteProblem<double> dp(&wf, Hermes::vector<const Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e, &space_c));
-  DiscreteProblem<double> dp_stabilization(&wf_stabilization, &space_stabilization);
+  DiscreteProblem<double> dp(wf,{&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e, &space_c});
+  DiscreteProblem<double> dp_stabilization(wf_stabilization, &space_stabilization);
   bool* discreteIndicator = NULL;
  
   // Filters for visualization of Mach number, pressure and entropy.
-  MachNumberFilter Mach_number(Hermes::vector<MeshFunctionSharedPtr<double> >(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA);
-  PressureFilter pressure(Hermes::vector<MeshFunctionSharedPtr<double> >(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA);
-  EntropyFilter entropy(Hermes::vector<MeshFunctionSharedPtr<double> >(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), KAPPA, RHO_EXT, P_EXT);
+  MachNumberFilter Mach_number({&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e}, KAPPA);
+  PressureFilter pressure({&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e}, KAPPA);
+  EntropyFilter entropy({&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e}, KAPPA, RHO_EXT, P_EXT);
 
   ScalarView pressure_view("Pressure", new WinGeom(0, 0, 600, 400));
   ScalarView Mach_number_view("Mach number", new WinGeom(700, 0, 600, 400));
@@ -246,25 +246,25 @@ SpaceSharedPtr<double>space_rho(&mesh_flow, P_FLOW);
     {
       if(!SHOCK_CAPTURING || SHOCK_CAPTURING_TYPE == FEISTAUER)
       {
-        Solution<double>::vector_to_solutions(solver->get_sln_vector(), Hermes::vector<const Space<double>*>(&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e, &space_c), 
-          Hermes::vector<Solution<double>*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y, &sln_e, &sln_c));
+        Solution<double>::vector_to_solutions(solver->get_sln_vector(),{&space_rho, &space_rho_v_x, &space_rho_v_y, &space_e, &space_c}, 
+          std::vector<Solution<double>*>(sln_rho, sln_rho_v_x, sln_rho_v_y, sln_e, sln_c));
       }
       else
       {
         FluxLimiter* flux_limiter;
         if(SHOCK_CAPTURING_TYPE == KUZMIN)
-          flux_limiter = new FluxLimiter(FluxLimiter::Kuzmin, solver->get_sln_vector(), Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
-          &space_rho_v_y, &space_e));
+          flux_limiter = new FluxLimiter(FluxLimiter::Kuzmin, solver->get_sln_vector(),{&space_rho, &space_rho_v_x, 
+          &space_rho_v_y, &space_e});
         else
-          flux_limiter = new FluxLimiter(FluxLimiter::Krivodonova, solver->get_sln_vector(), Hermes::vector<const Space<double> *>(&space_rho, &space_rho_v_x, 
-          &space_rho_v_y, &space_e));
+          flux_limiter = new FluxLimiter(FluxLimiter::Krivodonova, solver->get_sln_vector(),{&space_rho, &space_rho_v_x, 
+          &space_rho_v_y, &space_e});
 
         if(SHOCK_CAPTURING_TYPE == KUZMIN)
           flux_limiter->limit_second_orders_according_to_detector();
 
         flux_limiter->limit_according_to_detector();
 
-        flux_limiter->get_limited_solutions(Hermes::vector<Solution<double> *>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e));
+        flux_limiter->get_limited_solutions({&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e});
       }
     }
     else
@@ -272,28 +272,28 @@ SpaceSharedPtr<double>space_rho(&mesh_flow, P_FLOW);
 
     util_time_step = time_step_n;
     if(SEMI_IMPLICIT)
-      CFL.calculate_semi_implicit(Hermes::vector<Solution<double>*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y, &sln_e), &mesh_flow, util_time_step);
+      CFL.calculate_semi_implicit({sln_rho, sln_rho_v_x, sln_rho_v_y, sln_e}, mesh_flow, util_time_step);
     else
-      CFL.calculate(Hermes::vector<Solution<double>*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y, &sln_e), &mesh_flow, util_time_step);
+      CFL.calculate({sln_rho, sln_rho_v_x, sln_rho_v_y, sln_e}, mesh_flow, util_time_step);
 
     time_step_n = util_time_step;
 
-    ADES.calculate(Hermes::vector<Solution<double>*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y), &mesh_concentration, util_time_step);
+    ADES.calculate({sln_rho, sln_rho_v_x, sln_rho_v_y}, mesh_concentration, util_time_step);
 
     if(util_time_step < time_step_n)
       time_step_n = util_time_step;
 
-    ADES.calculate(Hermes::vector<Solution<double>*>(&sln_rho, &sln_rho_v_x, &sln_rho_v_y), &mesh_flow, util_time_step);
+    ADES.calculate({sln_rho, sln_rho_v_x, sln_rho_v_y}, mesh_flow, util_time_step);
 
     if(util_time_step < time_step_n)
       time_step_n = util_time_step;
 
     // Copy the solutions into the previous time level ones.
-    prev_rho.copy(&sln_rho);
-    prev_rho_v_x.copy(&sln_rho_v_x);
-    prev_rho_v_y.copy(&sln_rho_v_y);
-    prev_e.copy(&sln_e);
-    prev_c.copy(&sln_c);
+    prev_rho.copy(sln_rho);
+    prev_rho_v_x.copy(sln_rho_v_x);
+    prev_rho_v_y.copy(sln_rho_v_y);
+    prev_e.copy(sln_e);
+    prev_c.copy(sln_c);
 
     // Visualization.
     if((iteration - 1) % EVERY_NTH_STEP == 0) 

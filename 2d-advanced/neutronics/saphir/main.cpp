@@ -1,5 +1,3 @@
-
-
 #include "hermes2d.h"
 
 using namespace Hermes;
@@ -24,12 +22,12 @@ using namespace RefinementSelectors;
 //  The following parameters can be changed:
 
 // Initial polynomial degree of mesh elements.
-const int P_INIT = 1;                             
+const int P_INIT = 1;
 // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM = 1;                       
+const int INIT_REF_NUM = 1;
 // This is a quantitative parameter of the adapt(...) function and
 // it has different meanings for various adaptive strategies.
-const double THRESHOLD = 0.6;                     
+const double THRESHOLD = 0.6;
 // Error calculation & adaptivity.
 DefaultErrorCalculator<double, HERMES_H1_NORM> errorCalculator(RelativeErrorToGlobalNorm, 1);
 // Stopping criterion for an adaptivity step.
@@ -43,47 +41,47 @@ const double ERR_STOP = 1e-1;
 
 // Problem parameters
 // Total horizontal length.
-double LH = 96;                                   
+double LH = 96;
 // First horizontal length.
-double LH0 = 18;                                  
+double LH0 = 18;
 // Second horizontal length.
-double LH1 = 48;                                  
+double LH1 = 48;
 // Third horizontal length.
-double LH2 = 78;                                  
+double LH2 = 78;
 // Total vertical length.
-double LV = 96;                                   
+double LV = 96;
 // First vertical length.
-double LV0 = 18;                                  
+double LV0 = 18;
 // Second vertical length.
-double LV1 = 48;                                  
+double LV1 = 48;
 // Third vertical length.
-double LV2 = 78;                                  
+double LV2 = 78;
 // Total cross-sections.
-double SIGMA_T_1 = 0.60;                          
+double SIGMA_T_1 = 0.60;
 double SIGMA_T_2 = 0.48;
 double SIGMA_T_3 = 0.70;
 double SIGMA_T_4 = 0.85;
 double SIGMA_T_5 = 0.90;
 // Scattering cross sections.
-double SIGMA_S_1 = 0.53;                          
+double SIGMA_S_1 = 0.53;
 double SIGMA_S_2 = 0.20;
 double SIGMA_S_3 = 0.66;
 double SIGMA_S_4 = 0.50;
 double SIGMA_S_5 = 0.89;
 // Nonzero sources in regions 1 and 3 only.
 // Sources in other regions are zero.
-double Q_EXT_1 = 1;                               
-double Q_EXT_3 = 1;                               
+double Q_EXT_1 = 1;
+double Q_EXT_3 = 1;
 
 // Additional constants
 // Diffusion coefficients.
-double D_1 = 1/(3.*SIGMA_T_1);                    
-double D_2 = 1/(3.*SIGMA_T_2);
-double D_3 = 1/(3.*SIGMA_T_3);
-double D_4 = 1/(3.*SIGMA_T_4);
-double D_5 = 1/(3.*SIGMA_T_5);
+double D_1 = 1 / (3.*SIGMA_T_1);
+double D_2 = 1 / (3.*SIGMA_T_2);
+double D_3 = 1 / (3.*SIGMA_T_3);
+double D_4 = 1 / (3.*SIGMA_T_4);
+double D_5 = 1 / (3.*SIGMA_T_5);
 // Absorption coefficients.
-double SIGMA_A_1 = SIGMA_T_1 - SIGMA_S_1;         
+double SIGMA_A_1 = SIGMA_T_1 - SIGMA_S_1;
 double SIGMA_A_2 = SIGMA_T_2 - SIGMA_S_2;
 double SIGMA_A_3 = SIGMA_T_3 - SIGMA_S_3;
 double SIGMA_A_4 = SIGMA_T_4 - SIGMA_S_4;
@@ -91,36 +89,36 @@ double SIGMA_A_5 = SIGMA_T_5 - SIGMA_S_5;
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh.
+  // Load the mesh->
   MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("domain.mesh", mesh);
-  
+
   // Perform initial uniform mesh refinement.
   for (int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
 
   // Set essential boundary conditions.
-  DefaultEssentialBCConst<double> bc_essential(Hermes::vector<std::string>("right", "top"), 0.0);
+  DefaultEssentialBCConst<double> bc_essential({"right", "top"}, 0.0);
   EssentialBCs<double> bcs(&bc_essential);
-  
+
   // Create an H1 space with default shapeset.
   SpaceSharedPtr<double> space(new H1Space<double>(mesh, &bcs, P_INIT));
 
-  // Associate element markers (corresponding to physical regions) 
-  // with material properties (diffusion coefficient, absorption 
+  // Associate element markers (corresponding to physical regions)
+  // with material properties (diffusion coefficient, absorption
   // cross-section, external sources).
-  Hermes::vector<std::string> regions("e1", "e2", "e3", "e4", "e5");
-  Hermes::vector<double> D_map(D_1, D_2, D_3, D_4, D_5);
-  Hermes::vector<double> Sigma_a_map(SIGMA_A_1, SIGMA_A_2, SIGMA_A_3, SIGMA_A_4, SIGMA_A_5);
-  Hermes::vector<double> Sources_map(Q_EXT_1, 0.0, Q_EXT_3, 0.0, 0.0);
-  
+  std::vector<std::string> regions("e1", "e2", "e3", "e4", "e5");
+  std::vector<double> D_map(D_1, D_2, D_3, D_4, D_5);
+  std::vector<double> Sigma_a_map(SIGMA_A_1, SIGMA_A_2, SIGMA_A_3, SIGMA_A_4, SIGMA_A_5);
+  std::vector<double> Sources_map(Q_EXT_1, 0.0, Q_EXT_3, 0.0, 0.0);
+
   // Initialize the weak formulation.
   WeakFormsNeutronics::Monoenergetic::Diffusion::DefaultWeakFormFixedSource<double>
     wf(regions, D_map, Sigma_a_map, Sources_map);
 
   // Initialize coarse and reference mesh solution.
   MeshFunctionSharedPtr<double> sln(new Solution<double>), ref_sln(new Solution<double>);
-  
+
   // Initialize refinement selector.
   H1ProjBasedSelector<double> selector(CAND_LIST);
 
@@ -129,10 +127,10 @@ int main(int argc, char* argv[])
   sview.fix_scale_width(50);
   sview.show_mesh(false);
   OrderView  oview("Polynomial orders", new WinGeom(450, 0, 400, 350));
-  
+
   // DOF and CPU convergence graphs initialization.
   SimpleGraph graph_dof, graph_cpu;
-  
+
   // Time measurement.
   Hermes::Mixins::TimeMeasurable cpu_time;
   cpu_time.tick();
@@ -142,7 +140,7 @@ int main(int argc, char* argv[])
   do
   {
     Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d:", as);
-    
+
     // Time measurement.
     cpu_time.tick();
 
@@ -155,9 +153,9 @@ int main(int argc, char* argv[])
     int ndof_ref = ref_space->get_num_dofs();
 
     // Initialize fine mesh problem.
-    Hermes::Mixins::Loggable::Static::info("Solving on fine mesh.");
-    DiscreteProblem<double> dp(&wf, ref_space);
-    
+    Hermes::Mixins::Loggable::Static::info("Solving on fine mesh->");
+    DiscreteProblem<double> dp(wf, ref_space);
+
     NewtonSolver<double> newton(&dp);
     //newton.set_verbose_output(false);
 
@@ -166,7 +164,7 @@ int main(int argc, char* argv[])
     {
       newton.solve();
     }
-    catch(Hermes::Exceptions::Exception e)
+    catch (Hermes::Exceptions::Exception e)
     {
       e.print_msg();
       throw Hermes::Exceptions::Exception("Newton's iteration failed.");
@@ -174,9 +172,9 @@ int main(int argc, char* argv[])
 
     // Translate the resulting coefficient vector into the instance of Solution.
     Solution<double>::vector_to_solution(newton.get_sln_vector(), ref_space, ref_sln);
-    
-    // Project the fine mesh solution onto the coarse mesh.
-    Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh.");
+
+    // Project the fine mesh solution onto the coarse mesh->
+    Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh->");
     OGProjection<double> ogProjection; ogProjection.project_global(space, ref_sln, sln);
 
     // Time measurement.
@@ -202,29 +200,28 @@ int main(int argc, char* argv[])
       space->get_num_dofs(), ref_space->get_num_dofs(), err_est_rel);
 
     // Add entry to DOF and CPU convergence graphs.
-    cpu_time.tick();    
+    cpu_time.tick();
     graph_cpu.add_values(cpu_time.accumulated(), err_est_rel);
     graph_cpu.save("conv_cpu_est.dat");
     graph_dof.add_values(space->get_num_dofs(), err_est_rel);
     graph_dof.save("conv_dof_est.dat");
-    
+
     // Skip the time spent to save the convergence graphs.
     cpu_time.tick(Hermes::Mixins::TimeMeasurable::HERMES_SKIP);
 
-    // If err_est too large, adapt the mesh.
-    if (err_est_rel < ERR_STOP) 
+    // If err_est too large, adapt the mesh->
+    if (err_est_rel < ERR_STOP)
       done = true;
     else
     {
-      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
+      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh->");
       done = adaptivity.adapt(&selector);
 
       // Increase the counter of performed adaptivity steps.
-      if (done == false)  
+      if (done == false)
         as++;
     }
-  }
-  while (done == false);
+  } while (done == false);
 
   Hermes::Mixins::Loggable::Static::info("Total running time: %g s", cpu_time.accumulated());
 
@@ -238,4 +235,3 @@ int main(int argc, char* argv[])
 
   return 0;
 }
-

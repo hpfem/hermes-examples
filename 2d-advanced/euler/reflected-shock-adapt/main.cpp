@@ -20,7 +20,7 @@ using namespace Hermes::Hermes2D::RefinementSelectors;
 // The following parameters can be changed:
 
 // Visualization.
-// Set to "true" to enable Hermes OpenGL visualization. 
+// Set to "true" to enable Hermes OpenGL visualization.
 const bool HERMES_VISUALIZATION = true;
 // Set to "true" to enable VTK output.
 const bool VTK_VISUALIZATION = false;
@@ -41,12 +41,12 @@ double DISCONTINUITY_DETECTOR_PARAM = 1.0;
 const double NU_1 = 0.1;
 const double NU_2 = 0.1;
 
-// Initial polynomial degree.      
-const int P_INIT = 1;                                             
-// Number of initial uniform mesh refinements.     
-const int INIT_REF_NUM = 2;                                               
+// Initial polynomial degree.
+const int P_INIT = 1;
+// Number of initial uniform mesh refinements.
+const int INIT_REF_NUM = 2;
 // CFL value.
-double CFL_NUMBER = 0.3;                                
+double CFL_NUMBER = 0.3;
 // Initial time step.
 double time_step_n = 1E-6;
 double TIME_INTERVAL_LENGTH = 20.;
@@ -57,20 +57,20 @@ const int UNREF_FREQ = 10;
 // Number of mesh refinements between two unrefinements.
 // The mesh is not unrefined unless there has been a refinement since
 // last unrefinement.
-int REFINEMENT_COUNT = 0;                         
+int REFINEMENT_COUNT = 0;
 
 // This is a quantitative parameter of the adapt(...) function and
 // it has different meanings for various adaptive strategies (see below).
-const double THRESHOLD = 0.3;                     
+const double THRESHOLD = 0.3;
 
 // Predefined list of element refinement candidates. Possible values are
 // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
 // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
-CandList CAND_LIST = H2D_H_ANISO;                
+CandList CAND_LIST = H2D_H_ANISO;
 
 // Maximum polynomial degree used. -1 for unlimited.
 // See User Documentation for details.
-const int MAX_P_ORDER = 1;                       
+const int MAX_P_ORDER = 1;
 
 // Maximum allowed level of hanging nodes:
 // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
@@ -78,16 +78,16 @@ const int MAX_P_ORDER = 1;
 // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
 // Note that regular meshes are not supported, this is due to
 // their notoriously bad performance.
-const int MESH_REGULARITY = -1;                   
+const int MESH_REGULARITY = -1;
 
 // Stopping criterion for adaptivity.
 double adaptivityErrorStop(int iteration)
 {
-    return 0.02;
+  return 0.02;
 }
 
 // Equation parameters.
-const double KAPPA = 1.4;                         
+const double KAPPA = 1.4;
 const double RHO_LEFT = 1.0;
 const double RHO_TOP = 1.7;
 
@@ -123,86 +123,86 @@ const std::string BDY_INLET_LEFT = "4";
 int main(int argc, char* argv[])
 {
 #pragma region 1. Load mesh and initialize spaces.
-    // Load the mesh.
-    MeshSharedPtr mesh(new Mesh);
-    MeshReaderH2D mloader;
-    mloader.load(MESH_FILENAME, mesh);
+  // Load the mesh->
+  MeshSharedPtr mesh(new Mesh);
+  MeshReaderH2D mloader;
+  mloader.load(MESH_FILENAME, mesh);
 
-    // Perform initial mesh refinements.
-    for (int i = 0; i < INIT_REF_NUM; i++) 
-      mesh->refine_all_elements(0, true);
+  // Perform initial mesh refinements.
+  for (int i = 0; i < INIT_REF_NUM; i++)
+    mesh->refine_all_elements(0, true);
 
-    // Initialize boundary condition types and spaces with default shapesets.
-    SpaceSharedPtr<double> space_rho(new L2Space<double>(mesh, P_INIT, new L2ShapesetTaylor));
-    SpaceSharedPtr<double> space_rho_v_x(new L2Space<double>(mesh, P_INIT, new L2ShapesetTaylor));
-    SpaceSharedPtr<double> space_rho_v_y(new L2Space<double>(mesh, P_INIT, new L2ShapesetTaylor));
-    SpaceSharedPtr<double> space_e(new L2Space<double>(mesh, P_INIT, new L2ShapesetTaylor));
-    Hermes::vector<SpaceSharedPtr<double> > spaces(space_rho, space_rho_v_x, space_rho_v_y, space_e);
-    int ndof = Space<double>::get_num_dofs(spaces);
-    Hermes::Mixins::Loggable::Static::info("ndof: %d", ndof);
-  #pragma endregion
+  // Initialize boundary condition types and spaces with default shapesets.
+  SpaceSharedPtr<double> space_rho(new L2Space<double>(mesh, P_INIT, new L2ShapesetTaylor));
+  SpaceSharedPtr<double> space_rho_v_x(new L2Space<double>(mesh, P_INIT, new L2ShapesetTaylor));
+  SpaceSharedPtr<double> space_rho_v_y(new L2Space<double>(mesh, P_INIT, new L2ShapesetTaylor));
+  SpaceSharedPtr<double> space_e(new L2Space<double>(mesh, P_INIT, new L2ShapesetTaylor));
+  std::vector<SpaceSharedPtr<double> > spaces(space_rho, space_rho_v_x, space_rho_v_y, space_e);
+  int ndof = Space<double>::get_num_dofs(spaces);
+  Hermes::Mixins::Loggable::Static::info("ndof: %d", ndof);
+#pragma endregion
 
-  #pragma region 2. Initialize solutions.
-    MeshFunctionSharedPtr<double> sln_rho(new Solution<double>(mesh));
-    MeshFunctionSharedPtr<double> sln_rho_v_x(new Solution<double> (mesh));
-    MeshFunctionSharedPtr<double> sln_rho_v_y(new Solution<double> (mesh));
-    MeshFunctionSharedPtr<double> sln_e(new Solution<double> (mesh));
-    Hermes::vector<MeshFunctionSharedPtr<double> > slns(sln_rho, sln_rho_v_x, sln_rho_v_y, sln_e);
+#pragma region 2. Initialize solutions.
+  MeshFunctionSharedPtr<double> sln_rho(new Solution<double>(mesh));
+  MeshFunctionSharedPtr<double> sln_rho_v_x(new Solution<double>(mesh));
+  MeshFunctionSharedPtr<double> sln_rho_v_y(new Solution<double>(mesh));
+  MeshFunctionSharedPtr<double> sln_e(new Solution<double>(mesh));
+  std::vector<MeshFunctionSharedPtr<double> > slns(sln_rho, sln_rho_v_x, sln_rho_v_y, sln_e);
 
-    MeshFunctionSharedPtr<double> rsln_rho(new Solution<double>(mesh));
-    MeshFunctionSharedPtr<double> rsln_rho_v_x(new Solution<double> (mesh));
-    MeshFunctionSharedPtr<double> rsln_rho_v_y(new Solution<double> (mesh));
-    MeshFunctionSharedPtr<double> rsln_e(new Solution<double> (mesh));
-    Hermes::vector<MeshFunctionSharedPtr<double> > rslns(rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e);
-  #pragma endregion
+  MeshFunctionSharedPtr<double> rsln_rho(new Solution<double>(mesh));
+  MeshFunctionSharedPtr<double> rsln_rho_v_x(new Solution<double>(mesh));
+  MeshFunctionSharedPtr<double> rsln_rho_v_y(new Solution<double>(mesh));
+  MeshFunctionSharedPtr<double> rsln_e(new Solution<double>(mesh));
+  std::vector<MeshFunctionSharedPtr<double> > rslns(rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e);
+#pragma endregion
 
-  #pragma region 3. Filters for visualization of Mach number, pressure + visualization setup.
-    MeshFunctionSharedPtr<double>  Mach_number(new MachNumberFilter(rslns, KAPPA));
-    MeshFunctionSharedPtr<double>  pressure(new PressureFilter(rslns, KAPPA));
+#pragma region 3. Filters for visualization of Mach number, pressure + visualization setup.
+  MeshFunctionSharedPtr<double>  Mach_number(new MachNumberFilter(rslns, KAPPA));
+  MeshFunctionSharedPtr<double>  pressure(new PressureFilter(rslns, KAPPA));
 
-    ScalarView pressure_view("Pressure", new WinGeom(0, 0, 600, 300));
-    ScalarView Mach_number_view("Mach number", new WinGeom(650, 0, 600, 300));
-    ScalarView eview("Error - density", new WinGeom(0, 330, 600, 300));
-    ScalarView eview1("Error - momentum", new WinGeom(0, 660, 600, 300));
-    OrderView order_view("Orders", new WinGeom(650, 330, 600, 300));
-  #pragma endregion
+  ScalarView pressure_view("Pressure", new WinGeom(0, 0, 600, 300));
+  ScalarView Mach_number_view("Mach number", new WinGeom(650, 0, 600, 300));
+  ScalarView eview("Error - density", new WinGeom(0, 330, 600, 300));
+  ScalarView eview1("Error - momentum", new WinGeom(0, 660, 600, 300));
+  OrderView order_view("Orders", new WinGeom(650, 330, 600, 300));
+#pragma endregion
 
   // Set up CFL calculation class.
   CFLCalculation CFL(CFL_NUMBER, KAPPA);
-  
+
   Vector<double>* rhs_stabilization = create_vector<double>(HermesCommonApi.get_integral_param_value(matrixSolverType));
-  
-  #pragma region 4. Adaptivity setup.
-    // Initialize refinement selector.
-    L2ProjBasedSelector<double> selector(CAND_LIST);
-    selector.set_dof_score_exponent(2.0);
 
-    //selector.set_error_weights(1.0, 1.0, 1.0);
+#pragma region 4. Adaptivity setup.
+  // Initialize refinement selector.
+  L2ProjBasedSelector<double> selector(CAND_LIST);
+  selector.set_dof_score_exponent(2.0);
 
-    // Error calculation.
-    DefaultErrorCalculator<double, HERMES_L2_NORM> errorCalculator(RelativeErrorToGlobalNorm, 4);
-    // Stopping criterion for an adaptivity step.
-    AdaptStoppingCriterionSingleElement<double> stoppingCriterion(THRESHOLD);
-    Adapt<double> adaptivity(spaces, &errorCalculator, &stoppingCriterion);
-  #pragma endregion
+  //selector.set_error_weights(1.0, 1.0, 1.0);
+
+  // Error calculation.
+  DefaultErrorCalculator<double, HERMES_L2_NORM> errorCalculator(RelativeErrorToGlobalNorm, 4);
+  // Stopping criterion for an adaptivity step.
+  AdaptStoppingCriterionSingleElement<double> stoppingCriterion(THRESHOLD);
+  Adapt<double> adaptivity(spaces, &errorCalculator, &stoppingCriterion);
+#pragma endregion
 
   // Set initial conditions.
   MeshFunctionSharedPtr<double> prev_rho(new ConstantSolution<double>(mesh, RHO_INIT));
-  MeshFunctionSharedPtr<double> prev_rho_v_x(new ConstantSolution<double> (mesh, RHO_INIT * V1_INIT));
-  MeshFunctionSharedPtr<double> prev_rho_v_y(new ConstantSolution<double> (mesh, RHO_INIT * V2_INIT));
-  MeshFunctionSharedPtr<double> prev_e(new ConstantSolution<double> (mesh, QuantityCalculator::calc_energy(RHO_INIT, RHO_INIT * V1_INIT, RHO_INIT * V2_INIT, PRESSURE_INIT, KAPPA)));
+  MeshFunctionSharedPtr<double> prev_rho_v_x(new ConstantSolution<double>(mesh, RHO_INIT * V1_INIT));
+  MeshFunctionSharedPtr<double> prev_rho_v_y(new ConstantSolution<double>(mesh, RHO_INIT * V2_INIT));
+  MeshFunctionSharedPtr<double> prev_e(new ConstantSolution<double>(mesh, QuantityCalculator::calc_energy(RHO_INIT, RHO_INIT * V1_INIT, RHO_INIT * V2_INIT, PRESSURE_INIT, KAPPA)));
 
   // Initialize weak formulation.
-  Hermes::vector<std::string> solid_wall_markers;
+  std::vector<std::string> solid_wall_markers;
   solid_wall_markers.push_back(BDY_SOLID_WALL);
 
-  Hermes::vector<std::string> inlet_markers(BDY_INLET_LEFT, BDY_INLET_TOP);
-  Hermes::vector<double> rho_ext(RHO_LEFT, RHO_TOP);
-  Hermes::vector<double> v1_ext(V1_LEFT, V1_TOP);
-  Hermes::vector<double> v2_ext(V2_LEFT, V2_TOP);
-  Hermes::vector<double> pressure_ext(PRESSURE_LEFT, PRESSURE_TOP);
+  std::vector<std::string> inlet_markers(BDY_INLET_LEFT, BDY_INLET_TOP);
+  std::vector<double> rho_ext(RHO_LEFT, RHO_TOP);
+  std::vector<double> v1_ext(V1_LEFT, V1_TOP);
+  std::vector<double> v2_ext(V2_LEFT, V2_TOP);
+  std::vector<double> pressure_ext(PRESSURE_LEFT, PRESSURE_TOP);
 
-  Hermes::vector<std::string> outlet_markers;
+  std::vector<std::string> outlet_markers;
   outlet_markers.push_back(BDY_OUTLET);
 
   EulerEquationsWeakFormSemiImplicit wf(KAPPA, rho_ext, v1_ext, v2_ext, pressure_ext, solid_wall_markers, inlet_markers, outlet_markers, prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e);

@@ -1,13 +1,10 @@
-
-
-
 #include "definitions.h"
 
 //  This example solves a simple version of the time-dependent
-//  Richard's equation using the backward Euler method in time 
+//  Richard's equation using the backward Euler method in time
 //  combined with the Newton's method in each time step. It describes
-//  infiltration into an initially dry soil. The example has a exact 
-//  solution that is given in terms of a Fourier series (see a paper 
+//  infiltration into an initially dry soil. The example has a exact
+//  solution that is given in terms of a Fourier series (see a paper
 //  by Tracy). The exact solution is not used here.
 //
 //  PDE: C(h)dh/dt - div(K(h)grad(h)) - (dK/dh)*(dh/dy) = 0
@@ -19,7 +16,7 @@
 //  Domain: square (0, 100)^2.
 //
 //  BC: Dirichlet, given by the initial condition.
-//  IC: Flat in all elements except the top layer, within this 
+//  IC: Flat in all elements except the top layer, within this
 //      layer the solution rises linearly to match the Dirichlet condition.
 //
 //  NOTE: The pressure head 'h' is between -1000 and 0. For convenience, we
@@ -29,15 +26,15 @@
 //  The following parameters can be changed:
 
 // Number of initial uniform mesh refinements.
-const int INIT_GLOB_REF_NUM = 3;                  
+const int INIT_GLOB_REF_NUM = 3;
 // Number of initial refinements towards boundary.
-const int INIT_REF_NUM_BDY = 5;                   
+const int INIT_REF_NUM_BDY = 5;
 // Initial polynomial degree.
-const int P_INIT = 2;                             
+const int P_INIT = 2;
 // Time step.
-double time_step = 5e-4;                          
+double time_step = 5e-4;
 // Time interval length.
-const double T_FINAL = 0.4;                       
+const double T_FINAL = 0.4;
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 MatrixSolverType matrix_solver = SOLVER_UMFPACK;
@@ -52,32 +49,32 @@ double M, N, STORATIVITY;
 
 // Constitutive relations.
 enum CONSTITUTIVE_RELATIONS {
-    CONSTITUTIVE_GENUCHTEN,    // Van Genuchten.
-    CONSTITUTIVE_GARDNER       // Gardner.
+  CONSTITUTIVE_GENUCHTEN,    // Van Genuchten.
+  CONSTITUTIVE_GARDNER       // Gardner.
 };
 // Use van Genuchten's constitutive relations, or Gardner's.
 CONSTITUTIVE_RELATIONS constitutive_relations_type = CONSTITUTIVE_GARDNER;
 
 // Newton's method.
 // Stopping criterion for the Newton's method.
-const double NEWTON_TOL = 1e-6;                   
+const double NEWTON_TOL = 1e-6;
 // Maximum allowed number of Newton iterations.
-const int NEWTON_MAX_ITER = 100;                 
+const int NEWTON_MAX_ITER = 100;
 const double DAMPING_COEFF = 1.0;
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh.
+  // Load the mesh->
   MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("square.mesh", mesh);
 
   // Initial mesh refinements.
-  for(int i = 0; i < INIT_GLOB_REF_NUM; i++) mesh->refine_all_elements();
+  for (int i = 0; i < INIT_GLOB_REF_NUM; i++) mesh->refine_all_elements();
   mesh->refine_towards_boundary("Top", INIT_REF_NUM_BDY);
 
   // Initialize boundary conditions.
-  CustomEssentialBCNonConst bc_essential(Hermes::vector<std::string>("Bottom", "Right", "Top", "Left"));
+  CustomEssentialBCNonConst bc_essential({"Bottom", "Right", "Top", "Left"});
   EssentialBCs<double> bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.
@@ -97,7 +94,7 @@ int main(int argc, char* argv[])
 
   // Initialize the constitutive relations.
   ConstitutiveRelations* constitutive_relations;
-  if(constitutive_relations_type == CONSTITUTIVE_GENUCHTEN)
+  if (constitutive_relations_type == CONSTITUTIVE_GENUCHTEN)
     constitutive_relations = new ConstitutiveRelationsGenuchten(ALPHA, M, N, THETA_S, THETA_R, K_S, STORATIVITY);
   else
     constitutive_relations = new ConstitutiveRelationsGardner(ALPHA, THETA_S, THETA_R, K_S);
@@ -107,7 +104,7 @@ int main(int argc, char* argv[])
   CustomWeakFormRichardsIE wf(time_step, h_time_prev, constitutive_relations);
 
   // Initialize the FE problem.
-  DiscreteProblem<double> dp(&wf, space);
+  DiscreteProblem<double> dp(wf, space);
 
   // Initialize Newton solver.
   NewtonSolver<double> newton(&dp);
@@ -115,7 +112,7 @@ int main(int argc, char* argv[])
 
   // Time stepping:
   int ts = 1;
-  do 
+  do
   {
     Hermes::Mixins::Loggable::Static::info("---- Time step %d, time %3.5f s", ts, current_time);
 
@@ -125,7 +122,7 @@ int main(int argc, char* argv[])
       newton.set_max_allowed_iterations(NEWTON_MAX_ITER);
       newton.solve();
     }
-    catch(Hermes::Exceptions::Exception e)
+    catch (Hermes::Exceptions::Exception e)
     {
       e.print_msg();
       throw Hermes::Exceptions::Exception("Newton's iteration failed.");
@@ -143,11 +140,9 @@ int main(int argc, char* argv[])
     // Increase current time and time step counter.
     current_time += time_step;
     ts++;
-  }
-  while (current_time < T_FINAL);
+  } while (current_time < T_FINAL);
 
   // Wait for the view to be closed.
   View::wait();
   return 0;
 }
-

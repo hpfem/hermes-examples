@@ -26,7 +26,7 @@
 // The following parameters can be changed:
 
 // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM = 0;                       
+const int INIT_REF_NUM = 0;
 // Initial polynomial degree. NOTE: The meaning is different from
 // standard continuous elements in the space H1. Here, P_INIT refers
 // to the maximum poly order of the tangential component, and polynomials
@@ -35,32 +35,32 @@ const int INIT_REF_NUM = 0;
 const int P_INIT = 1;
 // if ALIGN_MESH == true, curvilinear elements aligned with the
 // circular load are used, otherwise one uses a non-aligned mesh->
-const bool ALIGN_MESH = false;                     
+const bool ALIGN_MESH = false;
 // This is a quantitative parameter of the adapt(...) function and
 // it has different meanings for various adaptive strategies.
 const double THRESHOLD = 0.6;
 // Predefined list of element refinement candidates. Possible values are
 // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
 // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
-const CandList CAND_LIST = H2D_HP_ANISO;          
+const CandList CAND_LIST = H2D_HP_ANISO;
 // Maximum allowed level of hanging nodes:
 // MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
 // MESH_REGULARITY = 1 ... at most one-level hanging nodes,
 // MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
 // Note that regular meshes are not supported, this is due to
 // their notoriously bad performance.
-const int MESH_REGULARITY = -1;                   
+const int MESH_REGULARITY = -1;
 // This parameter influences the selection of
-// candidates in hp-adaptivity. Default value is 1.0. 
-const double CONV_EXP = 1.0;                      
+// candidates in hp-adaptivity. Default value is 1.0.
+const double CONV_EXP = 1.0;
 // Stopping criterion for adaptivity.
 const double ERR_STOP = 5e-2;
 // Adaptivity process stops when the number of degrees of freedom grows
 // over this limit. This is to prevent h-adaptivity to go on forever.
-const int NDOF_STOP = 60000;                      
+const int NDOF_STOP = 60000;
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;
 
 // Newton's method.
 const double NEWTON_TOL = 1e-4;
@@ -76,19 +76,19 @@ const double Cp = 7.531000;
 const double freq = 1.0*2450000000.0;
 const double omega = 2 * M_PI * freq;
 const double c = 1 / std::sqrt(e_0 * mu_0);
-const double kappa  = 2 * M_PI * freq * std::sqrt(e_0 * mu_0);
+const double kappa = 2 * M_PI * freq * std::sqrt(e_0 * mu_0);
 const double J = 0.0000033333;
 
 //  Boundary markers.
 const std::string BDY_PERFECT_CONDUCTOR = "b2";
 const std::string BDY_CURRENT = "b1";
 
-class CustomErrorCalculator : public ErrorCalculator<complex>
+class CustomErrorCalculator : public ErrorCalculator < complex >
 {
 public:
-  CustomErrorCalculator(CalculatedErrorType errorType) : ErrorCalculator<complex>(errorType)
+  CustomErrorCalculator(CalculatedErrorType errorType) : ErrorCalculator<::complex>(errorType)
   {
-    this->add_error_form(new CustomErrorForm (kappa));
+    this->add_error_form(new CustomErrorForm(kappa));
   }
   virtual ~CustomErrorCalculator()
   {
@@ -97,12 +97,12 @@ public:
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh.
+  // Load the mesh->
   MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
-  if (ALIGN_MESH) 
+  if (ALIGN_MESH)
     mloader.load("oven_load_circle.mesh", mesh);
-  else 
+  else
     mloader.load("oven_load_square.mesh", mesh);
 
   // Perform initial mesh refinemets.
@@ -110,32 +110,32 @@ int main(int argc, char* argv[])
     mesh->refine_all_elements();
 
   // Initialize boundary conditions
-  DefaultEssentialBCConst<complex> bc_essential(BDY_PERFECT_CONDUCTOR, std::complex<double>(0.0, 0.0));
+  DefaultEssentialBCConst<::complex> bc_essential(BDY_PERFECT_CONDUCTOR, std::complex<double>(0.0, 0.0));
 
-  EssentialBCs<complex> bcs(&bc_essential);
+  EssentialBCs<::complex> bcs(&bc_essential);
 
   // Create an Hcurl space with default shapeset.
-  SpaceSharedPtr<complex> space(new HcurlSpace<complex> (mesh, &bcs, P_INIT));
+  SpaceSharedPtr<::complex> space(new HcurlSpace<::complex>(mesh, &bcs, P_INIT));
   int ndof = space->get_num_dofs();
   Hermes::Mixins::Loggable::Static::info("ndof = %d", ndof);
 
   // Initialize the weak formulation.
-  CustomWeakForm wf(e_0, mu_0, mu_r, kappa, omega, J, ALIGN_MESH, mesh, BDY_CURRENT);
+  WeakFormSharedPtr<double> wf(new CustomWeakForm(e_0, mu_0, mu_r, kappa, omega, J, ALIGN_MESH, mesh, BDY_CURRENT));
 
   // Initialize coarse and reference mesh solution.
-  MeshFunctionSharedPtr<complex>  sln(new Solution<complex>), ref_sln(new Solution<complex>);
+  MeshFunctionSharedPtr<::complex>  sln(new Solution<::complex>), ref_sln(new Solution<::complex>);
 
   // Initialize refinements selector.
-  HcurlProjBasedSelector<complex> selector(CAND_LIST);
+  HcurlProjBasedSelector<::complex> selector(CAND_LIST);
 
   // Error calculation.
   CustomErrorCalculator errorCalculator(RelativeErrorToGlobalNorm);
-      
+
   // Stopping criterion for an adaptivity step.
-  AdaptStoppingCriterionSingleElement<complex> stoppingCriterion(THRESHOLD);
+  AdaptStoppingCriterionSingleElement<::complex> stoppingCriterion(THRESHOLD);
 
   // Adaptivity.
-  Adapt<complex> adaptivity(space, &errorCalculator, &stoppingCriterion);
+  Adapt<::complex> adaptivity(space, &errorCalculator, &stoppingCriterion);
 
   // Initialize views.
   ScalarView eview("Electric field", new WinGeom(0, 0, 580, 400));
@@ -148,7 +148,7 @@ int main(int argc, char* argv[])
   Hermes::Mixins::TimeMeasurable cpu_time;
   cpu_time.tick();
 
-  Hermes::Hermes2D::NewtonSolver<complex> newton(&wf, space);
+  Hermes::Hermes2D::NewtonSolver<::complex> newton(wf, space);
   newton.set_max_allowed_iterations(NEWTON_MAX_ITER);
   newton.set_tolerance(NEWTON_TOL, Hermes::Solvers::ResidualNormAbsolute);
 
@@ -163,12 +163,12 @@ int main(int argc, char* argv[])
     Mesh::ReferenceMeshCreator refMeshCreator(mesh);
     MeshSharedPtr ref_mesh = refMeshCreator.create_ref_mesh();
 
-    Space<complex>::ReferenceSpaceCreator refSpaceCreator(space, ref_mesh);
-    SpaceSharedPtr<complex> ref_space = refSpaceCreator.create_ref_space();
-    int ndof_ref = Space<complex>::get_num_dofs(ref_space);
+    Space<::complex>::ReferenceSpaceCreator refSpaceCreator(space, ref_mesh);
+    SpaceSharedPtr<::complex> ref_space = refSpaceCreator.create_ref_space();
+    int ndof_ref = Space<::complex>::get_num_dofs(ref_space);
 
     // Initialize reference problem.
-    Hermes::Mixins::Loggable::Static::info("Solving on reference mesh.");
+    Hermes::Mixins::Loggable::Static::info("Solving on reference mesh->");
     // Time measurement.
     cpu_time.tick();
     newton.set_space(ref_space);
@@ -177,17 +177,17 @@ int main(int argc, char* argv[])
     {
       newton.solve();
     }
-    catch(Hermes::Exceptions::Exception e)
+    catch (Hermes::Exceptions::Exception e)
     {
       e.print_msg();
       throw Hermes::Exceptions::Exception("Newton's iteration failed.");
     };
-    // Translate the resulting coefficient vector into the Solution<complex> sln->
-    Hermes::Hermes2D::Solution<complex>::vector_to_solution(newton.get_sln_vector(), ref_space, ref_sln);
+    // Translate the resulting coefficient vector into the Solution<::complex> sln->
+    Hermes::Hermes2D::Solution<::complex>::vector_to_solution(newton.get_sln_vector(), ref_space, ref_sln);
 
-    // Project the fine mesh solution onto the coarse mesh.
-    Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
-    OGProjection<complex> ogProjection; ogProjection.project_global(space, ref_sln, sln); 
+    // Project the fine mesh solution onto the coarse mesh->
+    Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh->");
+    OGProjection<::complex> ogProjection; ogProjection.project_global(space, ref_sln, sln);
 
     // View the coarse mesh solution and polynomial orders.
     MeshFunctionSharedPtr<double> real(new RealFilter(ref_sln));
@@ -203,39 +203,38 @@ int main(int argc, char* argv[])
     oview.show(space);
 
     // Calculate element errors and total error estimate.
-    Hermes::Mixins::Loggable::Static::info("Calculating error estimate."); 
+    Hermes::Mixins::Loggable::Static::info("Calculating error estimate.");
 
     // Calculate error estimate.
     errorCalculator.calculate_errors(sln, ref_sln);
     double err_est_rel = errorCalculator.get_total_error_squared() * 100.;
 
     // Report results.
-    Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d, err_est_rel: %g%%", 
-      Space<complex>::get_num_dofs(space), 
-      Space<complex>::get_num_dofs(ref_space), err_est_rel);
-  
+    Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d, err_est_rel: %g%%",
+      Space<::complex>::get_num_dofs(space),
+      Space<::complex>::get_num_dofs(ref_space), err_est_rel);
+
     // Time measurement.
     cpu_time.tick();
 
     // Add entry to DOF and CPU convergence graphs.
-    graph_dof.add_values(Space<complex>::get_num_dofs(space), err_est_rel);
+    graph_dof.add_values(Space<::complex>::get_num_dofs(space), err_est_rel);
     graph_dof.save("conv_dof_est.dat");
     graph_cpu.add_values(cpu_time.accumulated(), err_est_rel);
     graph_cpu.save("conv_cpu_est.dat");
 
-    // If err_est too large, adapt the mesh.
+    // If err_est too large, adapt the mesh->
     if (err_est_rel < ERR_STOP) done = true;
-    else 
+    else
     {
-      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
+      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh->");
       done = adaptivity.adapt(&selector);
     }
     if (space->get_num_dofs() >= NDOF_STOP) done = true;
 
     // Increase counter.
     as++;
-  }
-  while (done == false);
+  } while (done == false);
 
   Hermes::Mixins::Loggable::Static::info("Total running time: %g s", cpu_time.accumulated());
 

@@ -1,12 +1,10 @@
-
-
 #include "definitions.h"
 
-// This example solves a time-domain resonator problem for the Maxwell's equation. 
-// It is very similar to resonator-time-domain-I but B is eliminated from the 
+// This example solves a time-domain resonator problem for the Maxwell's equation.
+// It is very similar to resonator-time-domain-I but B is eliminated from the
 // equations, thus converting the first-order system into one second -order
-// equation in time. The second-order equation in time is decomposed back into 
-// a first-order system in time in the standard way (see example wave-1). Time 
+// equation in time. The second-order equation in time is decomposed back into
+// a first-order system in time in the standard way (see example wave-1). Time
 // discretization is performed using the implicit Euler method.
 //
 // PDE: \frac{1}{SPEED_OF_LIGHT**2}\frac{\partial^2 E}{\partial t^2} + curl curl E = 0,
@@ -16,7 +14,7 @@
 //      \frac{\partial F}{\partial t} + SPEED_OF_LIGHT**2 * curl curl E = 0.
 //
 // Approximated by
-// 
+//
 //      \frac{E^{n+1} - E^{n}}{tau} - F^{n+1} = 0,
 //      \frac{F^{n+1} - F^{n}}{tau} + SPEED_OF_LIGHT**2 * curl curl E^{n+1} = 0.
 //
@@ -30,28 +28,28 @@
 // The following parameters can be changed:
 
 // Initial polynomial degree of mesh elements.
-const int P_INIT = 6;                              
+const int P_INIT = 6;
 // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM = 1;                        
+const int INIT_REF_NUM = 1;
 // Time step.
-const double time_step = 0.05;                     
+const double time_step = 0.05;
 // Final time.
-const double T_FINAL = 35.0;                       
+const double T_FINAL = 35.0;
 // Stopping criterion for the Newton's method.
-const double NEWTON_TOL = 1e-8;                   
+const double NEWTON_TOL = 1e-8;
 // Maximum allowed number of Newton iterations.
-const int NEWTON_MAX_ITER = 100;                  
+const int NEWTON_MAX_ITER = 100;
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;   
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;
 
 // Problem parameters.
-// Square of wave speed.  
-const double C_SQUARED = 1;                                         
+// Square of wave speed.
+const double C_SQUARED = 1;
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh.
+  // Load the mesh->
   MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("domain.mesh", mesh);
@@ -62,7 +60,7 @@ int main(int argc, char* argv[])
   // Initialize solutions.
   MeshFunctionSharedPtr<double> E_sln(new CustomInitialConditionWave(mesh));
   MeshFunctionSharedPtr<double>  F_sln(new ZeroSolutionVector<double>(mesh));
-  Hermes::vector<MeshFunctionSharedPtr<double> > slns(E_sln, F_sln);
+  std::vector<MeshFunctionSharedPtr<double> > slns(E_sln, F_sln);
 
   // Initialize the weak formulation.
   CustomWeakFormWaveIE wf(time_step, C_SQUARED, E_sln, F_sln);
@@ -74,20 +72,20 @@ int main(int argc, char* argv[])
   SpaceSharedPtr<double> E_space(new HcurlSpace<double>(mesh, &bcs, P_INIT));
   SpaceSharedPtr<double> F_space(new HcurlSpace<double>(mesh, &bcs, P_INIT));
 
-  Hermes::vector<SpaceSharedPtr<double> > spaces = Hermes::vector<SpaceSharedPtr<double> >(E_space, F_space);
+  std::vector<SpaceSharedPtr<double> > spaces = std::vector<SpaceSharedPtr<double> >(E_space, F_space);
   int ndof = HcurlSpace<double>::get_num_dofs(spaces);
   Hermes::Mixins::Loggable::Static::info("ndof = %d.", ndof);
 
   // Initialize the FE problem.
-  DiscreteProblem<double> dp(&wf, spaces);
+  DiscreteProblem<double> dp(wf, spaces);
 
-  // Project the initial condition on the FE space to obtain initial 
+  // Project the initial condition on the FE space to obtain initial
   // coefficient vector for the Newton's method.
-  // NOTE: If you want to start from the zero vector, just define 
+  // NOTE: If you want to start from the zero vector, just define
   // coeff_vec to be a vector of ndof zeros (no projection is needed).
   Hermes::Mixins::Loggable::Static::info("Projecting to obtain initial vector for the Newton's method.");
   double* coeff_vec = new double[ndof];
-  OGProjection<double> ogProjection; ogProjection.project_global(spaces, slns, coeff_vec); 
+  OGProjection<double> ogProjection; ogProjection.project_global(spaces, slns, coeff_vec);
 
   // Initialize Newton solver.
   NewtonSolver<double> newton(&dp);
@@ -116,7 +114,7 @@ int main(int argc, char* argv[])
       newton.set_tolerance(NEWTON_TOL, Hermes::Solvers::ResidualNormAbsolute);
       newton.solve(coeff_vec);
     }
-    catch(Hermes::Exceptions::Exception e)
+    catch (Hermes::Exceptions::Exception e)
     {
       e.print_msg();
       throw Hermes::Exceptions::Exception("Newton's iteration failed.");
@@ -145,7 +143,6 @@ int main(int argc, char* argv[])
 
     // Update time.
     current_time += time_step;
-
   } while (current_time < T_FINAL);
 
   // Wait for the view to be closed.

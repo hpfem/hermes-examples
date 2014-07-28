@@ -1,8 +1,6 @@
-
-
 #include "definitions.h"
 
-//  This example is similar to basic-ie-newton except it uses the 
+//  This example is similar to basic-ie-newton except it uses the
 //  Picard's method in each time step.
 //
 //  PDE: C(h)dh/dt - div(K(h)grad(h)) - (dK/dh)*(dh/dy) = 0
@@ -14,7 +12,7 @@
 //  Domain: square (0, 100)^2.
 //
 //  BC: Dirichlet, given by the initial condition.
-//  IC: Flat in all elements except the top layer, within this 
+//  IC: Flat in all elements except the top layer, within this
 //      layer the solution rises linearly to match the Dirichlet condition.
 //
 //  NOTE: The pressure head 'h' is between -1000 and 0. For convenience, we
@@ -24,18 +22,18 @@
 //  The following parameters can be changed:
 
 // Number of initial uniform mesh refinements.
-const int INIT_GLOB_REF_NUM = 3;                  
+const int INIT_GLOB_REF_NUM = 3;
 // Number of initial refinements towards boundary.
-const int INIT_REF_NUM_BDY = 5;                   
+const int INIT_REF_NUM_BDY = 5;
 // Initial polynomial degree.
-const int P_INIT = 2;                             
+const int P_INIT = 2;
 // Time step.
-double time_step = 5e-4;                          
+double time_step = 5e-4;
 // Time interval length.
-const double T_FINAL = 0.4;                       
+const double T_FINAL = 0.4;
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
+MatrixSolverType matrix_solver = SOLVER_UMFPACK;
 
 // Problem parameters.
 double K_S = 20.464;
@@ -47,36 +45,36 @@ double M, N, STORATIVITY;
 
 // Constitutive relations.
 enum CONSTITUTIVE_RELATIONS {
-    CONSTITUTIVE_GENUCHTEN,    // Van Genuchten.
-    CONSTITUTIVE_GARDNER       // Gardner.
+  CONSTITUTIVE_GENUCHTEN,    // Van Genuchten.
+  CONSTITUTIVE_GARDNER       // Gardner.
 };
 // Use van Genuchten's constitutive relations, or Gardner's.
 CONSTITUTIVE_RELATIONS constitutive_relations_type = CONSTITUTIVE_GARDNER;
 
 // Picard's method.
 // Number of last iterations used.
-const int PICARD_NUM_LAST_ITER_USED = 3;          
-// Parameter for the Anderson acceleration. 
-const double PICARD_ANDERSON_BETA = 1.0;          
+const int PICARD_NUM_LAST_ITER_USED = 3;
+// Parameter for the Anderson acceleration.
+const double PICARD_ANDERSON_BETA = 1.0;
 // Stopping criterion for the Picard's method.
-const double PICARD_TOL = 1e-6;                   
+const double PICARD_TOL = 1e-6;
 // Maximum allowed number of Picard iterations.
-const int PICARD_MAX_ITER = 100;                  
+const int PICARD_MAX_ITER = 100;
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh.
+  // Load the mesh->
   MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("square.mesh", mesh);
 
   // Initial mesh refinements.
-  for(int i = 0; i < INIT_GLOB_REF_NUM; i++) mesh->refine_all_elements();
+  for (int i = 0; i < INIT_GLOB_REF_NUM; i++) mesh->refine_all_elements();
   mesh->refine_towards_boundary("Top", INIT_REF_NUM_BDY);
 
   // Initialize boundary conditions.
-  CustomEssentialBCNonConst bc_essential(Hermes::vector<std::string>("Bottom", 
-      "Right", "Top", "Left"));
+  CustomEssentialBCNonConst bc_essential({"Bottom",
+    "Right", "Top", "Left"});
   EssentialBCs<double> bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.
@@ -93,7 +91,7 @@ int main(int argc, char* argv[])
 
   // Initialize the constitutive relations.
   ConstitutiveRelations* constitutive_relations;
-  if(constitutive_relations_type == CONSTITUTIVE_GENUCHTEN)
+  if (constitutive_relations_type == CONSTITUTIVE_GENUCHTEN)
     constitutive_relations = new ConstitutiveRelationsGenuchten(ALPHA, M, N, THETA_S, THETA_R, K_S, STORATIVITY);
   else
     constitutive_relations = new ConstitutiveRelationsGardner(ALPHA, THETA_S, THETA_R, K_S);
@@ -103,16 +101,16 @@ int main(int argc, char* argv[])
   CustomWeakFormRichardsIEPicard wf(time_step, h_time_prev, constitutive_relations);
 
   // Initialize the FE problem.
-  DiscreteProblem<double> dp(&wf, space);
+  DiscreteProblem<double> dp(wf, space);
   dp.set_linear();
 
   // Initialize the Picard solver.
-  PicardSolver<double> picard(&wf, space);
+  PicardSolver<double> picard(wf, space);
   picard.set_verbose_output(true);
 
   // Time stepping:
   int ts = 1;
-  do 
+  do
   {
     Hermes::Mixins::Loggable::Static::info("---- Time step %d, time %3.5f s", ts, current_time);
 
@@ -125,12 +123,12 @@ int main(int argc, char* argv[])
     {
       picard.solve();
     }
-    catch(std::exception& e)
+    catch (std::exception& e)
     {
       std::cout << e.what();
     }
 
-    // Translate the coefficient vector into a Solution. 
+    // Translate the coefficient vector into a Solution.
     Solution<double>::vector_to_solution(picard.get_sln_vector(), space, h_time_prev);
 
     // Increase current time and time step counter.
@@ -142,11 +140,9 @@ int main(int argc, char* argv[])
     sprintf(title, "Time %g s", current_time);
     view.set_title(title);
     view.show(h_time_prev);
-  }
-  while (current_time < T_FINAL);
+  } while (current_time < T_FINAL);
 
   // Wait for the view to be closed.
   View::wait();
   return 0;
 }
-

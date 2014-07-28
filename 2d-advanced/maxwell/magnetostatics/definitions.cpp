@@ -3,40 +3,38 @@
 CustomWeakFormMagnetostatics::CustomWeakFormMagnetostatics(std::string material_iron_1, std::string material_iron_2,
   CubicSpline* mu_inv_iron, std::string material_air,
   std::string material_copper, double mu_vacuum,
-  double current_density, int order_inc) : WeakForm<double>(1) 
+  double current_density, int order_inc) : WeakForm<double>(1)
 {
-
   // Jacobian.
-  add_matrix_form(new DefaultJacobianMagnetostatics<double>(0, 0, Hermes::vector<std::string>(material_air, material_copper), 
+  add_matrix_form(new DefaultJacobianMagnetostatics<double>(0, 0, std::vector<std::string>(material_air, material_copper),
     1.0, nullptr, HERMES_NONSYM, HERMES_AXISYM_Y, order_inc));
-  add_matrix_form(new DefaultJacobianMagnetostatics<double>(0, 0, Hermes::vector<std::string>(material_iron_1, material_iron_2), 1.0,
+  add_matrix_form(new DefaultJacobianMagnetostatics<double>(0, 0, std::vector<std::string>(material_iron_1, material_iron_2), 1.0,
     mu_inv_iron, HERMES_NONSYM, HERMES_AXISYM_Y, order_inc));
   // Residual.
-  add_vector_form(new DefaultResidualMagnetostatics<double>(0, Hermes::vector<std::string>(material_air, material_copper), 
+  add_vector_form(new DefaultResidualMagnetostatics<double>(0, std::vector<std::string>(material_air, material_copper),
     1.0, nullptr, HERMES_AXISYM_Y, order_inc));
-  add_vector_form(new DefaultResidualMagnetostatics<double>(0, Hermes::vector<std::string>(material_iron_1, material_iron_2), 1.0, 
+  add_vector_form(new DefaultResidualMagnetostatics<double>(0, std::vector<std::string>(material_iron_1, material_iron_2), 1.0,
     mu_inv_iron, HERMES_AXISYM_Y, order_inc));
   add_vector_form(new DefaultVectorFormVol<double>(0, material_copper, new Hermes2DFunction<double>(-current_density * mu_vacuum)));
 }
 
-
-void FilterVectorPotential::filter_fn(int n, Hermes::vector<double*> values, double* result, Geom<double> *e)
+void FilterVectorPotential::filter_fn(int n, std::vector<double*> values, double* result, Geom<double> *e)
 {
   for (int i = 0; i < n; i++)
   {
     result[i] = 0;
-    for(unsigned int j = 0; j < values.size(); j++)
+    for (unsigned int j = 0; j < values.size(); j++)
       result[i] += sqr(values[j][i]);
 
     result[i] = std::sqrt(result[i]);
   }
 }
 
-MeshFunction<double>* FilterVectorPotential::clone() const 
+MeshFunction<double>* FilterVectorPotential::clone() const
 {
-  Hermes::vector<MeshFunctionSharedPtr<double> > fns;
-  Hermes::vector<int> items;
-  for(int i = 0; i < this->num; i++)
+  std::vector<MeshFunctionSharedPtr<double> > fns;
+  std::vector<int> items;
+  for (int i = 0; i < this->num; i++)
   {
     fns.push_back(this->sln[i]->clone());
     items.push_back(item[i]);
@@ -44,25 +42,25 @@ MeshFunction<double>* FilterVectorPotential::clone() const
   return new FilterVectorPotential(fns, items);
 }
 
-FilterVectorPotential::FilterVectorPotential(Hermes::vector<MeshFunctionSharedPtr<double> > solutions, Hermes::vector<int> items) 
-  : MagFilter<double>(solutions, items) 
+FilterVectorPotential::FilterVectorPotential(std::vector<MeshFunctionSharedPtr<double> > solutions, std::vector<int> items)
+  : MagFilter<double>(solutions, items)
 {
 }
 
-FilterFluxDensity::FilterFluxDensity(Hermes::vector<MeshFunctionSharedPtr<double> > solutions)
-  : Filter<double>(solutions) 
+FilterFluxDensity::FilterFluxDensity(std::vector<MeshFunctionSharedPtr<double> > solutions)
+  : Filter<double>(solutions)
 {
 }
 
-Func<double>* FilterFluxDensity::get_pt_value(double x, double y, bool use_MeshHashGrid, Element* e) 
+Func<double>* FilterFluxDensity::get_pt_value(double x, double y, bool use_MeshHashGrid, Element* e)
 {
   throw Hermes::Exceptions::Exception("Not implemented yet"); return NULL;
 }
 
-MeshFunction<double>* FilterFluxDensity::clone() const 
+MeshFunction<double>* FilterFluxDensity::clone() const
 {
-  Hermes::vector<MeshFunctionSharedPtr<double> > fns;
-  for(int i = 0; i < this->num; i++)
+  std::vector<MeshFunctionSharedPtr<double> > fns;
+  for (int i = 0; i < this->num; i++)
     fns.push_back(this->sln[i]->clone());
   return new FilterFluxDensity(fns);
 }
@@ -80,10 +78,10 @@ void FilterFluxDensity::precalculate(int order, int mask)
 
   const double *dudx2 = sln[1]->get_dx_values();
   const double *dudy2 = sln[1]->get_dy_values();
-  
+
   const double *uval1 = sln[0]->get_fn_values();
   const double *uval2 = sln[1]->get_fn_values();
-  
+
   update_refmap();
   double *x = refmap->get_phys_x(order);
 
@@ -94,4 +92,3 @@ void FilterFluxDensity::precalculate(int order, int mask)
       sqr(dudx2[i] + ((x[i] > 1e-10) ? uval2[i] / x[i] : 0.0)));
   }
 }
-
