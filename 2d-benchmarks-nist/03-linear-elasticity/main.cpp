@@ -108,7 +108,7 @@ int main(int argc, char* argv[])
   // NOTE: We pass all four parameters (temporarily)
   // since in Mitchell's paper (NIST benchmarks) they
   // are mutually inconsistent.
-  CustomWeakFormElasticityNIST wf(E, nu, mu, lambda);
+  WeakFormSharedPtr<double> wf(new CustomWeakFormElasticityNIST(E, nu, mu, lambda));
 
   // Initialize boundary conditions.
   DefaultEssentialBCNonConst<double> bc_u("Bdy", exact_u);
@@ -119,16 +119,16 @@ int main(int argc, char* argv[])
   // Create H1 spaces with default shapeset for both displacement components.
   SpaceSharedPtr<double> u_space(new H1Space<double>(u_mesh, &bcs_u, P_INIT_U));
   SpaceSharedPtr<double> v_space(new H1Space<double>(v_mesh, &bcs_v, P_INIT_V));
-  std::vector<SpaceSharedPtr<double> >spaces(u_space, v_space);
+  std::vector<SpaceSharedPtr<double> >spaces({ u_space, v_space });
 
   // Initialize approximate solution.
   MeshFunctionSharedPtr<double> u_sln(new Solution<double>());
   MeshFunctionSharedPtr<double> u_ref_sln(new Solution<double>());
   MeshFunctionSharedPtr<double> v_sln(new Solution<double>());
   MeshFunctionSharedPtr<double> v_ref_sln(new Solution<double>());
-  std::vector<MeshFunctionSharedPtr<double> >slns(u_sln, v_sln);
-  std::vector<MeshFunctionSharedPtr<double> >ref_slns(u_ref_sln, v_ref_sln);
-  std::vector<MeshFunctionSharedPtr<double> >exact_slns(exact_u, exact_v);
+  std::vector<MeshFunctionSharedPtr<double> >slns({ u_sln, v_sln });
+  std::vector<MeshFunctionSharedPtr<double> >ref_slns({ u_ref_sln, v_ref_sln });
+  std::vector<MeshFunctionSharedPtr<double> >exact_slns({ exact_u, exact_v });
 
   // Initialize refinement selector.
   MySelector selector(CAND_LIST);
@@ -168,7 +168,7 @@ int main(int argc, char* argv[])
     Space<double>::ReferenceSpaceCreator refSpaceCreatorV(v_space, ref_v_mesh);
     SpaceSharedPtr<double> ref_v_space = refSpaceCreatorV.create_ref_space();
 
-    std::vector<SpaceSharedPtr<double> > ref_spaces(ref_u_space, ref_v_space);
+    std::vector<SpaceSharedPtr<double> > ref_spaces({ ref_u_space, ref_v_space });
 
     int ndof_ref = Space<double>::get_num_dofs(ref_spaces);
 

@@ -1,5 +1,4 @@
-#define HERMES_REPORT_ALL
-#define HERMES_REPORT_FILE "application.log"
+
 #include "definitions.h"
 #include "problem_data.h"
 
@@ -46,40 +45,22 @@ const int INIT_REF_NUM[N_GROUPS] = {
 const int P_INIT[N_GROUPS] = {
   1, 1, 1, 1
 };
-// This is a quantitative parameter of the adapt(...) function and
-// it has different meanings for various adaptive strategies.
+// Stopping criterion for an adaptivity step.
 const double THRESHOLD = 0.3;
-// Adaptive strategy:
-// STRATEGY = 0 ... refine elements until sqrt(THRESHOLD) times total
-//   error is processed. If more elements have similar errors, refine
-//   all to keep the mesh symmetric.
-// STRATEGY = 1 ... refine all elements whose error is larger
-//   than THRESHOLD times maximum element error.
-// STRATEGY = 2 ... refine all elements whose error is larger
-//   than THRESHOLD.
-const int STRATEGY = 1;
+AdaptStoppingCriterionSingleElement<double> stoppingCriterion(THRESHOLD);
 // Predefined list of element refinement candidates. Possible values are
 // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
 // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
 const CandList CAND_LIST = H2D_HP_ANISO;
-// Maximum allowed level of hanging nodes:
-// MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
-// MESH_REGULARITY = 1 ... at most one-level hanging nodes,
-// MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
-// Note that regular meshes are not supported, this is due to
-// their notoriously bad performance.
-const int MESH_REGULARITY = -1;
-// This parameter influences the selection of
-// candidates in hp-adaptivity. Default value is 1.0.
-const double CONV_EXP = 1.0;
 // Stopping criterion for adaptivity.
 const double ERR_STOP = 0.5;
-// Adaptivity process stops when the number of degrees of freedom grows over
-// this limit. This is mainly to prevent h-adaptivity to go on forever.
-const int NDOF_STOP = 60000;
+
 // Adaptivity process stops when the number of adaptation steps grows over
 // this limit.
 const int MAX_ADAPT_NUM = 30;
+// Adaptivity process stops when the number of DOFs grows over
+// this limit.
+const int NDOF_STOP = 100000;
 // Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
 // SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
 MatrixSolverType matrix_solver = SOLVER_UMFPACK;
@@ -119,9 +100,9 @@ int main(int argc, char* argv[])
   std::cout << matprop;
 
   // Use multimesh, i.e. create one mesh for each energy group.
-  std::vector<Mesh *> meshes;
+  std::vector<MeshSharedPtr> meshes;
   for (unsigned int g = 0; g < matprop.get_G(); g++)
-    meshes.push_back(new Mesh());
+    meshes.push_back(MeshSharedPtr(new Mesh()));
 
   // Load the mesh for the 1st group.
   MeshReaderH2D mloader;
@@ -139,24 +120,24 @@ int main(int argc, char* argv[])
     meshes[0]->refine_all_elements();
 
   // Create pointers to solutions on coarse and fine meshes and from the latest power iteration, respectively.
-  std::vector<Solution<double>*> coarse_solutions, fine_solutions;
+  std::vector<MeshFunctionSharedPtr<double> > coarse_solutions, fine_solutions;
   std::vector<MeshFunctionSharedPtr<double> > power_iterates;
 
   // Initialize all the new solution variables.
   for (unsigned int g = 0; g < matprop.get_G(); g++)
   {
-    coarse_solutions.push_back(new Solution<double>());
-    fine_solutions.push_back(new Solution<double>());
-    power_iterates.push_back(new ConstantSolution<double>(meshes[g], 1.0)); SpaceSharedPtr<double> space1(meshes[0], P_INIT[0]);
-    H1Space<double> space2(meshes[1], P_INIT[1]);
-    H1Space<double> space3(meshes[2], P_INIT[2]);
-    H1Space<double> space4(new
+    coarse_solutions.push_back(MeshFunctionSharedPtr<double>(new Solution<double>()));
+    fine_solutions.push_back(MeshFunctionSharedPtr<double>(new Solution<double>()));
+    power_iterates.push_back(MeshFunctionSharedPtr<double>(new ConstantSolution<double>(meshes[g], 1.0)));
   }
 
+  SpaceSharedPtr<double> space1(new H1Space<double>(meshes[0], P_INIT[0]));
+  SpaceSharedPtr<double> space2(new H1Space<double>(meshes[1], P_INIT[1]));
+  SpaceSharedPtr<double> space3(new H1Space<double>(meshes[2], P_INIT[2]));
+  SpaceSharedPtr<double> space4(new H1Space<double>(meshes[3], P_INIT[3]));
+
   // Create the approximation spaces with the default shapeset.
-  H1Space<double>(meshes[3], P_INIT[3]));
-  SpaceSharedPtr<double>*> const_spaces(new std::vector<const Space<double>(&space1, &space2, &space3, &space4));
-  SpaceSharedPtr<double>*> spaces(&space1, &space2, &space3, &space4);
+  std::vector<SpaceSharedPtr<double> > spaces({ space1, space2, space3, space4 });
 
   // Initialize the weak formulation.
   WeakFormSharedPtr<double> wf(new CustomWeakForm(matprop, power_iterates, k_eff, bdy_vacuum));
@@ -167,7 +148,7 @@ int main(int argc, char* argv[])
   SparseMatrix<double>* mat = create_matrix<double>();
   Vector<double>* rhs = create_vector<double>();
   // Instantiate the solver itself.
-  Hermes::Solvers::LinearMatrixSolver<double>* solver = create_linear_solver<double>(mat, rhs);
+  Hermes::Solvers::LinearMatrixSolver<double>* solver = Hermes::Solvers::create_linear_solver<double>(mat, rhs);
 
   // Initialize views.
   /* for 1280x800 display */
@@ -191,8 +172,8 @@ int main(int argc, char* argv[])
   OrderView oview4("Mesh for group 4", new WinGeom(new std::vector<Space<double>(2350, 500, 340, 500)));
   */
 
-  std::vector<ScalarView *> sviews(&view1, &view2, &view3, &view4);
-  std::vector<OrderView *> oviews(&oview1, &oview2, &oview3, &oview4);
+  std::vector<ScalarView *> sviews({ &view1, &view2, &view3, &view4 });
+  std::vector<OrderView *> oviews({ &oview1, &oview2, &oview3, &oview4 });
   for (unsigned int g = 0; g < matprop.get_G(); g++)
   {
     sviews[g]->show_mesh(false);
@@ -226,7 +207,7 @@ int main(int argc, char* argv[])
   graph_cpu.show_grid();
 
   // Initialize the refinement selectors.
-  H1ProjBasedSelector<double> selector(CAND_LIST, CONV_EXP, H2DRS_DEFAULT_ORDER);
+  H1ProjBasedSelector<double> selector(CAND_LIST);
   std::vector<RefinementSelectors::Selector<double>*> selectors;
   for (unsigned int g = 0; g < matprop.get_G(); g++)
     selectors.push_back(&selector);
@@ -239,7 +220,7 @@ int main(int argc, char* argv[])
     projection_residual.push_back(new H1AxisymProjectionResidual(g, power_iterates[g]));
   }
 
-  std::vector<ProjNormType> proj_norms_h1, proj_norms_l2;
+  std::vector<NormType> proj_norms_h1, proj_norms_l2;
   for (unsigned int g = 0; g < matprop.get_G(); g++)
   {
     proj_norms_h1.push_back(HERMES_H1_NORM);
@@ -248,7 +229,7 @@ int main(int argc, char* argv[])
 
   // Initial power iteration to obtain a coarse estimate of the eigenvalue and the fission source.
   Hermes::Mixins::Loggable::Static::info("Coarse mesh power iteration, %d + %d + %d + %d = %d ndof:", report_num_dofs(spaces));
-  power_iteration(matprop, const_spaces, wf, power_iterates, core, TOL_PIT_CM, matrix_solver);
+  power_iteration(matprop, spaces, (CustomWeakForm*)wf.get(), power_iterates, core, TOL_PIT_CM, matrix_solver);
 
   // Adaptivity loop:
   int as = 1; bool done = false;
@@ -257,24 +238,24 @@ int main(int argc, char* argv[])
     Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d:", as);
 
     // Construct globally refined meshes and setup reference spaces on them.
-    std::vector<const Space<double>*> ref_spaces_const;
-    std::vector<Mesh *> ref_meshes;
+    std::vector<SpaceSharedPtr<double> > ref_spaces;
+    std::vector<MeshSharedPtr> ref_meshes;
     for (unsigned int g = 0; g < matprop.get_G(); g++)
     {
-      ref_meshes.push_back(new Mesh());
-      Mesh *ref_mesh = ref_meshes.back();
+      ref_meshes.push_back(MeshSharedPtr(new Mesh()));
+      MeshSharedPtr ref_mesh = ref_meshes.back();
       ref_mesh->copy(spaces[g]->get_mesh());
       ref_mesh->refine_all_elements();
 
       int order_increase = 1;
       Space<double>::ReferenceSpaceCreator refSpaceCreator(spaces[g], ref_mesh);
-      ref_spaces_const.push_back(refSpaceCreator.create_ref_space());
+      ref_spaces.push_back(refSpaceCreator.create_ref_space());
     }
 
 #ifdef WITH_PETSC
     // PETSc assembling is currently slow for larger matrices, so we switch to
     // UMFPACK when matrices of order >8000 start to appear.
-    if (Space<double>::get_num_dofs(ref_spaces_const) > 8000 && matrix_solver == SOLVER_PETSC)
+    if (Space<double>::get_num_dofs(ref_spaces) > 8000 && matrix_solver == SOLVER_PETSC)
     {
       // Delete the old solver.
       delete mat;
@@ -290,12 +271,12 @@ int main(int argc, char* argv[])
 #endif
 
     // Solve the fine mesh problem.
-    Hermes::Mixins::Loggable::Static::info("Fine mesh power iteration, %d + %d + %d + %d = %d ndof:", report_num_dofs(ref_spaces_const));
-    power_iteration(matprop, ref_spaces_const, wf, power_iterates, core, TOL_PIT_RM, matrix_solver);
+    Hermes::Mixins::Loggable::Static::info("Fine mesh power iteration, %d + %d + %d + %d = %d ndof:", report_num_dofs(ref_spaces));
+    power_iteration(matprop, ref_spaces, (DefaultWeakFormSourceIteration<double>*)wf.get(), power_iterates, core, TOL_PIT_RM, matrix_solver);
 
     // Store the results.
     for (unsigned int g = 0; g < matprop.get_G(); g++)
-      fine_solutions[g]->copy((static_cast<Solution<double>*>(power_iterates[g])));
+      fine_solutions[g]->copy(power_iterates[g]);
 
     Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solutions on coarse meshes.");
     // This is commented out as the appropriate method was deleted in the commit
@@ -321,19 +302,28 @@ int main(int argc, char* argv[])
       get_num_of_neg(coarse_solutions[2]), get_num_of_neg(coarse_solutions[3]));
 
     // Calculate element errors and total error estimate.
-    Adapt<double> adapt_h1(spaces);
-    Adapt<double> adapt_l2(spaces);
+    ErrorCalculator<double> H1errorCalculator(RelativeErrorToGlobalNorm);
+    ErrorCalculator<double> L2errorCalculator(RelativeErrorToGlobalNorm);
+    Adapt<double> adapt_h1(spaces, &H1errorCalculator, &stoppingCriterion);
+    Adapt<double> adapt_l2(spaces, &L2errorCalculator, &stoppingCriterion);
+
     for (unsigned int g = 0; g < matprop.get_G(); g++)
     {
-      adapt_h1.set_error_form(g, g, new ErrorForm(proj_norms_h1[g]));
-      adapt_l2.set_error_form(g, g, new ErrorForm(proj_norms_l2[g]));
+      H1errorCalculator.add_error_form(new ErrorForm(g, g, proj_norms_h1[g]));
+      L2errorCalculator.add_error_form(new ErrorForm(g, g, proj_norms_l2[g]));
     }
 
     // Calculate element errors and error estimates in H1 and L2 norms. Use the H1 estimate to drive adaptivity.
     Hermes::Mixins::Loggable::Static::info("Calculating errors.");
-    std::vector<double> h1_group_errors, l2_group_errors;
-    double h1_err_est = adapt_h1.calc_err_est(coarse_solutions, fine_solutions, &h1_group_errors) * 100;
-    double l2_err_est = adapt_l2.calc_err_est(coarse_solutions, fine_solutions, &l2_group_errors, false) * 100;
+
+    H1errorCalculator.calculate_errors(coarse_solutions, fine_solutions);
+    L2errorCalculator.calculate_errors(coarse_solutions, fine_solutions);
+
+    std::vector<double> h1_group_errors = { H1errorCalculator.get_error_squared(0) * 100., H1errorCalculator.get_error_squared(1) * 100., H1errorCalculator.get_error_squared(2) * 100., H1errorCalculator.get_error_squared(3) * 100. };
+    std::vector<double> l2_group_errors = { L2errorCalculator.get_error_squared(0) * 100., L2errorCalculator.get_error_squared(1) * 100., L2errorCalculator.get_error_squared(2) * 100., L2errorCalculator.get_error_squared(3) * 100. };
+
+    double h1_err_est = H1errorCalculator.get_total_error_squared() * 100.;
+    double l2_err_est = L2errorCalculator.get_total_error_squared() * 100.;
 
     // Time measurement.
     cpu_time.tick();
@@ -343,7 +333,7 @@ int main(int argc, char* argv[])
     Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d + %d + %d + %d = %d", report_num_dofs(spaces));
 
     // Millipercent eigenvalue error w.r.t. the reference value (see physical_parameters.cpp).
-    double keff_err = 1e5*fabs(wf.get_keff() - REF_K_EFF) / REF_K_EFF;
+    double keff_err = 1e5*fabs(((CustomWeakForm*)wf.get())->get_keff() - REF_K_EFF) / REF_K_EFF;
 
     Hermes::Mixins::Loggable::Static::info("per-group err_est_coarse (H1): %g%%, %g%%, %g%%, %g%%", report_errors(h1_group_errors));
     Hermes::Mixins::Loggable::Static::info("per-group err_est_coarse (L2): %g%%, %g%%, %g%%, %g%%", report_errors(l2_group_errors));
@@ -375,17 +365,10 @@ int main(int argc, char* argv[])
     else
     {
       Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh->");
-      done = adapt_h1.adapt(selectors, THRESHOLD, STRATEGY, MESH_REGULARITY);
+      done = adapt_h1.adapt(selectors);
       if (spaces[0]->get_num_dofs() + spaces[1]->get_num_dofs()
         + spaces[2]->get_num_dofs() + spaces[3]->get_num_dofs() >= NDOF_STOP)
         done = true;
-    }
-
-    // Free reference meshes and spaces.
-    for (unsigned int g = 0; g < matprop.get_G(); g++)
-    {
-      delete ref_spaces_const[g];
-      delete ref_meshes[g];
     }
 
     as++;
@@ -394,12 +377,6 @@ int main(int argc, char* argv[])
   } while (done == false);
 
   Hermes::Mixins::Loggable::Static::info("Total running time: %g s", cpu_time.accumulated());
-
-  for (unsigned int g = 0; g < matprop.get_G(); g++)
-  {
-    delete spaces[g]; delete meshes[g];
-    delete coarse_solutions[g], delete fine_solutions[g]; delete power_iterates[g];
-  }
 
   delete mat;
   delete rhs;

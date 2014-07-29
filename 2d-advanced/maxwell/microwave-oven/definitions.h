@@ -14,7 +14,7 @@ typedef std::complex<double> complex;
 
 // Jacobian.
 
-class CustomMatrixForm : public MatrixFormVol < complex >
+class CustomMatrixForm : public MatrixFormVol <::complex>
 {
 public:
   CustomMatrixForm(int i, int j, double e_0, double mu_0, double mu_r, double kappa, double omega, double J, bool align_mesh)
@@ -25,13 +25,13 @@ public:
 
   template<typename Real, typename Scalar>
   Scalar matrix_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u,
-    Func<Real> *v, Geom<Real> *e, Func<Scalar>* *ext) const;
+    Func<Real> *v, GeomVol<Real> *e, Func<Scalar>* *ext) const;
 
   virtual std::complex<double>  value(int n, double *wt, Func<::complex> *u_ext[], Func<double> *u,
-    Func<double> *v, Geom<double> *e, Func<::complex> **ext) const;
+    Func<double> *v, GeomVol<double> *e, Func<::complex> **ext) const;
 
   virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u,
-    Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const;
+    Func<Ord> *v, GeomVol<Ord> *e, Func<Ord>* *ext) const;
 
   // Gamma as a function of x, y.
   double gamma(int marker, double x, double y) const;
@@ -55,7 +55,7 @@ private:
 
 // Residual.
 
-class CustomResidualForm : public VectorFormVol < complex >
+class CustomResidualForm : public VectorFormVol <::complex>
 {
 public:
   CustomResidualForm(int i, double e_0, double mu_0, double mu_r, double kappa, double omega, double J, bool align_mesh)
@@ -64,12 +64,12 @@ public:
 
   template<typename Real, typename Scalar>
   Scalar vector_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v,
-    Geom<Real> *e, Func<Scalar>* *ext) const;
+    GeomVol<Real> *e, Func<Scalar>* *ext) const;
 
-  virtual std::complex<double>  value(int n, double *wt, Func<::complex> *u_ext[], Func<double> *v, Geom<double> *e,
+  virtual std::complex<double>  value(int n, double *wt, Func<::complex> *u_ext[], Func<double> *v, GeomVol<double> *e,
     Func<::complex> **ext) const;
 
-  virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e,
+  virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, GeomVol<Ord> *e,
     Func<Ord>* *ext) const;
 
   virtual VectorFormVol<::complex>* clone() const;
@@ -92,7 +92,7 @@ private:
   bool align_mesh;
 };
 
-class CustomVectorFormSurf : public VectorFormSurf < complex >
+class CustomVectorFormSurf : public VectorFormSurf <::complex>
 {
 public:
   CustomVectorFormSurf(double omega, double J, std::string bnd)
@@ -100,19 +100,19 @@ public:
 
   template<typename Scalar, typename Real>
   Scalar vector_form_surf(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v,
-    Geom<Real> *e, Func<Scalar>* *ext) const;
+    GeomSurf<Real> *e, Func<Scalar>* *ext) const;
 
   virtual std::complex<double>  value(int n, double *wt, Func<::complex> *u_ext[],
-    Func<double> *v, Geom<double> *e, Func<::complex> **ext) const;
+    Func<double> *v, GeomSurf<double> *e, Func<::complex> **ext) const;
 
   virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v,
-    Geom<Ord> *e, Func<Ord>* *ext) const;
+    GeomSurf<Ord> *e, Func<Ord>* *ext) const;
 
   virtual VectorFormSurf<::complex>* clone() const { return new CustomVectorFormSurf(omega, J, this->areas[0]); }
   double omega, J;
 };
 
-class CustomWeakForm : public WeakForm < complex >
+class CustomWeakForm : public WeakForm <::complex>
 {
 public:
   CustomWeakForm(double e_0, double mu_0, double mu_r, double kappa, double omega,
@@ -125,7 +125,7 @@ private:
 
 // Custom error form.
 
-class CustomErrorForm : public NormFormVol < complex >
+class CustomErrorForm : public NormFormVol <::complex>
 {
 public:
   CustomErrorForm(double kappa) : NormFormVol<::complex>(0, 0)
@@ -134,7 +134,7 @@ public:
   };
 
   template<typename Real, typename Scalar>
-  Scalar hcurl_form_kappa(int n, double *wt, Func<Scalar> *u, Func<Scalar> *v, Geom<Real> *e) const
+  Scalar hcurl_form_kappa(int n, double *wt, Func<Scalar> *u, Func<Scalar> *v, GeomVol<Real> *e) const
   {
     Scalar result = Scalar(0);
 
@@ -147,12 +147,12 @@ public:
     return result;
   }
 
-  virtual std::complex<double> value(int n, double *wt, Func<::complex> *u, Func<::complex> *v, Geom<double> *e) const
+  virtual std::complex<double> value(int n, double *wt, Func<::complex> *u, Func<::complex> *v, GeomVol<double> *e) const
   {
     return hcurl_form_kappa<double, std::complex<double> >(n, wt, u, v, e);
   }
 
-  virtual Ord ord(int n, double *wt, Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e) const
+  virtual Ord ord(int n, double *wt, Func<Ord> *u, Func<Ord> *v, GeomVol<Ord> *e) const
   {
     return hcurl_form_kappa<Ord, Ord>(n, wt, u, v, e);
   }

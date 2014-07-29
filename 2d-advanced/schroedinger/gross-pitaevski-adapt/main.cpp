@@ -1,4 +1,4 @@
-#define HERMES_REPORT_FILE "application.log"
+
 #include "definitions.h"
 
 //  This example shows how to combine automatic adaptivity with the Newton's
@@ -40,11 +40,11 @@ const int UNREF_METHOD = 3;
 // it has different meanings for various adaptive strategies.
 const double THRESHOLD = 0.3;
 // Error calculation & adaptivity.
-DefaultErrorCalculator<double, HERMES_H1_NORM> errorCalculator(RelativeErrorToGlobalNorm, 1);
+DefaultErrorCalculator<::complex, HERMES_H1_NORM> errorCalculator(RelativeErrorToGlobalNorm, 1);
 // Stopping criterion for an adaptivity step.
-AdaptStoppingCriterionSingleElement<double> stoppingCriterion(THRESHOLD);
+AdaptStoppingCriterionSingleElement<::complex> stoppingCriterion(THRESHOLD);
 // Adaptivity processor class.
-Adapt<double> adaptivity(&errorCalculator, &stoppingCriterion);
+Adapt<::complex> adaptivity(&errorCalculator, &stoppingCriterion);
 // Predefined list of element refinement candidates.
 const CandList CAND_LIST = H2D_HP_ANISO;
 // Stopping criterion for adaptivity.
@@ -131,7 +131,7 @@ int main(int argc, char* argv[])
   double current_time = 0;
 
   // Initialize weak formulation.
-  CustomWeakFormGPRK wf(h, m, g, omega);
+  WeakFormSharedPtr<::complex> wf(new CustomWeakFormGPRK(h, m, g, omega));
 
   // Initialize boundary conditions.
   DefaultEssentialBCConst<::complex> bc_essential("Bdy", 0.0);
@@ -221,9 +221,6 @@ int main(int argc, char* argv[])
       Space<::complex>::ReferenceSpaceCreator refSpaceCreator(space, ref_mesh);
       SpaceSharedPtr<::complex> ref_space = refSpaceCreator.create_ref_space();
 
-      // Initialize discrete problem on reference mesh->
-      DiscreteProblem<::complex>* ref_dp = new DiscreteProblem<::complex>(wf, ref_space);
-
       RungeKutta<::complex> runge_kutta(wf, ref_space, &bt);
 
       // Runge-Kutta step on the fine mesh->
@@ -263,9 +260,10 @@ int main(int argc, char* argv[])
 
         time_error_view.show(abs_tef);
 
-        rel_err_time = Global<::complex>::calc_norm(time_error_fn.get(), HERMES_H1_NORM) /
-          Global<::complex>::calc_norm(ref_sln.get(), HERMES_H1_NORM) * 100;
-        if (ADAPTIVE_TIME_STEP_ON == false) Hermes::Mixins::Loggable::Static::info("rel_err_time: %g%%", rel_err_time);
+        DefaultNormCalculator<::complex, HERMES_H1_NORM> normCalculator(1);
+        rel_err_time = 100. * normCalculator.calculate_norm(time_error_fn) / normCalculator.calculate_norm(ref_sln);
+        if (ADAPTIVE_TIME_STEP_ON == false)
+          Hermes::Mixins::Loggable::Static::info("rel_err_time: %g%%", rel_err_time);
       }
 
       if (ADAPTIVE_TIME_STEP_ON) {
@@ -275,7 +273,6 @@ int main(int argc, char* argv[])
             time_step, time_step * TIME_STEP_DEC_RATIO);
           time_step *= TIME_STEP_DEC_RATIO;
 
-          delete ref_dp;
           continue;
         }
         else if (rel_err_time < TIME_ERR_TOL_LOWER) {
@@ -283,7 +280,6 @@ int main(int argc, char* argv[])
           Hermes::Mixins::Loggable::Static::info("Increasing time step from %g to %g s.", time_step, time_step * TIME_STEP_INC_RATIO);
           time_step *= TIME_STEP_INC_RATIO;
 
-          delete ref_dp;
           continue;
         }
         else {
@@ -307,7 +303,7 @@ int main(int argc, char* argv[])
 
       // Show spatial error.
       sprintf(title, "Spatial error est, spatial adaptivity step %d", as);
-      MeshFunctionSharedPtr<::complex> space_error_fn(new DiffFilter<::complex>({ref_sln, sln}));
+      MeshFunctionSharedPtr<::complex> space_error_fn(new DiffFilter<::complex>(std::vector<MeshFunctionSharedPtr<::complex> >({ ref_sln, sln })));
 
       space_error_view.set_title(title);
       space_error_view.show_mesh(false);
@@ -319,7 +315,6 @@ int main(int argc, char* argv[])
 
       // Calculate element errors and spatial error estimate.
       Hermes::Mixins::Loggable::Static::info("Calculating spatial error estimate.");
-      Adapt<::complex> adaptivity(space);
       double err_rel_space = errorCalculator.get_total_error_squared() * 100;
 
       // Report results.
@@ -327,7 +322,8 @@ int main(int argc, char* argv[])
         Space<::complex>::get_num_dofs(space), Space<::complex>::get_num_dofs(ref_space), err_rel_space);
 
       // If err_est too large, adapt the mesh->
-      if (err_rel_space < SPACE_ERR_TOL) done = true;
+      if (err_rel_space < ERR_STOP)
+        done = true;
       else
       {
         Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh->");
@@ -337,9 +333,6 @@ int main(int argc, char* argv[])
         as++;
       }
 
-      // Clean up.
-
-      delete ref_dp;
     } while (done == false);
 
     // Visualize the solution and mesh->

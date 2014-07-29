@@ -449,7 +449,7 @@ CustomWeakFormElasticityNIST::CustomWeakFormElasticityNIST(double E, double nu, 
 
 template<typename Real, typename Scalar>
 Scalar CustomWeakFormElasticityNIST::CustomMatrixFormVolElasticityNIST_0_0::matrix_form(int n, double *wt, Func<Scalar> *u_ext[],
-  Func<Real> *u, Func<Real> *v, Geom<Real> *e, Func<Scalar>* *ext) const
+  Func<Real> *u, Func<Real> *v, GeomVol<Real> *e, Func<Scalar>* *ext) const
 {
   Scalar val = Scalar(0);
   for (int i = 0; i < n; i++)
@@ -458,13 +458,13 @@ Scalar CustomWeakFormElasticityNIST::CustomMatrixFormVolElasticityNIST_0_0::matr
 }
 
 double CustomWeakFormElasticityNIST::CustomMatrixFormVolElasticityNIST_0_0::value(int n, double *wt, Func<double> *u_ext[],
-  Func<double> *u, Func<double> *v, Geom<double> *e, Func<double>* *ext) const
+  Func<double> *u, Func<double> *v, GeomVol<double> *e, Func<double>* *ext) const
 {
   return matrix_form<double, double>(n, wt, u_ext, u, v, e, ext);
 }
 
 Ord CustomWeakFormElasticityNIST::CustomMatrixFormVolElasticityNIST_0_0::ord(int n, double *wt, Func<Ord> *u_ext[],
-  Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const
+  Func<Ord> *u, Func<Ord> *v, GeomVol<Ord> *e, Func<Ord>* *ext) const
 {
   return matrix_form<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
 }
@@ -476,7 +476,7 @@ MatrixFormVol<double>* CustomWeakFormElasticityNIST::CustomMatrixFormVolElastici
 
 template<typename Real, typename Scalar>
 Scalar CustomWeakFormElasticityNIST::CustomMatrixFormVolElasticityNIST_0_1::matrix_form(int n, double *wt, Func<Scalar> *u_ext[],
-  Func<Real> *u, Func<Real> *v, Geom<Real> *e, Func<Scalar>* *ext) const
+  Func<Real> *u, Func<Real> *v, GeomVol<Real> *e, Func<Scalar>* *ext) const
 {
   Scalar val = Scalar(0);
   for (int i = 0; i < n; i++)
@@ -485,13 +485,13 @@ Scalar CustomWeakFormElasticityNIST::CustomMatrixFormVolElasticityNIST_0_1::matr
 }
 
 double CustomWeakFormElasticityNIST::CustomMatrixFormVolElasticityNIST_0_1::value(int n, double *wt, Func<double> *u_ext[],
-  Func<double> *u, Func<double> *v, Geom<double> *e, Func<double>* *ext) const
+  Func<double> *u, Func<double> *v, GeomVol<double> *e, Func<double>* *ext) const
 {
   return matrix_form<double, double>(n, wt, u_ext, u, v, e, ext);
 }
 
 Ord CustomWeakFormElasticityNIST::CustomMatrixFormVolElasticityNIST_0_1::ord(int n, double *wt, Func<Ord> *u_ext[],
-  Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const
+  Func<Ord> *u, Func<Ord> *v, GeomVol<Ord> *e, Func<Ord>* *ext) const
 {
   return matrix_form<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
 }
@@ -503,7 +503,7 @@ MatrixFormVol<double>* CustomWeakFormElasticityNIST::CustomMatrixFormVolElastici
 
 template<typename Real, typename Scalar>
 Scalar CustomWeakFormElasticityNIST::CustomMatrixFormVolElasticityNIST_1_1::matrix_form(int n, double *wt, Func<Scalar> *u_ext[],
-  Func<Real> *u, Func<Real> *v, Geom<Real> *e, Func<Scalar>* *ext) const
+  Func<Real> *u, Func<Real> *v, GeomVol<Real> *e, Func<Scalar>* *ext) const
 {
   Scalar val = Scalar(0);
   for (int i = 0; i < n; i++)
@@ -512,13 +512,13 @@ Scalar CustomWeakFormElasticityNIST::CustomMatrixFormVolElasticityNIST_1_1::matr
 }
 
 double CustomWeakFormElasticityNIST::CustomMatrixFormVolElasticityNIST_1_1::value(int n, double *wt, Func<double> *u_ext[],
-  Func<double> *u, Func<double> *v, Geom<double> *e, Func<double>* *ext) const
+  Func<double> *u, Func<double> *v, GeomVol<double> *e, Func<double>* *ext) const
 {
   return matrix_form<double, double>(n, wt, u_ext, u, v, e, ext);
 }
 
 Ord CustomWeakFormElasticityNIST::CustomMatrixFormVolElasticityNIST_1_1::ord(int n, double *wt, Func<Ord> *u_ext[],
-  Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const
+  Func<Ord> *u, Func<Ord> *v, GeomVol<Ord> *e, Func<Ord>* *ext) const
 {
   return matrix_form<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
 }
@@ -530,7 +530,7 @@ MatrixFormVol<double>* CustomWeakFormElasticityNIST::CustomMatrixFormVolElastici
 
 template<typename Real, typename Scalar>
 Scalar CustomWeakFormElasticityNIST::CustomVectorFormVolElasticityNIST_0::vector_form(int n, double *wt, Func<Scalar> *u_ext[],
-  Func<Real> *v, Geom<Real> *e, Func<Scalar>* *ext) const
+  Func<Real> *v, GeomVol<Real> *e, Func<Scalar>* *ext) const
 {
   Scalar val = Scalar(0);
   for (int i = 0; i < n; i++)
@@ -545,13 +545,13 @@ Scalar CustomWeakFormElasticityNIST::CustomVectorFormVolElasticityNIST_0::vector
 }
 
 double CustomWeakFormElasticityNIST::CustomVectorFormVolElasticityNIST_0::value(int n, double *wt, Func<double> *u_ext[],
-  Func<double> *v, Geom<double> *e, Func<double>* *ext) const
+  Func<double> *v, GeomVol<double> *e, Func<double>* *ext) const
 {
   return vector_form<double, double>(n, wt, u_ext, v, e, ext);
 }
 
 Ord CustomWeakFormElasticityNIST::CustomVectorFormVolElasticityNIST_0::ord(int n, double *wt, Func<Ord> *u_ext[],
-  Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const
+  Func<Ord> *v, GeomVol<Ord> *e, Func<Ord>* *ext) const
 {
   return vector_form<Ord, Ord>(n, wt, u_ext, v, e, ext);
 }
@@ -563,7 +563,7 @@ VectorFormVol<double>* CustomWeakFormElasticityNIST::CustomVectorFormVolElastici
 
 template<typename Real, typename Scalar>
 Scalar CustomWeakFormElasticityNIST::CustomVectorFormVolElasticityNIST_1::vector_form(int n, double *wt, Func<Scalar> *u_ext[],
-  Func<Real> *v, Geom<Real> *e, Func<Scalar>* *ext) const
+  Func<Real> *v, GeomVol<Real> *e, Func<Scalar>* *ext) const
 {
   Scalar val = Scalar(0);
   for (int i = 0; i < n; i++)
@@ -578,13 +578,13 @@ Scalar CustomWeakFormElasticityNIST::CustomVectorFormVolElasticityNIST_1::vector
 }
 
 double CustomWeakFormElasticityNIST::CustomVectorFormVolElasticityNIST_1::value(int n, double *wt, Func<double> *u_ext[],
-  Func<double> *v, Geom<double> *e, Func<double>* *ext) const
+  Func<double> *v, GeomVol<double> *e, Func<double>* *ext) const
 {
   return vector_form<double, double>(n, wt, u_ext, v, e, ext);
 }
 
 Ord CustomWeakFormElasticityNIST::CustomVectorFormVolElasticityNIST_1::ord(int n, double *wt, Func<Ord> *u_ext[],
-  Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const
+  Func<Ord> *v, GeomVol<Ord> *e, Func<Ord>* *ext) const
 {
   return vector_form<Ord, Ord>(n, wt, u_ext, v, e, ext);
 }

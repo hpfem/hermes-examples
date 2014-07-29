@@ -9,13 +9,12 @@ double H_OFFSET = 1e3;
 
 /* Custom non-constant Dirichlet condition */
 
-EssentialBoundaryCondition<double>::EssentialBCValueType CustomEssentialBCNonConst::get_value_type() const
+EssentialBCValueType CustomEssentialBCNonConst::get_value_type() const
 {
-  return EssentialBoundaryCondition<double>::BC_FUNCTION;
+  return BC_FUNCTION;
 }
 
-double CustomEssentialBCNonConst::value(double x, double y, double n_x, double n_y,
-  double t_x, double t_y) const
+double CustomEssentialBCNonConst::value(double x, double y) const
 {
   return x*(100. - x) / 2.5 * y / 100 - 1000. + H_OFFSET;
 }
@@ -36,7 +35,7 @@ CustomWeakFormRichardsIEPicard::CustomWeakFormRichardsIEPicard(double time_step,
 }
 
 double CustomWeakFormRichardsIEPicard::CustomJacobian::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u,
-  Func<double> *v, Geom<double> *e, Func<double>* *ext) const
+  Func<double> *v, GeomVol<double> *e, Func<double>* *ext) const
 {
   double result = 0;
   Func<double>* h_prev_picard = u_ext[0];
@@ -53,7 +52,7 @@ double CustomWeakFormRichardsIEPicard::CustomJacobian::value(int n, double *wt, 
 }
 
 Ord CustomWeakFormRichardsIEPicard::CustomJacobian::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u,
-  Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const
+  Func<Ord> *v, GeomVol<Ord> *e, Func<Ord>* *ext) const
 {
   return Ord(10);
 }
@@ -63,7 +62,7 @@ MatrixFormVol<double>* CustomWeakFormRichardsIEPicard::CustomJacobian::clone() c
   return new CustomJacobian(*this);
 }
 
-double CustomWeakFormRichardsIEPicard::CustomResidual::value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e,
+double CustomWeakFormRichardsIEPicard::CustomResidual::value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, GeomVol<double> *e,
   Func<double>* *ext) const
 {
   double result = 0;
@@ -79,7 +78,7 @@ double CustomWeakFormRichardsIEPicard::CustomResidual::value(int n, double *wt, 
 }
 
 Ord CustomWeakFormRichardsIEPicard::CustomResidual::ord(int n, double *wt, Func<Ord> *u_ext[],
-  Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const
+  Func<Ord> *v, GeomVol<Ord> *e, Func<Ord>* *ext) const
 {
   return Ord(10);
 }

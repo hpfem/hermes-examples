@@ -65,7 +65,7 @@ int main(int argc, char* argv[])
   MeshFunctionSharedPtr<double> exact_sln(new CustomExactSolution(mesh, SIGMA, TAU, RHO));
 
   // Initialize weak formulation.
-  CustomWeakFormPoisson wf("Mat_0", R, "Mat_1");
+  WeakFormSharedPtr<double> wf(new CustomWeakFormPoisson("Mat_0", R, "Mat_1"));
 
   // Initialize boundary conditions
   DefaultEssentialBCNonConst<double> bc_essential("Bdy", exact_sln);

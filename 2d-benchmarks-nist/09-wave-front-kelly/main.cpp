@@ -1,4 +1,4 @@
-#define HERMES_REPORT_ALL
+
 #include "definitions.h"
 
 //  This is the ninth in the series of NIST benchmarks with known exact solutions. This benchmark

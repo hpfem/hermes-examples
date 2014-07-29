@@ -35,7 +35,7 @@ CustomWeakFormWave::CustomWeakFormWave(double tau, double c_squared, MeshFunctio
 
 template<typename Real, typename Scalar>
 Scalar CustomWeakFormWave::VectorFormVolWave_0::vector_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v,
-  Geom<Real> *e, Func<Scalar>* *ext) const
+  GeomVol<Real> *e, Func<Scalar>* *ext) const
 {
   Scalar result = Scalar(0);
 
@@ -46,12 +46,12 @@ Scalar CustomWeakFormWave::VectorFormVolWave_0::vector_form(int n, double *wt, F
 }
 
 double CustomWeakFormWave::VectorFormVolWave_0::value(int n, double *wt, Func<double> *u_ext[], Func<double> *v,
-  Geom<double> *e, Func<double>* *ext) const
+  GeomVol<double> *e, Func<double>* *ext) const
 {
   return vector_form<double, double>(n, wt, u_ext, v, e, ext);
 }
 
-Ord CustomWeakFormWave::VectorFormVolWave_0::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e,
+Ord CustomWeakFormWave::VectorFormVolWave_0::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, GeomVol<Ord> *e,
   Func<Ord>* *ext) const
 {
   return vector_form<Ord, Ord>(n, wt, u_ext, v, e, ext);
@@ -64,7 +64,7 @@ VectorFormVol<double>* CustomWeakFormWave::VectorFormVolWave_0::clone() const
 
 template<typename Real, typename Scalar>
 Scalar CustomWeakFormWave::VectorFormVolWave_1::vector_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v,
-  Geom<Real> *e, Func<Scalar>* *ext) const
+  GeomVol<Real> *e, Func<Scalar>* *ext) const
 {
   Scalar result = Scalar(0);
 
@@ -75,12 +75,12 @@ Scalar CustomWeakFormWave::VectorFormVolWave_1::vector_form(int n, double *wt, F
 }
 
 double CustomWeakFormWave::VectorFormVolWave_1::value(int n, double *wt, Func<double> *u_ext[], Func<double> *v,
-  Geom<double> *e, Func<double>* *ext) const
+  GeomVol<double> *e, Func<double>* *ext) const
 {
   return vector_form<double, double>(n, wt, u_ext, v, e, ext);
 }
 
-Ord CustomWeakFormWave::VectorFormVolWave_1::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e,
+Ord CustomWeakFormWave::VectorFormVolWave_1::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, GeomVol<Ord> *e,
   Func<Ord>* *ext) const
 {
   return vector_form<Ord, Ord>(n, wt, u_ext, v, e, ext);

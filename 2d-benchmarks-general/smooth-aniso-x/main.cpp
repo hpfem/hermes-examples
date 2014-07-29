@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
   MeshFunctionSharedPtr<double> exact_sln(new CustomExactSolution(mesh));
 
   // Initialize the weak formulation.
-  CustomWeakFormPoisson wf("Right");
+  WeakFormSharedPtr<double> wf(new CustomWeakFormPoisson("Right"));
 
   // Initialize boundary conditions.
   DefaultEssentialBCConst<double> bc_essential("Left", 0.0);

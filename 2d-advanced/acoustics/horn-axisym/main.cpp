@@ -22,7 +22,7 @@ const int P_INIT = 2;
 // it has different meanings for various adaptive strategies.
 const double THRESHOLD = 0.3;
 // Error calculation & adaptivity.
-DefaultErrorCalculator<complex, HERMES_H1_NORM> errorCalculator(RelativeErrorToGlobalNorm, 1);
+DefaultErrorCalculator<::complex, HERMES_H1_NORM> errorCalculator(RelativeErrorToGlobalNorm, 1);
 // Stopping criterion for an adaptivity step.
 AdaptStoppingCriterionSingleElement<::complex> stoppingCriterion(THRESHOLD);
 // Adaptivity processor class.
@@ -68,7 +68,7 @@ int main(int argc, char* argv[])
   Hermes::Mixins::Loggable::Static::info("ndof = %d", ndof);
 
   // Initialize the weak formulation.
-  CustomWeakFormAcoustics wf("Outlet", RHO, SOUND_SPEED, OMEGA);
+  WeakFormSharedPtr<::complex> wf(new CustomWeakFormAcoustics("Outlet", RHO, SOUND_SPEED, OMEGA));
 
   // Initialize coarse and reference mesh solution.
   MeshFunctionSharedPtr<::complex>  sln(new Solution<::complex>), ref_sln(new Solution<::complex>);

@@ -1,5 +1,4 @@
 #define HERMES_REPORT_INFO
-
 #include "hermes2d.h"
 
 using namespace Hermes;

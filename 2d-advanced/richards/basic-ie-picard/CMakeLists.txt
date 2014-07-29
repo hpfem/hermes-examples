@@ -1,4 +1,4 @@
-project(basic-ie-picard)
+project(richards-basic-ie-picard)
 
 add_executable(${PROJECT_NAME} main.cpp definitions.cpp definitions.h)
 

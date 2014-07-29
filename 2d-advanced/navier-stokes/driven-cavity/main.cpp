@@ -114,7 +114,7 @@ int main(int argc, char* argv[])
 #else
   SpaceSharedPtr<double> p_space(new H1Space<double>(mesh, P_INIT_PRESSURE));
 #endif
-  std::vector<SpaceSharedPtr<double> > spaces(xvel_space, yvel_space, p_space);
+  std::vector<SpaceSharedPtr<double> > spaces({ xvel_space, yvel_space, p_space });
 
   // Calculate and report the number of degrees of freedom.
   int ndof = Space<double>::get_num_dofs(spaces);
@@ -133,11 +133,10 @@ int main(int argc, char* argv[])
   MeshFunctionSharedPtr<double>  xvel_prev_time(new ZeroSolution<double>(mesh));
   MeshFunctionSharedPtr<double>  yvel_prev_time(new ZeroSolution<double>(mesh));
   MeshFunctionSharedPtr<double>  p_prev_time(new ZeroSolution<double>(mesh));
-  std::vector<MeshFunctionSharedPtr<double> > slns_prev_time =
-    std::vector<MeshFunctionSharedPtr<double> >(xvel_prev_time, yvel_prev_time, p_prev_time);
+  std::vector<MeshFunctionSharedPtr<double> > slns_prev_time({ xvel_prev_time, yvel_prev_time, p_prev_time });
 
   // Initialize weak formulation.
-  WeakFormNSNewton wf(STOKES, RE, TAU, xvel_prev_time, yvel_prev_time);
+  WeakFormSharedPtr<double> wf(new WeakFormNSNewton(STOKES, RE, TAU, xvel_prev_time, yvel_prev_time));
 
   // Initialize views.
   VectorView vview("velocity [m/s]", new WinGeom(0, 0, 600, 500));

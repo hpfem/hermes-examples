@@ -6,19 +6,19 @@ CustomWeakFormMagnetostatics::CustomWeakFormMagnetostatics(std::string material_
   double current_density, int order_inc) : WeakForm<double>(1)
 {
   // Jacobian.
-  add_matrix_form(new DefaultJacobianMagnetostatics<double>(0, 0, std::vector<std::string>(material_air, material_copper),
+  add_matrix_form(new DefaultJacobianMagnetostatics<double>(0, 0, std::vector<std::string>({ material_air, material_copper }),
     1.0, nullptr, HERMES_NONSYM, HERMES_AXISYM_Y, order_inc));
-  add_matrix_form(new DefaultJacobianMagnetostatics<double>(0, 0, std::vector<std::string>(material_iron_1, material_iron_2), 1.0,
+  add_matrix_form(new DefaultJacobianMagnetostatics<double>(0, 0, std::vector<std::string>({ material_iron_1, material_iron_2 }), 1.0,
     mu_inv_iron, HERMES_NONSYM, HERMES_AXISYM_Y, order_inc));
   // Residual.
-  add_vector_form(new DefaultResidualMagnetostatics<double>(0, std::vector<std::string>(material_air, material_copper),
+  add_vector_form(new DefaultResidualMagnetostatics<double>(0, std::vector<std::string>({ material_air, material_copper }),
     1.0, nullptr, HERMES_AXISYM_Y, order_inc));
-  add_vector_form(new DefaultResidualMagnetostatics<double>(0, std::vector<std::string>(material_iron_1, material_iron_2), 1.0,
+  add_vector_form(new DefaultResidualMagnetostatics<double>(0, std::vector<std::string>({ material_iron_1, material_iron_2 }), 1.0,
     mu_inv_iron, HERMES_AXISYM_Y, order_inc));
   add_vector_form(new DefaultVectorFormVol<double>(0, material_copper, new Hermes2DFunction<double>(-current_density * mu_vacuum)));
 }
 
-void FilterVectorPotential::filter_fn(int n, std::vector<double*> values, double* result, Geom<double> *e)
+void FilterVectorPotential::filter_fn(int n, std::vector<double*> values, double* result, GeomVol<double> *e)
 {
   for (int i = 0; i < n; i++)
   {
@@ -83,7 +83,7 @@ void FilterFluxDensity::precalculate(int order, int mask)
   const double *uval2 = sln[1]->get_fn_values();
 
   update_refmap();
-  double *x = refmap->get_phys_x(order);
+  double *x = this->refmap.get_phys_x(order);
 
   for (int i = 0; i < np; i++)
   {

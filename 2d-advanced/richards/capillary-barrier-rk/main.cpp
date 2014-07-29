@@ -1,4 +1,4 @@
-#define HERMES_REPORT_FILE "application.log"
+
 #include "definitions.h"
 
 //  This example solves the time-dependent Richard's equation using
@@ -223,7 +223,7 @@ int main(int argc, char* argv[])
   view.show(h_time_prev);
 
   // Initialize the weak formulation.
-  CustomWeakFormRichardsRK wf(&constitutive_relations);
+  WeakFormSharedPtr<double> wf(new CustomWeakFormRichardsRK(&constitutive_relations));
 
   // Visualize the projection and mesh->
   ScalarView sview("Initial condition", new WinGeom(0, 0, 400, 350));

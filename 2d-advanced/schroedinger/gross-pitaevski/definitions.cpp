@@ -33,7 +33,7 @@ CustomWeakFormGPRK::CustomWeakFormGPRK(double h, double m, double g, double omeg
 
 template<typename Real, typename Scalar>
 Scalar CustomWeakFormGPRK::CustomFormMatrixFormVol::matrix_form_rk(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u,
-  Func<Real> *v, Geom<Real> *e, Func<Scalar>* *ext) const
+  Func<Real> *v, GeomVol<Real> *e, Func<Scalar>* *ext) const
 {
   std::complex<double>  ii = std::complex<double>(0.0, 1.0);  // imaginary unit, ii^2 = -1
 
@@ -48,13 +48,13 @@ Scalar CustomWeakFormGPRK::CustomFormMatrixFormVol::matrix_form_rk(int n, double
 }
 
 std::complex<double> CustomWeakFormGPRK::CustomFormMatrixFormVol::value(int n, double *wt, Func<::complex> *u_ext[], Func<double> *u,
-  Func<double> *v, Geom<double> *e, Func<::complex> **ext) const
+  Func<double> *v, GeomVol<double> *e, Func<::complex> **ext) const
 {
   return matrix_form_rk<double, std::complex<double> >(n, wt, u_ext, u, v, e, ext);
 }
 
 Ord CustomWeakFormGPRK::CustomFormMatrixFormVol::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u,
-  Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const
+  Func<Ord> *v, GeomVol<Ord> *e, Func<Ord>* *ext) const
 {
   return matrix_form_rk<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
 }
@@ -66,7 +66,7 @@ MatrixFormVol<::complex>* CustomWeakFormGPRK::CustomFormMatrixFormVol::clone() c
 
 template<typename Real, typename Scalar>
 Scalar CustomWeakFormGPRK::CustomFormVectorFormVol::vector_form_rk(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v,
-  Geom<Real> *e, Func<Scalar>* *ext) const
+  GeomVol<Real> *e, Func<Scalar>* *ext) const
 {
   std::complex<double>  ii = std::complex<double>(0.0, 1.0);  // imaginary unit, ii^2 = -1
 
@@ -81,13 +81,13 @@ Scalar CustomWeakFormGPRK::CustomFormVectorFormVol::vector_form_rk(int n, double
   return result;
 }
 
-std::complex<double> CustomWeakFormGPRK::CustomFormVectorFormVol::value(int n, double *wt, Func<::complex> *u_ext[], Func<double> *v, Geom<double> *e,
+std::complex<double> CustomWeakFormGPRK::CustomFormVectorFormVol::value(int n, double *wt, Func<::complex> *u_ext[], Func<double> *v, GeomVol<double> *e,
   Func<::complex> **ext) const
 {
   return vector_form_rk<double, std::complex<double> >(n, wt, u_ext, v, e, ext);
 }
 
-Ord CustomWeakFormGPRK::CustomFormVectorFormVol::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const
+Ord CustomWeakFormGPRK::CustomFormVectorFormVol::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, GeomVol<Ord> *e, Func<Ord>* *ext) const
 {
   return vector_form_rk<Ord, Ord>(n, wt, u_ext, v, e, ext);
 }

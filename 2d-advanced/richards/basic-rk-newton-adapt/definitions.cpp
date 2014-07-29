@@ -9,13 +9,12 @@ double H_OFFSET = 1000;
 
 /* Custom non-constant Dirichlet condition */
 
-EssentialBoundaryCondition<double>::EssentialBCValueType CustomEssentialBCNonConst::get_value_type() const
+EssentialBCValueType CustomEssentialBCNonConst::get_value_type() const
 {
-  return EssentialBoundaryCondition<double>::BC_FUNCTION;
+  return BC_FUNCTION;
 }
 
-double CustomEssentialBCNonConst::value(double x, double y, double n_x, double n_y,
-  double t_x, double t_y) const
+double CustomEssentialBCNonConst::value(double x, double y) const
 {
   return x*(100. - x) / 2.5 * y / 100 - 1000. + H_OFFSET;
 }
@@ -34,7 +33,7 @@ CustomWeakFormRichardsRK::CustomWeakFormRichardsRK(ConstitutiveRelations* consti
 }
 
 double CustomWeakFormRichardsRK::CustomJacobianFormVol::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u,
-  Func<double> *v, Geom<double> *e, Func<double>* *ext) const
+  Func<double> *v, GeomVol<double> *e, Func<double>* *ext) const
 {
   double result = 0;
   Func<double>* h_prev_newton = u_ext[0];
@@ -67,7 +66,7 @@ double CustomWeakFormRichardsRK::CustomJacobianFormVol::value(int n, double *wt,
 }
 
 Ord CustomWeakFormRichardsRK::CustomJacobianFormVol::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u,
-  Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const
+  Func<Ord> *v, GeomVol<Ord> *e, Func<Ord>* *ext) const
 {
   return Ord(10);
 }
@@ -77,7 +76,7 @@ MatrixFormVol<double>* CustomWeakFormRichardsRK::CustomJacobianFormVol::clone() 
   return new CustomJacobianFormVol(*this);
 }
 
-double CustomWeakFormRichardsRK::CustomResidualFormVol::value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e,
+double CustomWeakFormRichardsRK::CustomResidualFormVol::value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, GeomVol<double> *e,
   Func<double>* *ext) const
 {
   double result = 0;
@@ -98,7 +97,7 @@ double CustomWeakFormRichardsRK::CustomResidualFormVol::value(int n, double *wt,
   return result;
 }
 
-Ord CustomWeakFormRichardsRK::CustomResidualFormVol::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const
+Ord CustomWeakFormRichardsRK::CustomResidualFormVol::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, GeomVol<Ord> *e, Func<Ord>* *ext) const
 {
   return Ord(10);
 }

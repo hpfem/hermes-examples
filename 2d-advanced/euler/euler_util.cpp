@@ -44,7 +44,7 @@ void CFLCalculation::calculate(std::vector<MeshFunctionSharedPtr<double> > solut
   double* sln_vector = new double[constant_rho_space->get_num_dofs() * 4];
 
   OGProjection<double> ogProjection;
-  ogProjection.project_global(std::vector<SpaceSharedPtr<double>  >(constant_rho_space, constant_rho_v_x_space, constant_rho_v_y_space, constant_energy_space), solutions, sln_vector);
+  ogProjection.project_global(std::vector<SpaceSharedPtr<double>  >({ constant_rho_space, constant_rho_v_x_space, constant_rho_v_y_space, constant_energy_space }), solutions, sln_vector);
 
   // Determine the time step according to the CFL condition.
 
@@ -85,7 +85,7 @@ void CFLCalculation::calculate_semi_implicit(std::vector<MeshFunctionSharedPtr<d
   double* sln_vector = new double[constant_rho_space->get_num_dofs() * 4];
 
   OGProjection<double> ogProjection;
-  ogProjection.project_global(std::vector<SpaceSharedPtr<double>  >(constant_rho_space, constant_rho_v_x_space, constant_rho_v_y_space, constant_energy_space), solutions, sln_vector);
+  ogProjection.project_global(std::vector<SpaceSharedPtr<double>  >({ constant_rho_space, constant_rho_v_x_space, constant_rho_v_y_space, constant_energy_space }), solutions, sln_vector);
 
   // Determine the time step according to the CFL condition.
 
@@ -114,7 +114,7 @@ void CFLCalculation::calculate_semi_implicit(std::vector<MeshFunctionSharedPtr<d
       surf_pos.surf_num = edge_i;
       int eo = solutions[1]->get_quad_2d()->get_edge_points(surf_pos.surf_num, 20, e->get_mode());
       double3* tan = NULL;
-      Geom<double>* geom = init_geom_surf(solutions[0]->get_refmap(), surf_pos.surf_num, surf_pos.marker, eo, tan);
+      GeomSurf<double>* geom = init_geom_surf(solutions[0]->get_refmap(), surf_pos.surf_num, surf_pos.marker, eo, tan);
       int np = solutions[1]->get_quad_2d()->get_num_points(eo, e->get_mode());
 
       // Calculation of the edge length.
@@ -145,7 +145,6 @@ void CFLCalculation::calculate_semi_implicit(std::vector<MeshFunctionSharedPtr<d
       if (edge_length * max_eigen_value > edge_length_max_lambda || edge_i == 0)
         edge_length_max_lambda = edge_length * max_eigen_value;
 
-      geom->free();
       delete geom;
     }
 
@@ -181,7 +180,7 @@ void ADEStabilityCalculation::calculate(std::vector<MeshFunctionSharedPtr<double
   double* sln_vector = new double[constant_rho_space->get_num_dofs() * 3];
 
   OGProjection<double> ogProjection;
-  ogProjection.project_global(std::vector<SpaceSharedPtr<double>  >(constant_rho_space, constant_rho_v_x_space, constant_rho_v_y_space), solutions, sln_vector);
+  ogProjection.project_global({ constant_rho_space, constant_rho_v_x_space, constant_rho_v_y_space }, solutions, sln_vector);
 
   // Determine the time step according to the conditions.
   double min_condition_advection = 0.;
@@ -307,7 +306,7 @@ double KrivodonovaDiscontinuityDetector::calculate_relative_flow_direction(Eleme
   int np = solutions[1]->get_quad_2d()->get_num_points(eo, e->get_mode());
 
   double3* tan;
-  Geom<double>* geom = init_geom_surf(solutions[1]->get_refmap(), surf_pos.surf_num, surf_pos.marker, eo, tan);
+  GeomSurf<double>* geom = init_geom_surf(solutions[1]->get_refmap(), surf_pos.surf_num, surf_pos.marker, eo, tan);
 
   double* jwt = new double[np];
   for (int i = 0; i < np; i++)
@@ -321,7 +320,7 @@ double KrivodonovaDiscontinuityDetector::calculate_relative_flow_direction(Eleme
   for (int point_i = 0; point_i < np; point_i++)
     result += jwt[point_i] * density_vel_x->val[point_i] * geom->nx[point_i] + density_vel_y->val[point_i] * geom->ny[point_i];
 
-  geom->free();
+  
   delete geom;
   delete[] jwt;
   delete density_vel_x;
@@ -370,7 +369,7 @@ void KrivodonovaDiscontinuityDetector::calculate_jumps(Element* e, int edge_i, d
     }
 
     double3* tan;
-    Geom<double>* geom = init_geom_surf(solutions[0]->get_refmap(), surf_pos.surf_num, surf_pos.marker, eo, tan);
+    GeomSurf<double>* geom = init_geom_surf(solutions[0]->get_refmap(), surf_pos.surf_num, surf_pos.marker, eo, tan);
     double* jwt = new double[np];
     for (int i = 0; i < np; i++)
       jwt[i] = pt[i][2] * tan[i][2];
@@ -413,7 +412,7 @@ void KrivodonovaDiscontinuityDetector::calculate_jumps(Element* e, int edge_i, d
       result[3] += jwt[point_i] * std::abs(energy_discontinuous.val[point_i] - energy_discontinuous.val_neighbor[point_i]);
     }
 
-    geom->free();
+    
     delete geom;
     delete[] jwt;
 
@@ -457,7 +456,7 @@ void KrivodonovaDiscontinuityDetector::calculate_norms(Element* e, int edge_i, d
   int np = solutions[0]->get_quad_2d()->get_num_points(eo, e->get_mode());
 
   double3* tan;
-  Geom<double>* geom = init_geom_surf(solutions[0]->get_refmap(), surf_pos.surf_num, surf_pos.marker, eo, tan);
+  GeomSurf<double>* geom = init_geom_surf(solutions[0]->get_refmap(), surf_pos.surf_num, surf_pos.marker, eo, tan);
   double* jwt = new double[np];
   for (int i = 0; i < np; i++)
     jwt[i] = pt[i][2] * tan[i][2];
@@ -475,7 +474,7 @@ void KrivodonovaDiscontinuityDetector::calculate_norms(Element* e, int edge_i, d
     result[3] = std::max(result[3], std::abs(energy->val[point_i]));
   }
 
-  geom->free();
+  
   delete geom;
   delete[] jwt;
 

@@ -50,7 +50,7 @@ int main(int argc, char* argv[])
   MeshFunctionSharedPtr<double> exact_sln(new CustomExactSolution(mesh));
 
   // Initialize the weak formulation.
-  DefaultWeakFormLaplace<double> wf;
+  WeakFormSharedPtr<double> wf(new DefaultWeakFormLaplace<double>);
 
   // Initialize boundary conditions
   DefaultEssentialBCNonConst<double> bc_essential("Bdy", exact_sln);

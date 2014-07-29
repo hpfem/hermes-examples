@@ -60,10 +60,10 @@ int main(int argc, char* argv[])
   // Initialize solutions.
   MeshFunctionSharedPtr<double> E_sln(new CustomInitialConditionWave(mesh));
   MeshFunctionSharedPtr<double>  F_sln(new ZeroSolutionVector<double>(mesh));
-  std::vector<MeshFunctionSharedPtr<double> > slns(E_sln, F_sln);
+  std::vector<MeshFunctionSharedPtr<double> > slns({ E_sln, F_sln });
 
   // Initialize the weak formulation.
-  CustomWeakFormWaveIE wf(time_step, C_SQUARED, E_sln, F_sln);
+  WeakFormSharedPtr<double> wf(new CustomWeakFormWaveIE(time_step, C_SQUARED, E_sln, F_sln));
 
   // Initialize boundary conditions
   DefaultEssentialBCConst<double> bc_essential("Perfect conductor", 0.0);
@@ -72,7 +72,7 @@ int main(int argc, char* argv[])
   SpaceSharedPtr<double> E_space(new HcurlSpace<double>(mesh, &bcs, P_INIT));
   SpaceSharedPtr<double> F_space(new HcurlSpace<double>(mesh, &bcs, P_INIT));
 
-  std::vector<SpaceSharedPtr<double> > spaces = std::vector<SpaceSharedPtr<double> >(E_space, F_space);
+  std::vector<SpaceSharedPtr<double> > spaces = std::vector<SpaceSharedPtr<double> >({ E_space, F_space });
   int ndof = HcurlSpace<double>::get_num_dofs(spaces);
   Hermes::Mixins::Loggable::Static::info("ndof = %d.", ndof);
 

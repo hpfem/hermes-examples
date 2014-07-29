@@ -101,7 +101,7 @@ int main(int argc, char* argv[])
 
   // Initialize the weak formulation.
   double current_time = 0;
-  CustomWeakFormRichardsIE wf(time_step, h_time_prev, constitutive_relations);
+  WeakFormSharedPtr<double> wf(new CustomWeakFormRichardsIE(time_step, h_time_prev, constitutive_relations));
 
   // Initialize the FE problem.
   DiscreteProblem<double> dp(wf, space);

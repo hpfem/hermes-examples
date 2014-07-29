@@ -1,4 +1,4 @@
-project(forward-step)
+project(euler-forward-step)
 
 add_executable(${PROJECT_NAME} main.cpp ../euler_util.cpp ../numerical_flux.cpp)
 

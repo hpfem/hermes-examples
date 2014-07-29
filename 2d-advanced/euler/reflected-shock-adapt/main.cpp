@@ -1,5 +1,4 @@
 #define HERMES_REPORT_INFO
-
 #include "hermes2d.h"
 
 using namespace Hermes;
@@ -137,7 +136,7 @@ int main(int argc, char* argv[])
   SpaceSharedPtr<double> space_rho_v_x(new L2Space<double>(mesh, P_INIT, new L2ShapesetTaylor));
   SpaceSharedPtr<double> space_rho_v_y(new L2Space<double>(mesh, P_INIT, new L2ShapesetTaylor));
   SpaceSharedPtr<double> space_e(new L2Space<double>(mesh, P_INIT, new L2ShapesetTaylor));
-  std::vector<SpaceSharedPtr<double> > spaces(space_rho, space_rho_v_x, space_rho_v_y, space_e);
+  std::vector<SpaceSharedPtr<double> > spaces({ space_rho, space_rho_v_x, space_rho_v_y, space_e });
   int ndof = Space<double>::get_num_dofs(spaces);
   Hermes::Mixins::Loggable::Static::info("ndof: %d", ndof);
 #pragma endregion
@@ -147,13 +146,13 @@ int main(int argc, char* argv[])
   MeshFunctionSharedPtr<double> sln_rho_v_x(new Solution<double>(mesh));
   MeshFunctionSharedPtr<double> sln_rho_v_y(new Solution<double>(mesh));
   MeshFunctionSharedPtr<double> sln_e(new Solution<double>(mesh));
-  std::vector<MeshFunctionSharedPtr<double> > slns(sln_rho, sln_rho_v_x, sln_rho_v_y, sln_e);
+  std::vector<MeshFunctionSharedPtr<double> > slns({ sln_rho, sln_rho_v_x, sln_rho_v_y, sln_e });
 
   MeshFunctionSharedPtr<double> rsln_rho(new Solution<double>(mesh));
   MeshFunctionSharedPtr<double> rsln_rho_v_x(new Solution<double>(mesh));
   MeshFunctionSharedPtr<double> rsln_rho_v_y(new Solution<double>(mesh));
   MeshFunctionSharedPtr<double> rsln_e(new Solution<double>(mesh));
-  std::vector<MeshFunctionSharedPtr<double> > rslns(rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e);
+  std::vector<MeshFunctionSharedPtr<double> > rslns({ rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e });
 #pragma endregion
 
 #pragma region 3. Filters for visualization of Mach number, pressure + visualization setup.
@@ -196,16 +195,14 @@ int main(int argc, char* argv[])
   std::vector<std::string> solid_wall_markers;
   solid_wall_markers.push_back(BDY_SOLID_WALL);
 
-  std::vector<std::string> inlet_markers(BDY_INLET_LEFT, BDY_INLET_TOP);
-  std::vector<double> rho_ext(RHO_LEFT, RHO_TOP);
-  std::vector<double> v1_ext(V1_LEFT, V1_TOP);
-  std::vector<double> v2_ext(V2_LEFT, V2_TOP);
-  std::vector<double> pressure_ext(PRESSURE_LEFT, PRESSURE_TOP);
+  std::vector<std::string> inlet_markers({ BDY_INLET_LEFT, BDY_INLET_TOP });
+  std::vector<double> rho_ext({ RHO_LEFT, RHO_TOP });
+  std::vector<double> v1_ext({ V1_LEFT, V1_TOP });
+  std::vector<double> v2_ext({ V2_LEFT, V2_TOP });
+  std::vector<double> pressure_ext({ PRESSURE_LEFT, PRESSURE_TOP });
 
-  std::vector<std::string> outlet_markers;
-  outlet_markers.push_back(BDY_OUTLET);
+  std::vector<std::string> outlet_markers({ BDY_OUTLET });
 
-  EulerEquationsWeakFormSemiImplicit wf(KAPPA, rho_ext, v1_ext, v2_ext, pressure_ext, solid_wall_markers, inlet_markers, outlet_markers, prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e);
-
+  WeakFormSharedPtr<double> wf(new EulerEquationsWeakFormSemiImplicit(KAPPA, rho_ext, v1_ext, v2_ext, pressure_ext, solid_wall_markers, inlet_markers, outlet_markers, prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e));
 #include "../euler-time-loop-space-adapt.cpp"
 }

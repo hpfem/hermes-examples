@@ -1,4 +1,4 @@
-project(basic-ie-newton)
+project(richards-basic-ie-newton)
 
 add_executable(${PROJECT_NAME} main.cpp definitions.cpp definitions.h)
 

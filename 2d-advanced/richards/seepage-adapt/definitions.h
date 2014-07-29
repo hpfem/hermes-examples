@@ -106,7 +106,7 @@ class CustomWeakForm : public WeakForm<double>
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
-      Func<double> *v, Geom<double> *e, Func<double>* *ext) const
+      Func<double> *v, GeomVol<double> *e, Func<double>* *ext) const
     {
       double x = e->x[0];
       double y = e->x[1];
@@ -161,7 +161,7 @@ class CustomWeakForm : public WeakForm<double>
     }
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
-      Geom<Ord> *e, Func<Ord>* *ext) const
+      GeomVol<Ord> *e, Func<Ord>* *ext) const
     {
       return Ord(20);
     }
@@ -180,7 +180,7 @@ class CustomWeakForm : public WeakForm<double>
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
-      Func<double> *v, Geom<double> *e, Func<double>* *ext) const
+      Func<double> *v, GeomVol<double> *e, Func<double>* *ext) const
     {
       double x = e->x[0];
       double y = e->x[1];
@@ -238,7 +238,7 @@ class CustomWeakForm : public WeakForm<double>
     }
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
-      Geom<Ord> *e, Func<Ord>* *ext) const
+      GeomVol<Ord> *e, Func<Ord>* *ext) const
     {
       return Ord(20);
     }
@@ -257,7 +257,7 @@ class CustomWeakForm : public WeakForm<double>
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
-      Func<double> *v, Geom<double> *e, Func<double>* *ext) const
+      Func<double> *v, GeomSurf<double> *e, Func<double>* *ext) const
     {
       double result = 0;
       Func<double>* h_prev_newton = u_ext[0];
@@ -269,7 +269,7 @@ class CustomWeakForm : public WeakForm<double>
     }
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
-      Geom<Ord> *e, Func<Ord>* *ext) const
+      GeomSurf<Ord> *e, Func<Ord>* *ext) const
     {
       return Ord(20);
     }
@@ -288,7 +288,7 @@ class CustomWeakForm : public WeakForm<double>
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
-      Func<double> *v, Geom<double> *e, Func<double>* *ext) const
+      Func<double> *v, GeomSurf<double> *e, Func<double>* *ext) const
     {
       double result = 0;
       Func<double>* h_prev_newton = u_ext[0];
@@ -301,7 +301,7 @@ class CustomWeakForm : public WeakForm<double>
     }
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
-      Geom<Ord> *e, Func<Ord>* *ext) const
+      GeomSurf<Ord> *e, Func<Ord>* *ext) const
     {
       return Ord(20);
     }
@@ -320,7 +320,7 @@ class CustomWeakForm : public WeakForm<double>
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
-      Func<double> *v, Geom<double> *e, Func<double>* *ext) const
+      Func<double> *v, GeomSurf<double> *e, Func<double>* *ext) const
     {
       double result = 0;
       Func<double>* h_prev_newton = u_ext[0];
@@ -332,7 +332,7 @@ class CustomWeakForm : public WeakForm<double>
     }
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
-      Geom<Ord> *e, Func<Ord>* *ext) const
+      GeomSurf<Ord> *e, Func<Ord>* *ext) const
     {
       return Ord(20);
     }
@@ -351,7 +351,7 @@ class CustomWeakForm : public WeakForm<double>
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
-      Func<double> *v, Geom<double> *e, Func<double>* *ext) const
+      Func<double> *v, GeomSurf<double> *e, Func<double>* *ext) const
     {
       double result = 0;
       Func<double>* h_prev_newton = u_ext[0];
@@ -364,7 +364,7 @@ class CustomWeakForm : public WeakForm<double>
     }
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
-      Geom<Ord> *e, Func<Ord>* *ext) const
+      GeomSurf<Ord> *e, Func<Ord>* *ext) const
     {
       return Ord(20);
     }
@@ -383,7 +383,7 @@ class CustomWeakForm : public WeakForm<double>
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
-      Func<double> *v, Geom<double> *e, Func<double>* *ext) const
+      Func<double> *v, GeomSurf<double> *e, Func<double>* *ext) const
     {
       double result = 0;
       Func<double>* h_prev_newton = u_ext[0];
@@ -395,7 +395,7 @@ class CustomWeakForm : public WeakForm<double>
     }
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
-      Geom<Ord> *e, Func<Ord>* *ext) const
+      GeomSurf<Ord> *e, Func<Ord>* *ext) const
     {
       return Ord(20);
     }
@@ -414,7 +414,7 @@ class CustomWeakForm : public WeakForm<double>
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
-      Func<double> *v, Geom<double> *e, Func<double>* *ext) const
+      Func<double> *v, GeomSurf<double> *e, Func<double>* *ext) const
     {
       double result = 0;
       Func<double>* h_prev_newton = u_ext[0];
@@ -427,7 +427,7 @@ class CustomWeakForm : public WeakForm<double>
     }
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
-      Geom<Ord> *e, Func<Ord>* *ext) const
+      GeomSurf<Ord> *e, Func<Ord>* *ext) const
     {
       return Ord(20);
     }
@@ -446,7 +446,7 @@ class CustomWeakForm : public WeakForm<double>
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
-      Func<double> *v, Geom<double> *e, Func<double>* *ext) const
+      Func<double> *v, GeomVol<double> *e, Func<double>* *ext) const
     {
       double result = 0;
       Func<double>* h_prev_newton = u_ext[0];
@@ -462,7 +462,7 @@ class CustomWeakForm : public WeakForm<double>
     }
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
-      Geom<Ord> *e, Func<Ord>* *ext) const
+      GeomVol<Ord> *e, Func<Ord>* *ext) const
     {
       return Ord(20);
     }
@@ -481,7 +481,7 @@ class CustomWeakForm : public WeakForm<double>
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
-      Func<double> *v, Geom<double> *e, Func<double>* *ext) const
+      Func<double> *v, GeomVol<double> *e, Func<double>* *ext) const
     {
       double result = 0;
       Func<double>* h_prev_newton = u_ext[0];
@@ -502,7 +502,7 @@ class CustomWeakForm : public WeakForm<double>
     }
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
-      Geom<Ord> *e, Func<Ord>* *ext) const
+      GeomVol<Ord> *e, Func<Ord>* *ext) const
     {
       return Ord(20);
     }
@@ -521,7 +521,7 @@ class CustomWeakForm : public WeakForm<double>
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
-      Func<double> *v, Geom<double> *e, Func<double>* *ext) const
+      Func<double> *v, GeomSurf<double> *e, Func<double>* *ext) const
     {
       double result = 0;
       Func<double>* h_prev_newton = u_ext[0];
@@ -532,7 +532,7 @@ class CustomWeakForm : public WeakForm<double>
     }
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
-      Geom<Ord> *e, Func<Ord>* *ext) const
+      GeomSurf<Ord> *e, Func<Ord>* *ext) const
     {
       return Ord(20);
     }
@@ -550,8 +550,8 @@ class CustomWeakForm : public WeakForm<double>
     {
     }
 
-    virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
-      Func<double> *v, Geom<double> *e, Func<double>* *ext) const
+    virtual double value(GeomSurf n, double *wt, Func<double> *u_ext[], Func<double> *u, 
+      Func<double> *v, GeomVol<double> *e, Func<double>* *ext) const
     {
       double result = 0;
       Func<double>* h_prev_newton = u_ext[0];
@@ -563,7 +563,7 @@ class CustomWeakForm : public WeakForm<double>
     }
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
-      Geom<Ord> *e, Func<Ord>* *ext) const
+      GeomSurf<Ord> *e, Func<Ord>* *ext) const
     {
       return Ord(20);
     }
@@ -582,7 +582,7 @@ class CustomWeakForm : public WeakForm<double>
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
-      Func<double> *v, Geom<double> *e, Func<double>* *ext) const
+      Func<double> *v, GeomSurf<double> *e, Func<double>* *ext) const
     {
       double result = 0;
       Func<double>* h_prev_newton = u_ext[0];
@@ -593,7 +593,7 @@ class CustomWeakForm : public WeakForm<double>
     }
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
-      Geom<Ord> *e, Func<Ord>* *ext) const
+      GeomSurf<Ord> *e, Func<Ord>* *ext) const
     {
       return Ord(20);
     }
@@ -612,7 +612,7 @@ class CustomWeakForm : public WeakForm<double>
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
-      Func<double> *v, Geom<double> *e, Func<double>* *ext) const
+      Func<double> *v, GeomSurf<double> *e, Func<double>* *ext) const
     {
       double result = 0;
       Func<double>* h_prev_newton = u_ext[0];
@@ -624,7 +624,7 @@ class CustomWeakForm : public WeakForm<double>
     }
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
-      Geom<Ord> *e, Func<Ord>* *ext) const
+      GeomSurf<Ord> *e, Func<Ord>* *ext) const
     {
       return Ord(20);
     }
@@ -643,7 +643,7 @@ class CustomWeakForm : public WeakForm<double>
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
-      Func<double> *v, Geom<double> *e, Func<double>* *ext) const
+      Func<double> *v, GeomSurf<double> *e, Func<double>* *ext) const
     {
       double result = 0;
       Func<double>* h_prev_newton = u_ext[0];
@@ -654,7 +654,7 @@ class CustomWeakForm : public WeakForm<double>
     }
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
-      Geom<Ord> *e, Func<Ord>* *ext) const
+      GeomSurf<Ord> *e, Func<Ord>* *ext) const
     {
       return Ord(20);
     }
@@ -673,7 +673,7 @@ class CustomWeakForm : public WeakForm<double>
     }
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
-      Func<double> *v, Geom<double> *e, Func<double>* *ext) const
+      Func<double> *v, GeomSurf<double> *e, Func<double>* *ext) const
     {
       double result = 0;
       Func<double>* h_prev_newton = u_ext[0];
@@ -685,7 +685,7 @@ class CustomWeakForm : public WeakForm<double>
     }
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
-      Geom<Ord> *e, Func<Ord>* *ext) const
+      GeomSurf<Ord> *e, Func<Ord>* *ext) const
     {
       return Ord(20);
     }

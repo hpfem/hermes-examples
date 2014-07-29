@@ -81,12 +81,11 @@ int main(int argc, char* argv[])
   int ndof = Space<double>::get_num_dofs(e_r_space);
 
   // Initialize the weak formulation.
-  WeakFormHelmholtz wf(eps, mu, omega, sigma, beta, E0, h);
-  wf.set_verbose_output(false);
+  WeakFormSharedPtr<double> wf(new WeakFormHelmholtz(eps, mu, omega, sigma, beta, E0, h));
+  wf->set_verbose_output(false);
 
   // Initialize the FE problem.
-  std::vector<SpaceSharedPtr<double> > spaces(e_r_space, e_i_space);
-  DiscreteProblem<double> dp(wf, spaces);
+  std::vector<SpaceSharedPtr<double> > spaces({ e_r_space, e_i_space });
 
   // Initialize the solutions.
   MeshFunctionSharedPtr<double> e_r_sln(new Solution<double>), e_i_sln(new Solution<double>);
@@ -94,7 +93,7 @@ int main(int argc, char* argv[])
   // Initial coefficient vector for the Newton's method.
   ndof = Space<double>::get_num_dofs({e_r_space, e_i_space});
 
-  Hermes::Hermes2D::NewtonSolver<double> newton(&dp);
+  Hermes::Hermes2D::NewtonSolver<double> newton(wf, spaces);
   newton.set_tolerance(NEWTON_TOL, Hermes::Solvers::ResidualNormAbsolute);
   newton.set_max_allowed_iterations(NEWTON_MAX_ITER);
 
@@ -124,8 +123,7 @@ int main(int argc, char* argv[])
     };
 
     // Translate the resulting coefficient vector into Solutions.
-    Solution<double>::vector_to_solutions(newton.get_sln_vector(), std::vector<SpaceSharedPtr<double> >(e_r_space, e_i_space),
-      std::vector<MeshFunctionSharedPtr<double> >(e_r_sln, e_i_sln));
+    Solution<double>::vector_to_solutions(newton.get_sln_vector(), { e_r_space, e_i_space }, { e_r_sln, e_i_sln });
 
     // Visualize the solution.
     //viewEr.show(e_r_sln);
@@ -154,7 +152,7 @@ int main(int argc, char* argv[])
 
     frequency += 1e9 * frequency_change;
     omega = 2 * M_PI * frequency;
-    wf.set_parameters(eps, mu, omega, sigma, beta, E0, h);
+    ((WeakFormHelmholtz*)(wf.get()))->set_parameters(eps, mu, omega, sigma, beta, E0, h);
     newton.set_weak_formulation(wf);
     it++;
   }

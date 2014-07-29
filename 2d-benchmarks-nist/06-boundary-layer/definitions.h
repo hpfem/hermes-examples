@@ -55,13 +55,13 @@ public:
 
     template<typename Real, typename Scalar>
     Scalar matrix_form(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u,
-        Func<Real> *v, Geom<Real> *e, Func<Scalar>* *ext) const;
+        Func<Real> *v, GeomVol<Real> *e, Func<Scalar>* *ext) const;
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u,
-        Func<double> *v, Geom<double> *e, Func<double>* *ext) const;
+        Func<double> *v, GeomVol<double> *e, Func<double>* *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v,
-        Geom<Ord> *e, Func<Ord>* *ext) const;
+        GeomVol<Ord> *e, Func<Ord>* *ext) const;
 
     MatrixFormVol<double>* clone() const;
     
@@ -76,13 +76,13 @@ public:
 
     template<typename Real, typename Scalar>
     Scalar vector_form(int n, double *wt, Func<Scalar> *u_ext[],
-        Func<Real> *v, Geom<Real> *e, Func<Scalar>* *ext) const;
+        Func<Real> *v, GeomVol<Real> *e, Func<Scalar>* *ext) const;
 
     virtual double value(int n, double *wt, Func<double> *u_ext[],
-        Func<double> *v, Geom<double> *e, Func<double>* *ext) const;
+        Func<double> *v, GeomVol<double> *e, Func<double>* *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v,
-        Geom<Ord> *e, Func<Ord>* *ext) const;
+        GeomVol<Ord> *e, Func<Ord>* *ext) const;
 
     VectorFormVol<double>* clone() const;
 

@@ -24,7 +24,7 @@ public:
   
   ~EssentialBCNonConst() {};
 
-  virtual EssentialBoundaryCondition<double>::EssentialBCValueType get_value_type() const;
+  virtual EssentialBCValueType get_value_type() const;
 
   virtual double value(double x, double y) const;
 
@@ -41,7 +41,7 @@ class CustomErrorForm : public NormFormVol<double>
 public:
   CustomErrorForm(int i, int j, double d, double c) : NormFormVol<double>(i, j), d(d), c(c) {};
 
-  virtual double value(int n, double *wt, Func<double> *u, Func<double> *v, Geom<double> *e) const
+  virtual double value(int n, double *wt, Func<double> *u, Func<double> *v, GeomVol<double> *e) const
   {
     return d / c * int_grad_u_grad_v<double, double>(n, wt, u, v);
   }

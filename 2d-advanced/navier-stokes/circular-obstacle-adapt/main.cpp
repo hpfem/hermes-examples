@@ -134,7 +134,7 @@ int main(int argc, char* argv[])
 #else
   SpaceSharedPtr<double> p_space(new H1Space<double>(mesh, P_INIT_PRESSURE));
 #endif
-  std::vector<SpaceSharedPtr<double> > spaces(xvel_space, yvel_space, p_space);
+  std::vector<SpaceSharedPtr<double> > spaces({ xvel_space, yvel_space, p_space });
   adaptivity.set_spaces(spaces);
 
   // Calculate and report the number of degrees of freedom.
@@ -148,7 +148,7 @@ int main(int argc, char* argv[])
 #else
   NormType p_proj_norm = HERMES_H1_NORM;
 #endif
-  std::vector<NormType> proj_norms(vel_proj_norm, vel_proj_norm, p_proj_norm);
+  std::vector<NormType> proj_norms({ vel_proj_norm, vel_proj_norm, p_proj_norm });
 
   // Solutions for the Newton's iteration and time stepping.
   Hermes::Mixins::Loggable::Static::info("Setting initial conditions.");
@@ -157,24 +157,24 @@ int main(int argc, char* argv[])
   MeshFunctionSharedPtr<double>  xvel_ref_sln(new Solution<double>());
   MeshFunctionSharedPtr<double>  yvel_ref_sln(new Solution<double>());
   MeshFunctionSharedPtr<double>  p_ref_sln(new Solution<double>());
-  std::vector<MeshFunctionSharedPtr<double> > ref_slns(xvel_ref_sln, yvel_ref_sln, p_ref_sln);
+  std::vector<MeshFunctionSharedPtr<double> > ref_slns({ xvel_ref_sln, yvel_ref_sln, p_ref_sln });
 
   MeshFunctionSharedPtr<double>  xvel_prev_time(new ZeroSolution<double>(mesh));
   MeshFunctionSharedPtr<double>  yvel_prev_time(new ZeroSolution<double>(mesh));
   MeshFunctionSharedPtr<double>  p_prev_time(new ZeroSolution<double>(mesh));
-  std::vector<MeshFunctionSharedPtr<double> > prev_time(xvel_prev_time, yvel_prev_time, p_prev_time);
+  std::vector<MeshFunctionSharedPtr<double> > prev_time({ xvel_prev_time, yvel_prev_time, p_prev_time });
   MeshFunctionSharedPtr<double>  xvel_prev_time_projected(new ZeroSolution<double>(mesh));
   MeshFunctionSharedPtr<double>  yvel_prev_time_projected(new ZeroSolution<double>(mesh));
   MeshFunctionSharedPtr<double>  p_prev_time_projected(new ZeroSolution<double>(mesh));
-  std::vector<MeshFunctionSharedPtr<double> > prev_time_projected(xvel_prev_time_projected, yvel_prev_time_projected, p_prev_time_projected);
+  std::vector<MeshFunctionSharedPtr<double> > prev_time_projected({ xvel_prev_time_projected, yvel_prev_time_projected, p_prev_time_projected });
 
   MeshFunctionSharedPtr<double>  xvel_sln(new ZeroSolution<double>(mesh));
   MeshFunctionSharedPtr<double>  yvel_sln(new ZeroSolution<double>(mesh));
   MeshFunctionSharedPtr<double>  p_sln(new ZeroSolution<double>(mesh));
-  std::vector<MeshFunctionSharedPtr<double> > slns(xvel_sln, yvel_sln, p_sln);
+  std::vector<MeshFunctionSharedPtr<double> > slns({ xvel_sln, yvel_sln, p_sln });
 
   // Initialize weak formulation.
-  WeakFormNSNewton wf(STOKES, RE, TAU, xvel_prev_time_projected, yvel_prev_time_projected);
+  WeakFormSharedPtr<double> wf(new WeakFormNSNewton(STOKES, RE, TAU, xvel_prev_time_projected, yvel_prev_time_projected));
 
   // Initialize the FE problem.
   NewtonSolver<double> newton(wf, spaces);
@@ -185,7 +185,7 @@ int main(int argc, char* argv[])
   // Initialize refinement selector.
   H1ProjBasedSelector<double> selector_h1(CAND_LIST);
   L2ProjBasedSelector<double> selector_l2(CAND_LIST);
-  std::vector<RefinementSelectors::Selector<double> *> selectors(&selector_h1, &selector_h1, &selector_l2);
+  std::vector<RefinementSelectors::Selector<double> *> selectors({ &selector_h1, &selector_h1, &selector_l2 });
 
   // Initialize views.
   VectorView vview("velocity [m/s]", new WinGeom(0, 0, 500, 220));
@@ -243,7 +243,7 @@ int main(int argc, char* argv[])
       Space<double>::ReferenceSpaceCreator refSpaceCreatorP(p_space, ref_mesh, 0);
       SpaceSharedPtr<double> ref_p_space = refSpaceCreatorP.create_ref_space();
 
-      std::vector<SpaceSharedPtr<double> > ref_spaces(ref_xvel_space, ref_yvel_space, ref_p_space);
+      std::vector<SpaceSharedPtr<double> > ref_spaces({ ref_xvel_space, ref_yvel_space, ref_p_space });
 
       Hermes::Mixins::Loggable::Static::info("Updating time-dependent essential BC.");
       Space<double>::update_essential_bc_values(ref_spaces, current_time);

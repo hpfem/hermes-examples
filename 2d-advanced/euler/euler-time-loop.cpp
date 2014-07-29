@@ -1,4 +1,4 @@
-std::vector<MeshFunctionSharedPtr<double> > prev_slns(prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e);
+std::vector<MeshFunctionSharedPtr<double> > prev_slns({ prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e });
 
 #pragma region 3. Filters for visualization of Mach number, pressure + visualization setup.
 MeshFunctionSharedPtr<double>  Mach_number(new MachNumberFilter(prev_slns, KAPPA));
@@ -11,13 +11,14 @@ ScalarView eview1("Error - momentum", new WinGeom(0, 660, 600, 300));
 OrderView order_view("Orders", new WinGeom(650, 330, 600, 300));
 #pragma endregion
 
-EulerEquationsWeakFormStabilization wf_stabilization(prev_rho);
-DiscreteProblem<double> dp_stabilization(&wf_stabilization, space_stabilization);
+WeakFormSharedPtr<double> wf_stabilization(new EulerEquationsWeakFormStabilization(prev_rho));
+DiscreteProblem<double> dp_stabilization(wf_stabilization, space_stabilization);
 
-if(SHOCK_CAPTURING && SHOCK_CAPTURING_TYPE == FEISTAUER)
-  wf.set_stabilization(prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e, NU_1, NU_2);
+LinearSolver<double> solver(wf, spaces);
+EulerEquationsWeakFormSemiImplicit* wf_ptr = (EulerEquationsWeakFormSemiImplicit*)(wf.get());
 
-LinearSolver<double> solver(&wf, spaces);
+if (SHOCK_CAPTURING && SHOCK_CAPTURING_TYPE == FEISTAUER)
+  wf_ptr->set_stabilization(prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e, NU_1, NU_2);
 
 #pragma region 5. Time stepping loop.
 int iteration = 0;
@@ -31,10 +32,10 @@ for(double t = 0.0; t < TIME_INTERVAL_LENGTH; t += time_step_n)
     int mesh_size = space_stabilization->get_num_dofs();
     assert(mesh_size == space_stabilization->get_mesh()->get_num_active_elements());
     dp_stabilization.assemble(rhs_stabilization);
-    if(!wf.discreteIndicator)
+    if(!wf_ptr->discreteIndicator)
     {
-      wf.set_discreteIndicator(new bool[mesh_size], mesh_size);
-      memset(wf.discreteIndicator, 0, mesh_size * sizeof(bool));
+      wf_ptr->set_discreteIndicator(new bool[mesh_size], mesh_size);
+      memset(wf_ptr->discreteIndicator, 0, mesh_size * sizeof(bool));
     }
     Element* e;
     for_all_active_elements(e, space_stabilization->get_mesh())
@@ -42,12 +43,12 @@ for(double t = 0.0; t < TIME_INTERVAL_LENGTH; t += time_step_n)
       AsmList<double> al;
       space_stabilization->get_element_assembly_list(e, &al);
       if(rhs_stabilization->get(al.get_dof()[0]) >= 1)
-        wf.discreteIndicator[e->id] = true;
+        wf_ptr->discreteIndicator[e->id] = true;
     }
   }
 
   // Set the current time step.
-  wf.set_current_time_step(time_step_n);
+  wf_ptr->set_current_time_step(time_step_n);
 
   try
   {

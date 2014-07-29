@@ -94,7 +94,7 @@ int main(int argc, char* argv[])
   SpaceSharedPtr<double> p_space(new H1Space<double>(mesh, P_INIT_PRESSURE));
 #endif
   SpaceSharedPtr<double> t_space(new H1Space<double>(mesh, &bcs_temp, P_INIT_TEMP));
-  std::vector<SpaceSharedPtr<double> > spaces(xvel_space, yvel_space, p_space, t_space);
+  std::vector<SpaceSharedPtr<double> > spaces({ xvel_space, yvel_space, p_space, t_space });
 
   // Calculate and report the number of degrees of freedom.
   int ndof = Space<double>::get_num_dofs(spaces);
@@ -115,12 +115,11 @@ int main(int argc, char* argv[])
   MeshFunctionSharedPtr<double> yvel_prev_time(new ZeroSolution<double>(mesh));
   MeshFunctionSharedPtr<double> p_prev_time(new ZeroSolution<double>(mesh));
   MeshFunctionSharedPtr<double> t_prev_time(new ConstantSolution<double>(mesh, TEMP_INIT));
-  std::vector<MeshFunctionSharedPtr<double> > slns = std::vector<MeshFunctionSharedPtr<double> >(xvel_prev_time,
-    yvel_prev_time, p_prev_time, t_prev_time);
+  std::vector<MeshFunctionSharedPtr<double> > slns({ xvel_prev_time, yvel_prev_time, p_prev_time, t_prev_time });
 
   // Initialize weak formulation.
-  WeakFormRayleighBenard wf(Pr, Ra, "Top", TEMP_EXT, ALPHA_AIR, time_step,
-    xvel_prev_time, yvel_prev_time, t_prev_time);
+  WeakFormSharedPtr<double> wf(new WeakFormRayleighBenard(Pr, Ra, "Top", TEMP_EXT, ALPHA_AIR, time_step,
+    xvel_prev_time, yvel_prev_time, t_prev_time));
 
   // Initialize the FE problem.
   DiscreteProblem<double> dp(wf, spaces);
@@ -140,7 +139,7 @@ int main(int argc, char* argv[])
   double* coeff_vec = new double[Space<double>::get_num_dofs(spaces)];
   Hermes::Mixins::Loggable::Static::info("Projecting initial condition to obtain initial vector for the Newton's method.");
   OGProjection<double> ogProjection; ogProjection.project_global(spaces, slns, coeff_vec,
-    std::vector<NormType>(vel_proj_norm, vel_proj_norm, p_proj_norm, t_proj_norm));
+    std::vector<NormType>({ vel_proj_norm, vel_proj_norm, p_proj_norm, t_proj_norm }));
 
   Hermes::Hermes2D::NewtonSolver<double> newton(&dp);
   // Time-stepping loop:

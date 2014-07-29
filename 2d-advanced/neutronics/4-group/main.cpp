@@ -1,5 +1,3 @@
-#define HERMES_REPORT_ALL
-#define HERMES_REPORT_FILE "application.log"
 #include "definitions.h"
 #include "problem_data.h"
 
@@ -66,24 +64,27 @@ int main(int argc, char* argv[])
   mloader.load(mesh_file.c_str(), mesh);
 
   // Perform initial mesh refinements.
-  for (int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
+  for (int i = 0; i < INIT_REF_NUM; i++)
+    mesh->refine_all_elements();
 
   // Solution variables.
-  Solution<double> sln1, sln2, sln3, sln4;
-  std::vector<Solution<double>*> solutions(sln1, sln2, sln3, sln4);
+  MeshFunctionSharedPtr<double> sln1(new Solution<double>), sln2(new Solution<double>), sln3(new Solution<double>), sln4(new Solution<double>);
+  std::vector<MeshFunctionSharedPtr<double> > solutions({ sln1, sln2, sln3, sln4 });
 
   // Define initial conditions.
   Hermes::Mixins::Loggable::Static::info("Setting initial conditions.");
-  ConstantSolution<double> iter1(mesh, 1.00), iter2(mesh, 1.00), iter3(mesh, 1.00), iter4(mesh, 1.00);
+  MeshFunctionSharedPtr<double> iter1(new ConstantSolution<double>(mesh, 1.00));
+  MeshFunctionSharedPtr<double> iter2(new ConstantSolution<double>(mesh, 1.00));
+  MeshFunctionSharedPtr<double> iter3(new ConstantSolution<double>(mesh, 1.00));
+  MeshFunctionSharedPtr<double> iter4(new ConstantSolution<double>(mesh, 1.00));
 
-  std::vector<MeshFunctionSharedPtr<double> > iterates(&iter1, &iter2, &iter3, &iter4);
+  std::vector<MeshFunctionSharedPtr<double> > iterates({ iter1, iter2, iter3, iter4 });
 
-  SpaceSharedPtr<double> space1(mesh, P_INIT_1);
-  H1Space<double> space2(mesh, P_INIT_2);
-  H1Space<double> space3(mesh, P_INIT_3);
-  H1Space<double> space4(new // Create H1 spaces with default shapesets.
-    H1Space<double>(mesh, P_INIT_4));
-  SpaceSharedPtr<double>* > spaces(new std::vector < const Space<double>(&space1, &space2, &space3, &space4));
+  SpaceSharedPtr<double> space1(new H1Space<double>(mesh, P_INIT_1));
+  SpaceSharedPtr<double> space2(new H1Space<double>(mesh, P_INIT_2));
+  SpaceSharedPtr<double> space3(new H1Space<double>(mesh, P_INIT_3));
+  SpaceSharedPtr<double> space4(new H1Space<double>(mesh, P_INIT_4));
+  std::vector<SpaceSharedPtr<double> > spaces({ space1, space2, space3, space4 });
   int ndof = Space<double>::get_num_dofs(spaces);
   Hermes::Mixins::Loggable::Static::info("ndof = %d", ndof);
 
@@ -115,12 +116,9 @@ int main(int argc, char* argv[])
 
   // Initialize the weak formulation.
   WeakFormSharedPtr<double> wf(new CustomWeakForm(matprop, iterates, k_eff, bdy_vacuum));
-
-  // Initialize the FE problem.
-  DiscreteProblem<double> dp(wf, spaces);
-
+  
   // Initialize Newton solver.
-  NewtonSolver<double> newton(&dp);
+  NewtonSolver<double> newton(wf, spaces);
 
   // Time measurement.
   Hermes::Mixins::TimeMeasurable cpu_time;
@@ -136,9 +134,10 @@ int main(int argc, char* argv[])
     // Perform Newton's iteration.
     try
     {
-      newton.set_newton_max_iter(NEWTON_MAX_ITER);
-      newton.set_newton_tol(NEWTON_TOL);
-      newton.solve_keep_jacobian();
+      newton.set_max_allowed_iterations(NEWTON_MAX_ITER);
+      newton.set_tolerance(NEWTON_TOL, Hermes::Solvers::ResidualNormAbsolute);
+      newton.set_jacobian_constant();
+      newton.solve();
     }
     catch (Hermes::Exceptions::Exception e)
     {
@@ -160,10 +159,10 @@ int main(int argc, char* argv[])
     view4.show(sln4);
 
     // Compute eigenvalue.
-    SourceFilter source(solutions, &matprop, core);
-    SourceFilter source_prev(iterates, &matprop, core);
+    MeshFunctionSharedPtr<double> source(new SourceFilter(solutions, &matprop, core));
+    MeshFunctionSharedPtr<double> source_prev(new SourceFilter(iterates, &matprop, core));
 
-    double k_new = k_eff * (integrate(&source, core) / integrate(&source_prev, core));
+    double k_new = k_eff * (integrate(source, core) / integrate(source_prev, core));
     Hermes::Mixins::Loggable::Static::info("Largest eigenvalue: %.8g, rel. difference from previous it.: %g", k_new, fabs((k_eff - k_new) / k_new));
 
     // Stopping criterion.
@@ -171,15 +170,15 @@ int main(int argc, char* argv[])
 
     // Update eigenvalue.
     k_eff = k_new;
-    wf.update_keff(k_eff);
+    ((CustomWeakForm*)wf.get())->update_keff(k_eff);
 
     if (!done)
     {
       // Save solutions for the next iteration.
-      iter1.copy(sln1);
-      iter2.copy(sln2);
-      iter3.copy(sln3);
-      iter4.copy(sln4);
+      iter1->copy(sln1);
+      iter2->copy(sln2);
+      iter3->copy(sln3);
+      iter4->copy(sln4);
 
       it++;
     }

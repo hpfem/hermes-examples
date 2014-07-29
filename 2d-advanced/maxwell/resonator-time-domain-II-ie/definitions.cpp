@@ -36,13 +36,13 @@ CustomWeakFormWaveIE::CustomWeakFormWaveIE(double tau, double c_squared, MeshFun
 }
 
 double CustomWeakFormWaveIE::MatrixFormVolWave_0_0::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u,
-  Func<double> *v, Geom<double> *e, Func<double>* *ext) const
+  Func<double> *v, GeomVol<double> *e, Func<double>* *ext) const
 {
   return int_e_f<double, double>(n, wt, u, v) / tau;
 }
 
 Ord CustomWeakFormWaveIE::MatrixFormVolWave_0_0::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v,
-  Geom<Ord> *e, Func<Ord>* *ext) const
+  GeomVol<Ord> *e, Func<Ord>* *ext) const
 {
   return int_e_f<Ord, Ord>(n, wt, u, v) / tau;
 }
@@ -53,13 +53,13 @@ MatrixFormVol<double>* CustomWeakFormWaveIE::MatrixFormVolWave_0_0::clone() cons
 }
 
 double CustomWeakFormWaveIE::MatrixFormVolWave_0_1::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u,
-  Func<double> *v, Geom<double> *e, Func<double>* *ext) const
+  Func<double> *v, GeomVol<double> *e, Func<double>* *ext) const
 {
   return -int_e_f<double, double>(n, wt, u, v);
 }
 
 Ord CustomWeakFormWaveIE::MatrixFormVolWave_0_1::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v,
-  Geom<Ord> *e, Func<Ord>* *ext) const
+  GeomVol<Ord> *e, Func<Ord>* *ext) const
 {
   return -int_e_f<Ord, Ord>(n, wt, u, v);
 }
@@ -70,13 +70,13 @@ MatrixFormVol<double>* CustomWeakFormWaveIE::MatrixFormVolWave_0_1::clone() cons
 }
 
 double CustomWeakFormWaveIE::MatrixFormVolWave_1_0::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u,
-  Func<double> *v, Geom<double> *e, Func<double>* *ext) const
+  Func<double> *v, GeomVol<double> *e, Func<double>* *ext) const
 {
   return c_squared * int_curl_e_curl_f<double, double>(n, wt, u, v);
 }
 
 Ord CustomWeakFormWaveIE::MatrixFormVolWave_1_0::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v,
-  Geom<Ord> *e, Func<Ord>* *ext) const
+  GeomVol<Ord> *e, Func<Ord>* *ext) const
 {
   return c_squared * int_curl_e_curl_f<Ord, Ord>(n, wt, u, v);
 }
@@ -87,13 +87,13 @@ MatrixFormVol<double>* CustomWeakFormWaveIE::MatrixFormVolWave_1_0::clone() cons
 }
 
 double CustomWeakFormWaveIE::MatrixFormVolWave_1_1::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u,
-  Func<double> *v, Geom<double> *e, Func<double>* *ext) const
+  Func<double> *v, GeomVol<double> *e, Func<double>* *ext) const
 {
   return int_e_f<double, double>(n, wt, u, v) / tau;
 }
 
 Ord CustomWeakFormWaveIE::MatrixFormVolWave_1_1::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v,
-  Geom<Ord> *e, Func<Ord>* *ext) const
+  GeomVol<Ord> *e, Func<Ord>* *ext) const
 {
   return int_e_f<Ord, Ord>(n, wt, u, v) / tau;
 }
@@ -104,7 +104,7 @@ MatrixFormVol<double>* CustomWeakFormWaveIE::MatrixFormVolWave_1_1::clone() cons
 }
 
 double CustomWeakFormWaveIE::VectorFormVolWave_0::value(int n, double *wt, Func<double> *u_ext[], Func<double> *v,
-  Geom<double> *e, Func<double>* *ext) const
+  GeomVol<double> *e, Func<double>* *ext) const
 {
   Func<double>* E_prev_newton = u_ext[0];
   Func<double>* F_prev_newton = u_ext[1];
@@ -115,7 +115,7 @@ double CustomWeakFormWaveIE::VectorFormVolWave_0::value(int n, double *wt, Func<
 }
 
 Ord CustomWeakFormWaveIE::VectorFormVolWave_0::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v,
-  Geom<Ord> *e, Func<Ord>* *ext) const
+  GeomVol<Ord> *e, Func<Ord>* *ext) const
 {
   Func<Ord>* E_prev_newton = u_ext[0];
   Func<Ord>* F_prev_newton = u_ext[1];
@@ -131,7 +131,7 @@ VectorFormVol<double>* CustomWeakFormWaveIE::VectorFormVolWave_0::clone() const
 }
 
 double CustomWeakFormWaveIE::VectorFormVolWave_1::value(int n, double *wt, Func<double> *u_ext[], Func<double> *v,
-  Geom<double> *e, Func<double>* *ext) const
+  GeomVol<double> *e, Func<double>* *ext) const
 {
   Func<double>* E_prev_newton = u_ext[0];
   Func<double>* F_prev_newton = u_ext[1];
@@ -141,7 +141,7 @@ double CustomWeakFormWaveIE::VectorFormVolWave_1::value(int n, double *wt, Func<
     + c_squared * int_curl_e_curl_f<double, double>(n, wt, E_prev_newton, v);
 }
 
-Ord CustomWeakFormWaveIE::VectorFormVolWave_1::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const
+Ord CustomWeakFormWaveIE::VectorFormVolWave_1::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, GeomVol<Ord> *e, Func<Ord>* *ext) const
 {
   Func<Ord>* E_prev_newton = u_ext[0];
   Func<Ord>* F_prev_newton = u_ext[1];

@@ -2,7 +2,7 @@
 
 template<typename Real, typename Scalar>
 Scalar CustomMatrixFormVol::matrix_form(int n, double *wt, Func<Scalar> *u_ext[],
-  Func<Real> *u, Func<Real> *v, Geom<Real> *e, Func<Scalar>* *ext) const
+  Func<Real> *u, Func<Real> *v, GeomVol<Real> *e, Func<Scalar>* *ext) const
 {
   Scalar result = Scalar(0);
   double p = 0, q = 0;
@@ -42,13 +42,13 @@ Scalar CustomMatrixFormVol::matrix_form(int n, double *wt, Func<Scalar> *u_ext[]
 }
 
 double CustomMatrixFormVol::value(int n, double *wt, Func<double> *u_ext[],
-  Func<double> *u, Func<double> *v, Geom<double> *e, Func<double>* *ext) const
+  Func<double> *u, Func<double> *v, GeomVol<double> *e, Func<double>* *ext) const
 {
   return matrix_form<double, double>(n, wt, u_ext, u, v, e, ext);
 }
 
 Ord CustomMatrixFormVol::ord(int n, double *wt, Func<Ord> *u_ext[],
-  Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const
+  Func<Ord> *u, Func<Ord> *v, GeomVol<Ord> *e, Func<Ord>* *ext) const
 {
   return matrix_form<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
 }
@@ -60,7 +60,7 @@ MatrixFormVol<double>* CustomMatrixFormVol::clone() const
 
 template<typename Real, typename Scalar>
 Scalar CustomVectorFormVol::vector_form(int n, double *wt, Func<Scalar> *u_ext[],
-  Func<Real> *v, Geom<Real> *e, Func<Scalar>* *ext) const
+  Func<Real> *v, GeomVol<Real> *e, Func<Scalar>* *ext) const
 {
   double f = 0;
   Scalar result = Scalar(0);
@@ -118,13 +118,13 @@ Scalar CustomVectorFormVol::vector_form(int n, double *wt, Func<Scalar> *u_ext[]
 }
 
 double CustomVectorFormVol::value(int n, double *wt, Func<double> *u_ext[],
-  Func<double> *v, Geom<double> *e, Func<double>* *ext) const
+  Func<double> *v, GeomVol<double> *e, Func<double>* *ext) const
 {
   return vector_form<double, double>(n, wt, u_ext, v, e, ext);
 }
 
 Ord CustomVectorFormVol::ord(int n, double *wt, Func<Ord> *u_ext[],
-  Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const
+  Func<Ord> *v, GeomVol<Ord> *e, Func<Ord>* *ext) const
 {
   return vector_form<Ord, Ord>(n, wt, u_ext, v, e, ext);
 }
@@ -136,7 +136,7 @@ VectorFormVol<double>* CustomVectorFormVol::clone() const
 
 template<typename Real, typename Scalar>
 Scalar CustomMatrixFormSurf::matrix_form(int n, double *wt, Func<Scalar> *u_ext[],
-  Func<Real> *u, Func<Real> *v, Geom<Real> *e, Func<Scalar>* *ext) const
+  Func<Real> *u, Func<Real> *v, GeomSurf<Real> *e, Func<Scalar>* *ext) const
 {
   Scalar result = Scalar(0);
   for (int i = 0; i < n; i++)
@@ -198,13 +198,13 @@ Scalar CustomMatrixFormSurf::matrix_form(int n, double *wt, Func<Scalar> *u_ext[
 }
 
 double CustomMatrixFormSurf::value(int n, double *wt, Func<double> *u_ext[],
-  Func<double> *u, Func<double> *v, Geom<double> *e, Func<double>* *ext) const
+  Func<double> *u, Func<double> *v, GeomSurf<double> *e, Func<double>* *ext) const
 {
   return matrix_form<double, double>(n, wt, u_ext, u, v, e, ext);
 }
 
 Ord CustomMatrixFormSurf::ord(int n, double *wt, Func<Ord> *u_ext[],
-  Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const
+  Func<Ord> *u, Func<Ord> *v, GeomSurf<Ord> *e, Func<Ord>* *ext) const
 {
   return Ord(4.0);
 }
@@ -216,7 +216,7 @@ MatrixFormSurf<double>* CustomMatrixFormSurf::clone() const
 
 template<typename Real, typename Scalar>
 Scalar CustomVectorFormSurf::vector_form(int n, double *wt, Func<Scalar> *u_ext[],
-  Func<Real> *v, Geom<Real> *e, Func<Scalar>* *ext) const
+  Func<Real> *v, GeomSurf<Real> *e, Func<Scalar>* *ext) const
 {
   Scalar result = Scalar(0);
   double g = 1.0;
@@ -302,13 +302,13 @@ Scalar CustomVectorFormSurf::vector_form(int n, double *wt, Func<Scalar> *u_ext[
 }
 
 double CustomVectorFormSurf::value(int n, double *wt, Func<double> *u_ext[],
-  Func<double> *v, Geom<double> *e, Func<double>* *ext) const
+  Func<double> *v, GeomSurf<double> *e, Func<double>* *ext) const
 {
   return vector_form<double, double>(n, wt, u_ext, v, e, ext);
 }
 
 Ord CustomVectorFormSurf::ord(int n, double *wt, Func<Ord> *u_ext[],
-  Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const
+  Func<Ord> *v, GeomSurf<Ord> *e, Func<Ord>* *ext) const
 {
   return Ord(4.0);
 }

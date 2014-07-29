@@ -72,10 +72,10 @@ int main(int argc, char* argv[])
   // Initialize solutions.
   MeshFunctionSharedPtr<double>  u_sln(new CustomInitialConditionWave(mesh));
   MeshFunctionSharedPtr<double>  v_sln(new ZeroSolution<double>(mesh));
-  std::vector<MeshFunctionSharedPtr<double> > slns(u_sln, v_sln);
+  std::vector<MeshFunctionSharedPtr<double> > slns({ u_sln, v_sln });
 
   // Initialize the weak formulation.
-  CustomWeakFormWave wf(time_step, C_SQUARED, u_sln, v_sln);
+  WeakFormSharedPtr<double> wf(new CustomWeakFormWave(time_step, C_SQUARED, u_sln, v_sln));
 
   // Initialize boundary conditions
   DefaultEssentialBCConst<double> bc_essential("Bdy", 0.0);
@@ -94,7 +94,7 @@ int main(int argc, char* argv[])
   v_view.fix_scale_width(50);
 
   // Initialize Runge-Kutta time stepping.
-  RungeKutta<double> runge_kutta(wf, std::vector<SpaceSharedPtr<double> >(u_space, v_space), &bt);
+  RungeKutta<double> runge_kutta(wf, { u_space, v_space }, &bt);
 
   // Time stepping loop.
   double current_time = 0; int ts = 1;

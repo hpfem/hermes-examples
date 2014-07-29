@@ -10,7 +10,7 @@ volume_matrix_magnetic_harmonic_planar_linear_harmonic_laplace_1_1_1_1<Scalar>::
 
 template <typename Scalar>
 Scalar volume_matrix_magnetic_harmonic_planar_linear_harmonic_laplace_1_1_1_1<Scalar>::value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
+  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -22,7 +22,7 @@ Scalar volume_matrix_magnetic_harmonic_planar_linear_harmonic_laplace_1_1_1_1<Sc
 
 template <typename Scalar>
 Hermes::Ord volume_matrix_magnetic_harmonic_planar_linear_harmonic_laplace_1_1_1_1<Scalar>::ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
+  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
 {
   Hermes::Ord result(0);
   for (int i = 0; i < n; i++)
@@ -49,7 +49,7 @@ volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_laplace_1_1_1_1<Sca
 
 template <typename Scalar>
 Scalar volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_laplace_1_1_1_1<Scalar>::value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
+  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -61,7 +61,7 @@ Scalar volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_laplace_1_1_
 
 template <typename Scalar>
 Hermes::Ord volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_laplace_1_1_1_1<Scalar>::ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
+  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
 {
   Hermes::Ord result(0);
   for (int i = 0; i < n; i++)
@@ -88,7 +88,7 @@ volume_matrix_magnetic_harmonic_planar_linear_harmonic_laplace_2_2_2_2<Scalar>::
 
 template <typename Scalar>
 Scalar volume_matrix_magnetic_harmonic_planar_linear_harmonic_laplace_2_2_2_2<Scalar>::value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
+  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -100,7 +100,7 @@ Scalar volume_matrix_magnetic_harmonic_planar_linear_harmonic_laplace_2_2_2_2<Sc
 
 template <typename Scalar>
 Hermes::Ord volume_matrix_magnetic_harmonic_planar_linear_harmonic_laplace_2_2_2_2<Scalar>::ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
+  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
 {
   Hermes::Ord result(0);
   for (int i = 0; i < n; i++)
@@ -127,7 +127,7 @@ volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_laplace_2_2_2_2<Sca
 
 template <typename Scalar>
 Scalar volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_laplace_2_2_2_2<Scalar>::value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
+  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -139,7 +139,7 @@ Scalar volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_laplace_2_2_
 
 template <typename Scalar>
 Hermes::Ord volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_laplace_2_2_2_2<Scalar>::ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
+  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
 {
   Hermes::Ord result(0);
   for (int i = 0; i < n; i++)
@@ -166,7 +166,7 @@ volume_matrix_magnetic_harmonic_planar_linear_harmonic_velocity_1_1_1_1<Scalar>:
 
 template <typename Scalar>
 Scalar volume_matrix_magnetic_harmonic_planar_linear_harmonic_velocity_1_1_1_1<Scalar>::value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
+  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -178,7 +178,7 @@ Scalar volume_matrix_magnetic_harmonic_planar_linear_harmonic_velocity_1_1_1_1<S
 
 template <typename Scalar>
 Hermes::Ord volume_matrix_magnetic_harmonic_planar_linear_harmonic_velocity_1_1_1_1<Scalar>::ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
+  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
 {
   Hermes::Ord result(0);
   for (int i = 0; i < n; i++)
@@ -205,7 +205,7 @@ volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_velocity_1_1_1_1<Sc
 
 template <typename Scalar>
 Scalar volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_velocity_1_1_1_1<Scalar>::value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
+  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -217,7 +217,7 @@ Scalar volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_velocity_1_1
 
 template <typename Scalar>
 Hermes::Ord volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_velocity_1_1_1_1<Scalar>::ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
+  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
 {
   Hermes::Ord result(0);
   for (int i = 0; i < n; i++)
@@ -244,7 +244,7 @@ volume_matrix_magnetic_harmonic_planar_linear_harmonic_velocity_2_2_2_2<Scalar>:
 
 template <typename Scalar>
 Scalar volume_matrix_magnetic_harmonic_planar_linear_harmonic_velocity_2_2_2_2<Scalar>::value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
+  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -256,7 +256,7 @@ Scalar volume_matrix_magnetic_harmonic_planar_linear_harmonic_velocity_2_2_2_2<S
 
 template <typename Scalar>
 Hermes::Ord volume_matrix_magnetic_harmonic_planar_linear_harmonic_velocity_2_2_2_2<Scalar>::ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
+  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
 {
   Hermes::Ord result(0);
   for (int i = 0; i < n; i++)
@@ -283,7 +283,7 @@ volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_velocity_2_2_2_2<Sc
 
 template <typename Scalar>
 Scalar volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_velocity_2_2_2_2<Scalar>::value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
+  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -295,7 +295,7 @@ Scalar volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_velocity_2_2
 
 template <typename Scalar>
 Hermes::Ord volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_velocity_2_2_2_2<Scalar>::ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
+  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
 {
   Hermes::Ord result(0);
   for (int i = 0; i < n; i++)
@@ -322,7 +322,7 @@ volume_matrix_magnetic_harmonic_planar_linear_harmonic_gamma_1_2_1_2<Scalar>::vo
 
 template <typename Scalar>
 Scalar volume_matrix_magnetic_harmonic_planar_linear_harmonic_gamma_1_2_1_2<Scalar>::value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
+  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -334,7 +334,7 @@ Scalar volume_matrix_magnetic_harmonic_planar_linear_harmonic_gamma_1_2_1_2<Scal
 
 template <typename Scalar>
 Hermes::Ord volume_matrix_magnetic_harmonic_planar_linear_harmonic_gamma_1_2_1_2<Scalar>::ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
+  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
 {
   Hermes::Ord result(0);
   for (int i = 0; i < n; i++)
@@ -361,7 +361,7 @@ volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_gamma_1_2_1_2<Scala
 
 template <typename Scalar>
 Scalar volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_gamma_1_2_1_2<Scalar>::value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
+  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -373,7 +373,7 @@ Scalar volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_gamma_1_2_1_
 
 template <typename Scalar>
 Hermes::Ord volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_gamma_1_2_1_2<Scalar>::ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
+  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
 {
   Hermes::Ord result(0);
   for (int i = 0; i < n; i++)
@@ -400,7 +400,7 @@ volume_matrix_magnetic_harmonic_planar_linear_harmonic_gamma_2_1_2_1<Scalar>::vo
 
 template <typename Scalar>
 Scalar volume_matrix_magnetic_harmonic_planar_linear_harmonic_gamma_2_1_2_1<Scalar>::value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
+  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -412,7 +412,7 @@ Scalar volume_matrix_magnetic_harmonic_planar_linear_harmonic_gamma_2_1_2_1<Scal
 
 template <typename Scalar>
 Hermes::Ord volume_matrix_magnetic_harmonic_planar_linear_harmonic_gamma_2_1_2_1<Scalar>::ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
+  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
 {
   Hermes::Ord result(0);
   for (int i = 0; i < n; i++)
@@ -439,7 +439,7 @@ volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_gamma_2_1_2_1<Scala
 
 template <typename Scalar>
 Scalar volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_gamma_2_1_2_1<Scalar>::value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
+  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -451,7 +451,7 @@ Scalar volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_gamma_2_1_2_
 
 template <typename Scalar>
 Hermes::Ord volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_gamma_2_1_2_1<Scalar>::ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
+  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
 {
   Hermes::Ord result(0);
   for (int i = 0; i < n; i++)
@@ -478,7 +478,7 @@ volume_matrix_magnetic_harmonic_planar_linear_harmonic_current_1_4_1_4<Scalar>::
 
 template <typename Scalar>
 Scalar volume_matrix_magnetic_harmonic_planar_linear_harmonic_current_1_4_1_4<Scalar>::value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
+  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -490,7 +490,7 @@ Scalar volume_matrix_magnetic_harmonic_planar_linear_harmonic_current_1_4_1_4<Sc
 
 template <typename Scalar>
 Hermes::Ord volume_matrix_magnetic_harmonic_planar_linear_harmonic_current_1_4_1_4<Scalar>::ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
+  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
 {
   Hermes::Ord result(0);
   for (int i = 0; i < n; i++)
@@ -517,7 +517,7 @@ volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_current_1_4_1_4<Sca
 
 template <typename Scalar>
 Scalar volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_current_1_4_1_4<Scalar>::value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
+  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -529,7 +529,7 @@ Scalar volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_current_1_4_
 
 template <typename Scalar>
 Hermes::Ord volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_current_1_4_1_4<Scalar>::ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
+  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
 {
   Hermes::Ord result(0);
   for (int i = 0; i < n; i++)
@@ -556,7 +556,7 @@ volume_matrix_magnetic_harmonic_planar_linear_harmonic_current_2_3_2_3<Scalar>::
 
 template <typename Scalar>
 Scalar volume_matrix_magnetic_harmonic_planar_linear_harmonic_current_2_3_2_3<Scalar>::value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
+  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -568,7 +568,7 @@ Scalar volume_matrix_magnetic_harmonic_planar_linear_harmonic_current_2_3_2_3<Sc
 
 template <typename Scalar>
 Hermes::Ord volume_matrix_magnetic_harmonic_planar_linear_harmonic_current_2_3_2_3<Scalar>::ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
+  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
 {
   Hermes::Ord result(0);
   for (int i = 0; i < n; i++)
@@ -595,7 +595,7 @@ volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_current_2_3_2_3<Sca
 
 template <typename Scalar>
 Scalar volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_current_2_3_2_3<Scalar>::value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
+  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -607,7 +607,7 @@ Scalar volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_current_2_3_
 
 template <typename Scalar>
 Hermes::Ord volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_current_2_3_2_3<Scalar>::ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
+  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
 {
   Hermes::Ord result(0);
   for (int i = 0; i < n; i++)
@@ -634,7 +634,7 @@ volume_matrix_magnetic_harmonic_planar_linear_harmonic_current_3_1_3_1<Scalar>::
 
 template <typename Scalar>
 Scalar volume_matrix_magnetic_harmonic_planar_linear_harmonic_current_3_1_3_1<Scalar>::value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
+  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -646,7 +646,7 @@ Scalar volume_matrix_magnetic_harmonic_planar_linear_harmonic_current_3_1_3_1<Sc
 
 template <typename Scalar>
 Hermes::Ord volume_matrix_magnetic_harmonic_planar_linear_harmonic_current_3_1_3_1<Scalar>::ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
+  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
 {
   Hermes::Ord result(0);
   for (int i = 0; i < n; i++)
@@ -673,7 +673,7 @@ volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_current_3_1_3_1<Sca
 
 template <typename Scalar>
 Scalar volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_current_3_1_3_1<Scalar>::value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
+  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -685,7 +685,7 @@ Scalar volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_current_3_1_
 
 template <typename Scalar>
 Hermes::Ord volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_current_3_1_3_1<Scalar>::ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
+  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
 {
   Hermes::Ord result(0);
   for (int i = 0; i < n; i++)
@@ -712,7 +712,7 @@ volume_matrix_magnetic_harmonic_planar_linear_harmonic_current_4_2_4_2<Scalar>::
 
 template <typename Scalar>
 Scalar volume_matrix_magnetic_harmonic_planar_linear_harmonic_current_4_2_4_2<Scalar>::value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
+  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -724,7 +724,7 @@ Scalar volume_matrix_magnetic_harmonic_planar_linear_harmonic_current_4_2_4_2<Sc
 
 template <typename Scalar>
 Hermes::Ord volume_matrix_magnetic_harmonic_planar_linear_harmonic_current_4_2_4_2<Scalar>::ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
+  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
 {
   Hermes::Ord result(0);
   for (int i = 0; i < n; i++)
@@ -751,7 +751,7 @@ volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_current_4_2_4_2<Sca
 
 template <typename Scalar>
 Scalar volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_current_4_2_4_2<Scalar>::value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
+  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -763,7 +763,7 @@ Scalar volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_current_4_2_
 
 template <typename Scalar>
 Hermes::Ord volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_current_4_2_4_2<Scalar>::ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
+  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
 {
   Hermes::Ord result(0);
   for (int i = 0; i < n; i++)
@@ -790,7 +790,7 @@ volume_matrix_magnetic_harmonic_planar_linear_harmonic_current_3_3_3_3<Scalar>::
 
 template <typename Scalar>
 Scalar volume_matrix_magnetic_harmonic_planar_linear_harmonic_current_3_3_3_3<Scalar>::value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
+  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -802,7 +802,7 @@ Scalar volume_matrix_magnetic_harmonic_planar_linear_harmonic_current_3_3_3_3<Sc
 
 template <typename Scalar>
 Hermes::Ord volume_matrix_magnetic_harmonic_planar_linear_harmonic_current_3_3_3_3<Scalar>::ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
+  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
 {
   Hermes::Ord result(0);
   for (int i = 0; i < n; i++)
@@ -829,7 +829,7 @@ volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_current_3_3_3_3<Sca
 
 template <typename Scalar>
 Scalar volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_current_3_3_3_3<Scalar>::value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
+  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -841,7 +841,7 @@ Scalar volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_current_3_3_
 
 template <typename Scalar>
 Hermes::Ord volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_current_3_3_3_3<Scalar>::ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
+  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
 {
   Hermes::Ord result(0);
   for (int i = 0; i < n; i++)
@@ -868,7 +868,7 @@ volume_matrix_magnetic_harmonic_planar_linear_harmonic_current_4_4_4_4<Scalar>::
 
 template <typename Scalar>
 Scalar volume_matrix_magnetic_harmonic_planar_linear_harmonic_current_4_4_4_4<Scalar>::value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
+  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -880,7 +880,7 @@ Scalar volume_matrix_magnetic_harmonic_planar_linear_harmonic_current_4_4_4_4<Sc
 
 template <typename Scalar>
 Hermes::Ord volume_matrix_magnetic_harmonic_planar_linear_harmonic_current_4_4_4_4<Scalar>::ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
+  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
 {
   Hermes::Ord result(0);
   for (int i = 0; i < n; i++)
@@ -906,7 +906,7 @@ volume_vector_magnetic_harmonic_planar_linear_harmonic_rhs_1_1_remanence_1_1<Sca
 
 template <typename Scalar>
 Scalar volume_vector_magnetic_harmonic_planar_linear_harmonic_rhs_1_1_remanence_1_1<Scalar>::value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *v,
-  Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
+  Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
 {
   Scalar result = 0;
 
@@ -919,7 +919,7 @@ Scalar volume_vector_magnetic_harmonic_planar_linear_harmonic_rhs_1_1_remanence_
 
 template <typename Scalar>
 Hermes::Ord volume_vector_magnetic_harmonic_planar_linear_harmonic_rhs_1_1_remanence_1_1<Scalar>::ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *v,
-  Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
+  Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
 {
   Hermes::Ord result(0);
   for (int i = 0; i < n; i++)
@@ -945,7 +945,7 @@ volume_vector_magnetic_harmonic_axisymmetric_linear_harmonic_rhs_1_1_remanence_1
 
 template <typename Scalar>
 Scalar volume_vector_magnetic_harmonic_axisymmetric_linear_harmonic_rhs_1_1_remanence_1_1<Scalar>::value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *v,
-  Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
+  Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
 {
   Scalar result = 0;
 
@@ -958,7 +958,7 @@ Scalar volume_vector_magnetic_harmonic_axisymmetric_linear_harmonic_rhs_1_1_rema
 
 template <typename Scalar>
 Hermes::Ord volume_vector_magnetic_harmonic_axisymmetric_linear_harmonic_rhs_1_1_remanence_1_1<Scalar>::ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *v,
-  Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
+  Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
 {
   Hermes::Ord result(0);
   for (int i = 0; i < n; i++)
@@ -984,7 +984,7 @@ volume_vector_magnetic_harmonic_planar_linear_harmonic_rhs_1_1_current_1_1<Scala
 
 template <typename Scalar>
 Scalar volume_vector_magnetic_harmonic_planar_linear_harmonic_rhs_1_1_current_1_1<Scalar>::value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *v,
-  Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
+  Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
 {
   Scalar result = 0;
 
@@ -997,7 +997,7 @@ Scalar volume_vector_magnetic_harmonic_planar_linear_harmonic_rhs_1_1_current_1_
 
 template <typename Scalar>
 Hermes::Ord volume_vector_magnetic_harmonic_planar_linear_harmonic_rhs_1_1_current_1_1<Scalar>::ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *v,
-  Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
+  Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
 {
   Hermes::Ord result(0);
   for (int i = 0; i < n; i++)
@@ -1023,7 +1023,7 @@ volume_vector_magnetic_harmonic_axisymmetric_linear_harmonic_rhs_1_1_current_1_1
 
 template <typename Scalar>
 Scalar volume_vector_magnetic_harmonic_axisymmetric_linear_harmonic_rhs_1_1_current_1_1<Scalar>::value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *v,
-  Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
+  Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
 {
   Scalar result = 0;
 
@@ -1036,7 +1036,7 @@ Scalar volume_vector_magnetic_harmonic_axisymmetric_linear_harmonic_rhs_1_1_curr
 
 template <typename Scalar>
 Hermes::Ord volume_vector_magnetic_harmonic_axisymmetric_linear_harmonic_rhs_1_1_current_1_1<Scalar>::ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *v,
-  Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
+  Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
 {
   Hermes::Ord result(0);
   for (int i = 0; i < n; i++)
@@ -1062,7 +1062,7 @@ volume_vector_magnetic_harmonic_planar_linear_harmonic_rhs_2_2_current_2_2<Scala
 
 template <typename Scalar>
 Scalar volume_vector_magnetic_harmonic_planar_linear_harmonic_rhs_2_2_current_2_2<Scalar>::value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *v,
-  Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
+  Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
 {
   Scalar result = 0;
 
@@ -1075,7 +1075,7 @@ Scalar volume_vector_magnetic_harmonic_planar_linear_harmonic_rhs_2_2_current_2_
 
 template <typename Scalar>
 Hermes::Ord volume_vector_magnetic_harmonic_planar_linear_harmonic_rhs_2_2_current_2_2<Scalar>::ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *v,
-  Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
+  Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
 {
   Hermes::Ord result(0);
   for (int i = 0; i < n; i++)
@@ -1101,7 +1101,7 @@ volume_vector_magnetic_harmonic_axisymmetric_linear_harmonic_rhs_2_2_current_2_2
 
 template <typename Scalar>
 Scalar volume_vector_magnetic_harmonic_axisymmetric_linear_harmonic_rhs_2_2_current_2_2<Scalar>::value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *v,
-  Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
+  Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
 {
   Scalar result = 0;
 
@@ -1114,7 +1114,7 @@ Scalar volume_vector_magnetic_harmonic_axisymmetric_linear_harmonic_rhs_2_2_curr
 
 template <typename Scalar>
 Hermes::Ord volume_vector_magnetic_harmonic_axisymmetric_linear_harmonic_rhs_2_2_current_2_2<Scalar>::ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *v,
-  Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
+  Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
 {
   Hermes::Ord result(0);
   for (int i = 0; i < n; i++)
@@ -1140,7 +1140,7 @@ volume_vector_magnetic_harmonic_planar_linear_harmonic_vec_current_3_3_3_3<Scala
 
 template <typename Scalar>
 Scalar volume_vector_magnetic_harmonic_planar_linear_harmonic_vec_current_3_3_3_3<Scalar>::value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *v,
-  Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
+  Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
 {
   Scalar result = 0;
 
@@ -1153,7 +1153,7 @@ Scalar volume_vector_magnetic_harmonic_planar_linear_harmonic_vec_current_3_3_3_
 
 template <typename Scalar>
 Hermes::Ord volume_vector_magnetic_harmonic_planar_linear_harmonic_vec_current_3_3_3_3<Scalar>::ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *v,
-  Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
+  Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
 {
   Hermes::Ord result(0);
   for (int i = 0; i < n; i++)
@@ -1179,7 +1179,7 @@ volume_vector_magnetic_harmonic_axisymmetric_linear_harmonic_vec_current_3_3_3_3
 
 template <typename Scalar>
 Scalar volume_vector_magnetic_harmonic_axisymmetric_linear_harmonic_vec_current_3_3_3_3<Scalar>::value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *v,
-  Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
+  Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
 {
   Scalar result = 0;
 
@@ -1192,7 +1192,7 @@ Scalar volume_vector_magnetic_harmonic_axisymmetric_linear_harmonic_vec_current_
 
 template <typename Scalar>
 Hermes::Ord volume_vector_magnetic_harmonic_axisymmetric_linear_harmonic_vec_current_3_3_3_3<Scalar>::ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *v,
-  Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
+  Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
 {
   Hermes::Ord result(0);
   for (int i = 0; i < n; i++)
@@ -1218,7 +1218,7 @@ volume_vector_magnetic_harmonic_planar_linear_harmonic_vec_current_4_4_4_4<Scala
 
 template <typename Scalar>
 Scalar volume_vector_magnetic_harmonic_planar_linear_harmonic_vec_current_4_4_4_4<Scalar>::value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *v,
-  Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
+  Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
 {
   Scalar result = 0;
 
@@ -1231,7 +1231,7 @@ Scalar volume_vector_magnetic_harmonic_planar_linear_harmonic_vec_current_4_4_4_
 
 template <typename Scalar>
 Hermes::Ord volume_vector_magnetic_harmonic_planar_linear_harmonic_vec_current_4_4_4_4<Scalar>::ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *v,
-  Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
+  Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
 {
   Hermes::Ord result(0);
   for (int i = 0; i < n; i++)
@@ -1260,7 +1260,7 @@ surface_vector_magnetic_harmonic_planar_linear_harmonic_current_1_1_1_magnetic_s
 
 template <typename Scalar>
 Scalar surface_vector_magnetic_harmonic_planar_linear_harmonic_current_1_1_1_magnetic_surface_current<Scalar>::value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *v,
-  Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
+  Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -1272,7 +1272,7 @@ Scalar surface_vector_magnetic_harmonic_planar_linear_harmonic_current_1_1_1_mag
 
 template <typename Scalar>
 Hermes::Ord surface_vector_magnetic_harmonic_planar_linear_harmonic_current_1_1_1_magnetic_surface_current<Scalar>::ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *v,
-  Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
+  Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
 {
   Hermes::Ord result(0);
   for (int i = 0; i < n; i++)
@@ -1298,7 +1298,7 @@ surface_vector_magnetic_harmonic_axisymmetric_linear_harmonic_current_1_1_1_magn
 
 template <typename Scalar>
 Scalar surface_vector_magnetic_harmonic_axisymmetric_linear_harmonic_current_1_1_1_magnetic_surface_current<Scalar>::value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *v,
-  Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
+  Hermes::Hermes2D::GeomSurf<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -1310,7 +1310,7 @@ Scalar surface_vector_magnetic_harmonic_axisymmetric_linear_harmonic_current_1_1
 
 template <typename Scalar>
 Hermes::Ord surface_vector_magnetic_harmonic_axisymmetric_linear_harmonic_current_1_1_1_magnetic_surface_current<Scalar>::ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *v,
-  Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
+  Hermes::Hermes2D::GeomSurf<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
 {
   Hermes::Ord result(0);
   for (int i = 0; i < n; i++)
@@ -1337,7 +1337,7 @@ surface_vector_magnetic_harmonic_planar_linear_harmonic_current_2_2_2_magnetic_s
 
 template <typename Scalar>
 Scalar surface_vector_magnetic_harmonic_planar_linear_harmonic_current_2_2_2_magnetic_surface_current<Scalar>::value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *v,
-  Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
+  Hermes::Hermes2D::GeomSurf<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -1349,7 +1349,7 @@ Scalar surface_vector_magnetic_harmonic_planar_linear_harmonic_current_2_2_2_mag
 
 template <typename Scalar>
 Hermes::Ord surface_vector_magnetic_harmonic_planar_linear_harmonic_current_2_2_2_magnetic_surface_current<Scalar>::ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *v,
-  Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
+  Hermes::Hermes2D::GeomSurf<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
 {
   Hermes::Ord result(0);
   for (int i = 0; i < n; i++)

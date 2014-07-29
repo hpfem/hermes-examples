@@ -1,13 +1,10 @@
-#define HERMES_REPORT_ALL
-
 ////// Weak formulation in axisymmetric coordinate system  ////////////////////////////////////
-
 #include "definitions.h"
 
 CustomWeakForm::CustomWeakForm(const MaterialPropertyMaps& matprop,
   std::vector<MeshFunctionSharedPtr<double> >& iterates,
   double init_keff, std::string bdy_vacuum)
-  : DefaultWeakFormSourceIteration<double>(matprop, const_cast<Mesh*>(iterates[0]->get_mesh()), iterates, init_keff, HERMES_AXISYM_Y)
+  : DefaultWeakFormSourceIteration<double>(matprop, iterates[0]->get_mesh(), iterates, init_keff, HERMES_AXISYM_Y)
 {
   for (unsigned int g = 0; g < matprop.get_G(); g++)
   {
@@ -17,10 +14,10 @@ CustomWeakForm::CustomWeakForm(const MaterialPropertyMaps& matprop,
 }
 
 double ErrorForm::value(int n, double *wt, Func<double> *u_ext[],
-  Func<double> *u, Func<double> *v, Geom<double> *e,
+  Func<double> *u, Func<double> *v, GeomVol<double> *e,
   Func<double>* *ext) const
 {
-  switch (projNormType)
+  switch (this->normType)
   {
   case HERMES_L2_NORM:
     return l2_error_form_axisym<double, double>(n, wt, u_ext, u, v, e, ext);
@@ -33,10 +30,10 @@ double ErrorForm::value(int n, double *wt, Func<double> *u_ext[],
 }
 
 Ord ErrorForm::ord(int n, double *wt, Func<Ord> *u_ext[],
-  Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e,
+  Func<Ord> *u, Func<Ord> *v, GeomVol<Ord> *e,
   Func<Ord>* *ext) const
 {
-  switch (projNormType)
+  switch (this->normType)
   {
   case HERMES_L2_NORM:
     return l2_error_form_axisym<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
@@ -56,7 +53,7 @@ double integrate(MeshFunction<double>* sln, std::string area)
 
   double integral = 0.0;
   Element* e;
-  MeshSharedPtr mesh = const_cast<Mesh*>(sln->get_mesh());
+  MeshSharedPtr mesh = sln->get_mesh();
   int marker = mesh->get_element_markers_conversion().get_internal_marker(area).marker;
 
   for_all_active_elements(e, mesh)
@@ -69,7 +66,7 @@ double integrate(MeshFunction<double>* sln, std::string area)
       int o = sln->get_fn_order() + ru->get_inv_ref_order();
       limit_order(o, e->get_mode());
       sln->set_quad_order(o, H2D_FN_VAL);
-      double *uval = sln->get_fn_values();
+      const double *uval = sln->get_fn_values();
       double* x = ru->get_phys_x(o);
       double result = 0.0;
       h1_integrate_expression(x[i] * uval[i]);
@@ -81,7 +78,7 @@ double integrate(MeshFunction<double>* sln, std::string area)
 }
 
 // Calculate number of negative solution values.
-int get_num_of_neg(MeshFunction<double> *sln)
+int get_num_of_neg(MeshFunctionSharedPtr<double> sln)
 {
   Quad2D* quad = &g_quad_2d_std;
   sln->set_quad_2d(quad);
@@ -98,7 +95,7 @@ int get_num_of_neg(MeshFunction<double> *sln)
     int o = sln->get_fn_order() + ru->get_inv_ref_order();
     limit_order(o, e->get_mode());
     sln->set_quad_order(o, H2D_FN_VAL);
-    double *uval = sln->get_fn_values();
+    const double *uval = sln->get_fn_values();
     int np = quad->get_num_points(o, e->get_mode());
 
     for (int i = 0; i < np; i++)
@@ -110,8 +107,8 @@ int get_num_of_neg(MeshFunction<double> *sln)
 }
 
 int power_iteration(const MaterialPropertyMaps& matprop,
-  const std::vector<const Space<double>*>& spaces, DefaultWeakFormSourceIteration<double>* wf,
-  const std::vector<MeshFunction<double> *>& solutions, const std::string& fission_region,
+  const std::vector<SpaceSharedPtr<double> >& spaces, DefaultWeakFormSourceIteration<double>* wf,
+  const std::vector<MeshFunctionSharedPtr<double> >& solutions, const std::string& fission_region,
   double tol, Hermes::MatrixSolverType matrix_solver)
 {
   // Sanity checks.
@@ -127,7 +124,7 @@ int power_iteration(const MaterialPropertyMaps& matprop,
 
   // The following variables will store pointers to solutions obtained at each iteration and will be needed for
   // updating the eigenvalue.
-  std::vector<Solution<double>*> new_solutions;
+  std::vector<MeshFunctionSharedPtr<double> > new_solutions;
   for (int g = 0; g < G; g++)
     new_solutions.push_back(new Solution<double>(solutions[g]->get_mesh()));
 
@@ -177,12 +174,8 @@ int power_iteration(const MaterialPropertyMaps& matprop,
 
     // Store the new eigenvector approximation in the result.
     for (int g = 0; g < G; g++)
-      (static_cast<Solution<double>*>(solutions[g]))->copy((static_cast<Solution<double>*>(new_solutions[g])));
+      solutions[g]->copy(new_solutions[g]);
   } while (!eigen_done);
-
-  // Free memory.
-  for (int g = 0; g < G; g++)
-    delete new_solutions[g];
 
   return it;
 }

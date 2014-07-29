@@ -83,7 +83,7 @@ const double J = 0.0000033333;
 const std::string BDY_PERFECT_CONDUCTOR = "b2";
 const std::string BDY_CURRENT = "b1";
 
-class CustomErrorCalculator : public ErrorCalculator < complex >
+class CustomErrorCalculator : public ErrorCalculator <::complex>
 {
 public:
   CustomErrorCalculator(CalculatedErrorType errorType) : ErrorCalculator<::complex>(errorType)
@@ -120,7 +120,7 @@ int main(int argc, char* argv[])
   Hermes::Mixins::Loggable::Static::info("ndof = %d", ndof);
 
   // Initialize the weak formulation.
-  WeakFormSharedPtr<double> wf(new CustomWeakForm(e_0, mu_0, mu_r, kappa, omega, J, ALIGN_MESH, mesh, BDY_CURRENT));
+  WeakFormSharedPtr<::complex> wf(new CustomWeakForm(e_0, mu_0, mu_r, kappa, omega, J, ALIGN_MESH, mesh, BDY_CURRENT));
 
   // Initialize coarse and reference mesh solution.
   MeshFunctionSharedPtr<::complex>  sln(new Solution<::complex>), ref_sln(new Solution<::complex>);

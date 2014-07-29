@@ -112,7 +112,7 @@ int main(int argc, char* argv[])
   CustomExactSolution exact_sln(mesh, x_0, x_1, y_0, y_1, &current_time, s, c);
 
   // Initialize boundary conditions.
-  DefaultEssentialBCConst<double> bc_essential({"Left", "Right"}, 0);
+  DefaultEssentialBCConst<double> bc_essential(std::vector<std::string>({ "Left", "Right" }), 0);
   EssentialBCs<double> bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.
@@ -121,7 +121,7 @@ int main(int argc, char* argv[])
 
   // Initialize the weak formulation
   CustomFunction f(x_0, x_1, y_0, y_1, s, c);
-  CustomWeakFormPoisson wf(new Hermes::Hermes1DFunction<double>(-1.0), &f);
+  WeakFormSharedPtr<double> wf(new CustomWeakFormPoisson(new Hermes::Hermes1DFunction<double>(-1.0), &f));
 
   // Previous and next time level solution.
   MeshFunctionSharedPtr<double>  sln_time_prev(new ZeroSolution<double>(mesh));

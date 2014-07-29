@@ -1,3 +1,0 @@
-rm *~ 
-./bracket
-python plot_graph.py &

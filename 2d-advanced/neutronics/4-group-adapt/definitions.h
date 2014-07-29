@@ -1,5 +1,4 @@
 ////// Weak formulation in axisymmetric coordinate system  ////////////////////////////////////
-
 #include "hermes2d.h"
 
 /* Namespaces used */
@@ -10,7 +9,7 @@ using namespace Hermes::Hermes2D::Views;
 using namespace Hermes::Hermes2D::RefinementSelectors;
 using namespace WeakFormsNeutronics::Multigroup::CompleteWeakForms::Diffusion;
 
-class CustomWeakForm : public DefaultWeakFormSourceIteration < double >
+class CustomWeakForm : public DefaultWeakFormSourceIteration <double>
 {
 public:
   CustomWeakForm(const MaterialPropertyMaps& matprop,
@@ -19,23 +18,23 @@ public:
 };
 
 // Integral over the active core.
-double integrate(MeshFunction<double>* sln, MeshSharedPtr mesh, std::string area);
-int get_num_of_neg(MeshFunction<double> *sln);
+double integrate(MeshFunctionSharedPtr<double>  sln, MeshSharedPtr mesh, std::string area);
+int get_num_of_neg(MeshFunctionSharedPtr<double> sln);
 
 // Jacobian matrix (same as stiffness matrix since projections are linear).
-class H1AxisymProjectionJacobian : public MatrixFormVol < double >
+class H1AxisymProjectionJacobian : public MatrixFormVol <double>
 {
 public:
   H1AxisymProjectionJacobian(int i) : MatrixFormVol<double>(i, i) { this->setSymFlag(HERMES_SYM); };
 
   double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
-    Geom<double> *e, Func<double>* *ext) const
+    GeomVol<double> *e, Func<double>* *ext) const
   {
     return h1_axisym_projection_biform<double, double>(n, wt, u_ext, u, v, e, ext);
   }
 
   Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v,
-    Geom<Ord> *e, Func<Ord>* *ext) const
+    GeomVol<Ord> *e, Func<Ord>* *ext) const
   {
     return h1_axisym_projection_biform<Ord, Ord>(n, wt, u_ext, u, v, e, ext);
   }
@@ -44,7 +43,7 @@ private:
 
   template<typename Real, typename Scalar>
   static Scalar h1_axisym_projection_biform(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *u,
-    Func<Real> *v, Geom<Real> *e, Func<Scalar>* *ext)
+    Func<Real> *v, GeomVol<Real> *e, Func<Scalar>* *ext)
   {
     Scalar result = (Scalar)0;
     for (int i = 0; i < n; i++)
@@ -54,22 +53,22 @@ private:
 };
 
 // Residual.
-class H1AxisymProjectionResidual : public VectorFormVol < double >
+class H1AxisymProjectionResidual : public VectorFormVol <double>
 {
 public:
-  H1AxisymProjectionResidual(int i, MeshFunction<double>* ext) : VectorFormVol<double>(i)
+  H1AxisymProjectionResidual(int i, MeshFunctionSharedPtr<double>  ext) : VectorFormVol<double>(i)
   {
     this->ext.push_back(ext);
   }
 
   double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v,
-    Geom<double> *e, Func<double>* *ext) const
+    GeomVol<double> *e, Func<double>* *ext) const
   {
     return h1_axisym_projection_liform<double, double>(n, wt, u_ext, v, e, ext);
   }
 
   Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v,
-    Geom<Ord> *e, Func<Ord>* *ext) const
+    GeomVol<Ord> *e, Func<Ord>* *ext) const
   {
     return h1_axisym_projection_liform<Ord, Ord>(n, wt, u_ext, v, e, ext);
   }
@@ -77,7 +76,7 @@ public:
 private:
   template<typename Real, typename Scalar>
   Scalar h1_axisym_projection_liform(int n, double *wt, Func<Scalar> *u_ext[], Func<Real> *v,
-    Geom<Real> *e, Func<Scalar>* *ext) const
+    GeomVol<Real> *e, Func<Scalar>* *ext) const
   {
     Scalar result = (Scalar)0;
     for (int i = 0; i < n; i++)
@@ -89,25 +88,25 @@ private:
 };
 
 // Matrix forms for error calculation.
-class ErrorForm : public Adapt<double>::MatrixFormVolError
+class ErrorForm : public DefaultNormFormVol<double>
 {
 public:
-  ErrorForm(ProjNormType type) : Adapt<double>::MatrixFormVolError(0, 0, type) {};
+  ErrorForm(unsigned int i, unsigned int j, NormType type) : DefaultNormFormVol<double>(i, j, type) {};
 
   /// Error bilinear form.
   virtual double value(int n, double *wt, Func<double> *u_ext[],
-    Func<double> *u, Func<double> *v, Geom<double> *e,
+    Func<double> *u, Func<double> *v, GeomVol<double> *e,
     Func<double>* *ext) const;
 
   /// Error bilinear form to estimate order of a function.
   virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[],
-    Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e,
+    Func<Ord> *u, Func<Ord> *v, GeomVol<Ord> *e,
     Func<Ord>* *ext) const;
 
 private:
   template<typename Real, typename Scalar>
   static Scalar l2_error_form_axisym(int n, double *wt, Func<Scalar> *u_ext[], Func<Scalar> *u,
-    Func<Scalar> *v, Geom<Real> *e, Func<Scalar>* *ext)
+    Func<Scalar> *v, GeomVol<Real> *e, Func<Scalar>* *ext)
   {
     Scalar result = (Scalar)0;
     for (int i = 0; i < n; i++)
@@ -117,7 +116,7 @@ private:
 
   template<typename Real, typename Scalar>
   static Scalar h1_error_form_axisym(int n, double *wt, Func<Scalar> *u_ext[], Func<Scalar> *u,
-    Func<Scalar> *v, Geom<Real> *e, Func<Scalar>* *ext)
+    Func<Scalar> *v, GeomVol<Real> *e, Func<Scalar>* *ext)
   {
     Scalar result = (Scalar)0;
     for (int i = 0; i < n; i++)

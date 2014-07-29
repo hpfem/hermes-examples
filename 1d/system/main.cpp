@@ -108,9 +108,9 @@ int main(int argc, char* argv[])
   WeakFormSharedPtr<double> wf(new CustomWeakForm(&g1, &g2));
 
   // Initialize boundary conditions
-  DefaultEssentialBCConst<double> bc_u({"Left", "Right"}, 0.0);
+  DefaultEssentialBCConst<double> bc_u(std::vector<std::string>({ "Left", "Right" }), 0.0);
   EssentialBCs<double> bcs_u(&bc_u);
-  DefaultEssentialBCConst<double> bc_v({"Left", "Right"}, 0.0);
+  DefaultEssentialBCConst<double> bc_v(std::vector<std::string>({"Left", "Right"}), 0.0);
   EssentialBCs<double> bcs_v(&bc_v);
 
   // Create H1 spaces with default shapeset for both displacement components.
@@ -162,7 +162,7 @@ int main(int argc, char* argv[])
     Space<double>::ReferenceSpaceCreator refSpaceCreator2(v_space, ref_v_mesh);
     SpaceSharedPtr<double> ref_v_space = refSpaceCreator2.create_ref_space();
 
-    std::vector<SpaceSharedPtr<double> > ref_spaces(ref_u_space, ref_v_space);
+    std::vector<SpaceSharedPtr<double> > ref_spaces({ ref_u_space, ref_v_space });
 
     int ndof_ref = Space<double>::get_num_dofs(ref_spaces);
 
@@ -189,13 +189,13 @@ int main(int argc, char* argv[])
 
     // Translate the resulting coefficient vector into the Solution<double> sln->
     Solution<double>::vector_to_solutions(newton.get_sln_vector(), ref_spaces,
-      std::vector<MeshFunctionSharedPtr<double> >(u_ref_sln, v_ref_sln));
+      std::vector<MeshFunctionSharedPtr<double> >({ u_ref_sln, v_ref_sln }));
 
     // Project the fine mesh solution onto the coarse mesh->
     Hermes::Mixins::Loggable::Static::info("Projecting reference solutions on coarse meshes.");
     OGProjection<double> ogProjection; ogProjection.project_global({u_space, v_space},
-      std::vector<MeshFunctionSharedPtr<double> >(u_ref_sln, v_ref_sln),
-      std::vector<MeshFunctionSharedPtr<double> >(u_sln, v_sln));
+      std::vector<MeshFunctionSharedPtr<double> >({ u_ref_sln, v_ref_sln }),
+      std::vector<MeshFunctionSharedPtr<double> >({ u_sln, v_sln }));
 
     cpu_time.tick();
 

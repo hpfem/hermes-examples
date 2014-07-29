@@ -1,8 +1,8 @@
 #include "definitions.h"
 
 double CustomWeakForm::Jacobian::value(int n, double* wt,
-  Func< double >* u_ext[], Func< double >* u, Func< double >* v,
-  Geom< double >* e, Func< double >** ext) const
+  Func<double>* u_ext[], Func<double>* u, Func<double>* v,
+  GeomVol<double>* e, Func<double>** ext) const
 {
   double result = 0;
   for (int i = 0; i < n; i++)
@@ -13,7 +13,7 @@ double CustomWeakForm::Jacobian::value(int n, double* wt,
 
 Ord CustomWeakForm::Jacobian::ord(int n, double* wt,
   Func< Ord >* u_ext[], Func< Ord >* u, Func< Ord >* v,
-  Geom< Ord >* e, Func< Ord >** ext) const
+  GeomVol< Ord >* e, Func< Ord >** ext) const
 {
   return u->dx[0] * v->dx[0] + u->dy[0] * v->dy[0];
 }
@@ -23,8 +23,8 @@ MatrixFormVol<double>* CustomWeakForm::Jacobian::clone() const
   return new CustomWeakForm::Jacobian(*this);
 }
 
-double CustomWeakForm::Residual::value(int n, double* wt, Func< double >* u_ext[], Func< double >* v,
-  Geom< double >* e, Func< double >** ext) const
+double CustomWeakForm::Residual::value(int n, double* wt, Func<double>* u_ext[], Func<double>* v,
+  GeomVol<double>* e, Func<double>** ext) const
 {
   double result = 0;
   for (int i = 0; i < n; i++)
@@ -34,7 +34,7 @@ double CustomWeakForm::Residual::value(int n, double* wt, Func< double >* u_ext[
 }
 
 Ord CustomWeakForm::Residual::ord(int n, double* wt, Func< Ord >* u_ext[], Func< Ord >* v,
-  Geom< Ord >* e, Func< Ord >** ext) const
+  GeomVol< Ord >* e, Func< Ord >** ext) const
 {
   return u_ext[0]->dx[0] * v->dx[0] + u_ext[0]->dy[0] * v->dy[0] + rhs->value(e->x[0], e->y[0]) * v->val[0];
 }

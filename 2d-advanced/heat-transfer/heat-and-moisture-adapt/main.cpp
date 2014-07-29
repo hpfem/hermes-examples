@@ -53,7 +53,7 @@ CustomErrorForm cef_1_0(1, 0, d_wT, c_ww);
 CustomErrorForm cef_1_1(1, 1, d_ww, c_ww);
 
 // Error calculation & adaptivity.
-class MyErrorCalculator : public Hermes::Hermes2D::ErrorCalculator < double >
+class MyErrorCalculator : public Hermes::Hermes2D::ErrorCalculator <double>
 {
 public:
   MyErrorCalculator() : Hermes::Hermes2D::ErrorCalculator<double>(RelativeErrorToGlobalNorm)
@@ -142,7 +142,7 @@ int main(int argc, char* argv[])
 
   SpaceSharedPtr<double> T_space(new H1Space<double>(T_mesh, &bcs_T, P_INIT));
   SpaceSharedPtr<double> w_space(new H1Space<double>(MULTI ? w_mesh : T_mesh, P_INIT));
-  std::vector<SpaceSharedPtr<double> > spaces(T_space, w_space);
+  std::vector<SpaceSharedPtr<double> > spaces({ T_space, w_space });
   adaptivity.set_spaces(spaces);
 
   // Define constant initial conditions.
@@ -156,8 +156,8 @@ int main(int argc, char* argv[])
   MeshFunctionSharedPtr<double> T_coarse(new Solution<double>), w_coarse(new Solution<double>);
 
   // Initialize the weak formulation.
-  CustomWeakFormHeatMoistureRK wf(c_TT, c_ww, d_TT, d_Tw, d_wT, d_ww,
-    k_TT, k_ww, T_EXTERIOR, W_EXTERIOR, "bdy_ext");
+  WeakFormSharedPtr<double> wf(new CustomWeakFormHeatMoistureRK(c_TT, c_ww, d_TT, d_Tw, d_wT, d_ww,
+    k_TT, k_ww, T_EXTERIOR, W_EXTERIOR, "bdy_ext"));
 
   // Initialize refinement selector.
   H1ProjBasedSelector<double> selector(CAND_LIST);
@@ -242,10 +242,7 @@ int main(int argc, char* argv[])
       Space<double>::ReferenceSpaceCreator refSpaceCreatorW(w_space, ref_w_mesh);
       SpaceSharedPtr<double> ref_w_space = refSpaceCreatorW.create_ref_space();
 
-      std::vector<SpaceSharedPtr<double> > ref_spaces(ref_T_space, ref_w_space);
-
-      // Initialize discrete problem on reference meshes.
-      DiscreteProblem<double> dp(wf, ref_spaces);
+      std::vector<SpaceSharedPtr<double> > ref_spaces({ ref_T_space, ref_w_space });
 
       // Initialize Runge-Kutta time stepping.
       RungeKutta<double> runge_kutta(wf, ref_spaces, &bt);
@@ -259,8 +256,7 @@ int main(int argc, char* argv[])
         runge_kutta.set_time_step(time_step);
         runge_kutta.set_max_allowed_iterations(NEWTON_MAX_ITER);
         runge_kutta.set_tolerance(NEWTON_TOL);
-        runge_kutta.rk_time_step_newton({T_time_prev, w_time_prev},
-          std::vector<MeshFunctionSharedPtr<double> >(T_time_new, w_time_new));
+        runge_kutta.rk_time_step_newton({ T_time_prev, w_time_prev }, { T_time_new, w_time_new });
       }
       catch (Exceptions::Exception& e)
       {
@@ -270,14 +266,12 @@ int main(int argc, char* argv[])
 
       // Project the fine mesh solution onto the coarse meshes.
       Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solutions on coarse meshes for error estimation.");
-      OGProjection<double> ogProjection; ogProjection.project_global({T_space, w_space},
-        std::vector<MeshFunctionSharedPtr<double> >(T_time_new, w_time_new),
-        std::vector<MeshFunctionSharedPtr<double> >(T_coarse, w_coarse));
+      OGProjection<double> ogProjection; ogProjection.project_global({ T_space, w_space }, { T_time_new, w_time_new },
+      { T_coarse, w_coarse });
 
       // Calculate element errors and total error estimate.
       Hermes::Mixins::Loggable::Static::info("Calculating error estimate.");
-      errorCalculator.calculate_errors({T_coarse, w_coarse},
-        std::vector<MeshFunctionSharedPtr<double> >(T_time_new, w_time_new));
+      errorCalculator.calculate_errors({ T_coarse, w_coarse }, { T_time_new, w_time_new });
       double err_est_rel_total = errorCalculator.get_total_error_squared() * 100;
 
       // Report results.

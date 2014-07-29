@@ -1,5 +1,4 @@
 #define HERMES_REPORT_INFO
-#define HERMES_REPORT_FILE "application.log"
 #include "hermes2d.h"
 
 using namespace Hermes;
@@ -241,7 +240,7 @@ SpaceSharedPtr<double> *> spaceVector = continuity.get_last_record()->load_space
       int order_increase = 1;
 
       Mesh::ReferenceMeshCreator refMeshCreatorFlow(mesh);
-      Mesh* ref_mesh_flow = refMeshCreatorFlow.create_ref_mesh();
+      MeshSharedPtr ref_mesh_flow = refMeshCreatorFlow.create_ref_mesh();
 
       Space<double>::ReferenceSpaceCreator refSpaceCreatorRho(space_rho, ref_mesh_flow, order_increase);
 SpaceSharedPtr<double>* ref_space_rho = refSpaceCreatorRho.create_ref_space(new     Space<double>());
@@ -252,15 +251,15 @@ SpaceSharedPtr<double>* ref_space_rho_v_y = refSpaceCreatorRhoVy.create_ref_spac
       Space<double>::ReferenceSpaceCreator refSpaceCreatorE(space_e, ref_mesh_flow, order_increase);
 SpaceSharedPtr<double>* ref_space_e = refSpaceCreatorE.create_ref_space(new     Space<double>());
 
-SpaceSharedPtr<double>*> ref_spaces_const(new     std::vector<const Space<double>(ref_space_rho, ref_space_rho_v_x, ref_space_rho_v_y, ref_space_e));
+SpaceSharedPtr<double>*> ref_spaces(new     std::vector<const Space<double>(ref_space_rho, ref_space_rho_v_x, ref_space_rho_v_y, ref_space_e));
 
       if(ndofs_prev != 0)
-        if(Space<double>::get_num_dofs(ref_spaces_const) == ndofs_prev)
+        if(Space<double>::get_num_dofs(ref_spaces) == ndofs_prev)
           selector.set_error_weights(2.0 * selector.get_error_weight_h(), 1.0, 1.0);
         else
           selector.set_error_weights(1.0, 1.0, 1.0);
 
-      ndofs_prev = Space<double>::get_num_dofs(ref_spaces_const);
+      ndofs_prev = Space<double>::get_num_dofs(ref_spaces);
 
       // Project the previous time level solution onto the new fine mesh->
       Hermes::Mixins::Loggable::Static::info("Projecting the previous time level solution onto the new fine mesh->");
@@ -273,18 +272,18 @@ SpaceSharedPtr<double> *>(new         std::vector<Space<double>(ref_space_rho, r
       }
       else
       {
-      OGProjection<double> ogProjection; ogProjection.project_global(ref_spaces_const,{&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e}, 
-        std::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), std::vector<Hermes::Hermes2D::ProjNormType>());
+      OGProjection<double> ogProjection; ogProjection.project_global(ref_spaces,{&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e}, 
+        std::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), std::vector<Hermes::Hermes2D::NormType>());
       }
 
       // Report NDOFs.
       Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d.", 
         Space<double>::get_num_dofs({&space_rho, &space_rho_v_x, 
-        space_rho_v_y, &space_e}), Space<double>::get_num_dofs(ref_spaces_const));
+        space_rho_v_y, &space_e}), Space<double>::get_num_dofs(ref_spaces));
 
       // Assemble the reference problem.
       Hermes::Mixins::Loggable::Static::info("Solving on reference mesh->");
-      DiscreteProblem<double> dp(wf, ref_spaces_const);
+      DiscreteProblem<double> dp(wf, ref_spaces);
 
       SparseMatrix<double>* matrix = create_matrix<double>();
       Vector<double>* rhs = create_vector<double>();
@@ -300,11 +299,11 @@ SpaceSharedPtr<double> *>(new         std::vector<Space<double>(ref_space_rho, r
       Hermes::Mixins::Loggable::Static::info("Solving the matrix problem.");
       if(solver->solve())
         if(!SHOCK_CAPTURING)
-          Solution<double>::vector_to_solutions(solver->get_sln_vector(), ref_spaces_const, 
+          Solution<double>::vector_to_solutions(solver->get_sln_vector(), ref_spaces, 
           std::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e));
         else
         {      
-          FluxLimiter flux_limiter(FluxLimiter::Kuzmin, solver->get_sln_vector(), ref_spaces_const, true);
+          FluxLimiter flux_limiter(FluxLimiter::Kuzmin, solver->get_sln_vector(), ref_spaces, true);
           
           flux_limiter.limit_second_orders_according_to_detector({&space_rho, &space_rho_v_x, 
             &space_rho_v_y, &space_e});
@@ -322,7 +321,7 @@ SpaceSharedPtr<double> *>(new         std::vector<Space<double>(ref_space_rho, r
       OGProjection<double> ogProjection; ogProjection.project_global({&space_rho, &space_rho_v_x, 
         &space_rho_v_y, &space_e},{&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e}, 
         std::vector<Solution<double>*>(sln_rho, sln_rho_v_x, sln_rho_v_y, sln_e), 
-        std::vector<ProjNormType>(HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM)); 
+        std::vector<NormType>(HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM)); 
 
       // Calculate element errors and total error estimate.
       Hermes::Mixins::Loggable::Static::info("Calculating error estimate.");

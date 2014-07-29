@@ -1,5 +1,28 @@
 project(hermes-examples)
 	cmake_minimum_required(VERSION 2.8)
+    
+###########################################################################
+#############//////---------------------------------\\\\\\#################
+#############!!!!!! NEVER CHANGE THIS FILE DIRECTLY !!!!!!#################
+################!!!!!! USE the "CMake.vars" file !!!!!!####################
+#############\\\\\\---------------------------------//////#################
+###########################################################################
+#   __      __      __      __      __      __      __      __      __    #
+# /    \  /    \  /    \  /    \  /    \  /    \  /    \  /    \  /    \  #
+#| STOP || STOP || STOP || STOP || STOP || STOP || STOP || STOP || STOP | #
+# \ __ /  \ __ /  \ __ /  \ __ /  \ __ /  \ __ /  \ __ /  \ __ /  \ __ /  #
+#   ||      ||      ||      ||      ||      ||      ||      ||      ||    #
+#   ||      ||      ||      ||      ||      ||      ||      ||      ||    #
+#   ||      ||      ||      ||      ||      ||      ||      ||      ||    #
+#   ||      ||      ||      ||      ||      ||      ||      ||      ||    #
+#  /  \    /  \    /  \    /  \    /  \    /  \    /  \    /  \    /  \   #
+# ~~~~~~~ ~~~~~~~ ~~~~~~~ ~~~~~~~ ~~~~~~~ ~~~~~~~ ~~~~~~~ ~~~~~~~ ~~~~~~~ #
+###########################################################################
+#############//////---------------------------------\\\\\\#################
+#############!!!!!! NEVER CHANGE THIS FILE DIRECTLY !!!!!!#################
+################!!!!!! USE the "CMake.vars" file !!!!!!####################
+#############\\\\\\---------------------------------//////#################
+###########################################################################
   
   SET(WITH_1d YES)
   SET(WITH_2d-advanced YES)
@@ -46,10 +69,12 @@ project(hermes-examples)
   # Where to look for the static libraries.
   set(HERMES_DIRECTORY /usr/local/lib)
   set(HERMES_INCLUDE_PATH /usr/local/include)
-  set(DEP_INCLUDE_PATHS /usr/local/include)
-
+  set(HERMES_SOURCE_DIRECTORY ~/hermes)
+  
   # Allow to override the default values in CMake.vars:
   include(CMake.vars OPTIONAL)
+  include(".CMake.vars.default.Linux" OPTIONAL)
+  include(${HERMES_CMAKE_VARS_FILE_LOCATION} OPTIONAL)
 
   if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     # Disable all warnings and turn on only important ones:
@@ -188,7 +213,7 @@ project(hermes-examples)
   message("Build with PETSC: !TO_DO!")
   message("Build with MUMPS: ${WITH_MUMPS}")
   message("Build with SUPERLU${MT}: ${WITH_SUPERLU}")
-  message("Build with TRILINOS: !TO_DO!")
+  message("Build with TRILINOS: ${WITH_TRILINOS}")
 
   message("---------------------")
   message("\n")

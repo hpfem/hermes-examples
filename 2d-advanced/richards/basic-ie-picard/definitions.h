@@ -1,5 +1,4 @@
 #include "hermes2d.h"
-
 #include "../constitutive.h"
 
 using namespace Hermes;
@@ -9,7 +8,7 @@ using namespace Hermes::Hermes2D::Views;
 
 /* Custom non-constant Dirichlet condition */
 
-class CustomEssentialBCNonConst : public EssentialBoundaryCondition < double >
+class CustomEssentialBCNonConst : public EssentialBoundaryCondition <double>
 {
 public:
   CustomEssentialBCNonConst(std::vector<std::string>(markers))
@@ -19,37 +18,36 @@ public:
 
   virtual EssentialBCValueType get_value_type() const;
 
-  virtual double value(double x, double y, double n_x, double n_y,
-    double t_x, double t_y) const;
+  virtual double value(double x, double y) const;
 };
 
 /* Weak forms */
 
-class CustomWeakFormRichardsIEPicard : public WeakForm < double >
+class CustomWeakFormRichardsIEPicard : public WeakForm <double>
 {
 public:
   CustomWeakFormRichardsIEPicard(double time_step, MeshFunctionSharedPtr<double>  h_time_prev, ConstitutiveRelations* constitutive);
 
 private:
 
-  class CustomJacobian : public MatrixFormVol < double >
+  class CustomJacobian : public MatrixFormVol <double>
   {
   public:
     CustomJacobian(int i, int j, double time_step)
       : MatrixFormVol<double>(i, j), time_step(time_step) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u,
-      Func<double> *v, Geom<double> *e, Func<double>* *ext) const;
+      Func<double> *v, GeomVol<double> *e, Func<double>* *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u,
-      Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const;
+      Func<Ord> *v, GeomVol<Ord> *e, Func<Ord>* *ext) const;
 
     virtual MatrixFormVol<double>* clone() const;
 
     double time_step;
   };
 
-  class CustomResidual : public VectorFormVol < double >
+  class CustomResidual : public VectorFormVol <double>
   {
   public:
     CustomResidual(int i, double time_step)
@@ -57,10 +55,10 @@ private:
     {
     }
 
-    virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e,
+    virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, GeomVol<double> *e,
       Func<double>* *ext) const;
 
-    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e,
+    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, GeomVol<Ord> *e,
       Func<Ord>* *ext) const;
 
     virtual VectorFormVol<double>* clone() const;

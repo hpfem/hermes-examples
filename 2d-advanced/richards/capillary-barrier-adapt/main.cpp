@@ -228,21 +228,21 @@ int main(int argc, char* argv[])
   MeshFunctionSharedPtr<double> sln_prev_iter(new InitialSolutionRichards(mesh, H_INIT));
 
   // Initialize the weak formulation.
-  WeakForm<double>* wf;
+  WeakFormSharedPtr<double> wf;
   if (ITERATIVE_METHOD == 1) {
     if (TIME_INTEGRATION == 1) {
       Hermes::Mixins::Loggable::Static::info("Creating weak formulation for the Newton's method (implicit Euler in time).");
-      wf = new WeakFormRichardsNewtonEuler(&constitutive_relations, time_step, sln_prev_time, mesh);
+      wf.reset(new WeakFormRichardsNewtonEuler(&constitutive_relations, time_step, sln_prev_time, mesh));
     }
     else {
       Hermes::Mixins::Loggable::Static::info("Creating weak formulation for the Newton's method (Crank-Nicolson in time).");
-      wf = new WeakFormRichardsNewtonCrankNicolson(&constitutive_relations, time_step, sln_prev_time, mesh);
+      wf.reset(new WeakFormRichardsNewtonCrankNicolson(&constitutive_relations, time_step, sln_prev_time, mesh));
     }
   }
   else {
     if (TIME_INTEGRATION == 1) {
       Hermes::Mixins::Loggable::Static::info("Creating weak formulation for the Picard's method (implicit Euler in time).");
-      wf = new WeakFormRichardsPicardEuler(&constitutive_relations, time_step, sln_prev_iter, sln_prev_time, mesh);
+      wf.reset(new WeakFormRichardsPicardEuler(&constitutive_relations, time_step, sln_prev_iter, sln_prev_time, mesh));
     }
     else {
       Hermes::Mixins::Loggable::Static::info("Creating weak formulation for the Picard's method (Crank-Nicolson in time).");
@@ -404,9 +404,7 @@ int main(int argc, char* argv[])
 
         bc_essential.set_current_time(current_time);
 
-        DiscreteProblem<double> dp(wf, ref_space);
-        dp.set_linear();
-        PicardSolver<double> picard(&dp);
+        PicardSolver<double> picard(wf, ref_space);
         picard.set_verbose_output(verbose);
         picard.set_max_allowed_iterations(PICARD_MAX_ITER);
         picard.set_tolerance(PICARD_TOL, Hermes::Solvers::SolutionChangeRelative);

@@ -1,3 +1,3 @@
-project(resonator-time-domain-II-rk)
+project(maxwell-resonator-time-domain-II-rk)
 add_executable(${PROJECT_NAME} main.cpp definitions.cpp definitions.h)
 set_common_target_properties(${PROJECT_NAME} "HERMES2D")

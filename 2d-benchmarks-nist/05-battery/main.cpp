@@ -55,8 +55,7 @@ int main(int argc, char* argv[])
   SpaceSharedPtr<double> space(new H1Space<double>(mesh, P_INIT));
 
   // Initialize weak formulation.
-  CustomWeakFormPoisson wf("e1", "e2", "e3", "e4", "e5",
-    "Bdy_left", "Bdy_top", "Bdy_right", "Bdy_bottom", mesh);
+  WeakFormSharedPtr<double> wf(new CustomWeakFormPoisson("e1", "e2", "e3", "e4", "e5", "Bdy_left", "Bdy_top", "Bdy_right", "Bdy_bottom", mesh));
 
   // Initialize coarse and fine mesh solution.
   MeshFunctionSharedPtr<double> sln(new Solution<double>), ref_sln(new Solution<double>);

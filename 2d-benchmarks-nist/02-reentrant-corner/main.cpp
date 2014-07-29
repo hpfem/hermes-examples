@@ -90,7 +90,7 @@ int main(int argc, char* argv[])
 
   // Initialize weak formulation.
   Hermes1DFunction<double> lambda(1.0);
-  WeakFormsH1::DefaultWeakFormLaplace<double> wf(HERMES_ANY, &lambda);
+  WeakFormSharedPtr<double> wf(new WeakFormsH1::DefaultWeakFormLaplace<double>(HERMES_ANY, &lambda));
 
   // Initialize boundary conditions
   DefaultEssentialBCNonConst<double> bc_essential("Bdy", exact_sln);

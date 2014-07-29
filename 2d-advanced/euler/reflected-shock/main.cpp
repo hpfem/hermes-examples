@@ -1,5 +1,4 @@
 #define HERMES_REPORT_INFO
-
 #include "hermes2d.h"
 
 using namespace Hermes;
@@ -103,16 +102,14 @@ int main(int argc, char* argv[])
   std::vector<std::string> solid_wall_markers;
   solid_wall_markers.push_back(BDY_SOLID_WALL);
 
-  std::vector<std::string> inlet_markers(BDY_INLET_LEFT, BDY_INLET_TOP);
-  std::vector<double> rho_ext(RHO_LEFT, RHO_TOP);
-  std::vector<double> v1_ext(V1_LEFT, V1_TOP);
-  std::vector<double> v2_ext(V2_LEFT, V2_TOP);
-  std::vector<double> pressure_ext(PRESSURE_LEFT, PRESSURE_TOP);
+  std::vector<std::string> inlet_markers({ BDY_INLET_LEFT, BDY_INLET_TOP });
+  std::vector<double> rho_ext({ RHO_LEFT, RHO_TOP });
+  std::vector<double> v1_ext({ V1_LEFT, V1_TOP });
+  std::vector<double> v2_ext({ V2_LEFT, V2_TOP });
+  std::vector<double> pressure_ext({ PRESSURE_LEFT, PRESSURE_TOP });
 
-  std::vector<std::string> outlet_markers;
-  outlet_markers.push_back(BDY_OUTLET);
+  std::vector<std::string> outlet_markers({ BDY_OUTLET });
 
-  EulerEquationsWeakFormSemiImplicit wf(KAPPA, rho_ext, v1_ext, v2_ext, pressure_ext, solid_wall_markers, inlet_markers, outlet_markers, prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e, (P_INIT == 0));
-
+  WeakFormSharedPtr<double> wf(new EulerEquationsWeakFormSemiImplicit(KAPPA, rho_ext, v1_ext, v2_ext, pressure_ext, solid_wall_markers, inlet_markers, outlet_markers, prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e, (P_INIT == 0)));
 #include "../euler-time-loop.cpp"
 }

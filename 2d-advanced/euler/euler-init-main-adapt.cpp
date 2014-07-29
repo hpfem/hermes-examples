@@ -13,7 +13,7 @@
     SpaceSharedPtr<double> space_rho_v_x(new L2Space<double>(mesh, P_INIT));
     SpaceSharedPtr<double> space_rho_v_y(new L2Space<double>(mesh, P_INIT));
     SpaceSharedPtr<double> space_e(new L2Space<double>(mesh, P_INIT));
-    std::vector<SpaceSharedPtr<double> > spaces(space_rho, space_rho_v_x, space_rho_v_y, space_e);
+    std::vector<SpaceSharedPtr<double> > spaces({ space_rho, space_rho_v_x, space_rho_v_y, space_e });
     int ndof = Space<double>::get_num_dofs(spaces);
     Hermes::Mixins::Loggable::Static::info("ndof: %d", ndof);
   #pragma endregion
@@ -23,13 +23,13 @@
     MeshFunctionSharedPtr<double> sln_rho_v_x(new Solution<double> (mesh));
     MeshFunctionSharedPtr<double> sln_rho_v_y(new Solution<double> (mesh));
     MeshFunctionSharedPtr<double> sln_e(new Solution<double> (mesh));
-    std::vector<MeshFunctionSharedPtr<double> > slns(sln_rho, sln_rho_v_x, sln_rho_v_y, sln_e);
+    std::vector<MeshFunctionSharedPtr<double> > slns({ sln_rho, sln_rho_v_x, sln_rho_v_y, sln_e });
 
     MeshFunctionSharedPtr<double> rsln_rho(new Solution<double>(mesh));
     MeshFunctionSharedPtr<double> rsln_rho_v_x(new Solution<double> (mesh));
     MeshFunctionSharedPtr<double> rsln_rho_v_y(new Solution<double> (mesh));
     MeshFunctionSharedPtr<double> rsln_e(new Solution<double> (mesh));
-    std::vector<MeshFunctionSharedPtr<double> > rslns(rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e);
+    std::vector<MeshFunctionSharedPtr<double> > rslns({ rsln_rho, rsln_rho_v_x, rsln_rho_v_y, rsln_e });
   #pragma endregion
 
   #pragma region 3. Filters for visualization of Mach number, pressure + visualization setup.

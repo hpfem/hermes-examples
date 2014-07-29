@@ -65,10 +65,10 @@ int main(int argc, char* argv[])
   // Initialize solutions.
   MeshFunctionSharedPtr<double> E_sln(new CustomInitialConditionWave(mesh));
   MeshFunctionSharedPtr<double>  B_sln(new ZeroSolution<double>(mesh));
-  std::vector<MeshFunctionSharedPtr<double> > slns(E_sln, B_sln);
+  std::vector<MeshFunctionSharedPtr<double> > slns({ E_sln, B_sln });
 
   // Initialize the weak formulation.
-  CustomWeakFormWave wf(C_SQUARED);
+  WeakFormSharedPtr<double> wf(new CustomWeakFormWave (C_SQUARED));
 
   // Initialize boundary conditions
   DefaultEssentialBCConst<double> bc_essential("Perfect conductor", 0.0);
@@ -78,8 +78,8 @@ int main(int argc, char* argv[])
 
   // Create x- and y- displacement space using the default H1 shapeset.
   SpaceSharedPtr<double> B_space(new H1Space<double>(mesh, &bcs_B, P_INIT));
-  std::vector<SpaceSharedPtr<double> > spaces(E_space, B_space);
-  std::vector<SpaceSharedPtr<double> > spaces_mutable(E_space, B_space);
+  std::vector<SpaceSharedPtr<double> > spaces({ E_space, B_space });
+  std::vector<SpaceSharedPtr<double> > spaces_mutable({ E_space, B_space });
   Hermes::Mixins::Loggable::Static::info("ndof = %d.", Space<double>::get_num_dofs(spaces));
 
   // Initialize views.

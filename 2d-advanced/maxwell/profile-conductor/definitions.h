@@ -10,9 +10,9 @@ public:
   volume_matrix_magnetic_harmonic_planar_linear_harmonic_laplace_1_1_1_1(unsigned int i, unsigned int j, int offsetI, int offsetJ);
 
   virtual Scalar value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
+    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
   virtual Hermes::Ord ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
+    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
 
   volume_matrix_magnetic_harmonic_planar_linear_harmonic_laplace_1_1_1_1<Scalar>* clone() const;
 
@@ -26,9 +26,9 @@ public:
   volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_laplace_1_1_1_1(unsigned int i, unsigned int j, int offsetI, int offsetJ);
 
   virtual Scalar value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
+    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
   virtual Hermes::Ord ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
+    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
 
   volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_laplace_1_1_1_1<Scalar>* clone() const;
 
@@ -42,9 +42,9 @@ public:
   volume_matrix_magnetic_harmonic_planar_linear_harmonic_laplace_2_2_2_2(unsigned int i, unsigned int j, int offsetI, int offsetJ);
 
   virtual Scalar value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
+    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
   virtual Hermes::Ord ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
+    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
 
   volume_matrix_magnetic_harmonic_planar_linear_harmonic_laplace_2_2_2_2<Scalar>* clone() const;
 
@@ -58,9 +58,9 @@ public:
   volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_laplace_2_2_2_2(unsigned int i, unsigned int j, int offsetI, int offsetJ);
 
   virtual Scalar value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
+    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
   virtual Hermes::Ord ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
+    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
 
   volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_laplace_2_2_2_2<Scalar>* clone() const;
 
@@ -74,9 +74,9 @@ public:
   volume_matrix_magnetic_harmonic_planar_linear_harmonic_velocity_1_1_1_1(unsigned int i, unsigned int j, int offsetI, int offsetJ);
 
   virtual Scalar value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
+    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
   virtual Hermes::Ord ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
+    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
 
   volume_matrix_magnetic_harmonic_planar_linear_harmonic_velocity_1_1_1_1<Scalar>* clone() const;
 
@@ -90,9 +90,9 @@ public:
   volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_velocity_1_1_1_1(unsigned int i, unsigned int j, int offsetI, int offsetJ);
 
   virtual Scalar value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
+    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
   virtual Hermes::Ord ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
+    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
 
   volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_velocity_1_1_1_1<Scalar>* clone() const;
 
@@ -106,9 +106,9 @@ public:
   volume_matrix_magnetic_harmonic_planar_linear_harmonic_velocity_2_2_2_2(unsigned int i, unsigned int j, int offsetI, int offsetJ);
 
   virtual Scalar value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
+    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
   virtual Hermes::Ord ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
+    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
 
   volume_matrix_magnetic_harmonic_planar_linear_harmonic_velocity_2_2_2_2<Scalar>* clone() const;
 
@@ -122,9 +122,9 @@ public:
   volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_velocity_2_2_2_2(unsigned int i, unsigned int j, int offsetI, int offsetJ);
 
   virtual Scalar value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
+    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
   virtual Hermes::Ord ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
+    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
 
   volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_velocity_2_2_2_2<Scalar>* clone() const;
 
@@ -138,9 +138,9 @@ public:
   volume_matrix_magnetic_harmonic_planar_linear_harmonic_gamma_1_2_1_2(unsigned int i, unsigned int j, int offsetI, int offsetJ);
 
   virtual Scalar value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
+    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
   virtual Hermes::Ord ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
+    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
 
   volume_matrix_magnetic_harmonic_planar_linear_harmonic_gamma_1_2_1_2<Scalar>* clone() const;
 
@@ -154,9 +154,9 @@ public:
   volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_gamma_1_2_1_2(unsigned int i, unsigned int j, int offsetI, int offsetJ);
 
   virtual Scalar value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
+    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
   virtual Hermes::Ord ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
+    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
 
   volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_gamma_1_2_1_2<Scalar>* clone() const;
 
@@ -170,9 +170,9 @@ public:
   volume_matrix_magnetic_harmonic_planar_linear_harmonic_gamma_2_1_2_1(unsigned int i, unsigned int j, int offsetI, int offsetJ);
 
   virtual Scalar value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
+    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
   virtual Hermes::Ord ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
+    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
 
   volume_matrix_magnetic_harmonic_planar_linear_harmonic_gamma_2_1_2_1<Scalar>* clone() const;
 
@@ -186,9 +186,9 @@ public:
   volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_gamma_2_1_2_1(unsigned int i, unsigned int j, int offsetI, int offsetJ);
 
   virtual Scalar value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
+    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
   virtual Hermes::Ord ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
+    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
 
   volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_gamma_2_1_2_1<Scalar>* clone() const;
 
@@ -202,9 +202,9 @@ public:
   volume_matrix_magnetic_harmonic_planar_linear_harmonic_current_1_4_1_4(unsigned int i, unsigned int j, int offsetI, int offsetJ);
 
   virtual Scalar value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
+    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
   virtual Hermes::Ord ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
+    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
 
   volume_matrix_magnetic_harmonic_planar_linear_harmonic_current_1_4_1_4<Scalar>* clone() const;
 
@@ -218,9 +218,9 @@ public:
   volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_current_1_4_1_4(unsigned int i, unsigned int j, int offsetI, int offsetJ);
 
   virtual Scalar value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
+    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
   virtual Hermes::Ord ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
+    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
 
   volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_current_1_4_1_4<Scalar>* clone() const;
 
@@ -234,9 +234,9 @@ public:
   volume_matrix_magnetic_harmonic_planar_linear_harmonic_current_2_3_2_3(unsigned int i, unsigned int j, int offsetI, int offsetJ);
 
   virtual Scalar value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
+    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
   virtual Hermes::Ord ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
+    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
 
   volume_matrix_magnetic_harmonic_planar_linear_harmonic_current_2_3_2_3<Scalar>* clone() const;
 
@@ -250,9 +250,9 @@ public:
   volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_current_2_3_2_3(unsigned int i, unsigned int j, int offsetI, int offsetJ);
 
   virtual Scalar value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
+    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
   virtual Hermes::Ord ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
+    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
 
   volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_current_2_3_2_3<Scalar>* clone() const;
 
@@ -266,9 +266,9 @@ public:
   volume_matrix_magnetic_harmonic_planar_linear_harmonic_current_3_1_3_1(unsigned int i, unsigned int j, int offsetI, int offsetJ);
 
   virtual Scalar value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
+    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
   virtual Hermes::Ord ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
+    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
 
   volume_matrix_magnetic_harmonic_planar_linear_harmonic_current_3_1_3_1<Scalar>* clone() const;
 
@@ -282,9 +282,9 @@ public:
   volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_current_3_1_3_1(unsigned int i, unsigned int j, int offsetI, int offsetJ);
 
   virtual Scalar value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
+    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
   virtual Hermes::Ord ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
+    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
 
   volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_current_3_1_3_1<Scalar>* clone() const;
 
@@ -298,9 +298,9 @@ public:
   volume_matrix_magnetic_harmonic_planar_linear_harmonic_current_4_2_4_2(unsigned int i, unsigned int j, int offsetI, int offsetJ);
 
   virtual Scalar value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
+    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
   virtual Hermes::Ord ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
+    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
 
   volume_matrix_magnetic_harmonic_planar_linear_harmonic_current_4_2_4_2<Scalar>* clone() const;
 
@@ -314,9 +314,9 @@ public:
   volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_current_4_2_4_2(unsigned int i, unsigned int j, int offsetI, int offsetJ);
 
   virtual Scalar value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
+    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
   virtual Hermes::Ord ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
+    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
 
   volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_current_4_2_4_2<Scalar>* clone() const;
 
@@ -330,9 +330,9 @@ public:
   volume_matrix_magnetic_harmonic_planar_linear_harmonic_current_3_3_3_3(unsigned int i, unsigned int j, int offsetI, int offsetJ);
 
   virtual Scalar value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
+    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
   virtual Hermes::Ord ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
+    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
 
   volume_matrix_magnetic_harmonic_planar_linear_harmonic_current_3_3_3_3<Scalar>* clone() const;
 
@@ -346,9 +346,9 @@ public:
   volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_current_3_3_3_3(unsigned int i, unsigned int j, int offsetI, int offsetJ);
 
   virtual Scalar value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
+    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
   virtual Hermes::Ord ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
+    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
 
   volume_matrix_magnetic_harmonic_axisymmetric_linear_harmonic_current_3_3_3_3<Scalar>* clone() const;
 
@@ -362,9 +362,9 @@ public:
   volume_matrix_magnetic_harmonic_planar_linear_harmonic_current_4_4_4_4(unsigned int i, unsigned int j, int offsetI, int offsetJ);
 
   virtual Scalar value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
+    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
   virtual Hermes::Ord ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
+    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
 
   volume_matrix_magnetic_harmonic_planar_linear_harmonic_current_4_4_4_4<Scalar>* clone() const;
 
@@ -379,9 +379,9 @@ public:
   volume_vector_magnetic_harmonic_planar_linear_harmonic_rhs_1_1_remanence_1_1(unsigned int i, unsigned int j, int offsetI, int offsetJ, int* offsetPreviousTimeExt, int* offsetCouplingExt);
 
   virtual Scalar value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *v,
-    Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
+    Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
   virtual Hermes::Ord ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *v,
-    Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
+    Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
 
   volume_vector_magnetic_harmonic_planar_linear_harmonic_rhs_1_1_remanence_1_1<Scalar>* clone() const;
 
@@ -396,9 +396,9 @@ public:
   volume_vector_magnetic_harmonic_axisymmetric_linear_harmonic_rhs_1_1_remanence_1_1(unsigned int i, unsigned int j, int offsetI, int offsetJ, int* offsetPreviousTimeExt, int* offsetCouplingExt);
 
   virtual Scalar value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *v,
-    Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
+    Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
   virtual Hermes::Ord ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *v,
-    Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
+    Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
 
   volume_vector_magnetic_harmonic_axisymmetric_linear_harmonic_rhs_1_1_remanence_1_1<Scalar>* clone() const;
 
@@ -413,9 +413,9 @@ public:
   volume_vector_magnetic_harmonic_planar_linear_harmonic_rhs_1_1_current_1_1(unsigned int i, unsigned int j, int offsetI, int offsetJ, int* offsetPreviousTimeExt, int* offsetCouplingExt);
 
   virtual Scalar value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *v,
-    Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
+    Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
   virtual Hermes::Ord ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *v,
-    Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
+    Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
 
   volume_vector_magnetic_harmonic_planar_linear_harmonic_rhs_1_1_current_1_1<Scalar>* clone() const;
 
@@ -430,9 +430,9 @@ public:
   volume_vector_magnetic_harmonic_axisymmetric_linear_harmonic_rhs_1_1_current_1_1(unsigned int i, unsigned int j, int offsetI, int offsetJ, int* offsetPreviousTimeExt, int* offsetCouplingExt);
 
   virtual Scalar value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *v,
-    Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
+    Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
   virtual Hermes::Ord ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *v,
-    Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
+    Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
 
   volume_vector_magnetic_harmonic_axisymmetric_linear_harmonic_rhs_1_1_current_1_1<Scalar>* clone() const;
 
@@ -447,9 +447,9 @@ public:
   volume_vector_magnetic_harmonic_planar_linear_harmonic_rhs_2_2_current_2_2(unsigned int i, unsigned int j, int offsetI, int offsetJ, int* offsetPreviousTimeExt, int* offsetCouplingExt);
 
   virtual Scalar value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *v,
-    Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
+    Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
   virtual Hermes::Ord ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *v,
-    Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
+    Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
 
   volume_vector_magnetic_harmonic_planar_linear_harmonic_rhs_2_2_current_2_2<Scalar>* clone() const;
 
@@ -464,9 +464,9 @@ public:
   volume_vector_magnetic_harmonic_axisymmetric_linear_harmonic_rhs_2_2_current_2_2(unsigned int i, unsigned int j, int offsetI, int offsetJ, int* offsetPreviousTimeExt, int* offsetCouplingExt);
 
   virtual Scalar value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *v,
-    Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
+    Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
   virtual Hermes::Ord ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *v,
-    Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
+    Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
 
   volume_vector_magnetic_harmonic_axisymmetric_linear_harmonic_rhs_2_2_current_2_2<Scalar>* clone() const;
 
@@ -481,9 +481,9 @@ public:
   volume_vector_magnetic_harmonic_planar_linear_harmonic_vec_current_3_3_3_3(unsigned int i, unsigned int j, int offsetI, int offsetJ, int* offsetPreviousTimeExt, int* offsetCouplingExt);
 
   virtual Scalar value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *v,
-    Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
+    Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
   virtual Hermes::Ord ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *v,
-    Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
+    Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
 
   volume_vector_magnetic_harmonic_planar_linear_harmonic_vec_current_3_3_3_3<Scalar>* clone() const;
 
@@ -498,9 +498,9 @@ public:
   volume_vector_magnetic_harmonic_axisymmetric_linear_harmonic_vec_current_3_3_3_3(unsigned int i, unsigned int j, int offsetI, int offsetJ, int* offsetPreviousTimeExt, int* offsetCouplingExt);
 
   virtual Scalar value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *v,
-    Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
+    Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
   virtual Hermes::Ord ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *v,
-    Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
+    Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
 
   volume_vector_magnetic_harmonic_axisymmetric_linear_harmonic_vec_current_3_3_3_3<Scalar>* clone() const;
 
@@ -515,9 +515,9 @@ public:
   volume_vector_magnetic_harmonic_planar_linear_harmonic_vec_current_4_4_4_4(unsigned int i, unsigned int j, int offsetI, int offsetJ, int* offsetPreviousTimeExt, int* offsetCouplingExt);
 
   virtual Scalar value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *v,
-    Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
+    Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
   virtual Hermes::Ord ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *v,
-    Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
+    Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
 
   volume_vector_magnetic_harmonic_planar_linear_harmonic_vec_current_4_4_4_4<Scalar>* clone() const;
 
@@ -533,9 +533,9 @@ public:
   surface_vector_magnetic_harmonic_planar_linear_harmonic_current_1_1_1_magnetic_surface_current(unsigned int i, unsigned int j, int offsetI, int offsetJ);
 
   virtual Scalar value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *v,
-    Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
+    Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
   virtual Hermes::Ord ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *v,
-    Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
+    Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
   surface_vector_magnetic_harmonic_planar_linear_harmonic_current_1_1_1_magnetic_surface_current<Scalar>* clone() const;
 
 private:
@@ -554,9 +554,9 @@ public:
   surface_vector_magnetic_harmonic_planar_linear_harmonic_current_2_2_2_magnetic_surface_current(unsigned int i, unsigned int j, int offsetI, int offsetJ);
 
   virtual Scalar value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *v,
-    Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
+    Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
   virtual Hermes::Ord ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *v,
-    Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
+    Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
   surface_vector_magnetic_harmonic_planar_linear_harmonic_current_2_2_2_magnetic_surface_current<Scalar>* clone() const;
 
 private:

@@ -16,10 +16,10 @@ class CustomWeakForm : public WeakForm<double>
     Jacobian() : MatrixFormVol<double>(0, 0) { this->setSymFlag(HERMES_SYM); };
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u,
-                        Func<double> *v, Geom<double> *e, Func<double>* *ext) const;
+                        Func<double> *v, GeomVol<double> *e, Func<double>* *ext) const;
 
     virtual Hermes::Ord ord(int n, double *wt, Func<Hermes::Ord> *u_ext[], Func<Hermes::Ord> *u, Func<Hermes::Ord> *v,
-                            Geom<Hermes::Ord> *e, Func<Hermes::Ord>* *ext) const;
+                            GeomVol<Hermes::Ord> *e, Func<Hermes::Ord>* *ext) const;
     MatrixFormVol<double>* clone() const;
   };
   
@@ -30,10 +30,10 @@ class CustomWeakForm : public WeakForm<double>
     Residual(const Hermes::Hermes2DFunction<double>* rhs) : VectorFormVol<double>(0), rhs(rhs) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, 
-                         Geom<double> *e, Func<double>* *ext) const;
+                         GeomVol<double> *e, Func<double>* *ext) const;
 
     virtual Hermes::Ord ord(int n, double *wt, Func<Hermes::Ord> *u_ext[], Func<Hermes::Ord> *v,
-                            Geom<Hermes::Ord> *e, Func<Hermes::Ord>* *ext) const;
+                            GeomVol<Hermes::Ord> *e, Func<Hermes::Ord>* *ext) const;
     VectorFormVol<double>* clone() const;
   };
   

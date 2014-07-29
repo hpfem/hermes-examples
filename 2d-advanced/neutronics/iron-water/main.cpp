@@ -1,5 +1,4 @@
-#define HERMES_REPORT_ALL
-#define HERMES_REPORT_FILE "application.log"
+
 #include "hermes2d.h"
 
 using namespace Hermes;
@@ -147,7 +146,7 @@ SpaceSharedPtr<double> space(new
     
     // Construct globally refined mesh and setup fine mesh space.
 		Mesh::ReferenceMeshCreator refMeshCreator(mesh);
-		Mesh* ref_mesh = refMeshCreator.create_ref_mesh();
+		MeshSharedPtr ref_mesh = refMeshCreator.create_ref_mesh();
 
 		Space<double>::ReferenceSpaceCreator refSpaceCreator(space, ref_mesh);
 		Space<double>* ref_space = refSpaceCreator.create_ref_space();

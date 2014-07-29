@@ -24,7 +24,7 @@ public:
     }
 
     double value(int n, double *wt, DiscontinuousFunc<double> *u_ext[], Func<double> *v, 
-      Geom<double> *e, DiscontinuousFunc<double>** ext) const 
+      InterfaceGeom<double> *e, DiscontinuousFunc<double>** ext) const 
     {
       double result = 0;
       
@@ -34,7 +34,7 @@ public:
       return result / (e->get_diam_approximation(n) * std::pow(e->get_area(n, wt), 0.75));
     }
 
-    Ord ord(int n, double *wt, DiscontinuousFunc<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
+    Ord ord(int n, double *wt, DiscontinuousFunc<Ord> *u_ext[], Func<Ord> *v, InterfaceGeom<Ord> *e,
       Func<Ord>* *ext) const 
     {
       return v->val[0] * v->val[0] * Ord(6);
@@ -346,12 +346,12 @@ public:
     EulerEquationsBilinearFormTime(int i) : MatrixFormVol<double>(i, i) {}
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
-      Geom<double> *e, Func<double>* *ext) const 
+      GeomVol<double> *e, Func<double>* *ext) const 
     {
       return int_u_v<double, double>(n, wt, u, v);
     }
 
-    Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, 
+    Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, GeomVol<Ord> *e, 
       Func<Ord>* *ext) const 
     {
       return int_u_v<Ord, Ord>(n, wt, u, v);
@@ -366,7 +366,7 @@ public:
     EulerEquationsBilinearForm(int i, int j, EulerFluxes* fluxes)
       : MatrixFormVol<double>(i, j), fluxes(fluxes) {}
 
-    double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, 
+    double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, GeomVol<double> *e, 
       Func<double>* *ext) const
     {
       double result = 0.;
@@ -452,7 +452,7 @@ public:
       return - result * wf->get_current_time_step();
     }
 
-    Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const 
+    Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, GeomVol<Ord> *e, Func<Ord>* *ext) const 
     {
       return Ord(10);
     }
@@ -479,7 +479,7 @@ public:
     }
 
     double value(int n, double *wt, DiscontinuousFunc<double> **u_ext, DiscontinuousFunc<double> *u, 
-      DiscontinuousFunc<double> *v, Geom<double> *e, DiscontinuousFunc<double>* *ext) const 
+      DiscontinuousFunc<double> *v, InterfaceGeom<double> *e, DiscontinuousFunc<double>* *ext) const 
     {
       double w[4];
       double result = 0.;
@@ -577,7 +577,7 @@ public:
     }
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, 
-      Func<double> *v, Geom<double> *e, Func<double>* *ext) const 
+      Func<double> *v, GeomSurf<double> *e, Func<double>* *ext) const 
     {
       double result = 0.;
 
@@ -679,7 +679,7 @@ public:
     }
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, 
-      Geom<Ord> *e, Func<Ord>* *ext) const 
+      GeomSurf<Ord> *e, Func<Ord>* *ext) const 
     {
       return Ord(10);
     }
@@ -723,7 +723,7 @@ public:
     }
 
     double value(int n, double *wt, Func<double> *u_ext[],
-      Func<double> *v, Geom<double> *e, Func<double>* *ext) const 
+      Func<double> *v, GeomSurf<double> *e, Func<double>* *ext) const 
     {
       double result = 0.;
 
@@ -810,7 +810,7 @@ public:
     }
 
     Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, 
-      Geom<Ord> *e, Func<Ord>* *ext) const 
+      GeomSurf<Ord> *e, Func<Ord>* *ext) const 
     {
       return Ord(10);
     }
@@ -835,13 +835,13 @@ public:
     EulerEquationsLinearFormTime(int i) 
       : VectorFormVol<double>(i) {}
 
-    double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e,
+    double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, GeomVol<double> *e,
       Func<double>* *ext) const 
     {
       return int_u_v<double, double>(n, wt, ext[this->i], v);
     }
 
-    Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
+    Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, GeomVol<Ord> *e, 
       Func<Ord>* *ext) const 
     {
       return int_u_v<Ord, Ord>(n, wt, ext[this->i], v);
@@ -856,7 +856,7 @@ public:
     EulerEquationsMatrixFormSolidWall(int i, int j, std::vector<std::string> markers, double kappa)
       : MatrixFormSurf<double>(i, j), kappa(kappa) {set_areas(markers);}
 
-    double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, Geom<double> *e, Func<double>* *ext) const 
+    double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, GeomSurf<double> *e, Func<double>* *ext) const 
     {
       double result = 0.;
 
@@ -887,7 +887,7 @@ public:
       return result * wf->get_current_time_step();
     }
 
-    Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const 
+    Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, GeomSurf<Ord> *e, Func<Ord>* *ext) const 
     {
       return Ord(10);
     }
@@ -909,7 +909,7 @@ public:
     EulerEquationsFormStabilizationVol(int i, double nu_1) : MatrixFormVol<double>(i, i), nu_1(nu_1) {}
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
-      Geom<double> *e, Func<double>* *ext) const
+      GeomVol<double> *e, Func<double>* *ext) const
     {
       double result = 0.;
       if(static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->discreteIndicator[e->id]) 
@@ -917,7 +917,7 @@ public:
       return result * nu_1 * e->get_diam_approximation(n);
     }
 
-    Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, 
+    Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, GeomVol<Ord> *e, 
       Func<Ord>* *ext) const 
     {
       return int_grad_u_grad_v<Ord, Ord>(n, wt, u, v);
@@ -938,11 +938,11 @@ public:
       : MatrixFormDG<double>(i, j), nu_2(nu_2) {}
 
     double value(int n, double *wt, DiscontinuousFunc<double> **u_ext, DiscontinuousFunc<double> *u, 
-      DiscontinuousFunc<double> *v, Geom<double> *e, DiscontinuousFunc<double>* *ext) const 
+      DiscontinuousFunc<double> *v, InterfaceGeom<double> *e, DiscontinuousFunc<double>* *ext) const 
     {
       double result = 0.;
 
-      if(static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->discreteIndicator[e->id] && static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->discreteIndicator[e->get_neighbor_id()])
+      if(static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->discreteIndicator[e->central_el->id] && static_cast<EulerEquationsWeakFormSemiImplicit*>(wf)->discreteIndicator[e->neighb_el->id])
       {
         if(u->val == NULL)
           if(v->val == NULL)
@@ -1026,7 +1026,7 @@ public:
     HeatBilinearFormTime(int i, double c_p, double lambda) : MatrixFormVol<double>(i, i), c_p(c_p), lambda(lambda) {}
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, 
-      Geom<double> *e, Func<double>* *ext) const 
+      GeomVol<double> *e, Func<double>* *ext) const 
     {
       double result = 0.;
       for (int point_i = 0; point_i < n; point_i++)
@@ -1039,7 +1039,7 @@ public:
       return result;
     }
 
-    Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e, 
+    Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, GeomVol<Ord> *e, 
       Func<Ord>* *ext) const 
     {
       Ord result = Ord(0);
@@ -1062,7 +1062,7 @@ public:
     HeatLinearFormTime(int i, double c_p) 
       : VectorFormVol<double>(i), c_p(c_p) {}
 
-    double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e,
+    double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, GeomVol<double> *e,
       Func<double>* *ext) const 
     {
       double result = 0.;
@@ -1074,7 +1074,7 @@ public:
       return result * c_p / this->wf->get_current_time_step();
     }
 
-    Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, 
+    Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, GeomVol<Ord> *e, 
       Func<Ord>* *ext) const 
     {
       return wt[0] * v->val[0] * ext[0]->val[0] * ext[this->i]->val[0];

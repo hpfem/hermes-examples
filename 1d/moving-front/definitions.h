@@ -51,10 +51,10 @@ public:
   ~CustomVectorFormVol();
 
   virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v,
-                       Geom<double> *e, Func<double>* *ext) const;
+                       GeomVol<double> *e, Func<double>* *ext) const;
 
   virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v,
-    Geom<Ord> *e, Func<Ord>* *ext) const;
+    GeomVol<Ord> *e, Func<Ord>* *ext) const;
 
   virtual VectorFormVol<double>* clone() const;
 

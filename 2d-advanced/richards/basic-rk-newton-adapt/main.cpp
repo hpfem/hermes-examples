@@ -132,7 +132,7 @@ int main(int argc, char* argv[])
     constitutive_relations = new ConstitutiveRelationsGardner(ALPHA, THETA_S, THETA_R, K_S);
 
   // Initialize the weak formulation.
-  CustomWeakFormRichardsRK wf(constitutive_relations);
+  WeakFormSharedPtr<double> wf(new CustomWeakFormRichardsRK(constitutive_relations));
 
   // Initialize the FE problem.
   DiscreteProblem<double> dp(wf, space);

@@ -33,7 +33,7 @@ EssentialBCNonConst::EssentialBCNonConst(std::string marker, double reactor_star
   markers.push_back(marker);
 }
 
-EssentialBoundaryCondition<double>::EssentialBCValueType EssentialBCNonConst::get_value_type() const
+EssentialBCValueType EssentialBCNonConst::get_value_type() const
 {
   return BC_FUNCTION;
 }

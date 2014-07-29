@@ -8,7 +8,7 @@ volume_matrix_acoustic_transient_planar_linear_form_1_1<Scalar>::volume_matrix_a
 
 template <typename Scalar>
 Scalar volume_matrix_acoustic_transient_planar_linear_form_1_1<Scalar>::value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
+  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -20,7 +20,7 @@ Scalar volume_matrix_acoustic_transient_planar_linear_form_1_1<Scalar>::value(in
 
 template <typename Scalar>
 Hermes::Ord volume_matrix_acoustic_transient_planar_linear_form_1_1<Scalar>::ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
+  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
 {
   Hermes::Ord result(0);
   for (int i = 0; i < n; i++)
@@ -44,7 +44,7 @@ volume_matrix_acoustic_transient_planar_linear_form_1_2<Scalar>::volume_matrix_a
 
 template <typename Scalar>
 Scalar volume_matrix_acoustic_transient_planar_linear_form_1_2<Scalar>::value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
+  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -56,7 +56,7 @@ Scalar volume_matrix_acoustic_transient_planar_linear_form_1_2<Scalar>::value(in
 
 template <typename Scalar>
 Hermes::Ord volume_matrix_acoustic_transient_planar_linear_form_1_2<Scalar>::ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
+  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
 {
   Hermes::Ord result(0);
   for (int i = 0; i < n; i++)
@@ -80,7 +80,7 @@ volume_matrix_acoustic_transient_planar_linear_form_2_2<Scalar>::volume_matrix_a
 
 template <typename Scalar>
 Scalar volume_matrix_acoustic_transient_planar_linear_form_2_2<Scalar>::value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
+  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -92,7 +92,7 @@ Scalar volume_matrix_acoustic_transient_planar_linear_form_2_2<Scalar>::value(in
 
 template <typename Scalar>
 Hermes::Ord volume_matrix_acoustic_transient_planar_linear_form_2_2<Scalar>::ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
+  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
 {
   Hermes::Ord result(0);
   for (int i = 0; i < n; i++)
@@ -116,7 +116,7 @@ volume_matrix_acoustic_transient_planar_linear_form_2_1<Scalar>::volume_matrix_a
 
 template <typename Scalar>
 Scalar volume_matrix_acoustic_transient_planar_linear_form_2_1<Scalar>::value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
+  Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -128,7 +128,7 @@ Scalar volume_matrix_acoustic_transient_planar_linear_form_2_1<Scalar>::value(in
 
 template <typename Scalar>
 Hermes::Ord volume_matrix_acoustic_transient_planar_linear_form_2_1<Scalar>::ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
+  Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
 {
   Hermes::Ord result(0);
   for (int i = 0; i < n; i++)
@@ -152,7 +152,7 @@ volume_vector_acoustic_transient_planar_linear_form_1_2<Scalar>::volume_vector_a
 
 template <typename Scalar>
 Scalar volume_vector_acoustic_transient_planar_linear_form_1_2<Scalar>::value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *v,
-  Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
+  Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
 {
   Scalar result = 0;
 
@@ -165,7 +165,7 @@ Scalar volume_vector_acoustic_transient_planar_linear_form_1_2<Scalar>::value(in
 
 template <typename Scalar>
 Hermes::Ord volume_vector_acoustic_transient_planar_linear_form_1_2<Scalar>::ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *v,
-  Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
+  Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
 {
   Hermes::Ord result(0);
   for (int i = 0; i < n; i++)
@@ -189,7 +189,7 @@ volume_vector_acoustic_transient_planar_linear_form_2_1<Scalar>::volume_vector_a
 
 template <typename Scalar>
 Scalar volume_vector_acoustic_transient_planar_linear_form_2_1<Scalar>::value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *v,
-  Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
+  Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
 {
   Scalar result = 0;
 
@@ -202,7 +202,7 @@ Scalar volume_vector_acoustic_transient_planar_linear_form_2_1<Scalar>::value(in
 
 template <typename Scalar>
 Hermes::Ord volume_vector_acoustic_transient_planar_linear_form_2_1<Scalar>::ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *v,
-  Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
+  Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
 {
   Hermes::Ord result(0);
   for (int i = 0; i < n; i++)
@@ -226,7 +226,7 @@ surface_matrix_acoustic_transient_planar_linear_form_1_2_acoustic_impedance<Scal
 
 template <typename Scalar>
 Scalar surface_matrix_acoustic_transient_planar_linear_form_1_2_acoustic_impedance<Scalar>::value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u, Hermes::Hermes2D::Func<double> *v,
-  Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
+  Hermes::Hermes2D::GeomSurf<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const
 {
   Scalar result = 0;
   for (int i = 0; i < n; i++)
@@ -238,7 +238,7 @@ Scalar surface_matrix_acoustic_transient_planar_linear_form_1_2_acoustic_impedan
 
 template <typename Scalar>
 Hermes::Ord surface_matrix_acoustic_transient_planar_linear_form_1_2_acoustic_impedance<Scalar>::ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u, Hermes::Hermes2D::Func<Hermes::Ord> *v,
-  Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
+  Hermes::Hermes2D::GeomSurf<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const
 {
   Hermes::Ord result(0);
   for (int i = 0; i < n; i++)
@@ -254,10 +254,10 @@ MatrixFormSurf<Scalar>* surface_matrix_acoustic_transient_planar_linear_form_1_2
   return new surface_matrix_acoustic_transient_planar_linear_form_1_2_acoustic_impedance(*this);
 }
 
-template class volume_matrix_acoustic_transient_planar_linear_form_1_1 < double > ;
-template class volume_matrix_acoustic_transient_planar_linear_form_1_2 < double > ;
-template class volume_matrix_acoustic_transient_planar_linear_form_2_2 < double > ;
-template class volume_matrix_acoustic_transient_planar_linear_form_2_1 < double > ;
-template class volume_vector_acoustic_transient_planar_linear_form_1_2 < double > ;
-template class volume_vector_acoustic_transient_planar_linear_form_2_1 < double > ;
-template class surface_matrix_acoustic_transient_planar_linear_form_1_2_acoustic_impedance < double > ;
+template class volume_matrix_acoustic_transient_planar_linear_form_1_1 <double> ;
+template class volume_matrix_acoustic_transient_planar_linear_form_1_2 <double> ;
+template class volume_matrix_acoustic_transient_planar_linear_form_2_2 <double> ;
+template class volume_matrix_acoustic_transient_planar_linear_form_2_1 <double> ;
+template class volume_vector_acoustic_transient_planar_linear_form_1_2 <double> ;
+template class volume_vector_acoustic_transient_planar_linear_form_2_1 <double> ;
+template class surface_matrix_acoustic_transient_planar_linear_form_1_2_acoustic_impedance <double> ;

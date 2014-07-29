@@ -73,8 +73,7 @@ int main(int argc, char* argv[])
   mesh->refine_towards_boundary("Top", INIT_REF_NUM_BDY);
 
   // Initialize boundary conditions.
-  CustomEssentialBCNonConst bc_essential({"Bottom",
-    "Right", "Top", "Left"});
+  CustomEssentialBCNonConst bc_essential(std::vector<std::string>({"Bottom", "Right", "Top", "Left"}));
   EssentialBCs<double> bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.
@@ -98,11 +97,7 @@ int main(int argc, char* argv[])
 
   // Initialize the weak formulation.
   double current_time = 0;
-  CustomWeakFormRichardsIEPicard wf(time_step, h_time_prev, constitutive_relations);
-
-  // Initialize the FE problem.
-  DiscreteProblem<double> dp(wf, space);
-  dp.set_linear();
+  WeakFormSharedPtr<double> wf(new CustomWeakFormRichardsIEPicard(time_step, h_time_prev, constitutive_relations));
 
   // Initialize the Picard solver.
   PicardSolver<double> picard(wf, space);

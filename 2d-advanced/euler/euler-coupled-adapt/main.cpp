@@ -1,5 +1,4 @@
 #define HERMES_REPORT_INFO
-#define HERMES_REPORT_FILE "application.log"
 #include "hermes2d.h"
 
 using namespace Hermes;
@@ -302,9 +301,9 @@ SpaceSharedPtr<double>space_rho(mesh_flow, P_INIT_FLOW);
         order_increase = 1;
 
       Mesh::ReferenceMeshCreator refMeshCreatorFlow(mesh_flow);
-      Mesh* ref_mesh_flow = refMeshCreatorFlow.create_ref_mesh();
+      MeshSharedPtr ref_mesh_flow = refMeshCreatorFlow.create_ref_mesh();
       Mesh::ReferenceMeshCreator refMeshCreatorConcentration(mesh_concentration);
-      Mesh* ref_mesh_concentration = refMeshCreatorConcentration.create_ref_mesh();
+      MeshSharedPtr ref_mesh_concentration = refMeshCreatorConcentration.create_ref_mesh();
 
       Space<double>::ReferenceSpaceCreator refSpaceCreatorRho(&space_rho, mesh_flow);
 SpaceSharedPtr<double>* ref_space_rho = refSpaceCreatorRho.create_ref_space(new     Space<double>());
@@ -329,12 +328,12 @@ SpaceSharedPtr<double>* ref_space_c = refSpaceCreatorConcentration.create_ref_sp
       if(CAND_LIST_FLOW != H2D_HP_ANISO)
         ref_space_c->adjust_element_order(new     Space<double>(+1, P_INIT_CONCENTRATION));
 
-      std::vector<const Space<double> *> ref_spaces_const(ref_space_rho, ref_space_rho_v_x, 
+      std::vector<const Space<double> *> ref_spaces(ref_space_rho, ref_space_rho_v_x, 
         ref_space_rho_v_y, ref_space_e, ref_space_c);
 
       // Project the previous time level solution onto the new fine mesh->
       Hermes::Mixins::Loggable::Static::info("Projecting the previous time level solution onto the new fine mesh->");
-      OGProjection<double> ogProjection; ogProjection.project_global(ref_spaces_const,{&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_c}, 
+      OGProjection<double> ogProjection; ogProjection.project_global(ref_spaces,{&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_c}, 
         std::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_c));
 
       ogProjection.project_global(ref_space_stabilization, &prev_rho, &prev_rho_stabilization);
@@ -342,7 +341,7 @@ SpaceSharedPtr<double>* ref_space_c = refSpaceCreatorConcentration.create_ref_sp
       // Report NDOFs.
       Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d.", 
         Space<double>::get_num_dofs({&space_rho, &space_rho_v_x, 
-        space_rho_v_y, &space_e, &space_c}), Space<double>::get_num_dofs(ref_spaces_const));
+        space_rho_v_y, &space_e, &space_c}), Space<double>::get_num_dofs(ref_spaces));
 
       // Very important, set the meshes for the flow as the same.
       ref_space_rho_v_x->get_mesh()->set_seq(ref_space_rho->get_mesh()->get_seq());
@@ -356,7 +355,7 @@ SpaceSharedPtr<double>* ref_space_c = refSpaceCreatorConcentration.create_ref_sp
       Hermes::Solvers::LinearMatrixSolver<double>* solver = create_linear_solver<double>( matrix, rhs);
 
       // Initialize the FE problem.
-      DiscreteProblem<double> dp(wf, ref_spaces_const);
+      DiscreteProblem<double> dp(wf, ref_spaces);
       DiscreteProblem<double> dp_stabilization(wf_stabilization, ref_space_stabilization);
       bool* discreteIndicator = NULL;
 
@@ -397,7 +396,7 @@ SpaceSharedPtr<double>* ref_space_c = refSpaceCreatorConcentration.create_ref_sp
       {
         if(!SHOCK_CAPTURING || SHOCK_CAPTURING_TYPE == FEISTAUER)
         {
-          Solution<double>::vector_to_solutions(solver->get_sln_vector(), ref_spaces_const, 
+          Solution<double>::vector_to_solutions(solver->get_sln_vector(), ref_spaces, 
             std::vector<Solution<double>*>(&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e, &rsln_c));
 SpaceSharedPtr<double>*> flow_spaces(new       }
         else
@@ -434,21 +433,21 @@ SpaceSharedPtr<double>*> flow_spaces(new       }
       ogProjection.project_global({&space_rho, &space_rho_v_x,
         &space_rho_v_y, &space_e, &space_c},{&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e, &rsln_c},
         std::vector<Solution<double>*>(sln_rho, sln_rho_v_x, sln_rho_v_y, sln_e, sln_c),
-        std::vector<ProjNormType>(HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM));
+        std::vector<NormType>(HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM));
 
       util_time_step = time_step_n;
       if(SEMI_IMPLICIT)
-        CFL.calculate_semi_implicit({rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e}, const_cast<Mesh*>(rsln_rho.get_mesh()), util_time_step);
+        CFL.calculate_semi_implicit({rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e}, const_cast<MeshSharedPtr>(rsln_rho.get_mesh()), util_time_step);
       else
-        CFL.calculate({rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e}, const_cast<Mesh*>(rsln_rho.get_mesh()), util_time_step);
+        CFL.calculate({rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e}, const_cast<MeshSharedPtr>(rsln_rho.get_mesh()), util_time_step);
       
       time_step_after_adaptivity = util_time_step;
       
-      ADES.calculate({rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y}, const_cast<Mesh*>(rsln_rho.get_mesh()), util_time_step);
+      ADES.calculate({rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y}, const_cast<MeshSharedPtr>(rsln_rho.get_mesh()), util_time_step);
       if(time_step_after_adaptivity > util_time_step)
         time_step_after_adaptivity = util_time_step;
 
-      ADES.calculate({rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y}, const_cast<Mesh*>(rsln_c.get_mesh()), util_time_step);
+      ADES.calculate({rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y}, const_cast<MeshSharedPtr>(rsln_c.get_mesh()), util_time_step);
       if(time_step_after_adaptivity > util_time_step)
         time_step_after_adaptivity = util_time_step;
 

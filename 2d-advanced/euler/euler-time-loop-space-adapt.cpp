@@ -1,11 +1,12 @@
-std::vector<MeshFunctionSharedPtr<double> > prev_slns(prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e);
-EulerEquationsWeakFormStabilization wf_stabilization(prev_rho);
+std::vector<MeshFunctionSharedPtr<double> > prev_slns({ prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e });
+WeakFormSharedPtr<double> wf_stabilization(new EulerEquationsWeakFormStabilization(prev_rho));
 
 if(SHOCK_CAPTURING && SHOCK_CAPTURING_TYPE == FEISTAUER)
-  wf.set_stabilization(prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e, NU_1, NU_2);
+((EulerEquationsWeakFormSemiImplicit*)(wf.get()))->set_stabilization(prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e, NU_1, NU_2);
 
 // Solver.
-LinearSolver<double> solver(&wf, spaces);
+LinearSolver<double> solver(wf, spaces);
+EulerEquationsWeakFormSemiImplicit* wf_ptr = (EulerEquationsWeakFormSemiImplicit*)(wf.get());
 
 #pragma region 6. Time stepping loop.
 int iteration = 0;
@@ -36,7 +37,7 @@ for(double t = 0.0; t < TIME_INTERVAL_LENGTH; t += time_step_n)
     // Info.
     Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d:", as);
     // Set the current time step.
-    wf.set_current_time_step(time_step_n);
+    wf_ptr->set_current_time_step(time_step_n);
 
 #pragma region 7.1. Construct globally refined reference mesh and setup reference space.
     int order_increase = CAND_LIST == H2D_HP_ANISO ? 1 : 0;
@@ -52,7 +53,7 @@ for(double t = 0.0; t < TIME_INTERVAL_LENGTH; t += time_step_n)
     SpaceSharedPtr<double> ref_space_rho_v_y = refSpaceCreatorRhoVy.create_ref_space();
     Space<double>::ReferenceSpaceCreator refSpaceCreatorE(space_e, ref_mesh, order_increase);
     SpaceSharedPtr<double> ref_space_e = refSpaceCreatorE.create_ref_space();
-    std::vector<SpaceSharedPtr<double>  > ref_spaces(ref_space_rho, ref_space_rho_v_x, ref_space_rho_v_y, ref_space_e);
+    std::vector<SpaceSharedPtr<double>  > ref_spaces({ ref_space_rho, ref_space_rho_v_x, ref_space_rho_v_y, ref_space_e });
     solver.set_spaces(ref_spaces);
     
     if(ndofs_prev != 0)
@@ -72,13 +73,13 @@ for(double t = 0.0; t < TIME_INTERVAL_LENGTH; t += time_step_n)
     {
       SpaceSharedPtr<double> ref_space_stabilization(new L2Space<double>(ref_mesh, 0));
       int mesh_size = ref_mesh->get_num_active_elements();
-      DiscreteProblem<double> dp_stabilization(&wf_stabilization, ref_space_stabilization);
+      DiscreteProblem<double> dp_stabilization(wf_stabilization, ref_space_stabilization);
       dp_stabilization.set_space(ref_space_stabilization);
       dp_stabilization.assemble(rhs_stabilization);
-      if(!wf.discreteIndicator)
+      if(!wf_ptr->discreteIndicator)
       {
-        wf.set_discreteIndicator(new bool[mesh_size], mesh_size);
-        memset(wf.discreteIndicator, 0, mesh_size * sizeof(bool));
+        wf_ptr->set_discreteIndicator(new bool[mesh_size], mesh_size);
+        memset(wf_ptr->discreteIndicator, 0, mesh_size * sizeof(bool));
       }
       Element* e;
       for_all_active_elements(e, ref_space_stabilization->get_mesh())
@@ -86,7 +87,7 @@ for(double t = 0.0; t < TIME_INTERVAL_LENGTH; t += time_step_n)
         AsmList<double> al;
         ref_space_stabilization->get_element_assembly_list(e, &al);
         if(rhs_stabilization->get(al.get_dof()[0]) >= 1)
-          wf.discreteIndicator[e->id] = true;
+          wf_ptr->discreteIndicator[e->id] = true;
       }
     }
 
@@ -120,7 +121,7 @@ for(double t = 0.0; t < TIME_INTERVAL_LENGTH; t += time_step_n)
 #pragma region 7.2. Project to coarse mesh -> error estimation -> space adaptivity
     // Project the fine mesh solution onto the coarse mesh.
     Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
-    OGProjection<double>::project_global(spaces, rslns, slns, std::vector<NormType>(HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM)); 
+    OGProjection<double>::project_global(spaces, rslns, slns, std::vector<NormType>({ HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM }));
 
     // Calculate element errors and total error estimate.
     Hermes::Mixins::Loggable::Static::info("Calculating error estimate.");

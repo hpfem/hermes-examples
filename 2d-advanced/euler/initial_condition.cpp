@@ -10,7 +10,7 @@ public:
   ~ConcentrationTimedepEssentialBC() {};
 
   inline EssentialBCValueType get_value_type() const { 
-    return EssentialBoundaryCondition<double>::BC_FUNCTION; 
+    return BC_FUNCTION; 
   }
 
   virtual double value(double x, double y, double n_x, double n_y, double t_x, double t_y) const

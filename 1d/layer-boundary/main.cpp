@@ -80,7 +80,7 @@ int main(int argc, char* argv[])
   WeakFormSharedPtr<double> wf(new CustomWeakForm(&f));
 
   // Initialize boundary conditions.
-  DefaultEssentialBCConst<double> bc_essential({"Left", "Right"}, 0.0);
+  DefaultEssentialBCConst<double> bc_essential(std::vector<std::string>({ "Left", "Right" }), 0.0);
   EssentialBCs<double> bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.

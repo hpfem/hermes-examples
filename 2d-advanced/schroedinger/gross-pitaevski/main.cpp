@@ -82,7 +82,7 @@ int main(int argc, char* argv[])
   // Initialize the weak formulation.
   double current_time = 0;
 
-  CustomWeakFormGPRK wf(h, m, g, omega);
+  WeakFormSharedPtr<::complex> wf(new CustomWeakFormGPRK(h, m, g, omega));
 
   // Initialize boundary conditions.
   DefaultEssentialBCConst<::complex> bc_essential("Bdy", 0.0);

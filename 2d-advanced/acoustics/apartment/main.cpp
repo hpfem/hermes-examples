@@ -43,7 +43,7 @@ enum hpAdaptivityStrategy
   anisoHPSelectionBasedOnDOFs = 5
 };
 
-class MySelector : public H1ProjBasedSelector < complex >
+class MySelector : public H1ProjBasedSelector <::complex>
 {
 public:
   MySelector(hpAdaptivityStrategy strategy) : H1ProjBasedSelector<::complex>(cand_list), strategy(strategy)
@@ -187,7 +187,9 @@ private:
     }
   }
 
-  void evaluate_cands_score({strategy}
+  void evaluate_cands_score(std::vector<Cand>& candidates, Element* e)
+  { 
+    switch(strategy)
     {
     case(hXORpSelectionBasedOnError) :
     {
@@ -245,7 +247,7 @@ int main(int argc, char* argv[])
   mloader.load("domain.mesh", mesh);
 
   // Error calculation & adaptivity.
-  DefaultErrorCalculator<complex, HERMES_H1_NORM> errorCalculator(RelativeErrorToGlobalNorm, 1);
+  DefaultErrorCalculator<::complex, HERMES_H1_NORM> errorCalculator(RelativeErrorToGlobalNorm, 1);
   // Stopping criterion for an adaptivity step.
   AdaptStoppingCriterionSingleElement<::complex> stoppingCriterion(THRESHOLD);
   // Adaptivity processor class.
@@ -264,7 +266,7 @@ int main(int argc, char* argv[])
   //Hermes::Mixins::Loggable::Static::info("ndof = %d", ndof);
 
   // Initialize the weak formulation.
-  CustomWeakFormAcoustics wf("Wall", RHO, SOUND_SPEED, OMEGA);
+  WeakFormSharedPtr<::complex> wf(new CustomWeakFormAcoustics("Wall", RHO, SOUND_SPEED, OMEGA));
 
   // Initialize coarse and reference mesh solution.
   MeshFunctionSharedPtr<::complex>  sln(new Solution<::complex>), ref_sln(new Solution<::complex>);
@@ -307,7 +309,7 @@ int main(int argc, char* argv[])
     SpaceSharedPtr<::complex> ref_space = refSpaceCreator.create_ref_space();
 
     int ndof_ref = Space<::complex>::get_num_dofs(ref_space);
-    wf.set_verbose_output(false);
+    wf->set_verbose_output(false);
     newton.set_space(ref_space);
 
     // Assemble the reference problem.

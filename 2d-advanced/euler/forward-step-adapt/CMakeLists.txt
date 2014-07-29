@@ -1,4 +1,4 @@
-project(forward-step-adapt)
+project(euler-forward-step-adapt)
 
 add_executable(${PROJECT_NAME} main.cpp ../euler_util.cpp ../numerical_flux.cpp)
 

@@ -11,10 +11,10 @@ WeakFormNSSimpleLinearization::WeakFormNSSimpleLinearization(bool Stokes, double
   add_matrix_form(sym_form_1);
 
   BilinearFormNonsymVel* nonsym_vel_form_0 = new BilinearFormNonsymVel(0, 0, Stokes);
-  nonsym_vel_form_0->set_ext(std::vector<MeshFunctionSharedPtr<double> >(x_vel_previous_time, y_vel_previous_time));
+  nonsym_vel_form_0->set_ext({ x_vel_previous_time, y_vel_previous_time });
   add_matrix_form(nonsym_vel_form_0);
   BilinearFormNonsymVel* nonsym_vel_form_1 = new BilinearFormNonsymVel(1, 1, Stokes);
-  nonsym_vel_form_1->set_ext(std::vector<MeshFunctionSharedPtr<double> >(x_vel_previous_time, y_vel_previous_time));
+  nonsym_vel_form_1->set_ext({ x_vel_previous_time, y_vel_previous_time });
   add_matrix_form(nonsym_vel_form_1);
 
   BilinearFormNonsymXVelPressure* nonsym_velx_pressure_form = new BilinearFormNonsymXVelPressure(0, 2);
@@ -24,18 +24,10 @@ WeakFormNSSimpleLinearization::WeakFormNSSimpleLinearization(bool Stokes, double
   add_matrix_form(nonsym_vely_pressure_form);
 
   VectorFormVolVel* vector_vel_form_x = new VectorFormVolVel(0, Stokes, time_step);
-
-  std::vector<MeshFunctionSharedPtr<double> > ext_vel_x;
-  ext_vel_x.push_back(x_vel_previous_time);
-
-  vector_vel_form_x->set_ext(ext_vel_x);
+  vector_vel_form_x->set_ext(x_vel_previous_time);
 
   VectorFormVolVel* vector_vel_form_y = new VectorFormVolVel(1, Stokes, time_step);
-
-  std::vector<MeshFunctionSharedPtr<double> > ext_vel_y;
-  ext_vel_y.push_back(y_vel_previous_time);
-
-  vector_vel_form_y->set_ext(ext_vel_y);
+  vector_vel_form_y->set_ext(y_vel_previous_time);
 }
 
 WeakFormNSSimpleLinearization::BilinearFormSymVel::BilinearFormSymVel(int i, int j, bool Stokes, double Reynolds, double time_step)
@@ -45,7 +37,7 @@ WeakFormNSSimpleLinearization::BilinearFormSymVel::BilinearFormSymVel(int i, int
 }
 
 double WeakFormNSSimpleLinearization::BilinearFormSymVel::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
-  Geom<double> *e, Func<double>* *ext) const
+  GeomVol<double> *e, Func<double>* *ext) const
 {
   double result = int_grad_u_grad_v<double, double>(n, wt, u, v) / Reynolds;
   if (!Stokes)
@@ -54,7 +46,7 @@ double WeakFormNSSimpleLinearization::BilinearFormSymVel::value(int n, double *w
 }
 
 Ord WeakFormNSSimpleLinearization::BilinearFormSymVel::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v,
-  Geom<Ord> *e, Func<Ord>* *ext)
+  GeomVol<Ord> *e, Func<Ord>* *ext)
 {
   Ord result = int_grad_u_grad_v<Ord, Ord>(n, wt, u, v) / Reynolds;
   if (!Stokes)
@@ -78,7 +70,7 @@ MatrixFormVol<double>* WeakFormNSSimpleLinearization::BilinearFormNonsymVel::clo
 }
 
 double WeakFormNSSimpleLinearization::BilinearFormNonsymVel::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
-  Geom<double> *e, Func<double>* *ext) const
+  GeomVol<double> *e, Func<double>* *ext) const
 {
   double result = 0;
   if (!Stokes) {
@@ -89,7 +81,7 @@ double WeakFormNSSimpleLinearization::BilinearFormNonsymVel::value(int n, double
   return result;
 }
 
-Ord WeakFormNSSimpleLinearization::BilinearFormNonsymVel::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e,
+Ord WeakFormNSSimpleLinearization::BilinearFormNonsymVel::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, GeomVol<Ord> *e,
   Func<Ord>* *ext) const
 {
   Ord result = Ord(0);
@@ -113,12 +105,12 @@ MatrixFormVol<double>* WeakFormNSSimpleLinearization::BilinearFormNonsymXVelPres
 }
 
 double WeakFormNSSimpleLinearization::BilinearFormNonsymXVelPressure::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
-  Geom<double> *e, Func<double>* *ext) const
+  GeomVol<double> *e, Func<double>* *ext) const
 {
   return -int_u_dvdx<double, double>(n, wt, u, v);
 }
 
-Ord WeakFormNSSimpleLinearization::BilinearFormNonsymXVelPressure::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e,
+Ord WeakFormNSSimpleLinearization::BilinearFormNonsymXVelPressure::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, GeomVol<Ord> *e,
   Func<Ord>* *ext) const
 {
   return -int_u_dvdx<Ord, Ord>(n, wt, u, v);
@@ -131,11 +123,11 @@ WeakFormNSSimpleLinearization::BilinearFormNonsymYVelPressure::BilinearFormNonsy
 }
 
 double WeakFormNSSimpleLinearization::BilinearFormNonsymYVelPressure::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
-  Geom<double> *e, Func<double>* *ext) const {
+  GeomVol<double> *e, Func<double>* *ext) const {
   return -int_u_dvdy<double, double>(n, wt, u, v);
 }
 
-Ord WeakFormNSSimpleLinearization::BilinearFormNonsymYVelPressure::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e,
+Ord WeakFormNSSimpleLinearization::BilinearFormNonsymYVelPressure::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, GeomVol<Ord> *e,
   Func<Ord>* *ext) const
 {
   return -int_u_dvdy<Ord, Ord>(n, wt, u, v);
@@ -156,7 +148,7 @@ VectorFormVol<double>* WeakFormNSSimpleLinearization::VectorFormVolVel::clone() 
   return new VectorFormVolVel(*this);
 }
 
-double WeakFormNSSimpleLinearization::VectorFormVolVel::value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e,
+double WeakFormNSSimpleLinearization::VectorFormVolVel::value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, GeomVol<double> *e,
   Func<double>* *ext) const
 {
   double result = 0;
@@ -167,7 +159,7 @@ double WeakFormNSSimpleLinearization::VectorFormVolVel::value(int n, double *wt,
   return result;
 }
 
-Ord WeakFormNSSimpleLinearization::VectorFormVolVel::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const
+Ord WeakFormNSSimpleLinearization::VectorFormVolVel::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, GeomVol<Ord> *e, Func<Ord>* *ext) const
 {
   Ord result = Ord(0);
   if (!Stokes) {
@@ -203,10 +195,10 @@ WeakFormNSNewton::WeakFormNSNewton(bool Stokes, double Reynolds, double time_ste
   add_matrix_form(nonsym_vely_pressure_form);
 
   VectorFormNS_0* F_0 = new VectorFormNS_0(0, Stokes, Reynolds, time_step);
-  F_0->set_ext(std::vector<MeshFunctionSharedPtr<double> >(x_vel_previous_time, y_vel_previous_time));
+  F_0->set_ext({ x_vel_previous_time, y_vel_previous_time });
   add_vector_form(F_0);
   VectorFormNS_1* F_1 = new VectorFormNS_1(1, Stokes, Reynolds, time_step);
-  F_1->set_ext(std::vector<MeshFunctionSharedPtr<double> >(x_vel_previous_time, y_vel_previous_time));
+  F_1->set_ext({ x_vel_previous_time, y_vel_previous_time });
   add_vector_form(F_1);
   VectorFormNS_2* F_2 = new VectorFormNS_2(2);
   add_vector_form(F_2);
@@ -219,7 +211,7 @@ WeakFormNSNewton::BilinearFormSymVel::BilinearFormSymVel(int i, int j, bool Stok
 }
 
 double WeakFormNSNewton::BilinearFormSymVel::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
-  Geom<double> *e, Func<double>* *ext) const
+  GeomVol<double> *e, Func<double>* *ext) const
 {
   double result = int_grad_u_grad_v<double, double>(n, wt, u, v) / Reynolds;
   if (!Stokes)
@@ -227,7 +219,7 @@ double WeakFormNSNewton::BilinearFormSymVel::value(int n, double *wt, Func<doubl
   return result;
 }
 
-Ord WeakFormNSNewton::BilinearFormSymVel::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e,
+Ord WeakFormNSNewton::BilinearFormSymVel::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, GeomVol<Ord> *e,
   Func<Ord>* *ext) const
 {
   Ord result = int_grad_u_grad_v<Ord, Ord>(n, wt, u, v) / Reynolds;
@@ -242,7 +234,7 @@ WeakFormNSNewton::BilinearFormNonsymVel_0_0::BilinearFormNonsymVel_0_0(int i, in
 }
 
 double WeakFormNSNewton::BilinearFormNonsymVel_0_0::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
-  Geom<double> *e, Func<double>* *ext) const
+  GeomVol<double> *e, Func<double>* *ext) const
 {
   double result = 0;
   if (!Stokes) {
@@ -255,7 +247,7 @@ double WeakFormNSNewton::BilinearFormNonsymVel_0_0::value(int n, double *wt, Fun
   return result;
 }
 
-Ord WeakFormNSNewton::BilinearFormNonsymVel_0_0::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e,
+Ord WeakFormNSNewton::BilinearFormNonsymVel_0_0::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, GeomVol<Ord> *e,
   Func<Ord>* *ext) const
 {
   Ord result = Ord(0);
@@ -275,7 +267,7 @@ WeakFormNSNewton::BilinearFormNonsymVel_0_1::BilinearFormNonsymVel_0_1(int i, in
 }
 
 double WeakFormNSNewton::BilinearFormNonsymVel_0_1::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
-  Geom<double> *e, Func<double>* *ext) const
+  GeomVol<double> *e, Func<double>* *ext) const
 {
   double result = 0;
   if (!Stokes) {
@@ -286,7 +278,7 @@ double WeakFormNSNewton::BilinearFormNonsymVel_0_1::value(int n, double *wt, Fun
   return result;
 }
 
-Ord WeakFormNSNewton::BilinearFormNonsymVel_0_1::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e,
+Ord WeakFormNSNewton::BilinearFormNonsymVel_0_1::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, GeomVol<Ord> *e,
   Func<Ord>* *ext) const
 {
   Ord result = Ord(0);
@@ -304,7 +296,7 @@ WeakFormNSNewton::BilinearFormNonsymVel_1_0::BilinearFormNonsymVel_1_0(int i, in
 }
 
 double WeakFormNSNewton::BilinearFormNonsymVel_1_0::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
-  Geom<double> *e, Func<double>* *ext) const
+  GeomVol<double> *e, Func<double>* *ext) const
 {
   double result = 0;
   if (!Stokes) {
@@ -315,7 +307,7 @@ double WeakFormNSNewton::BilinearFormNonsymVel_1_0::value(int n, double *wt, Fun
   return result;
 }
 
-Ord WeakFormNSNewton::BilinearFormNonsymVel_1_0::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e,
+Ord WeakFormNSNewton::BilinearFormNonsymVel_1_0::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, GeomVol<Ord> *e,
   Func<Ord>* *ext) const
 {
   Ord result = Ord(0);
@@ -333,7 +325,7 @@ WeakFormNSNewton::BilinearFormNonsymVel_1_1::BilinearFormNonsymVel_1_1(int i, in
 }
 
 double WeakFormNSNewton::BilinearFormNonsymVel_1_1::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
-  Geom<double> *e, Func<double>* *ext) const
+  GeomVol<double> *e, Func<double>* *ext) const
 {
   double result = 0;
   if (!Stokes) {
@@ -346,7 +338,7 @@ double WeakFormNSNewton::BilinearFormNonsymVel_1_1::value(int n, double *wt, Fun
   return result;
 }
 
-Ord WeakFormNSNewton::BilinearFormNonsymVel_1_1::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e,
+Ord WeakFormNSNewton::BilinearFormNonsymVel_1_1::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, GeomVol<Ord> *e,
   Func<Ord>* *ext) const
 {
   Ord result = Ord(0);
@@ -367,12 +359,12 @@ WeakFormNSNewton::BilinearFormNonsymXVelPressure::BilinearFormNonsymXVelPressure
 }
 
 double WeakFormNSNewton::BilinearFormNonsymXVelPressure::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
-  Geom<double> *e, Func<double>* *ext) const
+  GeomVol<double> *e, Func<double>* *ext) const
 {
   return -int_u_dvdx<double, double>(n, wt, u, v);
 }
 
-Ord WeakFormNSNewton::BilinearFormNonsymXVelPressure::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e,
+Ord WeakFormNSNewton::BilinearFormNonsymXVelPressure::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, GeomVol<Ord> *e,
   Func<Ord>* *ext) const
 {
   return -int_u_dvdx<Ord, Ord>(n, wt, u, v);
@@ -385,12 +377,12 @@ WeakFormNSNewton::BilinearFormNonsymYVelPressure::BilinearFormNonsymYVelPressure
 }
 
 double WeakFormNSNewton::BilinearFormNonsymYVelPressure::value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
-  Geom<double> *e, Func<double>* *ext) const
+  GeomVol<double> *e, Func<double>* *ext) const
 {
   return -int_u_dvdy<double, double>(n, wt, u, v);
 }
 
-Ord WeakFormNSNewton::BilinearFormNonsymYVelPressure::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e,
+Ord WeakFormNSNewton::BilinearFormNonsymYVelPressure::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, GeomVol<Ord> *e,
   Func<Ord>* *ext) const
 {
   return -int_u_dvdy<Ord, Ord>(n, wt, u, v);
@@ -401,7 +393,7 @@ WeakFormNSNewton::VectorFormNS_0::VectorFormNS_0(int i, bool Stokes, double Reyn
 {
 }
 
-double WeakFormNSNewton::VectorFormNS_0::value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e,
+double WeakFormNSNewton::VectorFormNS_0::value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, GeomVol<double> *e,
   Func<double>* *ext) const
 {
   double result = 0;
@@ -421,7 +413,7 @@ double WeakFormNSNewton::VectorFormNS_0::value(int n, double *wt, Func<double> *
   return result;
 }
 
-Ord WeakFormNSNewton::VectorFormNS_0::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const
+Ord WeakFormNSNewton::VectorFormNS_0::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, GeomVol<Ord> *e, Func<Ord>* *ext) const
 {
   Ord result = Ord(0);
   Func<Ord>* xvel_prev_time = ext[0];
@@ -445,7 +437,7 @@ WeakFormNSNewton::VectorFormNS_1::VectorFormNS_1(int i, bool Stokes, double Reyn
 {
 }
 
-double WeakFormNSNewton::VectorFormNS_1::value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e,
+double WeakFormNSNewton::VectorFormNS_1::value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, GeomVol<double> *e,
   Func<double>* *ext) const
 {
   double result = 0;
@@ -465,7 +457,7 @@ double WeakFormNSNewton::VectorFormNS_1::value(int n, double *wt, Func<double> *
   return result;
 }
 
-Ord WeakFormNSNewton::VectorFormNS_1::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const
+Ord WeakFormNSNewton::VectorFormNS_1::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, GeomVol<Ord> *e, Func<Ord>* *ext) const
 {
   Ord result = Ord(0);
   Func<Ord>* xvel_prev_time = ext[0];
@@ -488,7 +480,7 @@ WeakFormNSNewton::VectorFormNS_2::VectorFormNS_2(int i) : VectorFormVol<double>(
 {
 }
 
-double WeakFormNSNewton::VectorFormNS_2::value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e,
+double WeakFormNSNewton::VectorFormNS_2::value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, GeomVol<double> *e,
   Func<double>* *ext) const
 {
   double result = 0;
@@ -500,7 +492,7 @@ double WeakFormNSNewton::VectorFormNS_2::value(int n, double *wt, Func<double> *
   return result;
 }
 
-Ord WeakFormNSNewton::VectorFormNS_2::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const
+Ord WeakFormNSNewton::VectorFormNS_2::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, GeomVol<Ord> *e, Func<Ord>* *ext) const
 {
   Ord result = Ord(0);
   Func<Ord>* xvel_prev_newton = u_ext[0];
@@ -512,12 +504,11 @@ Ord WeakFormNSNewton::VectorFormNS_2::ord(int n, double *wt, Func<Ord> *u_ext[],
 }
 
 EssentialBCNonConst::EssentialBCNonConst(std::string marker, double vel_inlet, double H, double startup_time)
-  : EssentialBoundaryCondition<double>(std::vector<std::string>()), startup_time(startup_time), vel_inlet(vel_inlet), H(H)
+  : EssentialBoundaryCondition<double>(marker), startup_time(startup_time), vel_inlet(vel_inlet), H(H)
 {
-  markers.push_back(marker);
 }
 
-EssentialBoundaryCondition<double>::EssentialBCValueType EssentialBCNonConst::get_value_type() const
+EssentialBCValueType EssentialBCNonConst::get_value_type() const
 {
   return BC_FUNCTION;
 }

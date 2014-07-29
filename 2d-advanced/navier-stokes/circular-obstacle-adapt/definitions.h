@@ -7,22 +7,22 @@ using namespace Hermes::Hermes2D;
 using namespace Hermes::Hermes2D::Views;
 using namespace Hermes::Hermes2D::RefinementSelectors;
 
-class WeakFormNSSimpleLinearization : public WeakForm < double >
+class WeakFormNSSimpleLinearization : public WeakForm <double>
 {
 public:
   WeakFormNSSimpleLinearization(bool Stokes, double Reynolds, double time_step, MeshFunctionSharedPtr<double>  x_vel_previous_time,
     MeshFunctionSharedPtr<double>  y_vel_previous_time);
 
-  class BilinearFormSymVel : public MatrixFormVol < double >
+  class BilinearFormSymVel : public MatrixFormVol <double>
   {
   public:
     BilinearFormSymVel(int i, int j, bool Stokes, double Reynolds, double time_step);
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
-      Geom<double> *e, Func<double>* *ext) const;
+      GeomVol<double> *e, Func<double>* *ext) const;
 
     virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v,
-      Geom<Ord> *e, Func<Ord>* *ext);
+      GeomVol<Ord> *e, Func<Ord>* *ext);
 
     virtual MatrixFormVol<double>* clone() const;
 
@@ -32,15 +32,15 @@ public:
     double time_step;
   };
 
-  class BilinearFormNonsymVel : public MatrixFormVol < double >
+  class BilinearFormNonsymVel : public MatrixFormVol <double>
   {
   public:
     BilinearFormNonsymVel(int i, int j, bool Stokes);
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
-      Geom<double> *e, Func<double>* *ext) const;
+      GeomVol<double> *e, Func<double>* *ext) const;
 
-    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e,
+    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, GeomVol<Ord> *e,
       Func<Ord>* *ext) const;
 
     virtual MatrixFormVol<double>* clone() const;
@@ -48,41 +48,41 @@ public:
     bool Stokes;
   };
 
-  class BilinearFormNonsymXVelPressure : public MatrixFormVol < double >
+  class BilinearFormNonsymXVelPressure : public MatrixFormVol <double>
   {
   public:
     BilinearFormNonsymXVelPressure(int i, int j);
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
-      Geom<double> *e, Func<double>* *ext) const;
+      GeomVol<double> *e, Func<double>* *ext) const;
 
-    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e,
+    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, GeomVol<Ord> *e,
       Func<Ord>* *ext) const;
     virtual MatrixFormVol<double>* clone() const;
   };
 
-  class BilinearFormNonsymYVelPressure : public MatrixFormVol < double >
+  class BilinearFormNonsymYVelPressure : public MatrixFormVol <double>
   {
   public:
     BilinearFormNonsymYVelPressure(int i, int j);
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
-      Geom<double> *e, Func<double>* *ext) const;
+      GeomVol<double> *e, Func<double>* *ext) const;
 
-    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e,
+    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, GeomVol<Ord> *e,
       Func<Ord>* *ext) const;
     virtual MatrixFormVol<double>* clone() const;
   };
 
-  class VectorFormVolVel : public VectorFormVol < double >
+  class VectorFormVolVel : public VectorFormVol <double>
   {
   public:
     VectorFormVolVel(int i, bool Stokes, double time_step);
 
-    virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e,
+    virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, GeomVol<double> *e,
       Func<double>* *ext) const;
 
-    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const;
+    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, GeomVol<Ord> *e, Func<Ord>* *ext) const;
 
     virtual VectorFormVol<double>* clone() const;
   protected:
@@ -98,21 +98,21 @@ protected:
   MeshFunctionSharedPtr<double>  y_vel_previous_time;
 };
 
-class WeakFormNSNewton : public WeakForm < double >
+class WeakFormNSNewton : public WeakForm <double>
 {
 public:
   WeakFormNSNewton(bool Stokes, double Reynolds, double time_step, MeshFunctionSharedPtr<double>  x_vel_previous_time,
     MeshFunctionSharedPtr<double>  y_vel_previous_time);
 
-  class BilinearFormSymVel : public MatrixFormVol < double >
+  class BilinearFormSymVel : public MatrixFormVol <double>
   {
   public:
     BilinearFormSymVel(int i, int j, bool Stokes, double Reynolds, double time_step);
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
-      Geom<double> *e, Func<double>* *ext) const;
+      GeomVol<double> *e, Func<double>* *ext) const;
 
-    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e,
+    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, GeomVol<Ord> *e,
       Func<Ord>* *ext) const;
     MatrixFormVol<double>* clone() const
     {
@@ -124,15 +124,15 @@ public:
     double time_step;
   };
 
-  class BilinearFormNonsymVel_0_0 : public MatrixFormVol < double >
+  class BilinearFormNonsymVel_0_0 : public MatrixFormVol <double>
   {
   public:
     BilinearFormNonsymVel_0_0(int i, int j, bool Stokes);
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
-      Geom<double> *e, Func<double>* *ext) const;
+      GeomVol<double> *e, Func<double>* *ext) const;
 
-    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e,
+    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, GeomVol<Ord> *e,
       Func<Ord>* *ext) const;
     MatrixFormVol<double>* clone() const
     {
@@ -142,15 +142,15 @@ public:
     bool Stokes;
   };
 
-  class BilinearFormNonsymVel_0_1 : public MatrixFormVol < double >
+  class BilinearFormNonsymVel_0_1 : public MatrixFormVol <double>
   {
   public:
     BilinearFormNonsymVel_0_1(int i, int j, bool Stokes);
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
-      Geom<double> *e, Func<double>* *ext) const;
+      GeomVol<double> *e, Func<double>* *ext) const;
 
-    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e,
+    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, GeomVol<Ord> *e,
       Func<Ord>* *ext) const;
     MatrixFormVol<double>* clone() const
     {
@@ -160,15 +160,15 @@ public:
     bool Stokes;
   };
 
-  class BilinearFormNonsymVel_1_0 : public MatrixFormVol < double >
+  class BilinearFormNonsymVel_1_0 : public MatrixFormVol <double>
   {
   public:
     BilinearFormNonsymVel_1_0(int i, int j, bool Stokes);
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
-      Geom<double> *e, Func<double>* *ext) const;
+      GeomVol<double> *e, Func<double>* *ext) const;
 
-    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e,
+    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, GeomVol<Ord> *e,
       Func<Ord>* *ext) const;
     MatrixFormVol<double>* clone() const
     {
@@ -178,15 +178,15 @@ public:
     bool Stokes;
   };
 
-  class BilinearFormNonsymVel_1_1 : public MatrixFormVol < double >
+  class BilinearFormNonsymVel_1_1 : public MatrixFormVol <double>
   {
   public:
     BilinearFormNonsymVel_1_1(int i, int j, bool Stokes);
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
-      Geom<double> *e, Func<double>* *ext) const;
+      GeomVol<double> *e, Func<double>* *ext) const;
 
-    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e,
+    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, GeomVol<Ord> *e,
       Func<Ord>* *ext) const;
     MatrixFormVol<double>* clone() const
     {
@@ -196,15 +196,15 @@ public:
     bool Stokes;
   };
 
-  class BilinearFormNonsymXVelPressure : public MatrixFormVol < double >
+  class BilinearFormNonsymXVelPressure : public MatrixFormVol <double>
   {
   public:
     BilinearFormNonsymXVelPressure(int i, int j);
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
-      Geom<double> *e, Func<double>* *ext) const;
+      GeomVol<double> *e, Func<double>* *ext) const;
 
-    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e,
+    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, GeomVol<Ord> *e,
       Func<Ord>* *ext) const;
     MatrixFormVol<double>* clone() const
     {
@@ -212,15 +212,15 @@ public:
     }
   };
 
-  class BilinearFormNonsymYVelPressure : public MatrixFormVol < double >
+  class BilinearFormNonsymYVelPressure : public MatrixFormVol <double>
   {
   public:
     BilinearFormNonsymYVelPressure(int i, int j);
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
-      Geom<double> *e, Func<double>* *ext) const;
+      GeomVol<double> *e, Func<double>* *ext) const;
 
-    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, Geom<Ord> *e,
+    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *u, Func<Ord> *v, GeomVol<Ord> *e,
       Func<Ord>* *ext) const;
     MatrixFormVol<double>* clone() const
     {
@@ -228,15 +228,15 @@ public:
     }
   };
 
-  class VectorFormNS_0 : public VectorFormVol < double >
+  class VectorFormNS_0 : public VectorFormVol <double>
   {
   public:
     VectorFormNS_0(int i, bool Stokes, double Reynolds, double time_step);
 
-    virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e,
+    virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, GeomVol<double> *e,
       Func<double>* *ext) const;
 
-    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const;
+    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, GeomVol<Ord> *e, Func<Ord>* *ext) const;
 
     VectorFormVol<double>* clone() const
     {
@@ -248,15 +248,15 @@ public:
     double time_step;
   };
 
-  class VectorFormNS_1 : public VectorFormVol < double >
+  class VectorFormNS_1 : public VectorFormVol <double>
   {
   public:
     VectorFormNS_1(int i, bool Stokes, double Reynolds, double time_step);
 
-    virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e,
+    virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, GeomVol<double> *e,
       Func<double>* *ext) const;
 
-    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const;
+    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, GeomVol<Ord> *e, Func<Ord>* *ext) const;
 
     VectorFormVol<double>* clone() const
     {
@@ -268,15 +268,15 @@ public:
     double time_step;
   };
 
-  class VectorFormNS_2 : public VectorFormVol < double >
+  class VectorFormNS_2 : public VectorFormVol <double>
   {
   public:
     VectorFormNS_2(int i);
 
-    virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, Geom<double> *e,
+    virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *v, GeomVol<double> *e,
       Func<double>* *ext) const;
 
-    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, Geom<Ord> *e, Func<Ord>* *ext) const;
+    virtual Ord ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v, GeomVol<Ord> *e, Func<Ord>* *ext) const;
 
     VectorFormVol<double>* clone() const
     {
@@ -292,7 +292,7 @@ protected:
   MeshFunctionSharedPtr<double>  y_vel_previous_time;
 };
 
-class EssentialBCNonConst : public EssentialBoundaryCondition < double >
+class EssentialBCNonConst : public EssentialBoundaryCondition <double>
 {
 public:
   EssentialBCNonConst(std::vector<std::string> markers, double vel_inlet, double H, double startup_time)
@@ -302,7 +302,7 @@ public:
 
   ~EssentialBCNonConst() {};
 
-  virtual EssentialBoundaryCondition<double>::EssentialBCValueType get_value_type() const;
+  virtual EssentialBCValueType get_value_type() const;
 
   virtual double value(double x, double y) const;
 

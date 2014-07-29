@@ -1,3 +1,3 @@
-project(capillary-barrier-rk)
+project(richards-capillary-barrier-rk)
 add_executable(${PROJECT_NAME} main.cpp definitions.cpp extras.cpp definitions.h)
 set_common_target_properties(${PROJECT_NAME} "HERMES2D")

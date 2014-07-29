@@ -63,7 +63,7 @@ int REFINEMENT_COUNT = 0;
 // it has different meanings for various adaptive strategies (see below).
 const double THRESHOLD = 0.5;
 // Error calculation & adaptivity.
-class CustomErrorCalculator : public ErrorCalculator < double >
+class CustomErrorCalculator : public ErrorCalculator <double>
 {
 public:
   // Two first components are in the H1 space - we can use the classic class for that, for the last component, we will manually add the L2 norm for pressure.
@@ -146,13 +146,13 @@ int main(int argc, char* argv[])
     MeshFunctionSharedPtr<double> E_time_prev(new CustomInitialConditionE(E_mesh, current_time, OMEGA, K_x, K_y));
     MeshFunctionSharedPtr<double> H_time_prev(new CustomInitialConditionH(H_mesh, current_time, OMEGA, K_x, K_y));
     MeshFunctionSharedPtr<double> P_time_prev(new CustomInitialConditionP(P_mesh, current_time, OMEGA, K_x, K_y));
-    std::vector<MeshFunctionSharedPtr<double> > slns_time_prev(E_time_prev, H_time_prev, P_time_prev);
+    std::vector<MeshFunctionSharedPtr<double> > slns_time_prev({ E_time_prev, H_time_prev, P_time_prev });
     MeshFunctionSharedPtr<double> E_time_new(new Solution<double>(E_mesh)), H_time_new(new Solution<double>(H_mesh)), P_time_new(new Solution<double>(P_mesh));
     MeshFunctionSharedPtr<double> E_time_new_coarse(new Solution<double>(E_mesh)), H_time_new_coarse(new Solution<double>(H_mesh)), P_time_new_coarse(new Solution<double>(P_mesh));
-    std::vector<MeshFunctionSharedPtr<double> > slns_time_new(E_time_new, H_time_new, P_time_new);
+    std::vector<MeshFunctionSharedPtr<double> > slns_time_new({ E_time_new, H_time_new, P_time_new });
 
     // Initialize the weak formulation.
-    CustomWeakFormMD wf(OMEGA, K_x, K_y, MU_0, EPS_0, EPS_INF, EPS_Q, TAU);
+    WeakFormSharedPtr<double> wf(new CustomWeakFormMD(OMEGA, K_x, K_y, MU_0, EPS_0, EPS_INF, EPS_Q, TAU));
 
     // Initialize boundary conditions
     DefaultEssentialBCConst<double> bc_essential("Bdy", 0.0);
@@ -163,7 +163,7 @@ int main(int argc, char* argv[])
     //L2Space<double> H_space(mesh, P_INIT));
     SpaceSharedPtr<double> P_space(new HcurlSpace<double>(P_mesh, &bcs, P_INIT));
 
-    std::vector<SpaceSharedPtr<double> > spaces = std::vector<SpaceSharedPtr<double> >(E_space, H_space, P_space);
+    std::vector<SpaceSharedPtr<double> > spaces = std::vector<SpaceSharedPtr<double> >({ E_space, H_space, P_space });
 
     // Initialize views.
     ScalarView E1_view("Solution E1", new WinGeom(0, 0, 400, 350));
@@ -257,7 +257,7 @@ int main(int argc, char* argv[])
         SpaceSharedPtr<double> ref_space_H = refSpaceCreatorH.create_ref_space();
         Space<double>::ReferenceSpaceCreator refSpaceCreatorP(P_space, ref_mesh_P, order_increase);
         SpaceSharedPtr<double> ref_space_P = refSpaceCreatorP.create_ref_space();
-        std::vector<SpaceSharedPtr<double> > ref_spaces(ref_space_E, ref_space_H, ref_space_P);
+        std::vector<SpaceSharedPtr<double> > ref_spaces({ ref_space_E, ref_space_H, ref_space_P });
 
         int ndof = Space<double>::get_num_dofs(ref_spaces);
         Hermes::Mixins::Loggable::Static::info("ndof = %d.", ndof);
@@ -297,14 +297,12 @@ int main(int argc, char* argv[])
 
         // Project the fine mesh solution onto the coarse mesh->
         Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh->");
-        OGProjection<double> ogProjection; ogProjection.project_global({E_space, H_space,
-          P_space}, std::vector<MeshFunctionSharedPtr<double> >(E_time_new, H_time_new, P_time_new), std::vector<MeshFunctionSharedPtr<double> >(E_time_new_coarse, H_time_new_coarse, P_time_new_coarse));
+        OGProjection<double> ogProjection; ogProjection.project_global({E_space, H_space, P_space }, { E_time_new, H_time_new, P_time_new }, { E_time_new_coarse, H_time_new_coarse, P_time_new_coarse });
 
         // Calculate element errors and total error estimate.
         Hermes::Mixins::Loggable::Static::info("Calculating error estimate.");
         adaptivity.set_spaces({E_space, H_space, P_space});
-        errorCalculator.calculate_errors({E_time_new_coarse, H_time_new_coarse, P_time_new_coarse},
-          std::vector<MeshFunctionSharedPtr<double> >(E_time_new, H_time_new, P_time_new));
+        errorCalculator.calculate_errors({ E_time_new_coarse, H_time_new_coarse, P_time_new_coarse }, { E_time_new, H_time_new, P_time_new });
 
         double err_est_rel_total = errorCalculator.get_total_error_squared() * 100.;
 

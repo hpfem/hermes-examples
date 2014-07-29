@@ -215,7 +215,7 @@ SpaceSharedPtr<double> init_space(&basemesh, &bc_types, &bc_values, P_INIT);
   while (done == false);
   
   // Initialize the weak formulation.
-  CustomWeakForm wf;
+  WeakFormSharedPtr<double> wf(new CustomWeakForm);
 
   // Error estimate and discrete problem size as a function of physical time.
   SimpleGraph graph_time_err_est, graph_time_err_exact, graph_time_dof, graph_time_cpu;

@@ -1,5 +1,4 @@
 ////// Weak formulation in axisymmetric coordinate system  ////////////////////////////////////
-
 #include "hermes2d.h"
 
 /* Namespaces used */
@@ -21,4 +20,4 @@ class CustomWeakForm : public DefaultWeakFormSourceIteration<double>
 };
 
 // Integral over the active core.
-double integrate(MeshFunction<double>* sln, std::string area);
+double integrate(MeshFunctionSharedPtr<double> sln, std::string area);

@@ -98,7 +98,7 @@ int main(int argc, char* argv[])
   for (int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
 
   // Set essential boundary conditions.
-  DefaultEssentialBCConst<double> bc_essential({"right", "top"}, 0.0);
+  DefaultEssentialBCConst<double> bc_essential(std::vector<std::string>({"right", "top"}), 0.0);
   EssentialBCs<double> bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.
@@ -107,14 +107,13 @@ int main(int argc, char* argv[])
   // Associate element markers (corresponding to physical regions)
   // with material properties (diffusion coefficient, absorption
   // cross-section, external sources).
-  std::vector<std::string> regions("e1", "e2", "e3", "e4", "e5");
-  std::vector<double> D_map(D_1, D_2, D_3, D_4, D_5);
-  std::vector<double> Sigma_a_map(SIGMA_A_1, SIGMA_A_2, SIGMA_A_3, SIGMA_A_4, SIGMA_A_5);
-  std::vector<double> Sources_map(Q_EXT_1, 0.0, Q_EXT_3, 0.0, 0.0);
+  std::vector<std::string> regions({ "e1", "e2", "e3", "e4", "e5" });
+  std::vector<double> D_map({ D_1, D_2, D_3, D_4, D_5 });
+  std::vector<double> Sigma_a_map({ SIGMA_A_1, SIGMA_A_2, SIGMA_A_3, SIGMA_A_4, SIGMA_A_5 });
+  std::vector<double> Sources_map({ Q_EXT_1, 0.0, Q_EXT_3, 0.0, 0.0 });
 
   // Initialize the weak formulation.
-  WeakFormsNeutronics::Monoenergetic::Diffusion::DefaultWeakFormFixedSource<double>
-    wf(regions, D_map, Sigma_a_map, Sources_map);
+  WeakFormSharedPtr<double> wf(new WeakFormsNeutronics::Monoenergetic::Diffusion::DefaultWeakFormFixedSource<double>(regions, D_map, Sigma_a_map, Sources_map));
 
   // Initialize coarse and reference mesh solution.
   MeshFunctionSharedPtr<double> sln(new Solution<double>), ref_sln(new Solution<double>);

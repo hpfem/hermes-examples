@@ -1,4 +1,4 @@
-project(gamm-channel-adapt)
+project(euler-gamm-channel-adapt)
 
 add_executable(${PROJECT_NAME} main.cpp ../euler_util.cpp ../numerical_flux.cpp)
 

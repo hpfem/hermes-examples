@@ -47,8 +47,8 @@ CustomVectorFormVol::CustomVectorFormVol(int i,
   if (coeff == nullptr) this->coeff = new Hermes::Hermes2DFunction<double>(1.0);
 }
 
-CustomVectorFormVol::CustomVectorFormVol(int i,
-  Hermes::Hermes2DFunction<double>* coeff, {i}, coeff(coeff), gt(gt)
+CustomVectorFormVol::CustomVectorFormVol(int i, Hermes::Hermes2DFunction<double>* coeff, std::vector<std::string> areas, GeomType gt)
+  : VectorFormVol<double>(i), coeff(coeff), gt(gt)
 {
   this->set_areas(areas);
   // If coeff is nullptr, initialize it to be constant 1.0.
@@ -62,7 +62,7 @@ CustomVectorFormVol::~CustomVectorFormVol()
 };
 
 double CustomVectorFormVol::value(int n, double *wt, Func<double> *u_ext[], Func<double> *v,
-  Geom<double> *e, Func<double>* *ext) const
+  GeomVol<double> *e, Func<double>* *ext) const
 {
   double result = 0;
   if (gt == HERMES_PLANAR) {
@@ -86,7 +86,7 @@ double CustomVectorFormVol::value(int n, double *wt, Func<double> *u_ext[], Func
 }
 
 Ord CustomVectorFormVol::ord(int n, double *wt, Func<Ord> *u_ext[], Func<Ord> *v,
-  Geom<Ord> *e, Func<Ord>* *ext) const
+  GeomVol<Ord> *e, Func<Ord>* *ext) const
 {
   Ord result = Ord(0);
   if (gt == HERMES_PLANAR) {

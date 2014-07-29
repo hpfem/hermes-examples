@@ -1,4 +1,4 @@
-project(basic-rk-newton)
+project(richards-basic-rk-newton)
 
 add_executable(${PROJECT_NAME} main.cpp definitions.cpp definitions.h)
 

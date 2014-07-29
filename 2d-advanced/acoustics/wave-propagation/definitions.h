@@ -12,9 +12,9 @@ public:
   volume_matrix_acoustic_transient_planar_linear_form_1_1(unsigned int i, unsigned int j, double ac_rho, double ac_vel);
 
   virtual Scalar value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
+    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
   virtual Hermes::Ord ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
+    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
 
   MatrixFormVol<Scalar>* clone() const;
 
@@ -29,9 +29,9 @@ public:
   volume_matrix_acoustic_transient_planar_linear_form_1_2(unsigned int i, unsigned int j, double ac_rho, double ac_vel);
 
   virtual Scalar value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
+    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
   virtual Hermes::Ord ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
+    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
 
   MatrixFormVol<Scalar>* clone() const;
 
@@ -46,9 +46,9 @@ public:
   volume_matrix_acoustic_transient_planar_linear_form_2_2(unsigned int i, unsigned int j, double ac_rho, double ac_vel);
 
   virtual Scalar value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
+    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
   virtual Hermes::Ord ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
+    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
 
   MatrixFormVol<Scalar>* clone() const;
 
@@ -63,9 +63,9 @@ public:
   volume_matrix_acoustic_transient_planar_linear_form_2_1(unsigned int i, unsigned int j, double ac_rho, double ac_vel);
 
   virtual Scalar value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u,
-    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
+    Hermes::Hermes2D::Func<double> *v, Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
   virtual Hermes::Ord ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u,
-    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
+    Hermes::Hermes2D::Func<Hermes::Ord> *v, Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
 
   MatrixFormVol<Scalar>* clone() const;
 
@@ -80,9 +80,9 @@ public:
   volume_vector_acoustic_transient_planar_linear_form_1_2(unsigned int i, double ac_rho, double ac_vel);
 
   virtual Scalar value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *v,
-    Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
+    Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
   virtual Hermes::Ord ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *v,
-    Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
+    Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
 
   VectorFormVol<Scalar>* clone() const;
 
@@ -97,9 +97,9 @@ public:
   volume_vector_acoustic_transient_planar_linear_form_2_1(unsigned int i, double ac_rho, double ac_vel);
 
   virtual Scalar value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *v,
-    Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
+    Hermes::Hermes2D::GeomVol<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
   virtual Hermes::Ord ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *v,
-    Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
+    Hermes::Hermes2D::GeomVol<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
 
   VectorFormVol<Scalar>* clone() const;
 
@@ -114,9 +114,9 @@ public:
   surface_matrix_acoustic_transient_planar_linear_form_1_2_acoustic_impedance(unsigned int i, unsigned int j);
 
   virtual Scalar value(int n, double *wt, Hermes::Hermes2D::Func<Scalar> *u_ext[], Hermes::Hermes2D::Func<double> *u, Hermes::Hermes2D::Func<double> *v,
-    Hermes::Hermes2D::Geom<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
+    Hermes::Hermes2D::GeomSurf<double> *e, Hermes::Hermes2D::Func<Scalar> **ext) const;
   virtual Hermes::Ord ord(int n, double *wt, Hermes::Hermes2D::Func<Hermes::Ord> *u_ext[], Hermes::Hermes2D::Func<Hermes::Ord> *u, Hermes::Hermes2D::Func<Hermes::Ord> *v,
-    Hermes::Hermes2D::Geom<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
+    Hermes::Hermes2D::GeomSurf<Hermes::Ord> *e, Hermes::Hermes2D::Func<Hermes::Ord> **ext) const;
   MatrixFormSurf<Scalar>* clone() const;
 
   double ac_Z0;
@@ -124,7 +124,7 @@ public:
 
 #pragma endregion
 
-class MyWeakForm : public WeakForm < double >
+class MyWeakForm : public WeakForm <double>
 {
 public:
   MyWeakForm(
@@ -183,10 +183,10 @@ public:
   std::vector<MeshFunctionSharedPtr<double> > prev_slns;
 };
 
-class CustomBCValue : public EssentialBoundaryCondition < double >
+class CustomBCValue : public EssentialBoundaryCondition <double>
 {
 public:
-  CustomBCValue({markers}, amplitude(amplitude), frequency(frequency)
+  CustomBCValue(std::vector<std::string> markers, double amplitude, double frequency) : EssentialBoundaryCondition <double>(markers), amplitude(amplitude), frequency(frequency)
   {
   }
 
@@ -195,7 +195,7 @@ public:
   {
   }
 
-  inline EssentialBoundaryCondition<double>::EssentialBCValueType get_value_type() const { return EssentialBoundaryCondition<double>::BC_FUNCTION; }
+  inline EssentialBCValueType get_value_type() const { return BC_FUNCTION; }
 
   virtual double value(double x, double y) const
   {
@@ -209,10 +209,10 @@ public:
   double frequency;
 };
 
-class CustomBCDerivative : public EssentialBoundaryCondition < double >
+class CustomBCDerivative : public EssentialBoundaryCondition <double>
 {
 public:
-  CustomBCDerivative({markers}, amplitude(amplitude), frequency(frequency)
+  CustomBCDerivative(std::vector<std::string> markers, double amplitude, double frequency) : EssentialBoundaryCondition <double>(markers), amplitude(amplitude), frequency(frequency)
   {
   }
 
@@ -221,7 +221,7 @@ public:
   {
   }
 
-  inline EssentialBoundaryCondition<double>::EssentialBCValueType get_value_type() const { return EssentialBoundaryCondition<double>::BC_FUNCTION; }
+  inline EssentialBCValueType get_value_type() const { return BC_FUNCTION; }
 
   virtual double value(double x, double y) const
   {
