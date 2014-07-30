@@ -49,7 +49,7 @@ const CandList CAND_LIST = H2D_HP_ANISO;
 const double ERR_STOP = 1e-1;
 
 // Newton's method
-// Stopping criterion for Newton on fine mesh->
+// Stopping criterion for Newton on fine mesh.
 const double NEWTON_TOL = 1e-5;
 // Maximum allowed number of Newton iterations.
 const int NEWTON_MAX_ITER = 20;
@@ -91,7 +91,7 @@ int main(int argc, char* argv[])
   if (bt.is_diagonally_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage diagonally implicit R-K method.", bt.get_size());
   if (bt.is_fully_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage fully implicit R-K method.", bt.get_size());
 
-  // Load the mesh->
+  // Load the mesh.
   MeshSharedPtr mesh(new Mesh), basemesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("domain.mesh", basemesh);
@@ -192,7 +192,7 @@ int main(int argc, char* argv[])
         e.print_msg();
       }
 
-      // Project the fine mesh solution onto the coarse mesh->
+      // Project the fine mesh solution onto the coarse mesh.
       MeshFunctionSharedPtr<double> sln_coarse(new Solution<double>);
       Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh for error estimation.");
       OGProjection<double> ogProjection;
@@ -208,17 +208,17 @@ int main(int argc, char* argv[])
       Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_ref: %d, err_est_rel: %g%%",
         space->get_num_dofs(), ref_space->get_num_dofs(), err_est_rel_total);
 
-      // If err_est too large, adapt the mesh->
+      // If err_est too large, adapt the mesh.
       if (err_est_rel_total < ERR_STOP) done = true;
       else
       {
-        Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh->");
+        Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh.");
         done = adaptivity.adapt(&selector);
         as++;
       }
     } while (done == false);
 
-    // Visualize the solution and mesh->
+    // Visualize the solution and mesh.
     char title[100];
     sprintf(title, "Solution, time %g", current_time);
     sview.set_title(title);

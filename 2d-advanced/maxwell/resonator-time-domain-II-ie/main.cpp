@@ -39,9 +39,6 @@ const double T_FINAL = 35.0;
 const double NEWTON_TOL = 1e-8;
 // Maximum allowed number of Newton iterations.
 const int NEWTON_MAX_ITER = 100;
-// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;
 
 // Problem parameters.
 // Square of wave speed.
@@ -49,7 +46,7 @@ const double C_SQUARED = 1;
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh->
+  // Load the mesh.
   MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("domain.mesh", mesh);
@@ -85,7 +82,7 @@ int main(int argc, char* argv[])
   // coeff_vec to be a vector of ndof zeros (no projection is needed).
   Hermes::Mixins::Loggable::Static::info("Projecting to obtain initial vector for the Newton's method.");
   double* coeff_vec = new double[ndof];
-  OGProjection<double> ogProjection; ogProjection.project_global(spaces, slns, coeff_vec);
+  OGProjection<double>::project_global(spaces, slns, coeff_vec);
 
   // Initialize Newton solver.
   NewtonSolver<double> newton(&dp);

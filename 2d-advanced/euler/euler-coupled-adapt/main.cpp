@@ -156,7 +156,7 @@ int main(int argc, char* argv[])
   std::vector<std::string> BDY_NATURAL_CONCENTRATION;
   BDY_NATURAL_CONCENTRATION.push_back("2");
 
-  // Load the mesh->
+  // Load the mesh.
   Mesh basemesh;
   MeshReaderH2D mloader;
   mloader.load("GAMM-channel.mesh", &basemesh);
@@ -331,9 +331,9 @@ SpaceSharedPtr<double>* ref_space_c = refSpaceCreatorConcentration.create_ref_sp
       std::vector<const Space<double> *> ref_spaces(ref_space_rho, ref_space_rho_v_x, 
         ref_space_rho_v_y, ref_space_e, ref_space_c);
 
-      // Project the previous time level solution onto the new fine mesh->
-      Hermes::Mixins::Loggable::Static::info("Projecting the previous time level solution onto the new fine mesh->");
-      OGProjection<double> ogProjection; ogProjection.project_global(ref_spaces,{&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_c}, 
+      // Project the previous time level solution onto the new fine mesh.
+      Hermes::Mixins::Loggable::Static::info("Projecting the previous time level solution onto the new fine mesh.");
+      OGProjection<double>::project_global(ref_spaces,{&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_c}, 
         std::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e, &prev_c));
 
       ogProjection.project_global(ref_space_stabilization, &prev_rho, &prev_rho_stabilization);
@@ -405,7 +405,7 @@ SpaceSharedPtr<double>*> flow_spaces(new       }
 
           double* flow_solution_vector = new double[Space<double>::get_num_dofs(flow_spaces)];
 
-          OGProjection<double> ogProjection; ogProjection.project_global(flow_spaces,{&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e}, flow_solution_vector);
+          OGProjection<double>::project_global(flow_spaces,{&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e}, flow_solution_vector);
 
           if(SHOCK_CAPTURING_TYPE == KUZMIN)
             flux_limiter = new FluxLimiter(FluxLimiter::Kuzmin, flow_solution_vector, flow_spaces);
@@ -428,8 +428,8 @@ SpaceSharedPtr<double>*> flow_spaces(new       }
       sprintf(filenamea, "Concentration-%i-%i.vtk", iteration - 1, as);
       lin_concentration.save_solution_vtk(prev_c, filenamea, "Concentration", true);
 
-      // Project the fine mesh solution onto the coarse mesh->
-      Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh->");
+      // Project the fine mesh solution onto the coarse mesh.
+      Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
       ogProjection.project_global({&space_rho, &space_rho_v_x,
         &space_rho_v_y, &space_e, &space_c},{&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e, &rsln_c},
         std::vector<Solution<double>*>(sln_rho, sln_rho_v_x, sln_rho_v_y, sln_e, sln_c),
@@ -468,7 +468,7 @@ SpaceSharedPtr<double>*> flow_spaces(new       }
 
       Hermes::Mixins::Loggable::Static::info("Error estimate for the concentration part: %g%%", err_est_rel_total_concentration);
 
-      // If err_est too large, adapt the mesh->
+      // If err_est too large, adapt the mesh.
       if (err_est_rel_total_flow < ERR_STOP_INIT_FLOW && err_est_rel_total_concentration < ERR_STOP_INIT_CONCENTRATION)
       {
         done = true;

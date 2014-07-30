@@ -48,9 +48,6 @@ const double T_FINAL = 3600.0;
 const double NEWTON_TOL = 1e-5;
 // Maximum allowed number of Newton iterations.
 const int NEWTON_MAX_ITER = 100;
-// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;
 
 // Problem parameters.
 // Prandtl number (water has 7.0 around 20 degrees Celsius).
@@ -69,7 +66,7 @@ const double ALPHA_AIR = 5.0;
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh->
+  // Load the mesh.
   MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("domain.mesh", mesh);
@@ -138,7 +135,7 @@ int main(int argc, char* argv[])
   // coefficient vector for the Newton's method.
   double* coeff_vec = new double[Space<double>::get_num_dofs(spaces)];
   Hermes::Mixins::Loggable::Static::info("Projecting initial condition to obtain initial vector for the Newton's method.");
-  OGProjection<double> ogProjection; ogProjection.project_global(spaces, slns, coeff_vec,
+  OGProjection<double>::project_global(spaces, slns, coeff_vec,
     std::vector<NormType>({ vel_proj_norm, vel_proj_norm, p_proj_norm, t_proj_norm }));
 
   Hermes::Hermes2D::NewtonSolver<double> newton(&dp);

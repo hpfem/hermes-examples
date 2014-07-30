@@ -15,7 +15,6 @@ const bool VTK_VISUALIZATION = false;
 // Set visual output for every nth step.
 const unsigned int EVERY_NTH_STEP = 1;
 
-
 // Initial polynomial degree.
 const int P_INIT_FLOW = 1;
 const int P_INIT_HEAT = 1;
@@ -81,7 +80,7 @@ const double MESH_SIZE = 3.0;
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh->
+  // Load the mesh.
   MeshSharedPtr mesh(new Mesh), mesh_heat(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("square.mesh", mesh);
@@ -220,7 +219,7 @@ int main(int argc, char* argv[])
         pressure_view.show(pressure);
         velocity_view.show(vel_x, vel_y);
         density_view.show(prev_rho);
-        temperature_view.show(prev_temp, HERMES_EPS_HIGH);
+        temperature_view.show(prev_temp);
       }
       // Output solution in VTK format.
       if(VTK_VISUALIZATION) 

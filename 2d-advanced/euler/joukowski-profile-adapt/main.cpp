@@ -126,8 +126,8 @@ const std::string BDY_SOLID_WALL = "Solid";
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh->
-  MeshSharedPtr mesh;
+  // Load the mesh.
+  MeshSharedPtr mesh(new Mesh);
   MeshReaderH2DXML mloader;
   mloader.load("domain-arcs.xml", mesh);
 
@@ -261,8 +261,8 @@ SpaceSharedPtr<double>*> ref_spaces(new     std::vector<const Space<double>(ref_
 
       ndofs_prev = Space<double>::get_num_dofs(ref_spaces);
 
-      // Project the previous time level solution onto the new fine mesh->
-      Hermes::Mixins::Loggable::Static::info("Projecting the previous time level solution onto the new fine mesh->");
+      // Project the previous time level solution onto the new fine mesh.
+      Hermes::Mixins::Loggable::Static::info("Projecting the previous time level solution onto the new fine mesh.");
       if(loaded_now)
       {
         loaded_now = false;
@@ -272,7 +272,7 @@ SpaceSharedPtr<double> *>(new         std::vector<Space<double>(ref_space_rho, r
       }
       else
       {
-      OGProjection<double> ogProjection; ogProjection.project_global(ref_spaces,{&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e}, 
+      OGProjection<double>::project_global(ref_spaces,{&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e}, 
         std::vector<Solution<double>*>(&prev_rho, &prev_rho_v_x, &prev_rho_v_y, &prev_e), std::vector<Hermes::Hermes2D::NormType>());
       }
 
@@ -282,7 +282,7 @@ SpaceSharedPtr<double> *>(new         std::vector<Space<double>(ref_space_rho, r
         space_rho_v_y, &space_e}), Space<double>::get_num_dofs(ref_spaces));
 
       // Assemble the reference problem.
-      Hermes::Mixins::Loggable::Static::info("Solving on reference mesh->");
+      Hermes::Mixins::Loggable::Static::info("Solving on reference mesh.");
       DiscreteProblem<double> dp(wf, ref_spaces);
 
       SparseMatrix<double>* matrix = create_matrix<double>();
@@ -316,9 +316,9 @@ SpaceSharedPtr<double> *>(new         std::vector<Space<double>(ref_space_rho, r
       else
         throw Hermes::Exceptions::Exception("Matrix solver failed.\n");
       
-      // Project the fine mesh solution onto the coarse mesh->
-      Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh->");
-      OGProjection<double> ogProjection; ogProjection.project_global({&space_rho, &space_rho_v_x, 
+      // Project the fine mesh solution onto the coarse mesh.
+      Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
+      OGProjection<double>::project_global({&space_rho, &space_rho_v_x, 
         &space_rho_v_y, &space_e},{&rsln_rho, &rsln_rho_v_x, &rsln_rho_v_y, &rsln_e}, 
         std::vector<Solution<double>*>(sln_rho, sln_rho_v_x, sln_rho_v_y, sln_e), 
         std::vector<NormType>(HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM)); 
@@ -335,12 +335,12 @@ SpaceSharedPtr<double> *>(new         std::vector<Space<double>(ref_space_rho, r
       // Report results.
       Hermes::Mixins::Loggable::Static::info("err_est_rel: %g%%", err_est_rel_total);
 
-      // If err_est too large, adapt the mesh->
+      // If err_est too large, adapt the mesh.
       if (err_est_rel_total < ERR_STOP)
         done = true;
       else
       {
-        Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh->");
+        Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
         if (Space<double>::get_num_dofs({&space_rho, &space_rho_v_x, 
           &space_rho_v_y, &space_e}) >= NDOF_STOP) 
           done = true;

@@ -107,8 +107,8 @@ int main(int argc, char* argv[])
     break;
   }
 
-  // Load the mesh->
-  MeshSharedPtr mesh;
+  // Load the mesh.
+  MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
   // Quadrilaterals.
   mloader.load("square_quad.mesh", mesh);     
@@ -256,7 +256,7 @@ SpaceSharedPtr<double> space(new // Create an H1 space with default shapeset.
 
     cpu_time.tick(Hermes::Mixins::TimeMeasurable::HERMES_SKIP);
     
-    // If err_est too large, adapt the mesh-> The NDOF test must be here, so that the solution may be visualized
+    // If err_est too large, adapt the mesh. The NDOF test must be here, so that the solution may be visualized
     // after ending due to this criterion.
     if (err_exact_rel < ERR_STOP || space.get_num_dofs() >= NDOF_STOP) 
       done = true;

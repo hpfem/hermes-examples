@@ -198,8 +198,8 @@ public:
   MeshFunction<double>* clone() const
   {
     std::vector<MeshFunctionSharedPtr<double> > slns;
-    for(int i = 0; i < this->num; i++)
-      slns.push_back(this->sln[i]->clone());
+    for (int i = 0; i < this->solutions.size(); i++)
+      slns.push_back(this->solutions[i]->clone());
     MachNumberFilter* filter = new MachNumberFilter(slns, this->kappa);
     
     return filter;
@@ -222,8 +222,8 @@ public:
   MeshFunction<double>* clone() const
   {
     std::vector<MeshFunctionSharedPtr<double> > slns;
-    for(int i = 0; i < this->num; i++)
-      slns.push_back(this->sln[i]->clone());
+    for (int i = 0; i < this->solutions.size(); i++)
+      slns.push_back(this->solutions[i]->clone());
     PressureFilter* filter = new PressureFilter(slns, this->kappa);
     
     return filter;
@@ -246,8 +246,8 @@ public:
   MeshFunction<double>* clone() const
   {
     std::vector<MeshFunctionSharedPtr<double> > slns;
-    for(int i = 0; i < this->num; i++)
-      slns.push_back(this->sln[i]->clone());
+    for (int i = 0; i < this->solutions.size(); i++)
+      slns.push_back(this->solutions[i]->clone());
 
     VelocityFilter* filter = new VelocityFilter(slns);
     
@@ -267,8 +267,8 @@ public:
   MeshFunction<double>* clone() const
   {
     std::vector<MeshFunctionSharedPtr<double> > slns;
-    for(int i = 0; i < this->num; i++)
-      slns.push_back(this->sln[i]->clone());
+    for (int i = 0; i < this->solutions.size(); i++)
+      slns.push_back(this->solutions[i]->clone());
     EntropyFilter* filter = new EntropyFilter(slns, this->kappa, rho_ext, p_ext);
     
     return filter;

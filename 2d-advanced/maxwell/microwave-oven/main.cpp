@@ -43,24 +43,11 @@ const double THRESHOLD = 0.6;
 // H2D_P_ISO, H2D_P_ANISO, H2D_H_ISO, H2D_H_ANISO, H2D_HP_ISO,
 // H2D_HP_ANISO_H, H2D_HP_ANISO_P, H2D_HP_ANISO.
 const CandList CAND_LIST = H2D_HP_ANISO;
-// Maximum allowed level of hanging nodes:
-// MESH_REGULARITY = -1 ... arbitrary level hangning nodes (default),
-// MESH_REGULARITY = 1 ... at most one-level hanging nodes,
-// MESH_REGULARITY = 2 ... at most two-level hanging nodes, etc.
-// Note that regular meshes are not supported, this is due to
-// their notoriously bad performance.
-const int MESH_REGULARITY = -1;
-// This parameter influences the selection of
-// candidates in hp-adaptivity. Default value is 1.0.
-const double CONV_EXP = 1.0;
 // Stopping criterion for adaptivity.
-const double ERR_STOP = 5e-2;
+const double ERR_STOP = 3e-2;
 // Adaptivity process stops when the number of degrees of freedom grows
 // over this limit. This is to prevent h-adaptivity to go on forever.
-const int NDOF_STOP = 60000;
-// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;
+const int NDOF_STOP = 100000;
 
 // Newton's method.
 const double NEWTON_TOL = 1e-4;
@@ -97,7 +84,7 @@ public:
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh->
+  // Load the mesh.
   MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
   if (ALIGN_MESH)
@@ -168,7 +155,7 @@ int main(int argc, char* argv[])
     int ndof_ref = Space<::complex>::get_num_dofs(ref_space);
 
     // Initialize reference problem.
-    Hermes::Mixins::Loggable::Static::info("Solving on reference mesh->");
+    Hermes::Mixins::Loggable::Static::info("Solving on reference mesh.");
     // Time measurement.
     cpu_time.tick();
     newton.set_space(ref_space);
@@ -185,8 +172,8 @@ int main(int argc, char* argv[])
     // Translate the resulting coefficient vector into the Solution<::complex> sln->
     Hermes::Hermes2D::Solution<::complex>::vector_to_solution(newton.get_sln_vector(), ref_space, ref_sln);
 
-    // Project the fine mesh solution onto the coarse mesh->
-    Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh->");
+    // Project the fine mesh solution onto the coarse mesh.
+    Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
     OGProjection<::complex> ogProjection; ogProjection.project_global(space, ref_sln, sln);
 
     // View the coarse mesh solution and polynomial orders.
@@ -196,8 +183,9 @@ int main(int argc, char* argv[])
     char title[100];
     sprintf(title, "Electric field, adaptivity step %d", as);
     eview.set_title(title);
-    //eview.set_min_max_range(0.0, 4e3);
-    eview.show(limited_magn, HERMES_EPS_LOW);
+    eview.set_min_max_range(0.0, 4e3);
+    eview.set_linearizer_criterion(LinearizerCriterionFixed(3));
+    eview.show(limited_magn);
     sprintf(title, "Polynomial orders, adaptivity step %d", as);
     oview.set_title(title);
     oview.show(space);
@@ -223,11 +211,11 @@ int main(int argc, char* argv[])
     graph_cpu.add_values(cpu_time.accumulated(), err_est_rel);
     graph_cpu.save("conv_cpu_est.dat");
 
-    // If err_est too large, adapt the mesh->
+    // If err_est too large, adapt the mesh.
     if (err_est_rel < ERR_STOP) done = true;
     else
     {
-      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh->");
+      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
       done = adaptivity.adapt(&selector);
     }
     if (space->get_num_dofs() >= NDOF_STOP) done = true;

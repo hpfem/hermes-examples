@@ -95,8 +95,8 @@ const std::string ZERO_FLUX_BOUNDARY = "2";
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh->
-  MeshSharedPtr mesh;
+  // Load the mesh.
+  MeshSharedPtr mesh(new Mesh);
   MeshReaderExodusII mloader;
   if (!mloader.load("iron-water.e", mesh))
 		throw Hermes::Exceptions::Exception("ExodusII mesh load failed.");
@@ -153,7 +153,7 @@ SpaceSharedPtr<double> space(new
     int ndof_ref = ref_space->get_num_dofs();
 
     // Initialize fine mesh problem.
-    Hermes::Mixins::Loggable::Static::info("Solving on fine mesh->");
+    Hermes::Mixins::Loggable::Static::info("Solving on fine mesh.");
     DiscreteProblem<double> dp(wf, ref_space);
     
     NewtonSolver<double> newton(&dp);
@@ -172,12 +172,12 @@ SpaceSharedPtr<double> space(new
     // Translate the resulting coefficient vector into the instance of Solution.
     Solution<double>::vector_to_solution(newton.get_sln_vector(), ref_space, ref_sln);
     
-    // Project the fine mesh solution onto the coarse mesh->
-    Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh->");
+    // Project the fine mesh solution onto the coarse mesh.
+    Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh.");
     OGProjection<double> ogProjection;
 		ogProjection.project_global(space, &ref_sln, sln);
 
-    // Visualize the solution and mesh->
+    // Visualize the solution and mesh.
     sview.show(sln);
     oview.show(&space);
 
@@ -192,12 +192,12 @@ SpaceSharedPtr<double> space(new
     Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d, err_est_rel: %g%%",
       space.get_num_dofs(), ref_space->get_num_dofs(), err_est_rel);
 
-    // If err_est too large, adapt the mesh->
+    // If err_est too large, adapt the mesh.
     if (err_est_rel < ERR_STOP) 
       done = true;
     else
     {
-      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh->");
+      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
       done = adaptivity.adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
 
       // Increase the counter of performed adaptivity steps.

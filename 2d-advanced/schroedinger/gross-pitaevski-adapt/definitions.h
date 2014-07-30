@@ -35,7 +35,7 @@ private:
   class CustomFormMatrixFormVol : public MatrixFormVol < ::complex >
   {
   public:
-    CustomFormMatrixFormVol(int i, int j, double h, double m, double g, double omega)
+    CustomFormMatrixFormVol(unsigned int i, unsigned int j, double h, double m, double g, double omega)
       : MatrixFormVol<::complex>(i, j), h(h), m(m), g(g), omega(omega) {};
 
     template<typename Real, typename Scalar>

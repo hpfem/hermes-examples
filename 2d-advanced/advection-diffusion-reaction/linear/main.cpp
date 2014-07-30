@@ -18,7 +18,7 @@
 // Initial polynomial degree of mesh elements.
 const int P_INIT = 1;
 // Stabilization on/off (assumes that H2D_SECOND_DERIVATIVES_ENABLED is defined).
-const bool STABILIZATION_ON = false;
+const bool STABILIZATION_ON = true;
 // Shock capturing on/off.
 const bool SHOCK_CAPTURING_ON = true;
 // Number of initial uniform mesh refinements.
@@ -47,7 +47,7 @@ const double B1 = 1., B2 = 1.;
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh->
+  // Load the mesh.
   MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("square_quad.mesh", mesh);
@@ -106,7 +106,7 @@ int main(int argc, char* argv[])
     SpaceSharedPtr<double> ref_space = refSpaceCreator.create_ref_space();
 
     // Assemble the reference problem.
-    Hermes::Mixins::Loggable::Static::info("Solving on reference mesh->");
+    Hermes::Mixins::Loggable::Static::info("Solving on reference mesh.");
     LinearSolver<double> solver(wf, ref_space);
 
     // Time measurement.
@@ -117,9 +117,9 @@ int main(int argc, char* argv[])
     solver.solve();
     Solution<double>::vector_to_solution(solver.get_sln_vector(), ref_space, ref_sln);
 
-    // Project the fine mesh solution onto the coarse mesh->
-    Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh->");
-    OGProjection<double> ogProjection; ogProjection.project_global(space, ref_sln, sln);
+    // Project the fine mesh solution onto the coarse mesh.
+    Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
+    OGProjection<double>::project_global(space, ref_sln, sln);
 
     // Time measurement.
     cpu_time.tick();
@@ -150,11 +150,11 @@ int main(int argc, char* argv[])
     graph_cpu.add_values(cpu_time.accumulated(), err_est_rel);
     graph_cpu.save("conv_cpu_est.dat");
 
-    // If err_est too large, adapt the mesh->
+    // If err_est too large, adapt the mesh.
     if (err_est_rel < ERR_STOP) done = true;
     else
     {
-      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh->");
+      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
       done = adaptivity.adapt(&selector);
 
       // Increase the counter of performed adaptivity steps.

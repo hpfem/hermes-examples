@@ -7,10 +7,11 @@ using namespace Hermes::Hermes2D::Views;
 const int P_INIT = 2;
 
 const double time_step = 4e-5;
+const double end_time = 1.;
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh->
+  // Load the mesh.
   MeshSharedPtr mesh(new Mesh);
   std::vector<MeshSharedPtr> meshes({ mesh });
   Hermes::Hermes2D::MeshReaderH2DXML mloader;
@@ -53,7 +54,7 @@ int main(int argc, char* argv[])
 
   // Solve the linear problem.
   unsigned int iteration = 0;
-  for (double time = time_step; time < 1.0; time += time_step)
+  for (double time = time_step; time < end_time; time += time_step)
   {
     try
     {

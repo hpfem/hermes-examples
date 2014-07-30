@@ -47,7 +47,7 @@ public:
   class BilinearFormTime : public MatrixFormVol < double >
   {
   public:
-    BilinearFormTime(int i, int j, std::string area, double time_step) : MatrixFormVol<double>(i, j), time_step(time_step) {
+    BilinearFormTime(unsigned int i, unsigned int j, std::string area, double time_step) : MatrixFormVol<double>(i, j), time_step(time_step) {
       this->set_area(area);
     }
 
@@ -74,7 +74,7 @@ public:
   class BilinearFormSymVel : public MatrixFormVol < double >
   {
   public:
-    BilinearFormSymVel(int i, int j, bool Stokes, double Reynolds, double time_step) : MatrixFormVol<double>(i, j), Stokes(Stokes),
+    BilinearFormSymVel(unsigned int i, unsigned int j, bool Stokes, double Reynolds, double time_step) : MatrixFormVol<double>(i, j), Stokes(Stokes),
       Reynolds(Reynolds), time_step(time_step) {
       this->setSymFlag(sym);
     }
@@ -107,7 +107,7 @@ public:
   class BilinearFormUnSymVel_0_0 : public MatrixFormVol < double >
   {
   public:
-    BilinearFormUnSymVel_0_0(int i, int j, bool Stokes) : MatrixFormVol<double>(i, j), Stokes(Stokes) {
+    BilinearFormUnSymVel_0_0(unsigned int i, unsigned int j, bool Stokes) : MatrixFormVol<double>(i, j), Stokes(Stokes) {
     }
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, GeomVol<double> *e, Func<double>* *ext) const{
@@ -145,7 +145,7 @@ public:
   class BilinearFormUnSymVel_0_1 : public MatrixFormVol < double >
   {
   public:
-    BilinearFormUnSymVel_0_1(int i, int j, bool Stokes) : MatrixFormVol<double>(i, j), Stokes(Stokes) {
+    BilinearFormUnSymVel_0_1(unsigned int i, unsigned int j, bool Stokes) : MatrixFormVol<double>(i, j), Stokes(Stokes) {
     }
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, GeomVol<double> *e, Func<double>* *ext) const{
@@ -179,7 +179,7 @@ public:
   class BilinearFormUnSymVel_1_0 : public MatrixFormVol < double >
   {
   public:
-    BilinearFormUnSymVel_1_0(int i, int j, bool Stokes) : MatrixFormVol<double>(i, j), Stokes(Stokes) {
+    BilinearFormUnSymVel_1_0(unsigned int i, unsigned int j, bool Stokes) : MatrixFormVol<double>(i, j), Stokes(Stokes) {
     }
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, GeomVol<double> *e, Func<double>* *ext) const{
@@ -213,7 +213,7 @@ public:
   class BilinearFormUnSymVel_1_1 : public MatrixFormVol < double >
   {
   public:
-    BilinearFormUnSymVel_1_1(int i, int j, bool Stokes) : MatrixFormVol<double>(i, j), Stokes(Stokes) {
+    BilinearFormUnSymVel_1_1(unsigned int i, unsigned int j, bool Stokes) : MatrixFormVol<double>(i, j), Stokes(Stokes) {
     }
 
     double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, GeomVol<double> *e, Func<double>* *ext) const{
@@ -291,7 +291,7 @@ public:
   class CustomJacobianTempAdvection_3_0 : public MatrixFormVol < double >
   {
   public:
-    CustomJacobianTempAdvection_3_0(int i, int j, std::string area) : MatrixFormVol<double>(i, j)
+    CustomJacobianTempAdvection_3_0(unsigned int i, unsigned int j, std::string area) : MatrixFormVol<double>(i, j)
     {
       this->set_area(area);
     }
@@ -326,7 +326,7 @@ public:
   class CustomJacobianTempAdvection_3_3_simple : public MatrixFormVol < double >
   {
   public:
-    CustomJacobianTempAdvection_3_3_simple(int i, int j, std::string area) : MatrixFormVol<double>(i, j)
+    CustomJacobianTempAdvection_3_3_simple(unsigned int i, unsigned int j, std::string area) : MatrixFormVol<double>(i, j)
     {
       this->set_area(area);
     }
@@ -363,7 +363,7 @@ public:
   class CustomJacobianTempAdvection_3_1 : public MatrixFormVol < double >
   {
   public:
-    CustomJacobianTempAdvection_3_1(int i, int j, std::string area) : MatrixFormVol<double>(i, j)
+    CustomJacobianTempAdvection_3_1(unsigned int i, unsigned int j, std::string area) : MatrixFormVol<double>(i, j)
     {
       this->set_area(area);
     }
@@ -397,7 +397,7 @@ public:
   class CustomJacobianTempAdvection_3_3 : public MatrixFormVol < double >
   {
   public:
-    CustomJacobianTempAdvection_3_3(int i, int j, std::string area) : MatrixFormVol<double>(i, j)
+    CustomJacobianTempAdvection_3_3(unsigned int i, unsigned int j, std::string area) : MatrixFormVol<double>(i, j)
     {
       this->set_area(area);
     }

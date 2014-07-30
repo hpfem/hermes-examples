@@ -35,9 +35,6 @@ const int P_INIT = 2;
 double time_step = 5e-4;
 // Time interval length.
 const double T_FINAL = 0.4;
-// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;
 
 // Problem parameters.
 double K_S = 20.464;
@@ -64,7 +61,7 @@ const double DAMPING_COEFF = 1.0;
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh->
+  // Load the mesh.
   MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("square.mesh", mesh);

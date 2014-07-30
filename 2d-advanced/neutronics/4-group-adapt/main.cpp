@@ -60,16 +60,13 @@ const int MAX_ADAPT_NUM = 30;
 // Adaptivity process stops when the number of DOFs grows over
 // this limit.
 const int NDOF_STOP = 100000;
-// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;
 
 // Power iteration control.
 // Initial eigenvalue approximation.
 double k_eff = 1.0;
-// Tolerance for eigenvalue convergence on the coarse mesh->
+// Tolerance for eigenvalue convergence on the coarse mesh.
 double TOL_PIT_CM = 5e-5;
-// Tolerance for eigenvalue convergence on the fine mesh->
+// Tolerance for eigenvalue convergence on the fine mesh.
 double TOL_PIT_RM = 5e-6;
 
 // Macros for simpler reporting (four group case).
@@ -280,7 +277,7 @@ int main(int argc, char* argv[])
     Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solutions on coarse meshes.");
     // This is commented out as the appropriate method was deleted in the commit
     // "Cleaning global projections" (b282194946225014faa1de37f20112a5a5d7ab5a).
-    //OGProjection<double> ogProjection; ogProjection.project_global(spaces, projection_jacobian, projection_residual, coarse_solutions);
+    //OGProjection<double>::project_global(spaces, projection_jacobian, projection_residual, coarse_solutions);
 
     // Time measurement.
     cpu_time.tick();
@@ -363,7 +360,7 @@ int main(int argc, char* argv[])
       done = true;
     else
     {
-      Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh->");
+      Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh.");
       done = adapt_h1.adapt(selectors);
       if (spaces[0]->get_num_dofs() + spaces[1]->get_num_dofs()
         + spaces[2]->get_num_dofs() + spaces[3]->get_num_dofs() >= NDOF_STOP)

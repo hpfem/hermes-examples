@@ -22,7 +22,7 @@ const int INIT_REF_NUM = 1;
 // Initial polynomial degree of mesh elements.
 const int P_INIT = 1;
 // Time step.
-const double time_step = 0.1;
+const double time_step = 0.01;
 // Time interval length.
 const double T_FINAL = 10.0;
 
@@ -48,7 +48,7 @@ const CandList CAND_LIST = H2D_HP_ANISO;
 const double ERR_STOP = 1e-1;
 
 // Newton's method
-// Stopping criterion for Newton on fine mesh->
+// Stopping criterion for Newton on fine mesh.
 const double NEWTON_TOL = 1e-5;
 // Maximum allowed number of Newton iterations.
 const int NEWTON_MAX_ITER = 20;
@@ -68,7 +68,7 @@ const int NEWTON_MAX_ITER = 20;
 //   Implicit_SDIRK_CASH_3_23_embedded, Implicit_ESDIRK_TRBDF2_3_23_embedded, Implicit_ESDIRK_TRX2_3_23_embedded,
 //   Implicit_SDIRK_BILLINGTON_3_23_embedded, Implicit_SDIRK_CASH_5_24_embedded, Implicit_SDIRK_CASH_5_34_embedded,
 //   Implicit_DIRK_ISMAIL_7_45_embedded.
-ButcherTableType butcher_table_type = Implicit_SDIRK_2_2;
+ButcherTableType butcher_table_type = Implicit_Crank_Nicolson_2_2;
 
 // Problem parameters.
 double x_0 = 0.0;
@@ -90,7 +90,7 @@ int main(int argc, char* argv[])
   if (bt.is_diagonally_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage diagonally implicit R-K method.", bt.get_size());
   if (bt.is_fully_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage fully implicit R-K method.", bt.get_size());
 
-  // Load the mesh->
+  // Load the mesh.
   MeshSharedPtr mesh(new Mesh), basemesh(new Mesh);
   MeshReaderH1DXML mloader;
   try
@@ -197,6 +197,7 @@ int main(int argc, char* argv[])
       try
       {
         runge_kutta.set_time(current_time);
+        runge_kutta.set_verbose_output(true);
         runge_kutta.set_time_step(time_step);
         runge_kutta.set_max_allowed_iterations(NEWTON_MAX_ITER);
         runge_kutta.set_tolerance(NEWTON_TOL);
@@ -208,10 +209,10 @@ int main(int argc, char* argv[])
         throw Hermes::Exceptions::Exception("Runge-Kutta time step failed");
       }
 
-      // Project the fine mesh solution onto the coarse mesh->
+      // Project the fine mesh solution onto the coarse mesh.
       MeshFunctionSharedPtr<double> sln_coarse(new Solution<double>);
       Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh for error estimation.");
-      OGProjection<double> ogProjection; ogProjection.project_global(space, sln_time_new, sln_coarse);
+      OGProjection<double>::project_global(space, sln_time_new, sln_coarse);
 
       // Calculate element errors and total error estimate.
       Hermes::Mixins::Loggable::Static::info("Calculating error estimate.");
@@ -223,11 +224,11 @@ int main(int argc, char* argv[])
       Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_ref: %d, err_est_rel: %g%%",
         space->get_num_dofs(), ref_space->get_num_dofs(), err_est_rel_total);
 
-      // If err_est too large, adapt the mesh->
+      // If err_est too large, adapt the mesh.
       if (err_est_rel_total < ERR_STOP) done = true;
       else
       {
-        Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh->");
+        Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh.");
         done = adaptivity.adapt(&selector);
 
         // Increase the counter of performed adaptivity steps.
@@ -235,7 +236,7 @@ int main(int argc, char* argv[])
       }
     } while (done == false);
 
-    // Visualize the solution and mesh->
+    // Visualize the solution and mesh.
     char title[100];
     sprintf(title, "Solution, time %g", current_time);
     sview.set_title(title);

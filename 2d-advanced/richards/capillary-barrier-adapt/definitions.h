@@ -84,7 +84,7 @@ private:
   class JacobianFormNewtonEuler : public MatrixFormVol < double >
   {
   public:
-    JacobianFormNewtonEuler(int i, int j, ConstitutiveRelationsGenuchtenWithLayer* relations, double tau)
+    JacobianFormNewtonEuler(unsigned int i, unsigned int j, ConstitutiveRelationsGenuchtenWithLayer* relations, double tau)
       : MatrixFormVol<double>(i, j), tau(tau), relations(relations) { }
 
     template<typename Real, typename Scalar>
@@ -210,7 +210,7 @@ private:
   class JacobianFormNewtonCrankNicolson : public MatrixFormVol < double >
   {
   public:
-    JacobianFormNewtonCrankNicolson(int i, int j, ConstitutiveRelationsGenuchtenWithLayer* relations, double tau)
+    JacobianFormNewtonCrankNicolson(unsigned int i, unsigned int j, ConstitutiveRelationsGenuchtenWithLayer* relations, double tau)
       : MatrixFormVol<double>(i, j), tau(tau), relations(relations) { }
 
     template<typename Real, typename Scalar>
@@ -333,7 +333,7 @@ private:
   class JacobianFormPicardEuler : public MatrixFormVol < double >
   {
   public:
-    JacobianFormPicardEuler(int i, int j, ConstitutiveRelationsGenuchtenWithLayer* relations, double tau)
+    JacobianFormPicardEuler(unsigned int i, unsigned int j, ConstitutiveRelationsGenuchtenWithLayer* relations, double tau)
       : MatrixFormVol<double>(i, j), tau(tau), relations(relations) { }
 
     template<typename Real, typename Scalar>

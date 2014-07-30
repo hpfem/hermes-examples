@@ -66,9 +66,9 @@ const double TIME_STEP_INC_RATIO = 1.1;
 const double TIME_STEP_DEC_RATIO = 0.8;
 
 // Newton's method.
-// Stopping criterion for Newton on coarse mesh->
+// Stopping criterion for Newton on coarse mesh.
 const double NEWTON_TOL_COARSE = 0.01;
-// Stopping criterion for Newton on fine mesh->
+// Stopping criterion for Newton on fine mesh.
 const double NEWTON_TOL_FINE = 0.05;
 // Maximum allowed number of Newton iterations.
 const int NEWTON_MAX_ITER = 50;
@@ -114,7 +114,7 @@ int main(int argc, char* argv[])
     ADAPTIVE_TIME_STEP_ON = false;
   }
 
-  // Load the mesh->
+  // Load the mesh.
   MeshSharedPtr mesh(new Mesh), basemesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("square.mesh", basemesh);
@@ -138,11 +138,9 @@ int main(int argc, char* argv[])
 
   // Create an H1 space with default shapeset.
   SpaceSharedPtr<::complex> space(new H1Space<::complex>(mesh, &bcs, P_INIT));
+  adaptivity.set_space(space);
   int ndof = space->get_num_dofs();
   Hermes::Mixins::Loggable::Static::info("ndof = %d", ndof);
-
-  // Initialize the FE problem.
-  DiscreteProblem<::complex> dp(wf, space);
 
   // Create a refinement selector.
   H1ProjBasedSelector<::complex> selector(CAND_LIST);
@@ -222,7 +220,7 @@ int main(int argc, char* argv[])
 
       RungeKutta<::complex> runge_kutta(wf, ref_space, &bt);
 
-      // Runge-Kutta step on the fine mesh->
+      // Runge-Kutta step on the fine mesh.
       Hermes::Mixins::Loggable::Static::info("Runge-Kutta time step on fine mesh (t = %g s, time step = %g s, stages: %d).",
         current_time, time_step, bt.get_size());
       bool verbose = true;
@@ -295,7 +293,7 @@ int main(int argc, char* argv[])
 
       Hermes::Mixins::Loggable::Static::info("Spatial adaptivity step %d.", as);
 
-      // Project the fine mesh solution onto the coarse mesh->
+      // Project the fine mesh solution onto the coarse mesh.
       MeshFunctionSharedPtr<::complex> sln(new Solution<::complex>);
       Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh for error estimation.");
       OGProjection<::complex> ogProjection; ogProjection.project_global(space, ref_sln, sln);
@@ -314,18 +312,19 @@ int main(int argc, char* argv[])
 
       // Calculate element errors and spatial error estimate.
       Hermes::Mixins::Loggable::Static::info("Calculating spatial error estimate.");
-      double err_rel_space = errorCalculator.get_total_error_squared() * 100;
+      errorCalculator.calculate_errors(sln, ref_sln);
+      double err_rel_space = errorCalculator.get_total_error_squared() * 100.;
 
       // Report results.
       Hermes::Mixins::Loggable::Static::info("ndof: %d, ref_ndof: %d, err_rel_space: %g%%",
         Space<::complex>::get_num_dofs(space), Space<::complex>::get_num_dofs(ref_space), err_rel_space);
 
-      // If err_est too large, adapt the mesh->
+      // If err_est too large, adapt the mesh.
       if (err_rel_space < ERR_STOP)
         done = true;
       else
       {
-        Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh->");
+        Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh.");
         done = adaptivity.adapt(&selector);
 
         // Increase the counter of performed adaptivity steps.
@@ -333,7 +332,7 @@ int main(int argc, char* argv[])
       }
     } while (done == false);
 
-    // Visualize the solution and mesh->
+    // Visualize the solution and mesh.
     char title[100];
     sprintf(title, "Solution - real part, Time %3.2f s", current_time);
     sview_real.set_title(title);

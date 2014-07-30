@@ -33,7 +33,7 @@ private:
   class CustomJacobianFormVol : public MatrixFormVol < double >
   {
   public:
-    CustomJacobianFormVol(int i, int j, double time_step)
+    CustomJacobianFormVol(unsigned int i, unsigned int j, double time_step)
       : MatrixFormVol<double>(i, j), time_step(time_step)
     {
     }

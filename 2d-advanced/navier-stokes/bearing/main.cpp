@@ -44,24 +44,21 @@ const int P_INIT_PRESSURE = 1;
 // Reynolds number.
 const double RE = 5000.0;
 // Surface velocity of inner circle.
-const double VEL = 0.1;
+const double VEL = 0.00001;
 // During this time, surface velocity of the inner circle increases
 // gradually from 0 to VEL, then it stays constant.
 const double STARTUP_TIME = 1.0;
 // Time step.
-const double TAU = 10.0;
+const double TAU = 1.;
 // Time interval length.
 const double T_FINAL = 3600.0;
 // Stopping criterion for the Newton's method.
 const double NEWTON_TOL = 1e-5;
 // Maximum allowed number of Newton iterations.
 const int NEWTON_MAX_ITER = 10;
-// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;
 
 // Current time (used in weak forms).
-double current_time = 0;
+double current_time = 0.;
 
 // Custom function to calculate drag coefficient.
 double integrate_over_wall(MeshFunction<double>* meshfn, int marker)
@@ -98,14 +95,15 @@ double integrate_over_wall(MeshFunction<double>* meshfn, int marker)
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh->
+  // Load the mesh.
   MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("domain-excentric.mesh", mesh);
   //mloader.load("domain-concentric.mesh", mesh);
 
   // Initial mesh refinements.
-  for (int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
+  for (int i = 0; i < INIT_REF_NUM; i++)
+    mesh->refine_all_elements();
   // Use 'true' for anisotropic refinements.
   mesh->refine_towards_boundary("Inner", INIT_BDY_REF_NUM_INNER, false);
   // Use 'false' for isotropic refinements.
@@ -158,16 +156,18 @@ int main(int argc, char* argv[])
   pview.fix_scale_width(80);
   pview.show_mesh(true);
 
+  // Initialize the FE problem.
+  Hermes::Hermes2D::NewtonSolver<double> newton(wf, spaces);
+  newton.output_matrix();
+  newton.output_rhs();
+  newton.set_max_allowed_iterations(NEWTON_MAX_ITER);
+  newton.set_tolerance(NEWTON_TOL, Hermes::Solvers::ResidualNormAbsolute);
+
   // Time-stepping loop:
   char title[100];
   int num_time_steps = T_FINAL / TAU;
   for (int ts = 1; ts <= num_time_steps; ts++)
   {
-    // Initialize the FE problem.
-    DiscreteProblem<double> dp(wf, spaces);
-
-    Hermes::Hermes2D::NewtonSolver<double> newton(&dp);
-
     current_time += TAU;
     Hermes::Mixins::Loggable::Static::info("---- Time step %d, time = %g:", ts, current_time);
 
@@ -179,8 +179,6 @@ int main(int argc, char* argv[])
     Hermes::Mixins::Loggable::Static::info("Solving nonlinear problem:");
     try
     {
-      newton.set_max_allowed_iterations(NEWTON_MAX_ITER);
-      newton.set_tolerance(NEWTON_TOL, Hermes::Solvers::ResidualNormAbsolute);
       newton.solve();
     }
     catch (Hermes::Exceptions::Exception e)

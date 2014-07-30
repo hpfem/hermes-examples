@@ -71,7 +71,7 @@ AdaptStoppingCriterionSingleElement<double> stoppingCriterion(THRESHOLD);
 Adapt<double> adaptivity(&errorCalculator, &stoppingCriterion);
 
 // Newton's method
-// Stopping criterion for Newton on fine mesh->
+// Stopping criterion for Newton on fine mesh.
 const double NEWTON_TOL = 1e-5;
 // Maximum allowed number of Newton iterations.
 const int NEWTON_MAX_ITER = 50;
@@ -126,7 +126,7 @@ int main(int argc, char* argv[])
   if (bt.is_diagonally_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage diagonally implicit R-K method.", bt.get_size());
   if (bt.is_fully_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage fully implicit R-K method.", bt.get_size());
 
-  // Load the mesh->
+  // Load the mesh.
   MeshSharedPtr basemesh(new Mesh), T_mesh(new Mesh), w_mesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("domain.mesh", basemesh);
@@ -266,7 +266,7 @@ int main(int argc, char* argv[])
 
       // Project the fine mesh solution onto the coarse meshes.
       Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solutions on coarse meshes for error estimation.");
-      OGProjection<double> ogProjection; ogProjection.project_global({ T_space, w_space }, { T_time_new, w_time_new },
+      OGProjection<double>::project_global({ T_space, w_space }, { T_time_new, w_time_new },
       { T_coarse, w_coarse });
 
       // Calculate element errors and total error estimate.
@@ -284,7 +284,7 @@ int main(int argc, char* argv[])
         done = true;
       else
       {
-        Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh->");
+        Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh.");
         done = adaptivity.adapt({ &selector, &selector });
 
         // Increase the counter of performed adaptivity steps.

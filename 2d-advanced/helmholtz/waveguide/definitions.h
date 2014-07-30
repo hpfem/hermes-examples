@@ -50,7 +50,7 @@ private:
   class MatrixFormHelmholtzEquation_real_real : public MatrixFormVol < double >
   {
   public:
-    MatrixFormHelmholtzEquation_real_real(int i, int j, double eps, double omega, double mu)
+    MatrixFormHelmholtzEquation_real_real(unsigned int i, unsigned int j, double eps, double omega, double mu)
       : MatrixFormVol<double>(i, j), eps(eps), omega(omega), mu(mu) {};
 
     template<typename Real, typename Scalar>
@@ -79,7 +79,7 @@ private:
     double sigma;
 
   public:
-    MatrixFormHelmholtzEquation_real_imag(int i, int j, double mu, double omega, double sigma)
+    MatrixFormHelmholtzEquation_real_imag(unsigned int i, unsigned int j, double mu, double omega, double sigma)
       : MatrixFormVol<double>(i, j), mu(mu), omega(omega), sigma(sigma) {};
 
     template<typename Real, typename Scalar>
@@ -102,7 +102,7 @@ private:
     double sigma;
 
   public:
-    MatrixFormHelmholtzEquation_imag_real(int i, int j, double mu, double omega, double sigma)
+    MatrixFormHelmholtzEquation_imag_real(unsigned int i, unsigned int j, double mu, double omega, double sigma)
       : MatrixFormVol<double>(i, j), mu(mu), omega(omega), sigma(sigma) {};
 
     template<typename Real, typename Scalar>
@@ -120,7 +120,7 @@ private:
   class MatrixFormHelmholtzEquation_imag_imag : public MatrixFormVol < double >
   {
   public:
-    MatrixFormHelmholtzEquation_imag_imag(int i, int j, double eps, double mu, double omega)
+    MatrixFormHelmholtzEquation_imag_imag(unsigned int i, unsigned int j, double eps, double mu, double omega)
       : MatrixFormVol<double>(i, j), eps(eps), mu(mu), omega(omega) {};
 
     template<typename Real, typename Scalar>
@@ -146,7 +146,7 @@ private:
   private:
     double beta;
   public:
-    MatrixFormSurfHelmholtz_real_imag(int i, int j, std::string area, double beta)
+    MatrixFormSurfHelmholtz_real_imag(unsigned int i, unsigned int j, std::string area, double beta)
       : MatrixFormSurf<double>(i, j), beta(beta){ this->set_area(area); };
 
     template<typename Real, typename Scalar>
@@ -166,7 +166,7 @@ private:
   private:
     double beta;
   public:
-    MatrixFormSurfHelmholtz_imag_real(int i, int j, std::string area, double beta)
+    MatrixFormSurfHelmholtz_imag_real(unsigned int i, unsigned int j, std::string area, double beta)
       : MatrixFormSurf<double>(i, j), beta(beta){ this->set_area(area); };
 
     template<typename Real, typename Scalar>

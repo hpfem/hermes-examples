@@ -22,9 +22,6 @@ const int NEWTON_MAX_ITER = 1000;
 const double NEWTON_DAMPING = 1.0;
 // Number of initial uniform mesh refinements.
 const int INIT_REF_NUM = 1;
-// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;
 
 // Problem parameters.
 double MU_VACUUM = 4. * M_PI * 1e-7;
@@ -65,7 +62,7 @@ int main(int argc, char* argv[])
   plot_derivative = true;
   mu_inv_iron.plot("spline_der.dat", interval_extension, plot_derivative);
 
-  // Load the mesh->
+  // Load the mesh.
   MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("actuator.mesh", mesh);
@@ -98,34 +95,30 @@ int main(int argc, char* argv[])
   // Project the initial condition on the FE space to obtain initial
   // coefficient vector for the Newton's method.
   Hermes::Mixins::Loggable::Static::info("Projecting to obtain initial vector for the Newton's method.");
-  double* coeff_vec = new double[ndof];
-  OGProjection<double> ogProjection;
-  ogProjection.project_global(space, sln, coeff_vec);
 
   // Perform Newton's iteration.
   Hermes::Hermes2D::NewtonSolver<double> newton(&dp);
   newton.set_manual_damping_coeff(true, 0.1);
   newton.set_sufficient_improvement_factor_jacobian(0.5);
   newton.set_max_steps_with_reused_jacobian(5);
+  newton.set_max_allowed_iterations(NEWTON_MAX_ITER);
+  newton.set_tolerance(NEWTON_TOL, Hermes::Solvers::ResidualNormAbsolute);
+  
   try
   {
-    newton.set_max_allowed_iterations(NEWTON_MAX_ITER);
-    newton.set_tolerance(NEWTON_TOL, Hermes::Solvers::ResidualNormAbsolute);
-    newton.solve(coeff_vec);
+    newton.solve(sln);
   }
   catch (Hermes::Exceptions::Exception e)
   {
     e.print_msg();
     throw Hermes::Exceptions::Exception("Newton's iteration failed.");
+    return 1;
   };
 
   // Translate the resulting coefficient vector into the Solution sln.
   Solution<double>::vector_to_solution(newton.get_sln_vector(), space, sln);
 
-  // Cleanup.
-  delete[] coeff_vec;
-
-  // Visualise the solution and mesh->
+  // Visualise the solution and mesh.
   ScalarView s_view1("Vector potential", new WinGeom(0, 0, 350, 450));
   MeshFunctionSharedPtr<double> vector_potential(new FilterVectorPotential(std::vector<MeshFunctionSharedPtr<double> >({ sln, sln }), { H2D_FN_VAL, H2D_FN_VAL }));
   s_view1.show_mesh(false);

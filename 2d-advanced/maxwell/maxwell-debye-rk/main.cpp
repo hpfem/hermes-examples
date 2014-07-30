@@ -126,7 +126,7 @@ int main(int argc, char* argv[])
     if (bt.is_diagonally_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage diagonally implicit R-K method.", bt.get_size());
     if (bt.is_fully_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage fully implicit R-K method.", bt.get_size());
 
-    // Load the mesh->
+    // Load the mesh.
     MeshSharedPtr E_mesh(new Mesh), H_mesh(new Mesh), P_mesh(new Mesh);
     MeshReaderH2D mloader;
     mloader.load("domain.mesh", E_mesh);
@@ -295,9 +295,9 @@ int main(int argc, char* argv[])
         P2_view.set_title(title);
         P2_view.show(P_time_new, H2D_FN_VAL_1);
 
-        // Project the fine mesh solution onto the coarse mesh->
-        Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh->");
-        OGProjection<double> ogProjection; ogProjection.project_global({ E_space, H_space, P_space }, { E_time_new, H_time_new, P_time_new }, { E_time_new_coarse, H_time_new_coarse, P_time_new_coarse });
+        // Project the fine mesh solution onto the coarse mesh.
+        Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
+        OGProjection<double>::project_global({ E_space, H_space, P_space }, { E_time_new, H_time_new, P_time_new }, { E_time_new_coarse, H_time_new_coarse, P_time_new_coarse });
 
         // Calculate element errors and total error estimate.
         Hermes::Mixins::Loggable::Static::info("Calculating error estimate.");
@@ -309,7 +309,7 @@ int main(int argc, char* argv[])
         // Report results.
         Hermes::Mixins::Loggable::Static::info("Error estimate: %g%%", err_est_rel_total);
 
-        // If err_est too large, adapt the mesh->
+        // If err_est too large, adapt the mesh.
         if (err_est_rel_total < ERR_STOP)
         {
           Hermes::Mixins::Loggable::Static::info("Error estimate under the specified threshold -> moving to next time step.");
@@ -317,7 +317,7 @@ int main(int argc, char* argv[])
         }
         else
         {
-          Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh->");
+          Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
           REFINEMENT_COUNT++;
           done = adaptivity.adapt({ &HcurlSelector, &H1selector, &HcurlSelector });
 

@@ -83,11 +83,11 @@ enum CONSTITUTIVE_RELATIONS {
 CONSTITUTIVE_RELATIONS constitutive_relations_type = CONSTITUTIVE_GENUCHTEN;
 
 // Newton's and Picard's methods.
-// Stopping criterion for Newton on fine mesh->
+// Stopping criterion for Newton on fine mesh.
 const double NEWTON_TOL = 1e-5;
 // Maximum allowed number of Newton iterations.
 int NEWTON_MAX_ITER = 10;
-// Stopping criterion for Picard on fine mesh->
+// Stopping criterion for Picard on fine mesh.
 const double PICARD_TOL = 1e-2;
 // Maximum allowed number of Picard iterations.
 int PICARD_MAX_ITER = 23;
@@ -200,7 +200,7 @@ int main(int argc, char* argv[])
   Hermes::Mixins::TimeMeasurable cpu_time;
   cpu_time.tick();
 
-  // Load the mesh->
+  // Load the mesh.
   MeshSharedPtr mesh(new Mesh), basemesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load(mesh_file.c_str(), basemesh);
@@ -254,7 +254,7 @@ int main(int argc, char* argv[])
   SimpleGraph graph_time_err_est, graph_time_err_exact,
     graph_time_dof, graph_time_cpu, graph_time_step;
 
-  // Visualize the projection and mesh->
+  // Visualize the projection and mesh.
   ScalarView view("Initial condition", new WinGeom(0, 0, 630, 350));
   view.fix_scale_width(50);
   OrderView ordview("Initial mesh", new WinGeom(640, 0, 600, 350));
@@ -317,20 +317,20 @@ int main(int argc, char* argv[])
       if (ITERATIVE_METHOD == 1) {
         double* coeff_vec = new double[ref_space->get_num_dofs()];
 
-        // Calculate initial coefficient vector for Newton on the fine mesh->
+        // Calculate initial coefficient vector for Newton on the fine mesh.
         if (as == 1 && ts == 1) {
-          Hermes::Mixins::Loggable::Static::info("Projecting coarse mesh solution to obtain initial vector on new fine mesh->");
-          OGProjection<double> ogProjection; ogProjection.project_global(ref_space, sln_prev_time, coeff_vec);
+          Hermes::Mixins::Loggable::Static::info("Projecting coarse mesh solution to obtain initial vector on new fine mesh.");
+          OGProjection<double>::project_global(ref_space, sln_prev_time, coeff_vec);
         }
         else {
-          Hermes::Mixins::Loggable::Static::info("Projecting previous fine mesh solution to obtain initial vector on new fine mesh->");
-          OGProjection<double> ogProjection; ogProjection.project_global(ref_space, ref_sln, coeff_vec);
+          Hermes::Mixins::Loggable::Static::info("Projecting previous fine mesh solution to obtain initial vector on new fine mesh.");
+          OGProjection<double>::project_global(ref_space, ref_sln, coeff_vec);
         }
 
         // Initialize the FE problem.
         DiscreteProblem<double> dp(wf, ref_space);
 
-        // Perform Newton's iteration on the reference mesh-> If necessary,
+        // Perform Newton's iteration on the reference mesh. If necessary,
         // reduce time step to make it converge, but then restore time step
         // size to its original value.
         Hermes::Mixins::Loggable::Static::info("Performing Newton's iteration (tau = %g days):", time_step);
@@ -386,17 +386,17 @@ int main(int argc, char* argv[])
         delete[] coeff_vec;
       }
       else {
-        // Calculate initial condition for Picard on the fine mesh->
+        // Calculate initial condition for Picard on the fine mesh.
         if (as == 1 && ts == 1) {
-          Hermes::Mixins::Loggable::Static::info("Projecting coarse mesh solution to obtain initial vector on new fine mesh->");
-          OGProjection<double> ogProjection; ogProjection.project_global(ref_space, sln_prev_time, sln_prev_iter);
+          Hermes::Mixins::Loggable::Static::info("Projecting coarse mesh solution to obtain initial vector on new fine mesh.");
+          OGProjection<double>::project_global(ref_space, sln_prev_time, sln_prev_iter);
         }
         else {
-          Hermes::Mixins::Loggable::Static::info("Projecting previous fine mesh solution to obtain initial vector on new fine mesh->");
-          OGProjection<double> ogProjection; ogProjection.project_global(ref_space, ref_sln, sln_prev_iter);
+          Hermes::Mixins::Loggable::Static::info("Projecting previous fine mesh solution to obtain initial vector on new fine mesh.");
+          OGProjection<double>::project_global(ref_space, ref_sln, sln_prev_iter);
         }
 
-        // Perform Picard iteration on the reference mesh-> If necessary,
+        // Perform Picard iteration on the reference mesh. If necessary,
         // reduce time step to make it converge, but then restore time step
         // size to its original value.
         Hermes::Mixins::Loggable::Static::info("Performing Picard's iteration (tau = %g days):", time_step);
@@ -434,10 +434,10 @@ int main(int argc, char* argv[])
 
       /*** ADAPTIVITY ***/
 
-      // Project the fine mesh solution on the coarse mesh->
+      // Project the fine mesh solution on the coarse mesh.
       Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh for error calculation.");
       if (space->get_mesh() == NULL) throw Hermes::Exceptions::Exception("it is NULL");
-      OGProjection<double> ogProjection; ogProjection.project_global(space, ref_sln, sln);
+      OGProjection<double>::project_global(space, ref_sln, sln);
 
       // Calculate element errors.
       Hermes::Mixins::Loggable::Static::info("Calculating error estimate.");
@@ -451,10 +451,10 @@ int main(int argc, char* argv[])
       Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d, space_err_est_rel: %g%%",
         Space<double>::get_num_dofs(space), Space<double>::get_num_dofs(ref_space), err_est_rel);
 
-      // If space_err_est too large, adapt the mesh->
+      // If space_err_est too large, adapt the mesh.
       if (err_est_rel < ERR_STOP) done = true;
       else {
-        Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh->");
+        Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
         done = adaptivity.adapt(&selector);
         as++;
       }
@@ -470,7 +470,7 @@ int main(int argc, char* argv[])
     graph_time_step.add_values(current_time, time_step);
     graph_time_step.save("time_step_history.dat");
 
-    // Visualize the solution and mesh->
+    // Visualize the solution and mesh.
     char title[100];
     sprintf(title, "Solution, time %g days", current_time);
     view.set_title(title);

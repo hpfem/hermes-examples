@@ -17,7 +17,7 @@ public:
   class BilinearFormSymVel : public MatrixFormVol < double >
   {
   public:
-    BilinearFormSymVel(int i, int j, bool Stokes, double Reynolds, double time_step)
+    BilinearFormSymVel(unsigned int i, unsigned int j, bool Stokes, double Reynolds, double time_step)
       : MatrixFormVol<double>(i, j), Stokes(Stokes), Reynolds(Reynolds), time_step(time_step) { this->setSymFlag(HERMES_SYM); };
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
@@ -36,7 +36,7 @@ public:
   class BilinearFormNonsymVel : public MatrixFormVol < double >
   {
   public:
-    BilinearFormNonsymVel(int i, int j, bool Stokes)
+    BilinearFormNonsymVel(unsigned int i, unsigned int j, bool Stokes)
       : MatrixFormVol<double>(i, j), Stokes(Stokes) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
@@ -112,7 +112,7 @@ public:
   class BilinearFormSymVel : public MatrixFormVol < double >
   {
   public:
-    BilinearFormSymVel(int i, int j, bool Stokes, double Reynolds, double time_step)
+    BilinearFormSymVel(unsigned int i, unsigned int j, bool Stokes, double Reynolds, double time_step)
       : MatrixFormVol<double>(i, j), Stokes(Stokes),
       Reynolds(Reynolds), time_step(time_step) {
       this->setSymFlag(HERMES_SYM);
@@ -134,7 +134,7 @@ public:
   class BilinearFormNonsymVel_0_0 : public MatrixFormVol < double >
   {
   public:
-    BilinearFormNonsymVel_0_0(int i, int j, bool Stokes)
+    BilinearFormNonsymVel_0_0(unsigned int i, unsigned int j, bool Stokes)
       : MatrixFormVol<double>(i, j), Stokes(Stokes) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
@@ -151,7 +151,7 @@ public:
   class BilinearFormNonsymVel_0_1 : public MatrixFormVol < double >
   {
   public:
-    BilinearFormNonsymVel_0_1(int i, int j, bool Stokes)
+    BilinearFormNonsymVel_0_1(unsigned int i, unsigned int j, bool Stokes)
       : MatrixFormVol<double>(i, j), Stokes(Stokes) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
@@ -168,7 +168,7 @@ public:
   class BilinearFormNonsymVel_1_0 : public MatrixFormVol < double >
   {
   public:
-    BilinearFormNonsymVel_1_0(int i, int j, bool Stokes)
+    BilinearFormNonsymVel_1_0(unsigned int i, unsigned int j, bool Stokes)
       : MatrixFormVol<double>(i, j), Stokes(Stokes) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,
@@ -185,7 +185,7 @@ public:
   class BilinearFormNonsymVel_1_1 : public MatrixFormVol < double >
   {
   public:
-    BilinearFormNonsymVel_1_1(int i, int j, bool Stokes)
+    BilinearFormNonsymVel_1_1(unsigned int i, unsigned int j, bool Stokes)
       : MatrixFormVol<double>(i, j), Stokes(Stokes) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v,

@@ -15,9 +15,9 @@ const bool VTK_VISUALIZATION = false;
 const unsigned int EVERY_NTH_STEP = 1;
 
 // Initial polynomial degree.
-const int P_INIT = 0;
+const int P_INIT = 1;
 // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM = 3;
+const int INIT_REF_NUM = 2;
 
 // Shock capturing.
 enum shockCapturingType

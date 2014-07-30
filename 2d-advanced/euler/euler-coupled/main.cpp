@@ -104,7 +104,7 @@ int main(int argc, char* argv[])
   std::vector<std::string> BDY_NATURAL_CONCENTRATION;
   BDY_NATURAL_CONCENTRATION.push_back("2");
 
-  // Load the mesh->
+  // Load the mesh.
   Mesh basemesh;
   MeshReaderH2D mloader;
   mloader.load("GAMM-channel-serial.mesh", &basemesh);

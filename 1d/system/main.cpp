@@ -70,7 +70,7 @@ int main(int argc, char* argv[])
   Hermes::Mixins::TimeMeasurable cpu_time;
   cpu_time.tick();
 
-  // Load the mesh->
+  // Load the mesh.
   MeshSharedPtr u_mesh(new Mesh), v_mesh(new Mesh);
   MeshReaderH1DXML mloader;
   mloader.load("domain.xml", u_mesh);
@@ -167,7 +167,7 @@ int main(int argc, char* argv[])
     int ndof_ref = Space<double>::get_num_dofs(ref_spaces);
 
     // Initialize reference problem.
-    Hermes::Mixins::Loggable::Static::info("Solving on reference mesh->");
+    Hermes::Mixins::Loggable::Static::info("Solving on reference mesh.");
     DiscreteProblem<double> dp(wf, ref_spaces);
 
     NewtonSolver<double> newton(&dp);
@@ -191,9 +191,9 @@ int main(int argc, char* argv[])
     Solution<double>::vector_to_solutions(newton.get_sln_vector(), ref_spaces,
       std::vector<MeshFunctionSharedPtr<double> >({ u_ref_sln, v_ref_sln }));
 
-    // Project the fine mesh solution onto the coarse mesh->
+    // Project the fine mesh solution onto the coarse mesh.
     Hermes::Mixins::Loggable::Static::info("Projecting reference solutions on coarse meshes.");
-    OGProjection<double> ogProjection; ogProjection.project_global({ u_space, v_space },
+    OGProjection<double>::project_global({ u_space, v_space },
       std::vector<MeshFunctionSharedPtr<double> >({ u_ref_sln, v_ref_sln }),
       std::vector<MeshFunctionSharedPtr<double> >({ u_sln, v_sln }));
 
@@ -255,12 +255,12 @@ int main(int argc, char* argv[])
     graph_cpu_exact.save("conv_cpu_exact.dat");
 #endif
 
-    // If err_est too large, adapt the mesh->
+    // If err_est too large, adapt the mesh.
     if (err_est_rel_total < ERR_STOP)
       done = true;
     else
     {
-      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh->");
+      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
       done = adaptivity.adapt({ &selector, &selector });
     }
 

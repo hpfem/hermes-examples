@@ -44,9 +44,6 @@ const int INIT_REF_NUM = 0;
 const int P_INIT_1 = 1, P_INIT_2 = 1, P_INIT_3 = 1, P_INIT_4 = 1;
 // Tolerance for the eigenvalue.
 const double ERROR_STOP = 1e-5;
-// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;
 
 // Stopping criterion for the Newton's method.
 const double NEWTON_TOL = 1e-8;
@@ -58,8 +55,8 @@ double k_eff = 1.0;
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh->
-  MeshSharedPtr mesh;
+  // Load the mesh.
+  MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load(mesh_file.c_str(), mesh);
 

@@ -47,10 +47,6 @@ const int INIT_REF_NUM = 2;
 // Number of initial mesh refinements towards the top edge.
 const int INIT_REF_NUM_BDY_TOP = 1;
 
-// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;
-
 // Constitutive relations.
 enum CONSTITUTIVE_RELATIONS {
   CONSTITUTIVE_GENUCHTEN,    // Van Genuchten.
@@ -77,7 +73,7 @@ CONSTITUTIVE_RELATIONS constitutive_relations_type = CONSTITUTIVE_GENUCHTEN;
 ButcherTableType butcher_table_type = Implicit_SDIRK_CASH_3_23_embedded;
 
 // Newton's method.
-// Stopping criterion for Newton on fine mesh->
+// Stopping criterion for Newton on fine mesh.
 const double NEWTON_TOL = 1e-5;
 // Maximum allowed number of Newton iterations.
 int NEWTON_MAX_ITER = 10;
@@ -192,7 +188,7 @@ int main(int argc, char* argv[])
   if (bt.is_diagonally_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage diagonally implicit R-K method.", bt.get_size());
   if (bt.is_fully_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage fully implicit R-K method.", bt.get_size());
 
-  // Load the mesh->
+  // Load the mesh.
   MeshSharedPtr mesh(new Mesh), basemesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load(mesh_file, basemesh);
@@ -224,7 +220,7 @@ int main(int argc, char* argv[])
   // Initialize the weak formulation.
   WeakFormSharedPtr<double> wf(new CustomWeakFormRichardsRK(&constitutive_relations));
 
-  // Visualize the projection and mesh->
+  // Visualize the projection and mesh.
   ScalarView sview("Initial condition", new WinGeom(0, 0, 400, 350));
   sview.fix_scale_width(50);
   sview.show(h_time_prev);
@@ -287,7 +283,7 @@ int main(int argc, char* argv[])
     // is increased.
     DefaultNormCalculator<double, HERMES_H1_NORM> normCalculator(1);
     normCalculator.calculate_norm(time_error_fn);
-    double rel_err_time = normCalculator.get_total_norm_squared() * 100;
+    double rel_err_time = normCalculator.get_total_norm_squared() * 100.;
 
     Hermes::Mixins::Loggable::Static::info("rel_err_time = %g%%", rel_err_time);
     if (rel_err_time > time_tol_upper) {

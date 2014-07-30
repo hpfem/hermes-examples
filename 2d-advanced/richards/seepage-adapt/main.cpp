@@ -68,12 +68,9 @@ const double ERR_STOP = 0.5;
 // Adaptivity process stops when the number of degrees of freedom grows
 // over this limit. This is to prevent h-adaptivity to go on forever.
 const int NDOF_STOP = 60000;                      
-// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;  
 
 // Newton's method
-// Stopping criterion for Newton on fine mesh->
+// Stopping criterion for Newton on fine mesh.
 const double NEWTON_TOL = 0.0005;                 
 // Maximum allowed number of Newton iterations.
 const int NEWTON_MAX_ITER = 50;                   
@@ -134,7 +131,7 @@ int main(int argc, char* argv[])
   TimePeriod cpu_time;
 
   cpu_time.tick();
-  // Load the mesh->
+  // Load the mesh.
   MeshSharedPtr mesh, basemesh;
   MeshReaderH2D mloader;
   mloader.load("domain.mesh", &basemesh);
@@ -184,10 +181,10 @@ SpaceSharedPtr<double> init_space(&basemesh, &bc_types, &bc_values, P_INIT);
     // Setup space for the reference solution.
     Space<double>*rspace = Space<double>::construct_refined_space(init_space);
 
-    // Assign the function f() to the fine mesh->
+    // Assign the function f() to the fine mesh.
     ref_sln.set_exact(rspace->get_mesh(), init_cond);
 
-    // Project the function f() on the coarse mesh->
+    // Project the function f() on the coarse mesh.
     OGProjection<double>::project_global(init_space, ref_sln, sln_prev_time, matrix_solver);
 
     // Calculate element errors and total error estimate.
@@ -196,7 +193,7 @@ SpaceSharedPtr<double> init_space(&basemesh, &bc_types, &bc_values, P_INIT);
 
     info("Step %d, ndof %d, proj_error %g%%", as, Space<double>::get_num_dofs(init_space), err_est_rel);
 
-    // If err_est_rel too large, adapt the mesh->
+    // If err_est_rel too large, adapt the mesh.
     if (err_est_rel < ERR_STOP) done = true;
     else {
       double to_be_processed = 0;
@@ -220,7 +217,7 @@ SpaceSharedPtr<double> init_space(&basemesh, &bc_types, &bc_values, P_INIT);
   // Error estimate and discrete problem size as a function of physical time.
   SimpleGraph graph_time_err_est, graph_time_err_exact, graph_time_dof, graph_time_cpu;
  
-  // Visualize the projection and mesh->
+  // Visualize the projection and mesh.
   ScalarView view("Initial condition", new WinGeom(0, 0, 440, 350));
   OrderView ordview("Initial mesh", new WinGeom(450, 0, 400, 350));
   view.show(sln_prev_time);
@@ -272,13 +269,13 @@ SpaceSharedPtr<double> init_space(&basemesh, &bc_types, &bc_values, P_INIT);
 
       double* coeff_vec = new double[ref_space->get_num_dofs()];
      
-      // Calculate initial coefficient vector for Newton on the fine mesh->
+      // Calculate initial coefficient vector for Newton on the fine mesh.
       if (as == 1 && ts == 1) {
-        info("Projecting coarse mesh solution to obtain initial vector on new fine mesh->");
+        info("Projecting coarse mesh solution to obtain initial vector on new fine mesh.");
         OGProjection<double>::project_global(ref_space, sln_prev_time, coeff_vec, matrix_solver);
       }
       else {
-        info("Projecting previous fine mesh solution to obtain initial vector on new fine mesh->");
+        info("Projecting previous fine mesh solution to obtain initial vector on new fine mesh.");
         OGProjection<double>::project_global(ref_space, ref_sln, coeff_vec, matrix_solver);
         delete ref_sln.get_mesh();
       }
@@ -296,7 +293,7 @@ SpaceSharedPtr<double> init_space(&basemesh, &bc_types, &bc_values, P_INIT);
       // Translate the resulting coefficient vector into the actual solutions. 
       Solution<double>::vector_to_solution(newton.get_sln_vector(), ref_space, ref_sln);
 
-      // Project the fine mesh solution on the coarse mesh->
+      // Project the fine mesh solution on the coarse mesh.
       info("Projecting fine mesh solution on coarse mesh for error calculation.");
       OGProjection<double>::project_global(space, &ref_sln, sln, matrix_solver);
 
@@ -319,10 +316,10 @@ SpaceSharedPtr<double> init_space(&basemesh, &bc_types, &bc_values, P_INIT);
       graph_time_cpu.add_values(ts*TAU, cpu_time.accumulated());
       graph_time_cpu.save("time_cpu.dat");
 
-      // If space_err_est too large, adapt the mesh->
+      // If space_err_est too large, adapt the mesh.
       if (err_est_rel < ERR_STOP) done = true;
       else {
-        info("Adapting coarse mesh->");
+        info("Adapting coarse mesh.");
         done = adaptivity->adapt(&selector, THRESHOLD, STRATEGY, MESH_REGULARITY);
         if (Space<double>::get_num_dofs(&space) >= NDOF_STOP) {
           done = true;
@@ -338,7 +335,7 @@ SpaceSharedPtr<double> init_space(&basemesh, &bc_types, &bc_values, P_INIT);
     }
     while (!done);
 
-    // Visualize the solution and mesh->
+    // Visualize the solution and mesh.
     char title[100];
     sprintf(title, "Solution, time level %d", ts);
     view.set_title(title);

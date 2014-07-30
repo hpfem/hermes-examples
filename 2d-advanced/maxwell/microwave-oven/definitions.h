@@ -17,7 +17,7 @@ typedef std::complex<double> complex;
 class CustomMatrixForm : public MatrixFormVol < ::complex >
 {
 public:
-  CustomMatrixForm(int i, int j, double e_0, double mu_0, double mu_r, double kappa, double omega, double J, bool align_mesh)
+  CustomMatrixForm(unsigned int i, unsigned int j, double e_0, double mu_0, double mu_r, double kappa, double omega, double J, bool align_mesh)
     : MatrixFormVol<::complex>(i, j), e_0(e_0), mu_0(mu_0),
     mu_r(mu_r), kappa(kappa), omega(omega), J(J), align_mesh(align_mesh) {
     this->setSymFlag(HERMES_SYM);

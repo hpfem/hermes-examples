@@ -88,8 +88,8 @@ const std::string BDY_SOLID_WALL = "Solid";
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh->
-  MeshSharedPtr mesh;
+  // Load the mesh.
+  MeshSharedPtr mesh(new Mesh);
   MeshReaderH2DXML mloader;
   mloader.load("domain-arcs.xml", mesh);
   

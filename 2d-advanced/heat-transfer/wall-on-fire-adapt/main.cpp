@@ -74,9 +74,9 @@ const double TIME_STEP_DEC_RATIO = 0.8;
 const double SPACE_ERR_TOL = 10.;
 
 // Newton's method.
-// Stopping criterion for Newton on fine mesh->
+// Stopping criterion for Newton on fine mesh.
 const double NEWTON_TOL_COARSE = 0.001;
-// Stopping criterion for Newton on fine mesh->
+// Stopping criterion for Newton on fine mesh.
 const double NEWTON_TOL_FINE = 0.005;
 // Maximum allowed number of Newton iterations.
 const int NEWTON_MAX_ITER = 100;
@@ -135,7 +135,7 @@ int main(int argc, char* argv[])
     ADAPTIVE_TIME_STEP_ON = false;
   }
 
-  // Load the mesh->
+  // Load the mesh.
   MeshSharedPtr mesh(new Mesh), basemesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("wall.mesh", basemesh);
@@ -227,7 +227,7 @@ int main(int argc, char* argv[])
       Space<double>::ReferenceSpaceCreator refSpaceCreator(space, ref_mesh);
       SpaceSharedPtr<double> ref_space = refSpaceCreator.create_ref_space();
 
-      // Initialize Runge-Kutta time stepping on the reference mesh->
+      // Initialize Runge-Kutta time stepping on the reference mesh.
       RungeKutta<double> runge_kutta(wf, ref_space, &bt);
 
       try
@@ -243,7 +243,7 @@ int main(int argc, char* argv[])
         return -1;
       }
 
-      // Runge-Kutta step on the fine mesh->
+      // Runge-Kutta step on the fine mesh.
       Hermes::Mixins::Loggable::Static::info("Runge-Kutta time step on fine mesh (t = %g s, tau = %g s, stages: %d).",
         current_time, time_step, bt.get_size());
       bool verbose = true;
@@ -317,7 +317,7 @@ int main(int argc, char* argv[])
 
       Hermes::Mixins::Loggable::Static::info("Spatial adaptivity step %d.", as);
 
-      // Project the fine mesh solution onto the coarse mesh->
+      // Project the fine mesh solution onto the coarse mesh.
       MeshFunctionSharedPtr<double> sln(new Solution<double>());
       Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh for error estimation.");
       ogProjection.project_global(space, ref_sln, sln);
@@ -333,18 +333,19 @@ int main(int argc, char* argv[])
 
       // Calculate element errors and spatial error estimate.
       Hermes::Mixins::Loggable::Static::info("Calculating spatial error estimate.");
-      adaptivity.set_space(space);
+      adaptivity.set_space(space); 
+      errorCalculator.calculate_errors(sln, ref_sln);
       double err_rel_space = errorCalculator.get_total_error_squared() * 100;
 
       // Report results.
       Hermes::Mixins::Loggable::Static::info("ndof: %d, ref_ndof: %d, err_rel_space: %g%%",
         Space<double>::get_num_dofs(space), Space<double>::get_num_dofs(ref_space), err_rel_space);
 
-      // If err_est too large, adapt the mesh->
+      // If err_est too large, adapt the mesh.
       if (err_rel_space < SPACE_ERR_TOL) done = true;
       else
       {
-        Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh->");
+        Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh.");
         done = adaptivity.adapt(&selector);
 
         // Increase the counter of performed adaptivity steps.
@@ -352,7 +353,7 @@ int main(int argc, char* argv[])
       }
     } while (done == false);
 
-    // Visualize the solution and mesh->
+    // Visualize the solution and mesh.
     char title[100];
     sprintf(title, "Solution, time %g s", current_time);
     sln_view.set_title(title);

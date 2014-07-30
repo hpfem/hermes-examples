@@ -21,10 +21,6 @@ const int P_INIT = 5;
 // Number of initial uniform mesh refinements.
 const int INIT_REF_NUM = 3;
 
-// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-Hermes::MatrixSolverType matrix_solver = Hermes::SOLVER_UMFPACK;
-
 // Problem parameters.
 // Thermal cond. of Al for temperatures around 20 deg Celsius.
 const double LAMBDA_AL = 236.0;
@@ -37,7 +33,7 @@ const double FIXED_BDY_TEMP = 20.0;
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh->
+  // Load the mesh.
   MeshSharedPtr mesh(new Mesh);
   MeshReaderH1DXML mloader;
   mloader.load("domain.xml", mesh);
@@ -105,12 +101,7 @@ int main(int argc, char* argv[])
   if (HERMES_VISUALIZATION)
   {
     Views::ScalarView view("Solution", new Views::WinGeom(0, 300, 900, 350));
-    // Hermes uses adaptive FEM to approximate higher-order FE solutions with linear
-    // triangles for OpenGL. The second parameter of View::show() sets the error
-    // tolerance for that. Options are HERMES_EPS_LOW, HERMES_EPS_NORMAL (default),
-    // HERMES_EPS_HIGH and HERMES_EPS_VERYHIGH. The size of the graphics file grows
-    // considerably with more accurate representation, so use it wisely.
-    view.show(sln, Views::HERMES_EPS_HIGH);
+    view.show(sln);
     Views::View::wait();
   }
 

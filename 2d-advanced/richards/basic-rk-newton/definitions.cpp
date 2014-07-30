@@ -36,7 +36,7 @@ double CustomWeakFormRichardsRK::CustomJacobianFormVol::value(int n, double *wt,
   Func<double> *v, GeomVol<double> *e, Func<double>* *ext) const
 {
   double result = 0;
-  Func<double>* h_prev_newton = u_ext[0];
+  Func<double>* h_prev_newton = u_ext[this->previous_iteration_space_index];
   for (int i = 0; i < n; i++)
   {
     double h_val_i = h_prev_newton->val[i] - H_OFFSET;
@@ -80,7 +80,7 @@ double CustomWeakFormRichardsRK::CustomResidualFormVol::value(int n, double *wt,
   Func<double>* *ext) const
 {
   double result = 0;
-  Func<double>* h_prev_newton = u_ext[0];
+  Func<double>* h_prev_newton = u_ext[this->previous_iteration_space_index];
   for (int i = 0; i < n; i++)
   {
     double h_val_i = h_prev_newton->val[i] - H_OFFSET;

@@ -102,9 +102,9 @@ const bool MULTIMESH = true;
 // 1 for implicit Euler, 2 for Crank-Nicolson.
 const int TIME_DISCR = 2;
 
-// Stopping criterion for Newton on coarse mesh->
+// Stopping criterion for Newton on coarse mesh.
 const double NEWTON_TOL_COARSE = 0.01;
-// Stopping criterion for Newton on fine mesh->
+// Stopping criterion for Newton on fine mesh.
 const double NEWTON_TOL_FINE = 0.05;
 // Maximum allowed number of Newton iterations.
 const int NEWTON_MAX_ITER = 100;
@@ -177,7 +177,7 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  // When nonadaptive solution, refine the mesh->
+  // When nonadaptive solution, refine the mesh.
   basemesh->refine_towards_boundary(BDY_TOP, REF_INIT);
   basemesh->refine_towards_boundary(BDY_BOT, REF_INIT - 1);
   basemesh->refine_all_elements(1);
@@ -234,7 +234,7 @@ int main(int argc, char* argv[]) {
   int ndof = Space<double>::get_num_dofs({ C_space, phi_space });
   double* coeff_vec_coarse = new double[ndof];
 
-  OGProjection<double> ogProjection; ogProjection.project_global({ C_space, phi_space }, { C_prev_time, phi_prev_time },
+  OGProjection<double>::project_global({ C_space, phi_space }, { C_prev_time, phi_prev_time },
     coeff_vec_coarse);
 
   // Create a selector which will select optimal candidate.
@@ -252,7 +252,7 @@ int main(int argc, char* argv[]) {
   phiview.show(phi_prev_time);
   phiordview.show(phi_space);
 
-  // Newton's loop on the coarse mesh->
+  // Newton's loop on the coarse mesh.
   Hermes::Mixins::Loggable::Static::info("Solving on initial coarse mesh");
   try
   {
@@ -275,7 +275,7 @@ int main(int argc, char* argv[]) {
   Cview.show(C_sln);
   phiview.show(phi_sln);
 
-  // Cleanup after the Newton loop on the coarse mesh->
+  // Cleanup after the Newton loop on the coarse mesh.
   delete solver_coarse;
   delete[] coeff_vec_coarse;
 
@@ -283,6 +283,9 @@ int main(int argc, char* argv[]) {
   PidTimestepController pid(scaleTime(T_FINAL), true, scaleTime(INIT_TAU));
   TAU = pid.timestep;
   Hermes::Mixins::Loggable::Static::info("Starting time iteration with the step %g", *TAU);
+
+  NewtonSolver<double> solver;
+  solver.set_weak_formulation(wf);
 
   do {
     pid.begin_step();
@@ -292,9 +295,7 @@ int main(int argc, char* argv[]) {
       Hermes::Mixins::Loggable::Static::info("Global mesh derefinement.");
       C_mesh->copy(basemesh);
       if (MULTIMESH)
-      {
         phi_mesh->copy(basemesh);
-      }
       C_space->set_uniform_order(P_INIT);
       phi_space->set_uniform_order(P_INIT);
       C_space->assign_dofs();
@@ -323,32 +324,19 @@ int main(int argc, char* argv[]) {
 
       std::vector<SpaceSharedPtr<double> > ref_spaces({ ref_C_space, ref_phi_space });
 
-      DiscreteProblem<double>* dp = new DiscreteProblem<double>(wf, ref_spaces);
       int ndof_ref = Space<double>::get_num_dofs(ref_spaces);
 
-      double* coeff_vec = new double[ndof_ref];
-
-      NewtonSolver<double>* solver = new NewtonSolver<double>(dp);
-
-      // Calculate initial coefficient vector for Newton on the fine mesh->
-      if (as == 1 && pid.get_timestep_number() == 1) {
-        Hermes::Mixins::Loggable::Static::info("Projecting coarse mesh solution to obtain coefficient vector on new fine mesh->");
-        OGProjection<double> ogProjection; ogProjection.project_global(ref_spaces, { C_sln, phi_sln },
-          coeff_vec);
-      }
-      else {
-        Hermes::Mixins::Loggable::Static::info("Projecting previous fine mesh solution to obtain coefficient vector on new fine mesh->");
-        OGProjection<double> ogProjection; ogProjection.project_global(ref_spaces, { C_ref_sln, phi_ref_sln },
-          coeff_vec);
-      }
-
-      // Newton's loop on the fine mesh->
+      // Newton's loop on the fine mesh.
       Hermes::Mixins::Loggable::Static::info("Solving on fine mesh:");
       try
       {
-        solver->set_max_allowed_iterations(NEWTON_MAX_ITER);
-        solver->set_tolerance(NEWTON_TOL_FINE, Hermes::Solvers::ResidualNormAbsolute);
-        solver->solve(coeff_vec);
+        solver.set_spaces(ref_spaces);
+        solver.set_max_allowed_iterations(NEWTON_MAX_ITER);
+        solver.set_tolerance(NEWTON_TOL_FINE, Hermes::Solvers::ResidualNormAbsolute);
+        if (as == 1 && pid.get_timestep_number() == 1)
+          solver.solve(std::vector<MeshFunctionSharedPtr<double> >({ C_sln, phi_sln }));
+        else
+          solver.solve(std::vector<MeshFunctionSharedPtr<double> >({ C_ref_sln, phi_ref_sln }));
       }
       catch (Hermes::Exceptions::Exception e)
       {
@@ -357,11 +345,11 @@ int main(int argc, char* argv[]) {
       };
 
       // Store the result in ref_sln->
-      Solution<double>::vector_to_solutions(solver->get_sln_vector(), ref_spaces, { C_ref_sln, phi_ref_sln });
+      Solution<double>::vector_to_solutions(solver.get_sln_vector(), ref_spaces, { C_ref_sln, phi_ref_sln });
 
       // Projecting reference solution onto the coarse mesh
-      Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh->");
-      OGProjection<double> ogProjection; ogProjection.project_global({ C_space, phi_space }, { C_ref_sln, phi_ref_sln }, { C_sln, phi_sln });
+      Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh.");
+      OGProjection<double>::project_global({ C_space, phi_space }, { C_ref_sln, phi_ref_sln }, { C_sln, phi_sln });
 
       // Calculate element errors and total error estimate.
       Hermes::Mixins::Loggable::Static::info("Calculating error estimate.");
@@ -375,17 +363,17 @@ int main(int argc, char* argv[]) {
         Space<double>::get_num_dofs({ C_space, phi_space }),
         Space<double>::get_num_dofs(ref_spaces), err_est_rel_total);
 
-      // If err_est too large, adapt the mesh->
+      // If err_est too large, adapt the mesh.
       if (err_est_rel_total < ERR_STOP) done = true;
       else
       {
-        Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh->");
+        Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh.");
         done = adaptivity.adapt({ &selector, &selector });
         Hermes::Mixins::Loggable::Static::info("Adapted...");
         as++;
       }
 
-      // Visualize the solution and mesh->
+      // Visualize the solution and mesh.
       Hermes::Mixins::Loggable::Static::info("Visualization procedures: C");
       char title[100];
       sprintf(title, "Solution[C], step# %d, step size %g, time %g, phys time %g",
@@ -408,11 +396,6 @@ int main(int argc, char* argv[]) {
       phiordview.show(phi_space);
       //View::wait(HERMES_WAIT_KEYPRESS);
 
-      // Clean up.
-      delete solver;
-
-      delete dp;
-      delete[] coeff_vec;
     } while (done == false);
 
     pid.end_step({ C_ref_sln, phi_ref_sln }, { C_prev_time, phi_prev_time });

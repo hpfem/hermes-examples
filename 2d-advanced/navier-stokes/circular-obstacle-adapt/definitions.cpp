@@ -30,7 +30,7 @@ WeakFormNSSimpleLinearization::WeakFormNSSimpleLinearization(bool Stokes, double
   vector_vel_form_y->set_ext(y_vel_previous_time);
 }
 
-WeakFormNSSimpleLinearization::BilinearFormSymVel::BilinearFormSymVel(int i, int j, bool Stokes, double Reynolds, double time_step)
+WeakFormNSSimpleLinearization::BilinearFormSymVel::BilinearFormSymVel(unsigned int i, unsigned int j, bool Stokes, double Reynolds, double time_step)
   : MatrixFormVol<double>(i, j), Stokes(Stokes), Reynolds(Reynolds), time_step(time_step)
 {
   this->setSymFlag(HERMES_SYM);
@@ -59,7 +59,7 @@ MatrixFormVol<double>* WeakFormNSSimpleLinearization::BilinearFormSymVel::clone(
   return new BilinearFormSymVel(*this);
 }
 
-WeakFormNSSimpleLinearization::BilinearFormNonsymVel::BilinearFormNonsymVel(int i, int j, bool Stokes)
+WeakFormNSSimpleLinearization::BilinearFormNonsymVel::BilinearFormNonsymVel(unsigned int i, unsigned int j, bool Stokes)
   : MatrixFormVol<double>(i, j), Stokes(Stokes)
 {
 }
@@ -204,7 +204,7 @@ WeakFormNSNewton::WeakFormNSNewton(bool Stokes, double Reynolds, double time_ste
   add_vector_form(F_2);
 }
 
-WeakFormNSNewton::BilinearFormSymVel::BilinearFormSymVel(int i, int j, bool Stokes, double Reynolds, double time_step)
+WeakFormNSNewton::BilinearFormSymVel::BilinearFormSymVel(unsigned int i, unsigned int j, bool Stokes, double Reynolds, double time_step)
   : MatrixFormVol<double>(i, j), Stokes(Stokes), Reynolds(Reynolds), time_step(time_step)
 {
   this->setSymFlag(HERMES_SYM);
@@ -228,7 +228,7 @@ Ord WeakFormNSNewton::BilinearFormSymVel::ord(int n, double *wt, Func<Ord> *u_ex
   return result;
 }
 
-WeakFormNSNewton::BilinearFormNonsymVel_0_0::BilinearFormNonsymVel_0_0(int i, int j, bool Stokes)
+WeakFormNSNewton::BilinearFormNonsymVel_0_0::BilinearFormNonsymVel_0_0(unsigned int i, unsigned int j, bool Stokes)
   : MatrixFormVol<double>(i, j), Stokes(Stokes)
 {
 }
@@ -261,7 +261,7 @@ Ord WeakFormNSNewton::BilinearFormNonsymVel_0_0::ord(int n, double *wt, Func<Ord
   return result;
 }
 
-WeakFormNSNewton::BilinearFormNonsymVel_0_1::BilinearFormNonsymVel_0_1(int i, int j, bool Stokes)
+WeakFormNSNewton::BilinearFormNonsymVel_0_1::BilinearFormNonsymVel_0_1(unsigned int i, unsigned int j, bool Stokes)
   : MatrixFormVol<double>(i, j), Stokes(Stokes)
 {
 }
@@ -290,7 +290,7 @@ Ord WeakFormNSNewton::BilinearFormNonsymVel_0_1::ord(int n, double *wt, Func<Ord
   return result;
 }
 
-WeakFormNSNewton::BilinearFormNonsymVel_1_0::BilinearFormNonsymVel_1_0(int i, int j, bool Stokes)
+WeakFormNSNewton::BilinearFormNonsymVel_1_0::BilinearFormNonsymVel_1_0(unsigned int i, unsigned int j, bool Stokes)
   : MatrixFormVol<double>(i, j), Stokes(Stokes)
 {
 }
@@ -319,7 +319,7 @@ Ord WeakFormNSNewton::BilinearFormNonsymVel_1_0::ord(int n, double *wt, Func<Ord
   return result;
 }
 
-WeakFormNSNewton::BilinearFormNonsymVel_1_1::BilinearFormNonsymVel_1_1(int i, int j, bool Stokes)
+WeakFormNSNewton::BilinearFormNonsymVel_1_1::BilinearFormNonsymVel_1_1(unsigned int i, unsigned int j, bool Stokes)
   : MatrixFormVol<double>(i, j), Stokes(Stokes)
 {
 }

@@ -45,7 +45,7 @@ int main(int argc, char* argv[])
   Hermes::Mixins::TimeMeasurable cpu_time;
   cpu_time.tick();
 
-  // Load the mesh->
+  // Load the mesh.
   MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("domain.mesh", mesh);
@@ -104,7 +104,7 @@ int main(int argc, char* argv[])
     int ndof_ref = Space<::complex>::get_num_dofs(ref_space);
 
     // Assemble the reference problem.
-    Hermes::Mixins::Loggable::Static::info("Solving on reference mesh->");
+    Hermes::Mixins::Loggable::Static::info("Solving on reference mesh.");
     DiscreteProblem<::complex> dp(wf, ref_space);
 
     // Time measurement.
@@ -124,8 +124,8 @@ int main(int argc, char* argv[])
     // Translate the resulting coefficient vector into the Solution<::complex> sln->
     Hermes::Hermes2D::Solution<::complex>::vector_to_solution(newton.get_sln_vector(), ref_space, ref_sln);
 
-    // Project the fine mesh solution onto the coarse mesh->
-    Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh->");
+    // Project the fine mesh solution onto the coarse mesh.
+    Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
     OGProjection<::complex> ogProjection; ogProjection.project_global(space, ref_sln, sln);
 
     // Time measurement.
@@ -154,11 +154,11 @@ int main(int argc, char* argv[])
     graph_cpu.add_values(cpu_time.accumulated(), err_est_rel);
     graph_cpu.save("conv_cpu_est.dat");
 
-    // If err_est too large, adapt the mesh->
+    // If err_est too large, adapt the mesh.
     if (err_est_rel < ERR_STOP) done = true;
     else
     {
-      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh->");
+      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
       done = adaptivity.adapt(&selector);
     }
 

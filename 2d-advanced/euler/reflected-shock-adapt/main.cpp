@@ -122,7 +122,7 @@ const std::string BDY_INLET_LEFT = "4";
 int main(int argc, char* argv[])
 {
 #pragma region 1. Load mesh and initialize spaces.
-  // Load the mesh->
+  // Load the mesh.
   MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load(MESH_FILENAME, mesh);

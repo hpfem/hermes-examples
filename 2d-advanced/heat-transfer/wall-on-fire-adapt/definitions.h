@@ -31,7 +31,7 @@ private:
   class CustomJacobianVol : public MatrixFormVol < double >
   {
   public:
-    CustomJacobianVol(int i, int j, double rho, double heatcap)
+    CustomJacobianVol(unsigned int i, unsigned int j, double rho, double heatcap)
       : MatrixFormVol<double>(i, j), rho(rho), heatcap(heatcap) {};
 
     virtual double value(int n, double *wt, Func<double> *u_ext[], Func<double> *u, Func<double> *v, GeomVol<double> *e,

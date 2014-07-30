@@ -89,7 +89,7 @@ double integrate_over_wall(MeshFunction<double>* meshfn, int marker)
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh->
+  // Load the mesh.
   MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("domain.mesh", mesh);
@@ -183,7 +183,7 @@ int main(int argc, char* argv[])
     pview.show(p_prev_time);
     sprintf(title, "Velocity, time %g", current_time);
     vview.set_title(title);
-    vview.show(xvel_prev_time, yvel_prev_time, HERMES_EPS_LOW * 10);
+    vview.show(xvel_prev_time, yvel_prev_time);
   }
 
   // Wait for all views to be closed.

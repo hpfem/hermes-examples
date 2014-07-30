@@ -27,9 +27,6 @@
 const int P_INIT = 4;
 // Number of initial mesh refinements.
 const int INIT_REF_NUM = 3;
-// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;
 
 // Newton's method.
 const double NEWTON_TOL = 1e-8;
@@ -61,7 +58,7 @@ const double h = 1.0;
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh->
+  // Load the mesh.
   MeshSharedPtr mesh(new Mesh);
   MeshReaderH2DXML mloader;
   mloader.load("initial.xml", mesh);
@@ -132,7 +129,7 @@ int main(int argc, char* argv[])
     //viewEi.show(e_i_sln);
     //viewEi.save_numbered_screenshot("imaginary_part%i.bmp", it, true);
 
-    MeshFunctionSharedPtr<double> magnitude(new MagFilter<double>({ e_r_sln, e_i_sln }));
+    MeshFunctionSharedPtr<double> magnitude(new MagFilter<double>(std::vector<MeshFunctionSharedPtr<double> >({ e_r_sln, e_i_sln })));
     viewMagnitude.show(magnitude);
     viewMagnitude.save_numbered_screenshot("magnitude%i.bmp", it, true);
 

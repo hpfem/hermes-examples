@@ -3,6 +3,7 @@
 using namespace Hermes;
 using namespace Hermes::Hermes2D;
 using namespace Hermes::Hermes2D::RefinementSelectors;
+using namespace Hermes::Hermes2D::Views;
 
 //  This example shows that it makes sense to use anisotropic polynomial
 //  degrees in quadrilateral elements. The exact solution to this Poisson
@@ -32,11 +33,11 @@ Adapt<double> adaptivity(&errorCalculator, &stoppingCriterion);
 // Predefined list of element refinement candidates.
 const CandList CAND_LIST = H2D_HP_ANISO;
 // Stopping criterion for adaptivity.
-const double ERR_STOP = 1e-1;
+const double ERR_STOP = 1e-4;
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh->
+  // Load the mesh.
   MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("square_quad.mesh", mesh);
@@ -73,6 +74,7 @@ int main(int argc, char* argv[])
 
   // Initialize views.
   Views::ScalarView sview("Solution", new Views::WinGeom(0, 0, 440, 350));
+  sview.set_linearizer_criterion(LinearizerCriterionFixed(2));
   sview.show_mesh(false);
   Views::OrderView oview("Polynomial orders", new Views::WinGeom(450, 0, 400, 350));
 
@@ -101,7 +103,7 @@ int main(int argc, char* argv[])
     Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d (%d DOF):", as, ndof_ref);
     cpu_time.tick();
 
-    Hermes::Mixins::Loggable::Static::info("Solving on reference mesh->");
+    Hermes::Mixins::Loggable::Static::info("Solving on reference mesh.");
 
     // Assemble the discrete problem.
     DiscreteProblem<double> dp(wf, ref_space);
@@ -125,9 +127,9 @@ int main(int argc, char* argv[])
     cpu_time.tick();
     Hermes::Mixins::Loggable::Static::info("Solution: %g s", cpu_time.last());
 
-    // Project the fine mesh solution onto the coarse mesh->
+    // Project the fine mesh solution onto the coarse mesh.
     Hermes::Mixins::Loggable::Static::info("Calculating error estimate and exact error.");
-    OGProjection<double> ogProjection; ogProjection.project_global(space, ref_sln, sln);
+    OGProjection<double>::project_global(space, ref_sln, sln);
 
     // Calculate element errors and total error estimate.
     Adapt<double> adaptivity(space, &errorCalculator, &stoppingCriterion);
@@ -165,7 +167,7 @@ int main(int argc, char* argv[])
 
     cpu_time.tick(Hermes::Mixins::TimeMeasurable::HERMES_SKIP);
 
-    // If err_est too large, adapt the mesh-> The NDOF test must be here, so that the solution may be visualized
+    // If err_est too large, adapt the mesh. The NDOF test must be here, so that the solution may be visualized
     // after ending due to this criterion.
     if (err_exact_rel < ERR_STOP)
       done = true;

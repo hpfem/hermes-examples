@@ -9,10 +9,10 @@
       mesh->refine_all_elements(0, true);
 
     // Initialize boundary condition types and spaces with default shapesets.
-    SpaceSharedPtr<double> space_rho(new L2Space<double>(mesh, P_INIT, new L2ShapesetTaylor));
-    SpaceSharedPtr<double> space_rho_v_x(new L2Space<double>(mesh, P_INIT, new L2ShapesetTaylor));
-    SpaceSharedPtr<double> space_rho_v_y(new L2Space<double>(mesh, P_INIT, new L2ShapesetTaylor));
-    SpaceSharedPtr<double> space_e(new L2Space<double>(mesh, P_INIT, new L2ShapesetTaylor));
+    SpaceSharedPtr<double> space_rho(new L2Space<double>(mesh, P_INIT, (SHOCK_CAPTURING && SHOCK_CAPTURING_TYPE == KUZMIN ? (Shapeset*)new L2ShapesetTaylor : (Shapeset*)new L2Shapeset)));
+    SpaceSharedPtr<double> space_rho_v_x(new L2Space<double>(mesh, P_INIT, (SHOCK_CAPTURING && SHOCK_CAPTURING_TYPE == KUZMIN ? (Shapeset*)new L2ShapesetTaylor : (Shapeset*)new L2Shapeset)));
+    SpaceSharedPtr<double> space_rho_v_y(new L2Space<double>(mesh, P_INIT, (SHOCK_CAPTURING && SHOCK_CAPTURING_TYPE == KUZMIN ? (Shapeset*)new L2ShapesetTaylor : (Shapeset*)new L2Shapeset)));
+    SpaceSharedPtr<double> space_e(new L2Space<double>(mesh, P_INIT, (SHOCK_CAPTURING && SHOCK_CAPTURING_TYPE == KUZMIN ? (Shapeset*)new L2ShapesetTaylor : (Shapeset*)new L2Shapeset)));
     SpaceSharedPtr<double> space_stabilization(new L2Space<double>(mesh, 0));
     std::vector<SpaceSharedPtr<double> > spaces({ space_rho, space_rho_v_x, space_rho_v_y, space_e });
     int ndof = Space<double>::get_num_dofs(spaces);

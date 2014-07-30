@@ -63,9 +63,6 @@ const int NEWTON_MAX_ITER = 50;
 // Domain height - necessary to define the parabolic
 // velocity profile at inlet (if relevant).
 const double H = 5;
-// Matrix solver: SOLVER_AMESOS, SOLVER_AZTECOO, SOLVER_MUMPS,
-// SOLVER_PETSC, SOLVER_SUPERLU, SOLVER_UMFPACK.
-MatrixSolverType matrix_solver = SOLVER_UMFPACK;
 
 // Boundary markers.
 const std::string BDY_BOTTOM = "b1";
@@ -79,7 +76,7 @@ double current_time = 0;
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh->
+  // Load the mesh.
   MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("domain.mesh", mesh);
@@ -92,7 +89,7 @@ int main(int argc, char* argv[])
   mesh->refine_towards_boundary(BDY_TOP, 2, true);
   mesh->refine_towards_boundary(BDY_BOTTOM, 2, true);
 
-  // Show mesh->
+  // Show mesh.
   MeshView mv;
   mv.show(mesh);
   Hermes::Mixins::Loggable::Static::info("Close mesh window to continue.");

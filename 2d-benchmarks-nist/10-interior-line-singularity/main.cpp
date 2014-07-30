@@ -37,7 +37,7 @@ const CandList CAND_LIST = H2D_HP_ANISO_H;
 // Maximum allowed level of hanging nodes.
 const int MESH_REGULARITY = -1;
 // Stopping criterion for adaptivity.
-const double ERR_STOP = 1.0;
+const double ERR_STOP = 1e-4;
 const CalculatedErrorType errorType = RelativeErrorToGlobalNorm;
 
 // Newton tolerance
@@ -48,7 +48,7 @@ bool VTK_VISUALIZATION = false;
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh->
+  // Load the mesh.
   MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("square_quad.mesh", mesh);
@@ -108,7 +108,7 @@ int main(int argc, char* argv[])
     Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d (%d DOF):", as, ndof_ref);
     cpu_time.tick();
 
-    Hermes::Mixins::Loggable::Static::info("Solving on reference mesh->");
+    Hermes::Mixins::Loggable::Static::info("Solving on reference mesh.");
 
     // Assemble the discrete problem.
     DiscreteProblem<double> dp(wf, ref_space);
@@ -132,9 +132,9 @@ int main(int argc, char* argv[])
     cpu_time.tick();
     Hermes::Mixins::Loggable::Static::info("Solution: %g s", cpu_time.last());
 
-    // Project the fine mesh solution onto the coarse mesh->
+    // Project the fine mesh solution onto the coarse mesh.
     Hermes::Mixins::Loggable::Static::info("Calculating error estimate and exact error.");
-    OGProjection<double> ogProjection; ogProjection.project_global(space, ref_sln, sln);
+    OGProjection<double>::project_global(space, ref_sln, sln);
 
     // Calculate element errors and total error estimate.
     DefaultErrorCalculator<double, HERMES_H1_NORM> error_calculator(errorType, 1);
@@ -173,7 +173,7 @@ int main(int argc, char* argv[])
 
     cpu_time.tick(Hermes::Mixins::TimeMeasurable::HERMES_SKIP);
 
-    // If err_est too large, adapt the mesh-> The NDOF test must be here, so that the solution may be visualized
+    // If err_est too large, adapt the mesh. The NDOF test must be here, so that the solution may be visualized
     // after ending due to this criterion.
     if (err_exact_rel < ERR_STOP)
       done = true;

@@ -32,7 +32,7 @@ enum shockCapturingType
   KUZMIN,
   KRIVODONOVA
 };
-bool SHOCK_CAPTURING = true;
+bool SHOCK_CAPTURING = false;
 shockCapturingType SHOCK_CAPTURING_TYPE = KUZMIN;
 // Quantitative parameter of the discontinuity detector in case of Krivodonova.
 double DISCONTINUITY_DETECTOR_PARAM = 1.0;
@@ -42,9 +42,9 @@ const double NU_2 = 0.1;
 
 // Initial polynomial degree.
 // Do not change this.
-const int P_INIT = 1;
+const int P_INIT = 0;
 // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM = 2;
+const int INIT_REF_NUM = 1;
 // Number of initial localized mesh refinements.
 const int INIT_REF_NUM_STEP = 2;
 // CFL value.
@@ -92,6 +92,22 @@ int refinement_criterion(Element* e)
 int main(int argc, char* argv[])
 {
 #include "../euler-init-main.cpp"
+
+  // Perform custom initial mesh refinements.
+  mesh->refine_by_criterion(refinement_criterion, INIT_REF_NUM_STEP);
+  for (int i = 0; i < spaces.size(); i++)
+  {
+    for_all_active_elements_fast(mesh)
+    {
+      spaces[i]->set_element_order(e->id, P_INIT);
+    }
+    spaces[i]->assign_dofs();
+  }
+  for_all_active_elements_fast(mesh)
+  {
+    space_stabilization->set_element_order(e->id, 0);
+  }
+  space_stabilization->assign_dofs();
 
   // Set initial conditions.
   MeshFunctionSharedPtr<double> prev_rho(new ConstantSolution<double>(mesh, RHO_EXT));

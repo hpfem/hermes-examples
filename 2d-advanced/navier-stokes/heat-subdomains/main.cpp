@@ -74,7 +74,7 @@ bool SIMPLE_TEMPERATURE_ADVECTION = false;
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh->
+  // Load the mesh.
   MeshSharedPtr mesh_whole_domain(new Mesh), mesh_with_hole(new Mesh);
   std::vector<MeshSharedPtr> meshes({ mesh_whole_domain, mesh_with_hole });
   MeshReaderH2DXML mloader;
@@ -225,7 +225,7 @@ int main(int argc, char* argv[])
     pview.show(p_prev_time);
     sprintf(title, "Temperature [C], time %g s", current_time);
     tempview.set_title(title);
-    tempview.show(temperature_prev_time, Views::HERMES_EPS_HIGH);
+    tempview.show(temperature_prev_time);
   }
 
   delete[] coeff_vec;

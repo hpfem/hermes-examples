@@ -101,7 +101,7 @@ int main(int argc, char* argv[])
   if (bt.is_diagonally_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage diagonally implicit R-K method.", bt.get_size());
   if (bt.is_fully_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage fully implicit R-K method.", bt.get_size());
 
-  // Load the mesh->
+  // Load the mesh.
   MeshSharedPtr mesh(new Mesh), basemesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("square.mesh", basemesh);
@@ -217,10 +217,10 @@ int main(int argc, char* argv[])
         throw Hermes::Exceptions::Exception("Runge-Kutta time step failed");
       }
 
-      // Project the fine mesh solution onto the coarse mesh->
+      // Project the fine mesh solution onto the coarse mesh.
       MeshFunctionSharedPtr<double> sln_coarse(new Solution<double>);
       Hermes::Mixins::Loggable::Static::info("Projecting fine mesh solution on coarse mesh for error estimation.");
-      OGProjection<double> ogProjection; ogProjection.project_global(space, h_time_new, sln_coarse);
+      OGProjection<double>::project_global(space, h_time_new, sln_coarse);
 
       // Calculate element errors and total error estimate.
       Hermes::Mixins::Loggable::Static::info("Calculating error estimate.");
@@ -234,11 +234,11 @@ int main(int argc, char* argv[])
       // Time measurement.
       cpu_time.tick();
 
-      // If err_est too large, adapt the mesh->
+      // If err_est too large, adapt the mesh.
       if (err_est_rel_total < ERR_STOP) done = true;
       else
       {
-        Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh->");
+        Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh.");
         done = adaptivity.adapt(&selector);
 
         // Increase the counter of performed adaptivity steps.
@@ -252,7 +252,7 @@ int main(int argc, char* argv[])
     graph_cpu.add_values(current_time, cpu_time.accumulated());
     graph_cpu.save("conv_cpu_est.dat");
 
-    // Visualize the solution and mesh->
+    // Visualize the solution and mesh.
     char title[100];
     sprintf(title, "Solution, time %g", current_time);
     view.set_title(title);

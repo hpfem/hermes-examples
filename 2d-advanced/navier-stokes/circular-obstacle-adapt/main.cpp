@@ -86,7 +86,7 @@ const double STARTUP_TIME = 1.0;
 const double TAU = 0.1;
 // Time interval length.
 const double T_FINAL = 30000.0;
-// Stopping criterion for Newton on fine mesh->
+// Stopping criterion for Newton on fine mesh.
 const double NEWTON_TOL = 0.05;
 // Maximum allowed number of Newton iterations.
 const int NEWTON_MAX_ITER = 20;
@@ -106,7 +106,7 @@ double current_time = 0;
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh->
+  // Load the mesh.
   MeshSharedPtr mesh(new Mesh), basemesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("domain.mesh", basemesh);
@@ -248,15 +248,15 @@ int main(int argc, char* argv[])
       Hermes::Mixins::Loggable::Static::info("Updating time-dependent essential BC.");
       Space<double>::update_essential_bc_values(ref_spaces, current_time);
 
-      // Calculate initial coefficient vector for Newton on the fine mesh->
+      // Calculate initial coefficient vector for Newton on the fine mesh.
       double* coeff_vec = new double[Space<double>::get_num_dofs(ref_spaces)];
 
       if (ts == 1) {
-        Hermes::Mixins::Loggable::Static::info("Projecting coarse mesh solution to obtain coefficient vector on new fine mesh->");
+        Hermes::Mixins::Loggable::Static::info("Projecting coarse mesh solution to obtain coefficient vector on new fine mesh.");
         OGProjection<double>::project_global(ref_spaces, prev_time, coeff_vec);
       }
       else {
-        Hermes::Mixins::Loggable::Static::info("Projecting previous fine mesh solution to obtain coefficient vector on new fine mesh->");
+        Hermes::Mixins::Loggable::Static::info("Projecting previous fine mesh solution to obtain coefficient vector on new fine mesh.");
         OGProjection<double>::project_global(ref_spaces, prev_time, coeff_vec);
       }
 
@@ -278,8 +278,8 @@ int main(int argc, char* argv[])
       // Update previous time level solutions.
       Solution<double>::vector_to_solutions(newton.get_sln_vector(), ref_spaces, ref_slns);
 
-      // Project the fine mesh solution onto the coarse mesh->
-      Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh->");
+      // Project the fine mesh solution onto the coarse mesh.
+      Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
       OGProjection<double> ogProj; ogProj.project_global(spaces, ref_slns, slns, proj_norms);
 
       // Calculate element errors and total error estimate.
@@ -303,12 +303,12 @@ int main(int argc, char* argv[])
       pview.set_title(title);
       pview.show(p_ref_sln);
 
-      // If err_est too large, adapt the mesh->
+      // If err_est too large, adapt the mesh.
       if (err_est_rel_total < ERR_STOP || Space<double>::get_num_dofs(ref_spaces) > NOT_ADAPTING_REF_SPACES_SIZE)
         done = true;
       else
       {
-        Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh->");
+        Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh.");
         done = adaptivity.adapt(selectors);
         aview.show(adaptivity.get_refinementInfoMeshFunction());
         // Increase the counter of performed adaptivity steps.

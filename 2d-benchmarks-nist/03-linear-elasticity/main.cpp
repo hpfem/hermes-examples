@@ -86,7 +86,7 @@ const double Q = -0.2189232362488;
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh->
+  // Load the mesh.
   MeshSharedPtr u_mesh(new Mesh), v_mesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("elasticity.mesh", u_mesh);
@@ -175,7 +175,7 @@ int main(int argc, char* argv[])
     Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d (%d DOF):", as, ndof_ref);
     cpu_time.tick();
 
-    Hermes::Mixins::Loggable::Static::info("Solving on reference mesh->");
+    Hermes::Mixins::Loggable::Static::info("Solving on reference mesh.");
 
     // Assemble the discrete problem.
     DiscreteProblem<double> dp(wf, ref_spaces);
@@ -198,9 +198,9 @@ int main(int argc, char* argv[])
     cpu_time.tick();
     Hermes::Mixins::Loggable::Static::info("Solution: %g s", cpu_time.last());
 
-    // Project the fine mesh solution onto the coarse mesh->
+    // Project the fine mesh solution onto the coarse mesh.
     Hermes::Mixins::Loggable::Static::info("Calculating error estimate and exact error.");
-    OGProjection<double> ogProjection; ogProjection.project_global(spaces, ref_slns, slns);
+    OGProjection<double>::project_global(spaces, ref_slns, slns);
 
     // Calculate element errors and total error estimate.
     DefaultErrorCalculator<double, HERMES_H1_NORM> error_calculator(errorType, 2);
@@ -239,12 +239,12 @@ int main(int argc, char* argv[])
 
     cpu_time.tick(Hermes::Mixins::TimeMeasurable::HERMES_SKIP);
 
-    // If err_est too large, adapt the mesh->
+    // If err_est too large, adapt the mesh.
     if (err_est_rel_total < ERR_STOP)
       done = true;
     else
     {
-      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh->");
+      Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh.");
       done = adaptivity.adapt({ &selector, &selector });
     }
 

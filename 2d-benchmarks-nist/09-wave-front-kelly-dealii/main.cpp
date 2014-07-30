@@ -194,8 +194,8 @@ int main(int argc, char* argv[])
   // Stop counting time for adaptation.
   wall_clock.tick(); 
 
-  // Load the mesh->
-  MeshSharedPtr mesh;
+  // Load the mesh.
+  MeshSharedPtr mesh(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("square_quad.mesh", mesh);    
 

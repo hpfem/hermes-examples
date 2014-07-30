@@ -33,7 +33,7 @@ private:
   class CustomJacobianFormVol : public MatrixFormVol < double >
   {
   public:
-    CustomJacobianFormVol(int i, int j, ConstitutiveRelations* constitutive)
+    CustomJacobianFormVol(unsigned int i, unsigned int j, ConstitutiveRelations* constitutive)
       : MatrixFormVol<double>(i, j), constitutive(constitutive)
     {
     }

@@ -15,7 +15,6 @@ const bool VTK_VISUALIZATION = false;
 // Set visual output for every nth step.
 const unsigned int EVERY_NTH_STEP = 1;
 
-
 // Initial polynomial degree.
 const int P_INIT_FLOW = 0;
 const int P_INIT_HEAT = 1;
@@ -99,7 +98,7 @@ double ERR_STOP = 5.0;
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh->
+  // Load the mesh.
   MeshSharedPtr mesh(new Mesh), mesh_heat(new Mesh);
   MeshReaderH2D mloader;
   mloader.load("square.mesh", mesh);
@@ -256,16 +255,16 @@ int main(int argc, char* argv[])
 
       std::vector<SpaceSharedPtr<double>  > cref_flow_spaces(ref_space_rho, ref_space_rho_v_x, ref_space_rho_v_y, ref_space_e);
 
-      // Project the previous time level solution onto the new fine mesh->
-      Hermes::Mixins::Loggable::Static::info("Projecting the previous time level solution onto the new fine mesh->");
-      OGProjection<double> ogProjection; ogProjection.project_global(cref_spaces, prev_slns, prev_slns, std::vector<Hermes::Hermes2D::NormType>(), iteration > 1);
+      // Project the previous time level solution onto the new fine mesh.
+      Hermes::Mixins::Loggable::Static::info("Projecting the previous time level solution onto the new fine mesh.");
+      OGProjection<double>::project_global(cref_spaces, prev_slns, prev_slns, std::vector<Hermes::Hermes2D::NormType>(), iteration > 1);
 
       // Report NDOFs.
       Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d.", 
         Space<double>::get_num_dofs(spaces), Space<double>::get_num_dofs(cref_spaces));
 
       // Assemble the reference problem.
-      Hermes::Mixins::Loggable::Static::info("Solving on reference mesh->");
+      Hermes::Mixins::Loggable::Static::info("Solving on reference mesh.");
       DiscreteProblem<double> dp(wf, cref_spaces);
 
       // Assemble the stiffness matrix and rhs.
@@ -297,8 +296,8 @@ int main(int argc, char* argv[])
         Solution<double>::vector_to_solution(solver->get_sln_vector() + Space<double>::get_num_dofs(cref_flow_spaces), ref_space_temp, rsln_temp);
       }
 
-      // Project the fine mesh solution onto the coarse mesh->
-      Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh->");
+      // Project the fine mesh solution onto the coarse mesh.
+      Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh.");
       ogProjection.project_global(cspaces, rslns, slns,{HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_L2_NORM, HERMES_H1_NORM}); 
 
       // Calculate element errors and total error estimate.
@@ -330,7 +329,7 @@ int main(int argc, char* argv[])
       // Report results.
       Hermes::Mixins::Loggable::Static::info("Error: %g%%.", error_value);
 
-      // If err_est too large, adapt the mesh->
+      // If err_est too large, adapt the mesh.
       if (error_value < ERR_STOP)
         done = true;
       else
@@ -353,7 +352,7 @@ int main(int argc, char* argv[])
           pressure_view.show(pressure);
           velocity_view.show(vel_x, vel_y);
           density_view.show(prev_rho);
-          temperature_view.show(prev_temp, HERMES_EPS_HIGH);
+          temperature_view.show(prev_temp);
         }
         // Output solution in VTK format.
         if(VTK_VISUALIZATION) 

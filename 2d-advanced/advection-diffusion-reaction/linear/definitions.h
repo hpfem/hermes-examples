@@ -19,7 +19,7 @@ private:
   class MatrixFormVolAdvectionDiffusion : public MatrixFormVol < double >
   {
   public:
-    MatrixFormVolAdvectionDiffusion(int i, int j, double b1, double b2, double epsilon)
+    MatrixFormVolAdvectionDiffusion(unsigned int i, unsigned int j, double b1, double b2, double epsilon)
       : MatrixFormVol<double>(i, j), b1(b1), b2(b2), epsilon(epsilon) {};
 
     template<typename Real, typename Scalar>
