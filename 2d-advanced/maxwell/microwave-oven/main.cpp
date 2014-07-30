@@ -83,7 +83,7 @@ const double J = 0.0000033333;
 const std::string BDY_PERFECT_CONDUCTOR = "b2";
 const std::string BDY_CURRENT = "b1";
 
-class CustomErrorCalculator : public ErrorCalculator <::complex>
+class CustomErrorCalculator : public ErrorCalculator < ::complex >
 {
 public:
   CustomErrorCalculator(CalculatedErrorType errorType) : ErrorCalculator<::complex>(errorType)

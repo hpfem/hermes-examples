@@ -2,7 +2,7 @@
 
 /* Weak forms */
 
-class WeakFormRayleighBenard : public WeakForm <double>
+class WeakFormRayleighBenard : public WeakForm < double >
 {
 public:
   WeakFormRayleighBenard(double Pr, double Ra, std::string bdy_top, double temp_ext, double alpha_air,
@@ -76,7 +76,7 @@ public:
     add_vector_form_surf(new CustomResidualSurfConst(3, bdy_top, alpha_air));
   };
 
-  class BilinearFormNonsymVel_0_0 : public MatrixFormVol <double>
+  class BilinearFormNonsymVel_0_0 : public MatrixFormVol < double >
   {
   public:
     BilinearFormNonsymVel_0_0(int i, int j) : MatrixFormVol<double>(i, j) {
@@ -107,7 +107,7 @@ public:
     virtual MatrixFormVol<double>* clone() const { return new BilinearFormNonsymVel_0_0(i, j); }
   };
 
-  class BilinearFormNonsymVel_0_1 : public MatrixFormVol <double>
+  class BilinearFormNonsymVel_0_1 : public MatrixFormVol < double >
   {
   public:
     BilinearFormNonsymVel_0_1(int i, int j) : MatrixFormVol<double>(i, j) {
@@ -135,7 +135,7 @@ public:
     }
     virtual MatrixFormVol<double>* clone() const { return new BilinearFormNonsymVel_0_1(i, j); }
   };
-  class BilinearFormNonsymVel_1_0 : public MatrixFormVol <double>
+  class BilinearFormNonsymVel_1_0 : public MatrixFormVol < double >
   {
   public:
     BilinearFormNonsymVel_1_0(int i, int j) : MatrixFormVol<double>(i, j) {
@@ -160,7 +160,7 @@ public:
     }
     virtual MatrixFormVol<double>* clone() const { return new BilinearFormNonsymVel_1_0(i, j); }
   };
-  class BilinearFormNonsymVel_1_1 : public MatrixFormVol <double>
+  class BilinearFormNonsymVel_1_1 : public MatrixFormVol < double >
   {
   public:
     BilinearFormNonsymVel_1_1(int i, int j) : MatrixFormVol<double>(i, j) {
@@ -190,7 +190,7 @@ public:
     virtual MatrixFormVol<double>* clone() const { return new BilinearFormNonsymVel_1_1(i, j); }
   };
 
-  class BilinearFormNonsymXVelPressure : public MatrixFormVol <double>
+  class BilinearFormNonsymXVelPressure : public MatrixFormVol < double >
   {
   public:
     // The antisym flag is used here to generate a term in the continuity equation.
@@ -209,7 +209,7 @@ public:
     }
     virtual MatrixFormVol<double>* clone() const { return new BilinearFormNonsymXVelPressure(i, j); }
   };
-  class BilinearFormNonsymYVelPressure : public MatrixFormVol <double>
+  class BilinearFormNonsymYVelPressure : public MatrixFormVol < double >
   {
   public:
     // The antisym flag is used here to generate a term in the continuity equation.
@@ -229,7 +229,7 @@ public:
     virtual MatrixFormVol<double>* clone() const { return new BilinearFormNonsymYVelPressure(i, j); }
   };
 
-  class VectorFormNS_0 : public VectorFormVol <double>
+  class VectorFormNS_0 : public VectorFormVol < double >
   {
   public:
     VectorFormNS_0(int i, double Pr, double time_step) : VectorFormVol<double>(i), Pr(Pr), time_step(time_step) {
@@ -272,7 +272,7 @@ public:
     double Pr, time_step;
   };
 
-  class VectorFormNS_1 : public VectorFormVol <double>
+  class VectorFormNS_1 : public VectorFormVol < double >
   {
   public:
     VectorFormNS_1(int i, double Pr, double Ra, double time_step)
@@ -320,7 +320,7 @@ public:
     double Pr, Ra, time_step;
   };
 
-  class VectorFormNS_2 : public VectorFormVol <double>
+  class VectorFormNS_2 : public VectorFormVol < double >
   {
   public:
     VectorFormNS_2(int i) : VectorFormVol<double>(i) {
@@ -349,7 +349,7 @@ public:
     virtual VectorFormVol<double>* clone() const { return new VectorFormNS_2(i); }
   };
 
-  class VectorFormNS_3 : public VectorFormVol <double>
+  class VectorFormNS_3 : public VectorFormVol < double >
   {
   public:
     VectorFormNS_3(int i, double time_step) : VectorFormVol<double>(i), time_step(time_step) {
@@ -393,7 +393,7 @@ public:
     double time_step;
   };
 
-  class BilinearFormNonsymTemp_3_0 : public MatrixFormVol <double>
+  class BilinearFormNonsymTemp_3_0 : public MatrixFormVol < double >
   {
   public:
     BilinearFormNonsymTemp_3_0(int i, int j) : MatrixFormVol<double>(i, j) {
@@ -419,7 +419,7 @@ public:
     virtual MatrixFormVol<double>* clone() const { return new BilinearFormNonsymTemp_3_0(i, j); }
   };
 
-  class BilinearFormNonsymTemp_3_1 : public MatrixFormVol <double>
+  class BilinearFormNonsymTemp_3_1 : public MatrixFormVol < double >
   {
   public:
     BilinearFormNonsymTemp_3_1(int i, int j) : MatrixFormVol<double>(i, j) {
@@ -445,7 +445,7 @@ public:
     virtual MatrixFormVol<double>* clone() const { return new BilinearFormNonsymTemp_3_1(i, j); }
   };
 
-  class BilinearFormNonsymTemp_3_3 : public MatrixFormVol <double>
+  class BilinearFormNonsymTemp_3_3 : public MatrixFormVol < double >
   {
   public:
     BilinearFormNonsymTemp_3_3(int i, int j) : MatrixFormVol<double>(i, j) {
@@ -475,7 +475,7 @@ public:
     virtual MatrixFormVol<double>* clone() const { return new BilinearFormNonsymTemp_3_3(i, j); }
   };
 
-  class CustomResidualSurfConst : public VectorFormSurf <double>
+  class CustomResidualSurfConst : public VectorFormSurf < double >
   {
   public:
     CustomResidualSurfConst(int i, double coeff = 1.0,

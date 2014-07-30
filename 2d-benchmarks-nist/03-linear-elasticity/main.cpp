@@ -224,15 +224,15 @@ int main(int argc, char* argv[])
     o_view_u.show(u_space);
     s_view_v.show(v_sln);
     o_view_v.show(v_space);
-    MeshFunctionSharedPtr<double> stress(new VonMisesFilter({u_sln, v_sln}, lambda, mu));
+    MeshFunctionSharedPtr<double> stress(new VonMisesFilter({ u_sln, v_sln }, lambda, mu));
     mises_view.show(stress, H2D_FN_VAL_0, u_sln, v_sln, 0.03);
 
     // Add entry to DOF and CPU convergence graphs.
-    graph_dof_est.add_values(Space<double>::get_num_dofs({u_space, v_space}), err_est_rel_total);
+    graph_dof_est.add_values(Space<double>::get_num_dofs({ u_space, v_space }), err_est_rel_total);
     graph_dof_est.save("conv_dof_est.dat");
     graph_cpu_est.add_values(cpu_time.accumulated(), err_est_rel_total);
     graph_cpu_est.save("conv_cpu_est.dat");
-    graph_dof_exact.add_values(Space<double>::get_num_dofs({u_space, v_space}), err_exact_rel_total);
+    graph_dof_exact.add_values(Space<double>::get_num_dofs({ u_space, v_space }), err_exact_rel_total);
     graph_dof_exact.save("conv_dof_exact.dat");
     graph_cpu_exact.add_values(cpu_time.accumulated(), err_exact_rel_total);
     graph_cpu_exact.save("conv_cpu_exact.dat");
@@ -245,7 +245,7 @@ int main(int argc, char* argv[])
     else
     {
       Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh->");
-      done = adaptivity.adapt({&selector, &selector});
+      done = adaptivity.adapt({ &selector, &selector });
     }
 
     cpu_time.tick();

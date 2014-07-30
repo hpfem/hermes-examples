@@ -7,14 +7,14 @@ using namespace Hermes::Hermes2D;
 using namespace Hermes::Hermes2D::Views;
 using namespace Hermes::Hermes2D::RefinementSelectors;
 
-class CustomWeakForm : public WeakForm <double>
+class CustomWeakForm : public WeakForm < double >
 {
 public:
   CustomWeakForm(std::string left_bottom_bnd_part, MeshSharedPtr mesh);
   WeakForm<double>* clone() const;
 
 private:
-  class CustomMatrixFormVol : public MatrixFormVol <double>
+  class CustomMatrixFormVol : public MatrixFormVol < double >
   {
   public:
     CustomMatrixFormVol(int i, int j) : MatrixFormVol<double>(i, j) {};
@@ -29,7 +29,7 @@ private:
     MatrixFormVol<double>* clone() const;
   };
 
-  class CustomVectorFormVol : public VectorFormVol <double>
+  class CustomVectorFormVol : public VectorFormVol < double >
   {
   public:
     CustomVectorFormVol(int i) : VectorFormVol<double>(i) {};
@@ -47,7 +47,7 @@ private:
     Real F(Real x, Real y) const;
   };
 
-  class CustomMatrixFormSurface : public MatrixFormSurf <double>
+  class CustomMatrixFormSurface : public MatrixFormSurf < double >
   {
   public:
     CustomMatrixFormSurface(int i, int j) : MatrixFormSurf<double>(i, j) {};
@@ -62,7 +62,7 @@ private:
     MatrixFormSurf<double>* clone() const;
   };
 
-  class CustomMatrixFormInterface : public MatrixFormDG <double>
+  class CustomMatrixFormInterface : public MatrixFormDG < double >
   {
   public:
     CustomMatrixFormInterface(int i, int j) : MatrixFormDG<double>(i, j)
@@ -79,7 +79,7 @@ private:
     MatrixFormDG<double>* clone() const;
   };
 
-  class CustomVectorFormSurface : public VectorFormSurf <double>
+  class CustomVectorFormSurface : public VectorFormSurf < double >
   {
   public:
     CustomVectorFormSurface(int i, std::string left_bottom_bnd_part) : VectorFormSurf<double>(i), left_bottom_bnd_part(left_bottom_bnd_part) {};

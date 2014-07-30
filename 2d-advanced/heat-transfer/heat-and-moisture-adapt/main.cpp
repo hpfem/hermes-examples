@@ -53,7 +53,7 @@ CustomErrorForm cef_1_0(1, 0, d_wT, c_ww);
 CustomErrorForm cef_1_1(1, 1, d_ww, c_ww);
 
 // Error calculation & adaptivity.
-class MyErrorCalculator : public Hermes::Hermes2D::ErrorCalculator <double>
+class MyErrorCalculator : public Hermes::Hermes2D::ErrorCalculator < double >
 {
 public:
   MyErrorCalculator() : Hermes::Hermes2D::ErrorCalculator<double>(RelativeErrorToGlobalNorm)
@@ -191,7 +191,7 @@ int main(int argc, char* argv[])
     // Update time-dependent essential BCs.
     if (current_time <= REACTOR_START_TIME) {
       Hermes::Mixins::Loggable::Static::info("Updating time-dependent essential BC.");
-      Space<double>::update_essential_bc_values({T_space, w_space}, current_time);
+      Space<double>::update_essential_bc_values({ T_space, w_space }, current_time);
     }
 
     // Uniform mesh derefinement.
@@ -276,7 +276,7 @@ int main(int argc, char* argv[])
 
       // Report results.
       Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d, err_est_rel: %g%%",
-        Space<double>::get_num_dofs({T_space, w_space}),
+        Space<double>::get_num_dofs({ T_space, w_space }),
         Space<double>::get_num_dofs(ref_spaces), err_est_rel_total);
 
       // If err_est too large, adapt the meshes.
@@ -285,7 +285,7 @@ int main(int argc, char* argv[])
       else
       {
         Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh->");
-        done = adaptivity.adapt({&selector, &selector});
+        done = adaptivity.adapt({ &selector, &selector });
 
         // Increase the counter of performed adaptivity steps.
         as++;

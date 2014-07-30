@@ -64,7 +64,7 @@ int main(int argc, char* argv[])
   DefaultEssentialBCConst<double> bc_rest("Rest", 1.0);
   EssentialBCNonConst bc_layer("Layer");
 
-  EssentialBCs<double> bcs({&bc_rest, &bc_layer});
+  EssentialBCs<double> bcs({ &bc_rest, &bc_layer });
 
   // Create an H1 space with default shapeset.
   SpaceSharedPtr<double> space(new H1Space<double>(mesh, &bcs, P_INIT));

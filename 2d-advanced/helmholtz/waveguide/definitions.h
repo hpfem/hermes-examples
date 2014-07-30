@@ -9,7 +9,7 @@ using namespace Hermes::Hermes2D::RefinementSelectors;
 
 /* Essential boundary conditions */
 
-class EssentialBCNonConst : public EssentialBoundaryCondition <double>
+class EssentialBCNonConst : public EssentialBoundaryCondition < double >
 {
 public:
   EssentialBCNonConst(std::string marker);
@@ -23,7 +23,7 @@ public:
 
 /* Weak forms */
 
-class WeakFormHelmholtz : public WeakForm <double>
+class WeakFormHelmholtz : public WeakForm < double >
 {
 public:
   WeakFormHelmholtz(double eps, double mu, double omega, double sigma, double beta, double E0, double h);
@@ -47,7 +47,7 @@ public:
     add_vector_form_surf(new VectorFormSurfHelmholtz_imag(1, "0", beta));
   }
 private:
-  class MatrixFormHelmholtzEquation_real_real : public MatrixFormVol <double>
+  class MatrixFormHelmholtzEquation_real_real : public MatrixFormVol < double >
   {
   public:
     MatrixFormHelmholtzEquation_real_real(int i, int j, double eps, double omega, double mu)
@@ -71,7 +71,7 @@ private:
     double mu;
   };
 
-  class MatrixFormHelmholtzEquation_real_imag : public MatrixFormVol <double>
+  class MatrixFormHelmholtzEquation_real_imag : public MatrixFormVol < double >
   {
     // Members.
     double mu;
@@ -94,7 +94,7 @@ private:
     MatrixFormVol<double>* clone() const;
   };
 
-  class MatrixFormHelmholtzEquation_imag_real : public MatrixFormVol <double>
+  class MatrixFormHelmholtzEquation_imag_real : public MatrixFormVol < double >
   {
     // Members.
     double mu;
@@ -117,7 +117,7 @@ private:
     MatrixFormVol<double>* clone() const;
   };
 
-  class MatrixFormHelmholtzEquation_imag_imag : public MatrixFormVol <double>
+  class MatrixFormHelmholtzEquation_imag_imag : public MatrixFormVol < double >
   {
   public:
     MatrixFormHelmholtzEquation_imag_imag(int i, int j, double eps, double mu, double omega)
@@ -141,7 +141,7 @@ private:
     double omega;
   };
 
-  class MatrixFormSurfHelmholtz_real_imag : public MatrixFormSurf <double>
+  class MatrixFormSurfHelmholtz_real_imag : public MatrixFormSurf < double >
   {
   private:
     double beta;
@@ -161,7 +161,7 @@ private:
     MatrixFormSurf<double>* clone() const;
   };
 
-  class MatrixFormSurfHelmholtz_imag_real : public MatrixFormSurf <double>
+  class MatrixFormSurfHelmholtz_imag_real : public MatrixFormSurf < double >
   {
   private:
     double beta;
@@ -182,7 +182,7 @@ private:
     MatrixFormSurf<double>* clone() const;
   };
 
-  class VectorFormHelmholtzEquation_real : public VectorFormVol <double>
+  class VectorFormHelmholtzEquation_real : public VectorFormVol < double >
   {
   public:
     VectorFormHelmholtzEquation_real(int i, double eps, double omega, double mu, double sigma)
@@ -207,7 +207,7 @@ private:
     double sigma;
   };
 
-  class VectorFormHelmholtzEquation_imag : public VectorFormVol <double>
+  class VectorFormHelmholtzEquation_imag : public VectorFormVol < double >
   {
   public:
     VectorFormHelmholtzEquation_imag(int i, double eps, double omega, double mu, double sigma)
@@ -232,7 +232,7 @@ private:
     double sigma;
   };
 
-  class VectorFormSurfHelmholtz_real : public VectorFormSurf <double>
+  class VectorFormSurfHelmholtz_real : public VectorFormSurf < double >
   {
   private:
     double beta;
@@ -253,7 +253,7 @@ private:
     VectorFormSurf<double>* clone() const;
   };
 
-  class VectorFormSurfHelmholtz_imag : public VectorFormSurf <double>
+  class VectorFormSurfHelmholtz_imag : public VectorFormSurf < double >
   {
   private:
     double beta;

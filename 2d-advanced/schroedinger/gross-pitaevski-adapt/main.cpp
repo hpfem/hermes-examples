@@ -1,4 +1,3 @@
-
 #include "definitions.h"
 
 //  This example shows how to combine automatic adaptivity with the Newton's
@@ -332,7 +331,6 @@ int main(int argc, char* argv[])
         // Increase the counter of performed adaptivity steps.
         as++;
       }
-
     } while (done == false);
 
     // Visualize the solution and mesh->

@@ -69,11 +69,11 @@ int main(int argc, char* argv[])
   mesh->refine_all_elements();
 
   // Initialize boundary conditions
-  DefaultEssentialBCConst<double> bc1({"2", "3", "4", "5", "6", "7", "8", "9", "10", "11"}, 0.0);
+  DefaultEssentialBCConst<double> bc1({ "2", "3", "4", "5", "6", "7", "8", "9", "10", "11" }, 0.0);
   EssentialBCNonConst bc2("1");
   DefaultEssentialBCConst<double> bc3("1", 0.0);
-  EssentialBCs<double> bcs({&bc1, &bc2});
-  EssentialBCs<double> bcs_im({&bc1, &bc3});
+  EssentialBCs<double> bcs({ &bc1, &bc2 });
+  EssentialBCs<double> bcs_im({ &bc1, &bc3 });
 
   // Create an H1 space with default shapeset.
   SpaceSharedPtr<double> e_r_space(new H1Space<double>(mesh, &bcs, P_INIT));
@@ -91,7 +91,7 @@ int main(int argc, char* argv[])
   MeshFunctionSharedPtr<double> e_r_sln(new Solution<double>), e_i_sln(new Solution<double>);
 
   // Initial coefficient vector for the Newton's method.
-  ndof = Space<double>::get_num_dofs({e_r_space, e_i_space});
+  ndof = Space<double>::get_num_dofs({ e_r_space, e_i_space });
 
   Hermes::Hermes2D::NewtonSolver<double> newton(wf, spaces);
   newton.set_tolerance(NEWTON_TOL, Hermes::Solvers::ResidualNormAbsolute);
@@ -132,7 +132,7 @@ int main(int argc, char* argv[])
     //viewEi.show(e_i_sln);
     //viewEi.save_numbered_screenshot("imaginary_part%i.bmp", it, true);
 
-    MeshFunctionSharedPtr<double> magnitude(new MagFilter<double>({e_r_sln, e_i_sln}));
+    MeshFunctionSharedPtr<double> magnitude(new MagFilter<double>({ e_r_sln, e_i_sln }));
     viewMagnitude.show(magnitude);
     viewMagnitude.save_numbered_screenshot("magnitude%i.bmp", it, true);
 

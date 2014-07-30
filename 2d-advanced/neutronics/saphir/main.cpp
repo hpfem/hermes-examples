@@ -98,7 +98,7 @@ int main(int argc, char* argv[])
   for (int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
 
   // Set essential boundary conditions.
-  DefaultEssentialBCConst<double> bc_essential(std::vector<std::string>({"right", "top"}), 0.0);
+  DefaultEssentialBCConst<double> bc_essential(std::vector<std::string>({ "right", "top" }), 0.0);
   EssentialBCs<double> bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.

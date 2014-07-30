@@ -320,7 +320,6 @@ double KrivodonovaDiscontinuityDetector::calculate_relative_flow_direction(Eleme
   for (int point_i = 0; point_i < np; point_i++)
     result += jwt[point_i] * density_vel_x->val[point_i] * geom->nx[point_i] + density_vel_y->val[point_i] * geom->ny[point_i];
 
-  
   delete geom;
   delete[] jwt;
   delete density_vel_x;
@@ -412,7 +411,6 @@ void KrivodonovaDiscontinuityDetector::calculate_jumps(Element* e, int edge_i, d
       result[3] += jwt[point_i] * std::abs(energy_discontinuous.val[point_i] - energy_discontinuous.val_neighbor[point_i]);
     }
 
-    
     delete geom;
     delete[] jwt;
 
@@ -474,7 +472,6 @@ void KrivodonovaDiscontinuityDetector::calculate_norms(Element* e, int edge_i, d
     result[3] = std::max(result[3], std::abs(energy->val[point_i]));
   }
 
-  
   delete geom;
   delete[] jwt;
 

@@ -80,7 +80,7 @@ int main(int argc, char* argv[])
   mesh->refine_towards_boundary(HERMES_ANY, 2);
 
   // Initialize boundary conditions.
-  DefaultEssentialBCConst<double> zero_vel_bc({"Bottom", "Right", "Top", "Left"}, 0.0);
+  DefaultEssentialBCConst<double> zero_vel_bc({ "Bottom", "Right", "Top", "Left" }, 0.0);
   EssentialBCs<double> bcs_vel_x(&zero_vel_bc);
   EssentialBCs<double> bcs_vel_y(&zero_vel_bc);
   DefaultEssentialBCConst<double> bc_temp_bottom("Bottom", TEMP_BOTTOM);

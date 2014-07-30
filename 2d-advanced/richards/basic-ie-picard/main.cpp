@@ -73,7 +73,7 @@ int main(int argc, char* argv[])
   mesh->refine_towards_boundary("Top", INIT_REF_NUM_BDY);
 
   // Initialize boundary conditions.
-  CustomEssentialBCNonConst bc_essential(std::vector<std::string>({"Bottom", "Right", "Top", "Left"}));
+  CustomEssentialBCNonConst bc_essential(std::vector<std::string>({ "Bottom", "Right", "Top", "Left" }));
   EssentialBCs<double> bcs(&bc_essential);
 
   // Create an H1 space with default shapeset.

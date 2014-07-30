@@ -17,7 +17,7 @@ const double HOLE_MID_Y = 0.5;
 
 /* Custom initial condition for temperature*/
 
-class CustomInitialConditionTemperature : public ExactSolutionScalar <double>
+class CustomInitialConditionTemperature : public ExactSolutionScalar < double >
 {
 public:
   CustomInitialConditionTemperature(MeshSharedPtr mesh, double mid_x, double mid_y, double radius, double temp_fluid, double temp_graphite);
@@ -36,7 +36,7 @@ public:
 
 /* Weak forms */
 
-class CustomWeakFormHeatAndFlow : public WeakForm <double>
+class CustomWeakFormHeatAndFlow : public WeakForm < double >
 {
 public:
   CustomWeakFormHeatAndFlow(bool Stokes, double Reynolds, double time_step, MeshFunctionSharedPtr<double> x_vel_previous_time,
@@ -44,7 +44,7 @@ public:
     double specific_heat_fluid, double rho_graphite, double rho_fluid, double thermal_conductivity_graphite,
     double thermal_conductivity_fluid, bool simple_temp_advection);
 
-  class BilinearFormTime : public MatrixFormVol <double>
+  class BilinearFormTime : public MatrixFormVol < double >
   {
   public:
     BilinearFormTime(int i, int j, std::string area, double time_step) : MatrixFormVol<double>(i, j), time_step(time_step) {
@@ -71,7 +71,7 @@ public:
     double time_step;
   };
 
-  class BilinearFormSymVel : public MatrixFormVol <double>
+  class BilinearFormSymVel : public MatrixFormVol < double >
   {
   public:
     BilinearFormSymVel(int i, int j, bool Stokes, double Reynolds, double time_step) : MatrixFormVol<double>(i, j), Stokes(Stokes),
@@ -104,7 +104,7 @@ public:
     double time_step;
   };
 
-  class BilinearFormUnSymVel_0_0 : public MatrixFormVol <double>
+  class BilinearFormUnSymVel_0_0 : public MatrixFormVol < double >
   {
   public:
     BilinearFormUnSymVel_0_0(int i, int j, bool Stokes) : MatrixFormVol<double>(i, j), Stokes(Stokes) {
@@ -142,7 +142,7 @@ public:
     bool Stokes;
   };
 
-  class BilinearFormUnSymVel_0_1 : public MatrixFormVol <double>
+  class BilinearFormUnSymVel_0_1 : public MatrixFormVol < double >
   {
   public:
     BilinearFormUnSymVel_0_1(int i, int j, bool Stokes) : MatrixFormVol<double>(i, j), Stokes(Stokes) {
@@ -176,7 +176,7 @@ public:
     bool Stokes;
   };
 
-  class BilinearFormUnSymVel_1_0 : public MatrixFormVol <double>
+  class BilinearFormUnSymVel_1_0 : public MatrixFormVol < double >
   {
   public:
     BilinearFormUnSymVel_1_0(int i, int j, bool Stokes) : MatrixFormVol<double>(i, j), Stokes(Stokes) {
@@ -210,7 +210,7 @@ public:
     bool Stokes;
   };
 
-  class BilinearFormUnSymVel_1_1 : public MatrixFormVol <double>
+  class BilinearFormUnSymVel_1_1 : public MatrixFormVol < double >
   {
   public:
     BilinearFormUnSymVel_1_1(int i, int j, bool Stokes) : MatrixFormVol<double>(i, j), Stokes(Stokes) {
@@ -248,7 +248,7 @@ public:
     bool Stokes;
   };
 
-  class BilinearFormUnSymXVelPressure : public MatrixFormVol <double>
+  class BilinearFormUnSymXVelPressure : public MatrixFormVol < double >
   {
   public:
     BilinearFormUnSymXVelPressure(int i, int j) : MatrixFormVol<double>(i, j) {
@@ -268,7 +268,7 @@ public:
     }
   };
 
-  class BilinearFormUnSymYVelPressure : public MatrixFormVol <double>
+  class BilinearFormUnSymYVelPressure : public MatrixFormVol < double >
   {
   public:
     BilinearFormUnSymYVelPressure(int i, int j) : MatrixFormVol<double>(i, j) {
@@ -288,7 +288,7 @@ public:
     }
   };
 
-  class CustomJacobianTempAdvection_3_0 : public MatrixFormVol <double>
+  class CustomJacobianTempAdvection_3_0 : public MatrixFormVol < double >
   {
   public:
     CustomJacobianTempAdvection_3_0(int i, int j, std::string area) : MatrixFormVol<double>(i, j)
@@ -323,7 +323,7 @@ public:
     }
   };
 
-  class CustomJacobianTempAdvection_3_3_simple : public MatrixFormVol <double>
+  class CustomJacobianTempAdvection_3_3_simple : public MatrixFormVol < double >
   {
   public:
     CustomJacobianTempAdvection_3_3_simple(int i, int j, std::string area) : MatrixFormVol<double>(i, j)
@@ -360,7 +360,7 @@ public:
     }
   };
 
-  class CustomJacobianTempAdvection_3_1 : public MatrixFormVol <double>
+  class CustomJacobianTempAdvection_3_1 : public MatrixFormVol < double >
   {
   public:
     CustomJacobianTempAdvection_3_1(int i, int j, std::string area) : MatrixFormVol<double>(i, j)
@@ -394,7 +394,7 @@ public:
     }
   };
 
-  class CustomJacobianTempAdvection_3_3 : public MatrixFormVol <double>
+  class CustomJacobianTempAdvection_3_3 : public MatrixFormVol < double >
   {
   public:
     CustomJacobianTempAdvection_3_3(int i, int j, std::string area) : MatrixFormVol<double>(i, j)
@@ -431,7 +431,7 @@ public:
     }
   };
 
-  class VectorFormTime : public VectorFormVol <double>
+  class VectorFormTime : public VectorFormVol < double >
   {
   public:
     VectorFormTime(int i, std::string area, double time_step) : VectorFormVol<double>(i), time_step(time_step)
@@ -461,7 +461,7 @@ public:
     double time_step;
   };
 
-  class CustomResidualTempAdvection : public VectorFormVol <double>
+  class CustomResidualTempAdvection : public VectorFormVol < double >
   {
   public:
     CustomResidualTempAdvection(int i, std::string area) : VectorFormVol<double>(i)
@@ -500,7 +500,7 @@ public:
     }
   };
 
-  class CustomResidualTempAdvection_simple : public VectorFormVol <double>
+  class CustomResidualTempAdvection_simple : public VectorFormVol < double >
   {
   public:
     CustomResidualTempAdvection_simple(int i, std::string area) : VectorFormVol<double>(i)
@@ -539,7 +539,7 @@ public:
     }
   };
 
-  class VectorFormNS_0 : public VectorFormVol <double>
+  class VectorFormNS_0 : public VectorFormVol < double >
   {
   public:
     VectorFormNS_0(int i, bool Stokes, double Reynolds, double time_step) : VectorFormVol<double>(i), Stokes(Stokes), Reynolds(Reynolds), time_step(time_step)
@@ -588,7 +588,7 @@ public:
     double time_step;
   };
 
-  class VectorFormNS_1 : public VectorFormVol <double>
+  class VectorFormNS_1 : public VectorFormVol < double >
   {
   public:
     VectorFormNS_1(int i, bool Stokes, double Reynolds, double time_step) : VectorFormVol<double>(i), Stokes(Stokes), Reynolds(Reynolds), time_step(time_step) {
@@ -636,7 +636,7 @@ public:
     double time_step;
   };
 
-  class VectorFormNS_2 : public VectorFormVol <double>
+  class VectorFormNS_2 : public VectorFormVol < double >
   {
   public:
     VectorFormNS_2(int i) : VectorFormVol<double>(i) {
@@ -676,7 +676,7 @@ protected:
   MeshFunctionSharedPtr<double> y_vel_previous_time;
 };
 
-class EssentialBCNonConst : public EssentialBoundaryCondition <double>
+class EssentialBCNonConst : public EssentialBoundaryCondition < double >
 {
 public:
   EssentialBCNonConst(std::vector<std::string> markers, double vel_inlet, double H, double startup_time) :

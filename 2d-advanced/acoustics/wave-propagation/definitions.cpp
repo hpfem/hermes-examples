@@ -254,10 +254,10 @@ MatrixFormSurf<Scalar>* surface_matrix_acoustic_transient_planar_linear_form_1_2
   return new surface_matrix_acoustic_transient_planar_linear_form_1_2_acoustic_impedance(*this);
 }
 
-template class volume_matrix_acoustic_transient_planar_linear_form_1_1 <double> ;
-template class volume_matrix_acoustic_transient_planar_linear_form_1_2 <double> ;
-template class volume_matrix_acoustic_transient_planar_linear_form_2_2 <double> ;
-template class volume_matrix_acoustic_transient_planar_linear_form_2_1 <double> ;
-template class volume_vector_acoustic_transient_planar_linear_form_1_2 <double> ;
-template class volume_vector_acoustic_transient_planar_linear_form_2_1 <double> ;
-template class surface_matrix_acoustic_transient_planar_linear_form_1_2_acoustic_impedance <double> ;
+template class volume_matrix_acoustic_transient_planar_linear_form_1_1 < double > ;
+template class volume_matrix_acoustic_transient_planar_linear_form_1_2 < double > ;
+template class volume_matrix_acoustic_transient_planar_linear_form_2_2 < double > ;
+template class volume_matrix_acoustic_transient_planar_linear_form_2_1 < double > ;
+template class volume_vector_acoustic_transient_planar_linear_form_1_2 < double > ;
+template class volume_vector_acoustic_transient_planar_linear_form_2_1 < double > ;
+template class surface_matrix_acoustic_transient_planar_linear_form_1_2_acoustic_impedance < double > ;

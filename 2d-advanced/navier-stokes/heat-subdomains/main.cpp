@@ -101,7 +101,7 @@ int main(int argc, char* argv[])
   // Initialize boundary conditions.
   EssentialBCNonConst bc_inlet_vel_x("Inlet", VEL_INLET, H, STARTUP_TIME);
   DefaultEssentialBCConst<double> bc_other_vel_x(std::vector<std::string>({ "Outer Wall", "Inner Wall" }), 0.0);
-  EssentialBCs<double> bcs_vel_x({&bc_inlet_vel_x, &bc_other_vel_x});
+  EssentialBCs<double> bcs_vel_x({ &bc_inlet_vel_x, &bc_other_vel_x });
   DefaultEssentialBCConst<double> bc_vel_y(std::vector<std::string>({ "Inlet", "Outer Wall", "Inner Wall" }), 0.0);
   EssentialBCs<double> bcs_vel_y(&bc_vel_y);
   EssentialBCs<double> bcs_pressure;

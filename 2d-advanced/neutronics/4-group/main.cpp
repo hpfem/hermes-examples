@@ -116,7 +116,7 @@ int main(int argc, char* argv[])
 
   // Initialize the weak formulation.
   WeakFormSharedPtr<double> wf(new CustomWeakForm(matprop, iterates, k_eff, bdy_vacuum));
-  
+
   // Initialize Newton solver.
   NewtonSolver<double> newton(wf, spaces);
 

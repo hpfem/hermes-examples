@@ -14,7 +14,7 @@ typedef std::complex<double> complex;
 
 // Jacobian.
 
-class CustomMatrixForm : public MatrixFormVol <::complex>
+class CustomMatrixForm : public MatrixFormVol < ::complex >
 {
 public:
   CustomMatrixForm(int i, int j, double e_0, double mu_0, double mu_r, double kappa, double omega, double J, bool align_mesh)
@@ -55,7 +55,7 @@ private:
 
 // Residual.
 
-class CustomResidualForm : public VectorFormVol <::complex>
+class CustomResidualForm : public VectorFormVol < ::complex >
 {
 public:
   CustomResidualForm(int i, double e_0, double mu_0, double mu_r, double kappa, double omega, double J, bool align_mesh)
@@ -92,7 +92,7 @@ private:
   bool align_mesh;
 };
 
-class CustomVectorFormSurf : public VectorFormSurf <::complex>
+class CustomVectorFormSurf : public VectorFormSurf < ::complex >
 {
 public:
   CustomVectorFormSurf(double omega, double J, std::string bnd)
@@ -112,7 +112,7 @@ public:
   double omega, J;
 };
 
-class CustomWeakForm : public WeakForm <::complex>
+class CustomWeakForm : public WeakForm < ::complex >
 {
 public:
   CustomWeakForm(double e_0, double mu_0, double mu_r, double kappa, double omega,
@@ -125,7 +125,7 @@ private:
 
 // Custom error form.
 
-class CustomErrorForm : public NormFormVol <::complex>
+class CustomErrorForm : public NormFormVol < ::complex >
 {
 public:
   CustomErrorForm(double kappa) : NormFormVol<::complex>(0, 0)

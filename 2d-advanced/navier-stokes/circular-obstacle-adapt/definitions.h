@@ -7,13 +7,13 @@ using namespace Hermes::Hermes2D;
 using namespace Hermes::Hermes2D::Views;
 using namespace Hermes::Hermes2D::RefinementSelectors;
 
-class WeakFormNSSimpleLinearization : public WeakForm <double>
+class WeakFormNSSimpleLinearization : public WeakForm < double >
 {
 public:
   WeakFormNSSimpleLinearization(bool Stokes, double Reynolds, double time_step, MeshFunctionSharedPtr<double>  x_vel_previous_time,
     MeshFunctionSharedPtr<double>  y_vel_previous_time);
 
-  class BilinearFormSymVel : public MatrixFormVol <double>
+  class BilinearFormSymVel : public MatrixFormVol < double >
   {
   public:
     BilinearFormSymVel(int i, int j, bool Stokes, double Reynolds, double time_step);
@@ -32,7 +32,7 @@ public:
     double time_step;
   };
 
-  class BilinearFormNonsymVel : public MatrixFormVol <double>
+  class BilinearFormNonsymVel : public MatrixFormVol < double >
   {
   public:
     BilinearFormNonsymVel(int i, int j, bool Stokes);
@@ -48,7 +48,7 @@ public:
     bool Stokes;
   };
 
-  class BilinearFormNonsymXVelPressure : public MatrixFormVol <double>
+  class BilinearFormNonsymXVelPressure : public MatrixFormVol < double >
   {
   public:
     BilinearFormNonsymXVelPressure(int i, int j);
@@ -61,7 +61,7 @@ public:
     virtual MatrixFormVol<double>* clone() const;
   };
 
-  class BilinearFormNonsymYVelPressure : public MatrixFormVol <double>
+  class BilinearFormNonsymYVelPressure : public MatrixFormVol < double >
   {
   public:
     BilinearFormNonsymYVelPressure(int i, int j);
@@ -74,7 +74,7 @@ public:
     virtual MatrixFormVol<double>* clone() const;
   };
 
-  class VectorFormVolVel : public VectorFormVol <double>
+  class VectorFormVolVel : public VectorFormVol < double >
   {
   public:
     VectorFormVolVel(int i, bool Stokes, double time_step);
@@ -98,13 +98,13 @@ protected:
   MeshFunctionSharedPtr<double>  y_vel_previous_time;
 };
 
-class WeakFormNSNewton : public WeakForm <double>
+class WeakFormNSNewton : public WeakForm < double >
 {
 public:
   WeakFormNSNewton(bool Stokes, double Reynolds, double time_step, MeshFunctionSharedPtr<double>  x_vel_previous_time,
     MeshFunctionSharedPtr<double>  y_vel_previous_time);
 
-  class BilinearFormSymVel : public MatrixFormVol <double>
+  class BilinearFormSymVel : public MatrixFormVol < double >
   {
   public:
     BilinearFormSymVel(int i, int j, bool Stokes, double Reynolds, double time_step);
@@ -124,7 +124,7 @@ public:
     double time_step;
   };
 
-  class BilinearFormNonsymVel_0_0 : public MatrixFormVol <double>
+  class BilinearFormNonsymVel_0_0 : public MatrixFormVol < double >
   {
   public:
     BilinearFormNonsymVel_0_0(int i, int j, bool Stokes);
@@ -142,7 +142,7 @@ public:
     bool Stokes;
   };
 
-  class BilinearFormNonsymVel_0_1 : public MatrixFormVol <double>
+  class BilinearFormNonsymVel_0_1 : public MatrixFormVol < double >
   {
   public:
     BilinearFormNonsymVel_0_1(int i, int j, bool Stokes);
@@ -160,7 +160,7 @@ public:
     bool Stokes;
   };
 
-  class BilinearFormNonsymVel_1_0 : public MatrixFormVol <double>
+  class BilinearFormNonsymVel_1_0 : public MatrixFormVol < double >
   {
   public:
     BilinearFormNonsymVel_1_0(int i, int j, bool Stokes);
@@ -178,7 +178,7 @@ public:
     bool Stokes;
   };
 
-  class BilinearFormNonsymVel_1_1 : public MatrixFormVol <double>
+  class BilinearFormNonsymVel_1_1 : public MatrixFormVol < double >
   {
   public:
     BilinearFormNonsymVel_1_1(int i, int j, bool Stokes);
@@ -196,7 +196,7 @@ public:
     bool Stokes;
   };
 
-  class BilinearFormNonsymXVelPressure : public MatrixFormVol <double>
+  class BilinearFormNonsymXVelPressure : public MatrixFormVol < double >
   {
   public:
     BilinearFormNonsymXVelPressure(int i, int j);
@@ -212,7 +212,7 @@ public:
     }
   };
 
-  class BilinearFormNonsymYVelPressure : public MatrixFormVol <double>
+  class BilinearFormNonsymYVelPressure : public MatrixFormVol < double >
   {
   public:
     BilinearFormNonsymYVelPressure(int i, int j);
@@ -228,7 +228,7 @@ public:
     }
   };
 
-  class VectorFormNS_0 : public VectorFormVol <double>
+  class VectorFormNS_0 : public VectorFormVol < double >
   {
   public:
     VectorFormNS_0(int i, bool Stokes, double Reynolds, double time_step);
@@ -248,7 +248,7 @@ public:
     double time_step;
   };
 
-  class VectorFormNS_1 : public VectorFormVol <double>
+  class VectorFormNS_1 : public VectorFormVol < double >
   {
   public:
     VectorFormNS_1(int i, bool Stokes, double Reynolds, double time_step);
@@ -268,7 +268,7 @@ public:
     double time_step;
   };
 
-  class VectorFormNS_2 : public VectorFormVol <double>
+  class VectorFormNS_2 : public VectorFormVol < double >
   {
   public:
     VectorFormNS_2(int i);
@@ -292,7 +292,7 @@ protected:
   MeshFunctionSharedPtr<double>  y_vel_previous_time;
 };
 
-class EssentialBCNonConst : public EssentialBoundaryCondition <double>
+class EssentialBCNonConst : public EssentialBoundaryCondition < double >
 {
 public:
   EssentialBCNonConst(std::vector<std::string> markers, double vel_inlet, double H, double startup_time)

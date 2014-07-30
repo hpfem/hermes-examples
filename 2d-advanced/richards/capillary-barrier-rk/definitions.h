@@ -8,7 +8,7 @@ using namespace Hermes::Hermes2D::Views;
 
 /* Custom non-constant Dirichlet condition */
 
-class RichardsEssentialBC : public EssentialBoundaryCondition <double> {
+class RichardsEssentialBC : public EssentialBoundaryCondition < double > {
 public:
 
   RichardsEssentialBC(std::string marker, double h_elevation, double pulse_end_time, double h_init, double startup_time) :
@@ -39,14 +39,14 @@ public:
 
 /* Weak forms */
 
-class CustomWeakFormRichardsRK : public WeakForm <double>
+class CustomWeakFormRichardsRK : public WeakForm < double >
 {
 public:
   CustomWeakFormRichardsRK(ConstitutiveRelations* constitutive);
 
 private:
 
-  class CustomJacobianFormVol : public MatrixFormVol <double>
+  class CustomJacobianFormVol : public MatrixFormVol < double >
   {
   public:
     CustomJacobianFormVol(int i, int j, ConstitutiveRelations* constitutive)
@@ -64,7 +64,7 @@ private:
     ConstitutiveRelations* constitutive;
   };
 
-  class CustomResidualFormVol : public VectorFormVol <double>
+  class CustomResidualFormVol : public VectorFormVol < double >
   {
   public:
     CustomResidualFormVol(int i, ConstitutiveRelations* constitutive)

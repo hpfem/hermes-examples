@@ -9,7 +9,7 @@ using namespace Hermes::Hermes2D::RefinementSelectors;
 
 /* Custom non-constant Dirichlet condition */
 
-class CustomEssentialBCNonConst : public EssentialBoundaryCondition <double>
+class CustomEssentialBCNonConst : public EssentialBoundaryCondition < double >
 {
 public:
   CustomEssentialBCNonConst(std::vector<std::string>(markers))
@@ -24,14 +24,14 @@ public:
 
 /* Weak forms */
 
-class CustomWeakFormRichardsRK : public WeakForm <double>
+class CustomWeakFormRichardsRK : public WeakForm < double >
 {
 public:
   CustomWeakFormRichardsRK(ConstitutiveRelations* constitutive);
 
 private:
 
-  class CustomJacobianFormVol : public MatrixFormVol <double>
+  class CustomJacobianFormVol : public MatrixFormVol < double >
   {
   public:
     CustomJacobianFormVol(int i, int j, ConstitutiveRelations* constitutive)
@@ -49,7 +49,7 @@ private:
     ConstitutiveRelations* constitutive;
   };
 
-  class CustomResidualFormVol : public VectorFormVol <double>
+  class CustomResidualFormVol : public VectorFormVol < double >
   {
   public:
     CustomResidualFormVol(int i, ConstitutiveRelations* constitutive)

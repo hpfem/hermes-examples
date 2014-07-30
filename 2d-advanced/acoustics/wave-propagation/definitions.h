@@ -124,7 +124,7 @@ public:
 
 #pragma endregion
 
-class MyWeakForm : public WeakForm <double>
+class MyWeakForm : public WeakForm < double >
 {
 public:
   MyWeakForm(
@@ -183,7 +183,7 @@ public:
   std::vector<MeshFunctionSharedPtr<double> > prev_slns;
 };
 
-class CustomBCValue : public EssentialBoundaryCondition <double>
+class CustomBCValue : public EssentialBoundaryCondition < double >
 {
 public:
   CustomBCValue(std::vector<std::string> markers, double amplitude, double frequency) : EssentialBoundaryCondition <double>(markers), amplitude(amplitude), frequency(frequency)
@@ -209,7 +209,7 @@ public:
   double frequency;
 };
 
-class CustomBCDerivative : public EssentialBoundaryCondition <double>
+class CustomBCDerivative : public EssentialBoundaryCondition < double >
 {
 public:
   CustomBCDerivative(std::vector<std::string> markers, double amplitude, double frequency) : EssentialBoundaryCondition <double>(markers), amplitude(amplitude), frequency(frequency)

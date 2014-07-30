@@ -19,7 +19,7 @@ Real T_fire_t(Real t);
 
 /* Weak forms */
 
-class CustomWeakFormHeatRK : public WeakForm <double>
+class CustomWeakFormHeatRK : public WeakForm < double >
 {
 public:
   CustomWeakFormHeatRK(std::string bdy_fire, std::string bdy_air,
@@ -28,7 +28,7 @@ public:
 
 private:
   // This form is custom since it contains space-dependent thermal conductivity.
-  class CustomJacobianVol : public MatrixFormVol <double>
+  class CustomJacobianVol : public MatrixFormVol < double >
   {
   public:
     CustomJacobianVol(int i, int j, double rho, double heatcap)
@@ -46,7 +46,7 @@ private:
   };
 
   // This form is custom since it contains space-dependent thermal conductivity.
-  class CustomFormResidualVol : public VectorFormVol <double>
+  class CustomFormResidualVol : public VectorFormVol < double >
   {
   public:
     CustomFormResidualVol(int i, double rho, double heatcap)
@@ -64,7 +64,7 @@ private:
   };
 
   // Custom due to time-dependent exterior temperature.
-  class CustomFormResidualSurfFire : public VectorFormSurf <double>
+  class CustomFormResidualSurfFire : public VectorFormSurf < double >
   {
   public:
     CustomFormResidualSurfFire(int i, std::string area, double alpha_fire, double rho,

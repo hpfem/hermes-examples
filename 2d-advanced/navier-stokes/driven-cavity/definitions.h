@@ -7,13 +7,13 @@ using namespace Hermes::Hermes2D;
 using namespace Hermes::Hermes2D::Views;
 using namespace Hermes::Hermes2D::RefinementSelectors;
 
-class WeakFormNSNewton : public WeakForm <double>
+class WeakFormNSNewton : public WeakForm < double >
 {
 public:
   WeakFormNSNewton(bool Stokes, double Reynolds, double time_step, MeshFunctionSharedPtr<double>  x_vel_previous_time,
     MeshFunctionSharedPtr<double>  y_vel_previous_time);
 
-  class BilinearFormSymVel : public MatrixFormVol <double>
+  class BilinearFormSymVel : public MatrixFormVol < double >
   {
   public:
     BilinearFormSymVel(int i, int j, bool Stokes, double Reynolds, double time_step)
@@ -35,7 +35,7 @@ public:
     double time_step;
   };
 
-  class BilinearFormNonsymVel_0_0 : public MatrixFormVol <double>
+  class BilinearFormNonsymVel_0_0 : public MatrixFormVol < double >
   {
   public:
     BilinearFormNonsymVel_0_0(int i, int j, bool Stokes)
@@ -52,7 +52,7 @@ public:
     bool Stokes;
   };
 
-  class BilinearFormNonsymVel_0_1 : public MatrixFormVol <double>
+  class BilinearFormNonsymVel_0_1 : public MatrixFormVol < double >
   {
   public:
     BilinearFormNonsymVel_0_1(int i, int j, bool Stokes)
@@ -69,7 +69,7 @@ public:
     bool Stokes;
   };
 
-  class BilinearFormNonsymVel_1_0 : public MatrixFormVol <double>
+  class BilinearFormNonsymVel_1_0 : public MatrixFormVol < double >
   {
   public:
     BilinearFormNonsymVel_1_0(int i, int j, bool Stokes)
@@ -86,7 +86,7 @@ public:
     bool Stokes;
   };
 
-  class BilinearFormNonsymVel_1_1 : public MatrixFormVol <double>
+  class BilinearFormNonsymVel_1_1 : public MatrixFormVol < double >
   {
   public:
     BilinearFormNonsymVel_1_1(int i, int j, bool Stokes)
@@ -103,7 +103,7 @@ public:
     bool Stokes;
   };
 
-  class BilinearFormNonsymXVelPressure : public MatrixFormVol <double>
+  class BilinearFormNonsymXVelPressure : public MatrixFormVol < double >
   {
   public:
     BilinearFormNonsymXVelPressure(int i, int j) : MatrixFormVol<double>(i, j) { this->setSymFlag(HERMES_ANTISYM); };
@@ -116,7 +116,7 @@ public:
     MatrixFormVol<double>* clone() const;
   };
 
-  class BilinearFormNonsymYVelPressure : public MatrixFormVol <double>
+  class BilinearFormNonsymYVelPressure : public MatrixFormVol < double >
   {
   public:
     BilinearFormNonsymYVelPressure(int i, int j) : MatrixFormVol<double>(i, j) { this->setSymFlag(HERMES_ANTISYM); };
@@ -129,7 +129,7 @@ public:
     MatrixFormVol<double>* clone() const;
   };
 
-  class VectorFormNS_0 : public VectorFormVol <double>
+  class VectorFormNS_0 : public VectorFormVol < double >
   {
   public:
     VectorFormNS_0(int i, bool Stokes, double Reynolds, double time_step) : VectorFormVol<double>(i),
@@ -147,7 +147,7 @@ public:
     double time_step;
   };
 
-  class VectorFormNS_1 : public VectorFormVol <double>
+  class VectorFormNS_1 : public VectorFormVol < double >
   {
   public:
     VectorFormNS_1(int i, bool Stokes, double Reynolds, double time_step)
@@ -165,7 +165,7 @@ public:
     double time_step;
   };
 
-  class VectorFormNS_2 : public VectorFormVol <double>
+  class VectorFormNS_2 : public VectorFormVol < double >
   {
   public:
     VectorFormNS_2(int i) : VectorFormVol<double>(i) {};
@@ -188,7 +188,7 @@ protected:
 /* Essential boundary conditions */
 
 // Time-dependent surface x-velocity of inner circle.
-class EssentialBCNonConstX : public EssentialBoundaryCondition <double>
+class EssentialBCNonConstX : public EssentialBoundaryCondition < double >
 {
 public:
   EssentialBCNonConstX(std::vector<std::string> markers, double vel, double startup_time)
@@ -209,7 +209,7 @@ protected:
 };
 
 // Time-dependent surface y-velocity of inner circle.
-class EssentialBCNonConstY : public EssentialBoundaryCondition <double>
+class EssentialBCNonConstY : public EssentialBoundaryCondition < double >
 {
 public:
   EssentialBCNonConstY(std::vector<std::string> markers, double vel, double startup_time)

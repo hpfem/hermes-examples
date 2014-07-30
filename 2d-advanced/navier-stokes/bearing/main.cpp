@@ -115,8 +115,8 @@ int main(int argc, char* argv[])
   EssentialBCNonConstX bc_inner_vel_x(std::string("Inner"), VEL, STARTUP_TIME);
   EssentialBCNonConstY bc_inner_vel_y(std::string("Inner"), VEL, STARTUP_TIME);
   DefaultEssentialBCConst<double> bc_outer_vel(std::string("Outer"), 0.0);
-  EssentialBCs<double> bcs_vel_x({&bc_inner_vel_x, &bc_outer_vel});
-  EssentialBCs<double> bcs_vel_y({&bc_inner_vel_y, &bc_outer_vel});
+  EssentialBCs<double> bcs_vel_x({ &bc_inner_vel_x, &bc_outer_vel });
+  EssentialBCs<double> bcs_vel_y({ &bc_inner_vel_y, &bc_outer_vel });
 
   // Spaces for velocity components and pressure.
   SpaceSharedPtr<double> xvel_space(new H1Space<double>(mesh, &bcs_vel_x, P_INIT_VEL));

@@ -99,9 +99,9 @@ int main(int argc, char* argv[])
 
   // Initialize boundary conditions.
   EssentialBCNonConst bc_left_vel_x(BDY_LEFT, VEL_INLET, H, STARTUP_TIME);
-  DefaultEssentialBCConst<double> bc_other_vel_x({BDY_BOTTOM, BDY_TOP, BDY_OBSTACLE}, 0.0);
-  EssentialBCs<double> bcs_vel_x({&bc_left_vel_x, &bc_other_vel_x});
-  DefaultEssentialBCConst<double> bc_vel_y({BDY_LEFT, BDY_BOTTOM, BDY_TOP, BDY_OBSTACLE}, 0.0);
+  DefaultEssentialBCConst<double> bc_other_vel_x({ BDY_BOTTOM, BDY_TOP, BDY_OBSTACLE }, 0.0);
+  EssentialBCs<double> bcs_vel_x({ &bc_left_vel_x, &bc_other_vel_x });
+  DefaultEssentialBCConst<double> bc_vel_y({ BDY_LEFT, BDY_BOTTOM, BDY_TOP, BDY_OBSTACLE }, 0.0);
   EssentialBCs<double> bcs_vel_y(&bc_vel_y);
 
   SpaceSharedPtr<double> xvel_space(new H1Space<double>(mesh, &bcs_vel_x, P_INIT_VEL));

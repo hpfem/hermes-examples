@@ -132,7 +132,7 @@ int main(int argc, char* argv[])
   s_view1.show(vector_potential);
 
   ScalarView s_view2("Flux density", new WinGeom(360, 0, 350, 450));
-  MeshFunctionSharedPtr<double> flux_density(new FilterFluxDensity(std::vector<MeshFunctionSharedPtr<double> >({sln, sln})));
+  MeshFunctionSharedPtr<double> flux_density(new FilterFluxDensity(std::vector<MeshFunctionSharedPtr<double> >({ sln, sln })));
   s_view2.show_mesh(false);
   s_view2.show(flux_density);
 

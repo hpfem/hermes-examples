@@ -1,4 +1,3 @@
-
 #include "definitions.h"
 #include "problem_data.h"
 

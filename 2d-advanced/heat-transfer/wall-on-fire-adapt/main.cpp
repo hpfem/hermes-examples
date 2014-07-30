@@ -1,4 +1,3 @@
-
 #include "definitions.h"
 
 //  This example models a nonstationary distribution of temperature within a wall
@@ -351,8 +350,7 @@ int main(int argc, char* argv[])
         // Increase the counter of performed adaptivity steps.
         as++;
       }
-    }
-    while (done == false);
+    } while (done == false);
 
     // Visualize the solution and mesh->
     char title[100];

@@ -9,7 +9,7 @@ using namespace Hermes::Hermes2D::RefinementSelectors;
 
 /* Initial condition for E */
 
-class CustomInitialConditionWave : public ExactSolutionVector <double>
+class CustomInitialConditionWave : public ExactSolutionVector < double >
 {
 public:
   CustomInitialConditionWave(MeshSharedPtr mesh) : ExactSolutionVector<double>(mesh) {};
@@ -25,14 +25,14 @@ public:
 
 /* Weak forms */
 
-class CustomWeakFormWave : public WeakForm <double>
+class CustomWeakFormWave : public WeakForm < double >
 {
 public:
 
   CustomWeakFormWave(double c_squared);
 
 private:
-  class MatrixFormVolWave_0_1 : public MatrixFormVol <double>
+  class MatrixFormVolWave_0_1 : public MatrixFormVol < double >
   {
   public:
     MatrixFormVolWave_0_1(double c_squared)
@@ -53,7 +53,7 @@ private:
     double c_squared;
   };
 
-  class MatrixFormVolWave_1_0 : public MatrixFormVol <double>
+  class MatrixFormVolWave_1_0 : public MatrixFormVol < double >
   {
   public:
     MatrixFormVolWave_1_0()
@@ -72,7 +72,7 @@ private:
     MatrixFormVol<double>* clone() const;
   };
 
-  class VectorFormVolWave_0 : public VectorFormVol <double>
+  class VectorFormVolWave_0 : public VectorFormVol < double >
   {
   public:
     VectorFormVolWave_0(double c_squared)
@@ -93,7 +93,7 @@ private:
     double c_squared;
   };
 
-  class VectorFormVolWave_1 : public VectorFormVol <double>
+  class VectorFormVolWave_1 : public VectorFormVol < double >
   {
   public:
     VectorFormVolWave_1()

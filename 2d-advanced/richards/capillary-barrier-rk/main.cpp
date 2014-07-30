@@ -1,4 +1,3 @@
-
 #include "definitions.h"
 
 //  This example solves the time-dependent Richard's equation using

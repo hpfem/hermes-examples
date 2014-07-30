@@ -98,12 +98,12 @@ int main(int argc, char* argv[])
 
   // Initial mesh refinements.
   for (int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
-  mesh->refine_towards_boundary({"Bdy-1", "Bdy-2", "Bdy-3", "Bdy-4"},
+  mesh->refine_towards_boundary({ "Bdy-1", "Bdy-2", "Bdy-3", "Bdy-4" },
     INIT_BDY_REF_NUM_INNER, false);  // True for anisotropic refinement.
 
   // Initialize boundary conditions.
-  EssentialBCNonConstX bc_vel_x({"Bdy-1", "Bdy-2", "Bdy-3", "Bdy-4"}, VEL, STARTUP_TIME);
-  EssentialBCNonConstY bc_vel_y({"Bdy-1", "Bdy-2", "Bdy-3", "Bdy-4"}, VEL, STARTUP_TIME);
+  EssentialBCNonConstX bc_vel_x({ "Bdy-1", "Bdy-2", "Bdy-3", "Bdy-4" }, VEL, STARTUP_TIME);
+  EssentialBCNonConstY bc_vel_y({ "Bdy-1", "Bdy-2", "Bdy-3", "Bdy-4" }, VEL, STARTUP_TIME);
   EssentialBCs<double> bcs_vel_x(&bc_vel_x);
   EssentialBCs<double> bcs_vel_y(&bc_vel_y);
 

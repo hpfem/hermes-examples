@@ -12,7 +12,7 @@ using namespace Hermes::Hermes2D::RefinementSelectors;
 
 /*** INITIAL CONDITION ***/
 
-class InitialSolutionRichards : public ExactSolutionScalar <double>
+class InitialSolutionRichards : public ExactSolutionScalar < double >
 {
 public:
   InitialSolutionRichards(MeshSharedPtr mesh, double constant)
@@ -40,7 +40,7 @@ public:
   double constant;
 };
 
-class ExactSolutionPoisson : public ExactSolutionScalar <double>
+class ExactSolutionPoisson : public ExactSolutionScalar < double >
 {
 public:
   ExactSolutionPoisson(MeshSharedPtr mesh) : ExactSolutionScalar<double>(mesh) {};
@@ -66,7 +66,7 @@ public:
 
 /*** NEWTON ***/
 
-class WeakFormRichardsNewtonEuler : public WeakForm <double>
+class WeakFormRichardsNewtonEuler : public WeakForm < double >
 {
 public:
   WeakFormRichardsNewtonEuler(ConstitutiveRelationsGenuchtenWithLayer* relations, double tau, MeshFunctionSharedPtr<double>  prev_time_sln, MeshSharedPtr mesh)
@@ -81,7 +81,7 @@ public:
   }
 
 private:
-  class JacobianFormNewtonEuler : public MatrixFormVol <double>
+  class JacobianFormNewtonEuler : public MatrixFormVol < double >
   {
   public:
     JacobianFormNewtonEuler(int i, int j, ConstitutiveRelationsGenuchtenWithLayer* relations, double tau)
@@ -137,7 +137,7 @@ private:
     ConstitutiveRelationsGenuchtenWithLayer* relations;
   };
 
-  class ResidualFormNewtonEuler : public VectorFormVol <double>
+  class ResidualFormNewtonEuler : public VectorFormVol < double >
   {
   public:
     ResidualFormNewtonEuler(int i, ConstitutiveRelationsGenuchtenWithLayer* relations, double tau)
@@ -193,7 +193,7 @@ private:
   }
 };
 
-class WeakFormRichardsNewtonCrankNicolson : public WeakForm <double>
+class WeakFormRichardsNewtonCrankNicolson : public WeakForm < double >
 {
 public:
   WeakFormRichardsNewtonCrankNicolson(ConstitutiveRelationsGenuchtenWithLayer* relations, double tau, MeshFunctionSharedPtr<double>  prev_time_sln, MeshSharedPtr mesh) : WeakForm<double>(1), relations(relations), mesh(mesh) {
@@ -207,7 +207,7 @@ public:
   }
 
 private:
-  class JacobianFormNewtonCrankNicolson : public MatrixFormVol <double>
+  class JacobianFormNewtonCrankNicolson : public MatrixFormVol < double >
   {
   public:
     JacobianFormNewtonCrankNicolson(int i, int j, ConstitutiveRelationsGenuchtenWithLayer* relations, double tau)
@@ -257,7 +257,7 @@ private:
     ConstitutiveRelationsGenuchtenWithLayer* relations;
   };
 
-  class ResidualFormNewtonCrankNicolson : public VectorFormVol <double>
+  class ResidualFormNewtonCrankNicolson : public VectorFormVol < double >
   {
   public:
     ResidualFormNewtonCrankNicolson(int i, ConstitutiveRelationsGenuchtenWithLayer* relations, double tau) : VectorFormVol<double>(i), tau(tau), relations(relations) { }
@@ -315,7 +315,7 @@ private:
   }
 };
 
-class WeakFormRichardsPicardEuler : public WeakForm <double>
+class WeakFormRichardsPicardEuler : public WeakForm < double >
 {
 public:
   WeakFormRichardsPicardEuler(ConstitutiveRelationsGenuchtenWithLayer* relations, double tau, MeshFunctionSharedPtr<double>  prev_picard_sln, MeshFunctionSharedPtr<double>  prev_time_sln, MeshSharedPtr mesh) : WeakForm<double>(1), relations(relations), mesh(mesh) {
@@ -330,7 +330,7 @@ public:
   }
 
 private:
-  class JacobianFormPicardEuler : public MatrixFormVol <double>
+  class JacobianFormPicardEuler : public MatrixFormVol < double >
   {
   public:
     JacobianFormPicardEuler(int i, int j, ConstitutiveRelationsGenuchtenWithLayer* relations, double tau)
@@ -371,7 +371,7 @@ private:
     ConstitutiveRelationsGenuchtenWithLayer* relations;
   };
 
-  class ResidualFormPicardEuler : public VectorFormVol <double>
+  class ResidualFormPicardEuler : public VectorFormVol < double >
   {
   public:
     ResidualFormPicardEuler(int i, ConstitutiveRelationsGenuchtenWithLayer* relations, double tau) : VectorFormVol<double>(i), tau(tau), relations(relations) { }
@@ -419,7 +419,7 @@ private:
   }
 };
 
-class RichardsEssentialBC : public EssentialBoundaryCondition <double> {
+class RichardsEssentialBC : public EssentialBoundaryCondition < double > {
 public:
 
   RichardsEssentialBC(std::string marker, double h_elevation, double pulse_end_time, double h_init, double startup_time) :

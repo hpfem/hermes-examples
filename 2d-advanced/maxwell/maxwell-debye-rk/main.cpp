@@ -63,7 +63,7 @@ int REFINEMENT_COUNT = 0;
 // it has different meanings for various adaptive strategies (see below).
 const double THRESHOLD = 0.5;
 // Error calculation & adaptivity.
-class CustomErrorCalculator : public ErrorCalculator <double>
+class CustomErrorCalculator : public ErrorCalculator < double >
 {
 public:
   // Two first components are in the H1 space - we can use the classic class for that, for the last component, we will manually add the L2 norm for pressure.
@@ -297,11 +297,11 @@ int main(int argc, char* argv[])
 
         // Project the fine mesh solution onto the coarse mesh->
         Hermes::Mixins::Loggable::Static::info("Projecting reference solution on coarse mesh->");
-        OGProjection<double> ogProjection; ogProjection.project_global({E_space, H_space, P_space }, { E_time_new, H_time_new, P_time_new }, { E_time_new_coarse, H_time_new_coarse, P_time_new_coarse });
+        OGProjection<double> ogProjection; ogProjection.project_global({ E_space, H_space, P_space }, { E_time_new, H_time_new, P_time_new }, { E_time_new_coarse, H_time_new_coarse, P_time_new_coarse });
 
         // Calculate element errors and total error estimate.
         Hermes::Mixins::Loggable::Static::info("Calculating error estimate.");
-        adaptivity.set_spaces({E_space, H_space, P_space});
+        adaptivity.set_spaces({ E_space, H_space, P_space });
         errorCalculator.calculate_errors({ E_time_new_coarse, H_time_new_coarse, P_time_new_coarse }, { E_time_new, H_time_new, P_time_new });
 
         double err_est_rel_total = errorCalculator.get_total_error_squared() * 100.;
@@ -319,7 +319,7 @@ int main(int argc, char* argv[])
         {
           Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh->");
           REFINEMENT_COUNT++;
-          done = adaptivity.adapt({&HcurlSelector, &H1selector, &HcurlSelector});
+          done = adaptivity.adapt({ &HcurlSelector, &H1selector, &HcurlSelector });
 
           if (!done)
             as++;

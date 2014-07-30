@@ -9,7 +9,7 @@ using namespace Hermes::Hermes2D::RefinementSelectors;
 
 typedef std::complex<double> complex;
 
-class CustomInitialCondition : public ExactSolutionScalar <::complex>
+class CustomInitialCondition : public ExactSolutionScalar < ::complex >
 {
 public:
   CustomInitialCondition(MeshSharedPtr mesh) : ExactSolutionScalar<::complex>(mesh) {};
@@ -25,14 +25,14 @@ public:
 
 /* Weak forms */
 
-class CustomWeakFormGPRK : public WeakForm <::complex>
+class CustomWeakFormGPRK : public WeakForm < ::complex >
 {
 public:
   CustomWeakFormGPRK(double h, double m, double g, double omega);
 
 private:
 
-  class CustomFormMatrixFormVol : public MatrixFormVol <::complex>
+  class CustomFormMatrixFormVol : public MatrixFormVol < ::complex >
   {
   public:
     CustomFormMatrixFormVol(int i, int j, double h, double m, double g, double omega)
@@ -54,7 +54,7 @@ private:
     double h, m, g, omega;
   };
 
-  class CustomFormVectorFormVol : public VectorFormVol <::complex>
+  class CustomFormVectorFormVol : public VectorFormVol < ::complex >
   {
   public:
     CustomFormVectorFormVol(int i, double h, double m, double g, double omega)

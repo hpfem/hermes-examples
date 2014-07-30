@@ -11,7 +11,7 @@ using namespace Hermes::Hermes2D::WeakFormsMaxwell;
 
 /* Weak forms */
 
-class CustomWeakFormMagnetostatics : public WeakForm <double>
+class CustomWeakFormMagnetostatics : public WeakForm < double >
 {
 public:
   CustomWeakFormMagnetostatics(std::string material_iron_1, std::string material_iron_2,
@@ -20,7 +20,7 @@ public:
     double current_density, int order_inc = 3);
 };
 
-class FilterVectorPotential : public Hermes::Hermes2D::MagFilter <double>
+class FilterVectorPotential : public Hermes::Hermes2D::MagFilter < double >
 {
 public:
   FilterVectorPotential(std::vector<MeshFunctionSharedPtr<double> > solutions, std::vector<int> items);
@@ -30,7 +30,7 @@ protected:
   void filter_fn(int n, std::vector<double*> values, double* result, GeomVol<double> *e);
 };
 
-class FilterFluxDensity : public Hermes::Hermes2D::Filter <double>
+class FilterFluxDensity : public Hermes::Hermes2D::Filter < double >
 {
 public:
   FilterFluxDensity(std::vector<MeshFunctionSharedPtr<double> > solutions);

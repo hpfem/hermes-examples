@@ -43,7 +43,7 @@ enum hpAdaptivityStrategy
   anisoHPSelectionBasedOnDOFs = 5
 };
 
-class MySelector : public H1ProjBasedSelector <::complex>
+class MySelector : public H1ProjBasedSelector < ::complex >
 {
 public:
   MySelector(hpAdaptivityStrategy strategy) : H1ProjBasedSelector<::complex>(cand_list), strategy(strategy)
@@ -188,8 +188,8 @@ private:
   }
 
   void evaluate_cands_score(std::vector<Cand>& candidates, Element* e)
-  { 
-    switch(strategy)
+  {
+    switch (strategy)
     {
     case(hXORpSelectionBasedOnError) :
     {

@@ -9,7 +9,7 @@ using namespace Hermes::Hermes2D::Views;
 using namespace Hermes::Hermes2D::RefinementSelectors;
 using namespace WeakFormsNeutronics::Multigroup::CompleteWeakForms::Diffusion;
 
-class CustomWeakForm : public DefaultWeakFormSourceIteration <double>
+class CustomWeakForm : public DefaultWeakFormSourceIteration < double >
 {
 public:
   CustomWeakForm(const MaterialPropertyMaps& matprop,
@@ -22,7 +22,7 @@ double integrate(MeshFunctionSharedPtr<double>  sln, MeshSharedPtr mesh, std::st
 int get_num_of_neg(MeshFunctionSharedPtr<double> sln);
 
 // Jacobian matrix (same as stiffness matrix since projections are linear).
-class H1AxisymProjectionJacobian : public MatrixFormVol <double>
+class H1AxisymProjectionJacobian : public MatrixFormVol < double >
 {
 public:
   H1AxisymProjectionJacobian(int i) : MatrixFormVol<double>(i, i) { this->setSymFlag(HERMES_SYM); };
@@ -53,7 +53,7 @@ private:
 };
 
 // Residual.
-class H1AxisymProjectionResidual : public VectorFormVol <double>
+class H1AxisymProjectionResidual : public VectorFormVol < double >
 {
 public:
   H1AxisymProjectionResidual(int i, MeshFunctionSharedPtr<double>  ext) : VectorFormVol<double>(i)
@@ -88,7 +88,7 @@ private:
 };
 
 // Matrix forms for error calculation.
-class ErrorForm : public DefaultNormFormVol<double>
+class ErrorForm : public DefaultNormFormVol < double >
 {
 public:
   ErrorForm(unsigned int i, unsigned int j, NormType type) : DefaultNormFormVol<double>(i, j, type) {};

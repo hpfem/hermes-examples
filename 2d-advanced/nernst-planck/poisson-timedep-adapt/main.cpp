@@ -231,7 +231,7 @@ int main(int argc, char* argv[]) {
   // Project the initial condition on the FE space to obtain initial
   // coefficient vector for the Newton's method.
   Hermes::Mixins::Loggable::Static::info("Projecting to obtain initial vector for the Newton's method.");
-  int ndof = Space<double>::get_num_dofs({C_space, phi_space});
+  int ndof = Space<double>::get_num_dofs({ C_space, phi_space });
   double* coeff_vec_coarse = new double[ndof];
 
   OGProjection<double> ogProjection; ogProjection.project_global({ C_space, phi_space }, { C_prev_time, phi_prev_time },
@@ -365,14 +365,14 @@ int main(int argc, char* argv[]) {
 
       // Calculate element errors and total error estimate.
       Hermes::Mixins::Loggable::Static::info("Calculating error estimate.");
-      adaptivity.set_spaces({C_space, phi_space});
+      adaptivity.set_spaces({ C_space, phi_space });
 
       errorCalculator.calculate_errors({ C_sln, phi_sln }, { C_ref_sln, phi_ref_sln });
       double err_est_rel_total = errorCalculator.get_total_error_squared() * 100;
 
       // Report results.
       Hermes::Mixins::Loggable::Static::info("ndof_coarse_total: %d, ndof_fine_total: %d, err_est_rel: %g%%",
-        Space<double>::get_num_dofs({C_space, phi_space}),
+        Space<double>::get_num_dofs({ C_space, phi_space }),
         Space<double>::get_num_dofs(ref_spaces), err_est_rel_total);
 
       // If err_est too large, adapt the mesh->
@@ -380,7 +380,7 @@ int main(int argc, char* argv[]) {
       else
       {
         Hermes::Mixins::Loggable::Static::info("Adapting the coarse mesh->");
-        done = adaptivity.adapt({&selector, &selector});
+        done = adaptivity.adapt({ &selector, &selector });
         Hermes::Mixins::Loggable::Static::info("Adapted...");
         as++;
       }

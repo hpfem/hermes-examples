@@ -110,7 +110,7 @@ int main(int argc, char* argv[])
   // Initialize boundary conditions
   DefaultEssentialBCConst<double> bc_u(std::vector<std::string>({ "Left", "Right" }), 0.0);
   EssentialBCs<double> bcs_u(&bc_u);
-  DefaultEssentialBCConst<double> bc_v(std::vector<std::string>({"Left", "Right"}), 0.0);
+  DefaultEssentialBCConst<double> bc_v(std::vector<std::string>({ "Left", "Right" }), 0.0);
   EssentialBCs<double> bcs_v(&bc_v);
 
   // Create H1 spaces with default shapeset for both displacement components.
@@ -193,7 +193,7 @@ int main(int argc, char* argv[])
 
     // Project the fine mesh solution onto the coarse mesh->
     Hermes::Mixins::Loggable::Static::info("Projecting reference solutions on coarse meshes.");
-    OGProjection<double> ogProjection; ogProjection.project_global({u_space, v_space},
+    OGProjection<double> ogProjection; ogProjection.project_global({ u_space, v_space },
       std::vector<MeshFunctionSharedPtr<double> >({ u_ref_sln, v_ref_sln }),
       std::vector<MeshFunctionSharedPtr<double> >({ u_sln, v_sln }));
 
@@ -207,14 +207,14 @@ int main(int argc, char* argv[])
 
     // Calculate element errors.
     Hermes::Mixins::Loggable::Static::info("Calculating error estimate and exact error.");
-    adaptivity.set_spaces({u_space, v_space});
+    adaptivity.set_spaces({ u_space, v_space });
 
 #ifdef WITH_EXACT_SOLUTION
-    errorCalculator.calculate_errors({u_sln, v_sln}, {exact_u, exact_v}, false);
+    errorCalculator.calculate_errors({ u_sln, v_sln }, { exact_u, exact_v }, false);
     double err_exact_rel_total = errorCalculator.get_total_error_squared() * 100;
 #endif
 
-    errorCalculator.calculate_errors({u_sln, v_sln}, {u_ref_sln, v_ref_sln}, true);
+    errorCalculator.calculate_errors({ u_sln, v_sln }, { u_ref_sln, v_ref_sln }, true);
     double err_est_rel_total = errorCalculator.get_total_error_squared() * 100;
 
     // Time measurement.
@@ -227,7 +227,7 @@ int main(int argc, char* argv[])
     Hermes::Mixins::Loggable::Static::info("ndof_coarse[1]: %d, ndof_fine[1]: %d",
       v_space->get_num_dofs(), ref_v_space->get_num_dofs());
     Hermes::Mixins::Loggable::Static::info("ndof_coarse_total: %d, ndof_fine_total: %d",
-      Space<double>::get_num_dofs({u_space, v_space}),
+      Space<double>::get_num_dofs({ u_space, v_space }),
       Space<double>::get_num_dofs(ref_spaces));
     Hermes::Mixins::Loggable::Static::info("err_est_rel_total: %g%%, err_est_exact_total: %g%%", err_est_rel_total, err_exact_rel_total);
 #else
@@ -236,19 +236,19 @@ int main(int argc, char* argv[])
     Hermes::Mixins::Loggable::Static::info("ndof_coarse[1]: %d, ndof_fine[1]: %d", v_space->get_num_dofs(), v_ref_space->get_num_dofs());
     Hermes::Mixins::Loggable::Static::info("err_est_rel[1]: %g%%", err_est_rel[1] * 100);
     Hermes::Mixins::Loggable::Static::info("ndof_coarse_total: %d, ndof_fine_total: %d",
-      Space<double>::get_num_dofs({u_space, v_space}),
+      Space<double>::get_num_dofs({ u_space, v_space }),
       Space<double>::get_num_dofs(*ref_spaces));
     Hermes::Mixins::Loggable::Static::info("err_est_rel_total: %g%%", err_est_rel_total);
 #endif
 
     // Add entry to DOF and CPU convergence graphs.
-    graph_dof_est.add_values(Space<double>::get_num_dofs({u_space, v_space}),
+    graph_dof_est.add_values(Space<double>::get_num_dofs({ u_space, v_space }),
       err_est_rel_total);
     graph_dof_est.save("conv_dof_est.dat");
     graph_cpu_est.add_values(cpu_time.accumulated(), err_est_rel_total);
     graph_cpu_est.save("conv_cpu_est.dat");
 #ifdef WITH_EXACT_SOLUTION
-    graph_dof_exact.add_values(Space<double>::get_num_dofs({u_space, v_space}),
+    graph_dof_exact.add_values(Space<double>::get_num_dofs({ u_space, v_space }),
       err_exact_rel_total);
     graph_dof_exact.save("conv_dof_exact.dat");
     graph_cpu_exact.add_values(cpu_time.accumulated(), err_exact_rel_total);
@@ -261,7 +261,7 @@ int main(int argc, char* argv[])
     else
     {
       Hermes::Mixins::Loggable::Static::info("Adapting coarse mesh->");
-      done = adaptivity.adapt({&selector, &selector});
+      done = adaptivity.adapt({ &selector, &selector });
     }
 
     // Increase counter.

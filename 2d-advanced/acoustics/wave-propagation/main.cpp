@@ -21,13 +21,13 @@ int main(int argc, char* argv[])
 
   std::vector<std::string> soft_boundaries({ "2" });
 
-  CustomBCValue custom_bc_value({"3", "4", "5", "6"}, 1., 1000.);
+  CustomBCValue custom_bc_value({ "3", "4", "5", "6" }, 1., 1000.);
   DefaultEssentialBCConst<double> default_bc_value(soft_boundaries, 0.0);
-  Hermes::Hermes2D::EssentialBCs<double> bcs_value({&custom_bc_value, &default_bc_value});
+  Hermes::Hermes2D::EssentialBCs<double> bcs_value({ &custom_bc_value, &default_bc_value });
 
-  CustomBCDerivative custom_bc_derivative({"3", "4", "5", "6"}, 1., 1000.);
+  CustomBCDerivative custom_bc_derivative({ "3", "4", "5", "6" }, 1., 1000.);
   DefaultEssentialBCConst<double> default_bc_derivative(soft_boundaries, 0.0);
-  Hermes::Hermes2D::EssentialBCs<double> bcs_derivative({&custom_bc_derivative, &default_bc_derivative});
+  Hermes::Hermes2D::EssentialBCs<double> bcs_derivative({ &custom_bc_derivative, &default_bc_derivative });
 
   SpaceSharedPtr<double> space_value(new Hermes::Hermes2D::H1Space<double>(mesh, &bcs_value, P_INIT));
   SpaceSharedPtr<double> space_derivative(new Hermes::Hermes2D::H1Space<double>(mesh, &bcs_derivative, P_INIT));

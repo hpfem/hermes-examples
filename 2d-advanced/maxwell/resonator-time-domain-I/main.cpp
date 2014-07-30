@@ -68,7 +68,7 @@ int main(int argc, char* argv[])
   std::vector<MeshFunctionSharedPtr<double> > slns({ E_sln, B_sln });
 
   // Initialize the weak formulation.
-  WeakFormSharedPtr<double> wf(new CustomWeakFormWave (C_SQUARED));
+  WeakFormSharedPtr<double> wf(new CustomWeakFormWave(C_SQUARED));
 
   // Initialize boundary conditions
   DefaultEssentialBCConst<double> bc_essential("Perfect conductor", 0.0);

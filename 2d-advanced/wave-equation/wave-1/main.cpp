@@ -83,7 +83,7 @@ int main(int argc, char* argv[])
 
   SpaceSharedPtr<double> u_space(new H1Space<double>(mesh, &bcs, P_INIT));
   SpaceSharedPtr<double> v_space(new H1Space<double>(mesh, &bcs, P_INIT));
-  Hermes::Mixins::Loggable::Static::info("ndof = %d.", Space<double>::get_num_dofs({u_space, v_space}));
+  Hermes::Mixins::Loggable::Static::info("ndof = %d.", Space<double>::get_num_dofs({ u_space, v_space }));
 
   // Initialize views.
   ScalarView u_view("Solution u", new WinGeom(0, 0, 500, 400));
