@@ -53,7 +53,7 @@ const double VEL_INLET = 1.0;
 // from 0 to VEL_INLET, then it stays constant.
 const double STARTUP_TIME = 1.0;
 // Time step.
-const double TAU = 0.01;
+const double TAU = 0.1;
 // Time interval length.
 const double T_FINAL = 30000.0;
 // Stopping criterion for the Newton's method.
@@ -132,8 +132,7 @@ int main(int argc, char* argv[])
   WeakFormSharedPtr<double> wf(new WeakFormNSNewton(STOKES, RE, TAU, xvel_prev_time, yvel_prev_time));
 
   // Initialize the FE problem.
-  DiscreteProblem<double> dp(wf, spaces);
-  Hermes::Hermes2D::NewtonSolver<double> newton(&dp);
+  Hermes::Hermes2D::NewtonSolver<double> newton(wf, spaces);
   Hermes::Mixins::Loggable::Static::info("Solving nonlinear problem:");
   newton.set_max_allowed_iterations(NEWTON_MAX_ITER);
   newton.set_tolerance(NEWTON_TOL, Hermes::Solvers::ResidualNormAbsolute);

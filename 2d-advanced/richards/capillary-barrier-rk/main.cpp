@@ -73,10 +73,11 @@ CONSTITUTIVE_RELATIONS constitutive_relations_type = CONSTITUTIVE_GENUCHTEN;
 ButcherTableType butcher_table_type = Implicit_SDIRK_CASH_3_23_embedded;
 
 // Newton's method.
-// Stopping criterion for Newton on fine mesh.
-const double NEWTON_TOL = 1e-5;
+// Stopping criterion for the Newton's method.
+const double NEWTON_TOL = 1e-6;
 // Maximum allowed number of Newton iterations.
-int NEWTON_MAX_ITER = 10;
+const int NEWTON_MAX_ITER = 500;
+const double DAMPING_COEFF = .9;
 
 // Times.
 // Start-up time for time-dependent Dirichlet boundary condition.
@@ -236,6 +237,11 @@ int main(int argc, char* argv[])
 
   // Initialize Runge-Kutta time stepping.
   RungeKutta<double> runge_kutta(wf, space, &bt);
+  runge_kutta.set_verbose_output(true);
+  runge_kutta.set_time_step(time_step);
+  runge_kutta.set_max_allowed_iterations(NEWTON_MAX_ITER);
+  runge_kutta.set_tolerance(NEWTON_TOL);
+  runge_kutta.set_newton_damping_coeff(DAMPING_COEFF);
 
   // Time stepping:
   double current_time = 0;
@@ -252,9 +258,6 @@ int main(int argc, char* argv[])
     try
     {
       runge_kutta.set_time(current_time);
-      runge_kutta.set_time_step(time_step);
-      runge_kutta.set_max_allowed_iterations(NEWTON_MAX_ITER);
-      runge_kutta.set_tolerance(NEWTON_TOL);
       runge_kutta.rk_time_step_newton(h_time_prev, h_time_new, time_error_fn);
     }
     catch (Exceptions::Exception& e)

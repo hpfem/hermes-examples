@@ -17,7 +17,7 @@
 // The following parameters can be changed:
 
 // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM = 1;
+const int INIT_REF_NUM = 2;
 // Number of initial mesh refinements towards boundary.
 const int INIT_BDY_REF_NUM_INNER = 2;
 // For application of Stokes flow (creeping flow).
@@ -41,15 +41,15 @@ const double RE = 5000.0;
 const double VEL = 0.1;
 // During this time, surface velocity of the inner circle increases
 // gradually from 0 to VEL, then it stays constant.
-const double STARTUP_TIME = 1.0;
+const double STARTUP_TIME = 10.0;
 // Time step.
-const double TAU = 10.0;
+const double TAU = 1.0;
 // Time interval length.
 const double T_FINAL = 3600.0;
 // Stopping criterion for the Newton's method.
 const double NEWTON_TOL = 1e-5;
 // Maximum allowed number of Newton iterations.
-const int NEWTON_MAX_ITER = 10;
+const int NEWTON_MAX_ITER = 100;
 
 // Current time (used in weak forms).
 double current_time = 0;
@@ -74,7 +74,7 @@ double integrate_over_wall(MeshFunction<double>* meshfn, int marker)
         RefMap* ru = meshfn->get_refmap();
 
         meshfn->set_active_element(e);
-        int eo = quad->get_edge_points(edge, 10, e->get_mode());
+        int eo = quad->get_edge_points(edge, quad->get_max_order(e->get_mode()), e->get_mode());
         meshfn->set_quad_order(eo, H2D_FN_VAL);
         const double *uval = meshfn->get_fn_values();
         double3* pt = quad->get_points(eo, e->get_mode());
@@ -139,6 +139,8 @@ int main(int argc, char* argv[])
   WeakFormSharedPtr<double> wf(new WeakFormNSNewton(STOKES, RE, TAU, xvel_prev_time, yvel_prev_time));
 
   // Initialize views.
+  MeshView mview("Mesh", new WinGeom(0, 520, 600, 500));
+  mview.show(mesh);
   VectorView vview("velocity [m/s]", new WinGeom(0, 0, 600, 500));
   ScalarView pview("pressure [Pa]", new WinGeom(610, 0, 600, 500));
   //vview.set_min_max_range(0, 1.6);
@@ -146,6 +148,15 @@ int main(int argc, char* argv[])
   //pview.set_min_max_range(-0.9, 1.0);
   pview.fix_scale_width(80);
   pview.show_mesh(true);
+
+  // Initialize the FE problem.
+  Hermes::Hermes2D::NewtonSolver<double> newton(wf, spaces);
+  newton.set_max_steps_with_reused_jacobian(0);
+  newton.set_min_allowed_damping_coeff(1e-8);
+  newton.set_initial_auto_damping_coeff(.5);
+  newton.set_sufficient_improvement_factor(1.3);
+  newton.set_max_allowed_iterations(NEWTON_MAX_ITER);
+  newton.set_tolerance(NEWTON_TOL, Hermes::Solvers::ResidualNormAbsolute);
 
   // Time-stepping loop:
   char title[100];
@@ -161,11 +172,8 @@ int main(int argc, char* argv[])
 
     // Perform Newton's iteration.
     Hermes::Mixins::Loggable::Static::info("Solving nonlinear problem:");
-    Hermes::Hermes2D::NewtonSolver<double> newton(wf, spaces);
     try
     {
-      newton.set_max_allowed_iterations(NEWTON_MAX_ITER);
-      newton.set_tolerance(NEWTON_TOL, Hermes::Solvers::ResidualNormAbsolute);
       newton.solve();
     }
     catch (Hermes::Exceptions::Exception e)

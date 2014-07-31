@@ -28,7 +28,7 @@ const int INIT_REF_NUM_BDY = 6;
 // Initial polynomial degree.
 const int P_INIT = 2;
 // Time step.
-double time_step = 5e-4;
+double time_step = 5e-5;
 // Time interval length.
 const double T_FINAL = 0.4;
 // This is a quantitative parameter of the adapt(...) function and
@@ -70,11 +70,12 @@ const int UNREF_FREQ = 1;
 // and just one polynomial degree subtracted.
 const int UNREF_METHOD = 3;
 
-// Newton's method
+// Newton's method.
 // Stopping criterion for the Newton's method.
-const double NEWTON_TOL = 5e-5;
+const double NEWTON_TOL = 1e-6;
 // Maximum allowed number of Newton iterations.
-const int NEWTON_MAX_ITER = 100;
+const int NEWTON_MAX_ITER = 500;
+const double DAMPING_COEFF = .9;
 
 // Choose one of the following time-integration methods, or define your own Butcher's table. The last number
 // in the name of each method is its order. The one before last, if present, is the number of stages.
@@ -91,7 +92,7 @@ const int NEWTON_MAX_ITER = 100;
 //   Implicit_SDIRK_CASH_3_23_embedded, Implicit_ESDIRK_TRBDF2_3_23_embedded, Implicit_ESDIRK_TRX2_3_23_embedded,
 //   Implicit_SDIRK_BILLINGTON_3_23_embedded, Implicit_SDIRK_CASH_5_24_embedded, Implicit_SDIRK_CASH_5_34_embedded,
 //   Implicit_DIRK_ISMAIL_7_45_embedded.
-ButcherTableType butcher_table_type = Implicit_SDIRK_2_2;
+ButcherTableType butcher_table_type = Implicit_RK_1;
 
 int main(int argc, char* argv[])
 {
@@ -134,8 +135,13 @@ int main(int argc, char* argv[])
   // Initialize the weak formulation.
   WeakFormSharedPtr<double> wf(new CustomWeakFormRichardsRK(constitutive_relations));
 
-  // Initialize the FE problem.
-  DiscreteProblem<double> dp(wf, space);
+  // Initialize Runge-Kutta time stepping.
+  RungeKutta<double> runge_kutta(wf, space, &bt);
+  runge_kutta.set_verbose_output(true);
+  runge_kutta.set_time_step(time_step);
+  runge_kutta.set_max_allowed_iterations(NEWTON_MAX_ITER);
+  runge_kutta.set_tolerance(NEWTON_TOL);
+  runge_kutta.set_newton_damping_coeff(DAMPING_COEFF);
 
   // Create a refinement selector.
   H1ProjBasedSelector<double> selector(CAND_LIST);
@@ -197,18 +203,13 @@ int main(int argc, char* argv[])
       // Time measurement.
       cpu_time.tick();
 
-      // Initialize Runge-Kutta time stepping.
-      RungeKutta<double> runge_kutta(wf, ref_space, &bt);
-
       // Perform one Runge-Kutta time step according to the selected Butcher's table.
       Hermes::Mixins::Loggable::Static::info("Runge-Kutta time step (t = %g s, tau = %g s, stages: %d).",
         current_time, time_step, bt.get_size());
       try
       {
+        runge_kutta.set_space(ref_space);
         runge_kutta.set_time(current_time);
-        runge_kutta.set_time_step(time_step);
-        runge_kutta.set_max_allowed_iterations(NEWTON_MAX_ITER);
-        runge_kutta.set_tolerance(NEWTON_TOL);
         runge_kutta.rk_time_step_newton(h_time_prev, h_time_new);
       }
       catch (Exceptions::Exception& e)

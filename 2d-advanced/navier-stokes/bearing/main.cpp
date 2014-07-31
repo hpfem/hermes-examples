@@ -21,7 +21,7 @@
 // The following parameters can be changed:
 
 // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM = 2;
+const int INIT_REF_NUM = 3;
 // Number of initial mesh refinements towards inner boundary.
 const int INIT_BDY_REF_NUM_INNER = 2;
 // Number of initial mesh refinements towards outer boundary.
@@ -44,12 +44,12 @@ const int P_INIT_PRESSURE = 1;
 // Reynolds number.
 const double RE = 5000.0;
 // Surface velocity of inner circle.
-const double VEL = 0.00001;
+const double VEL = 0.1;
 // During this time, surface velocity of the inner circle increases
 // gradually from 0 to VEL, then it stays constant.
 const double STARTUP_TIME = 1.0;
 // Time step.
-const double TAU = 1.;
+const double TAU = 10.;
 // Time interval length.
 const double T_FINAL = 3600.0;
 // Stopping criterion for the Newton's method.
@@ -158,8 +158,7 @@ int main(int argc, char* argv[])
 
   // Initialize the FE problem.
   Hermes::Hermes2D::NewtonSolver<double> newton(wf, spaces);
-  newton.output_matrix();
-  newton.output_rhs();
+  newton.set_verbose_output(true);
   newton.set_max_allowed_iterations(NEWTON_MAX_ITER);
   newton.set_tolerance(NEWTON_TOL, Hermes::Solvers::ResidualNormAbsolute);
 
