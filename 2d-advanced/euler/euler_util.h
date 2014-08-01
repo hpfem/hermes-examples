@@ -206,7 +206,7 @@ public:
   }
 
 protected:
-  virtual void filter_fn(int n, std::vector<double*> values, double* result);
+  virtual void filter_fn(int n, const std::vector<const double*>& values, double* result);
 
   double kappa;
 };
@@ -229,7 +229,7 @@ public:
     return filter;
   }
 protected:
-  virtual void filter_fn(int n, std::vector<double*> values, double* result);
+  virtual void filter_fn(int n, const std::vector<const double*>& values, double* result);
 
   double kappa;
 };
@@ -254,7 +254,7 @@ public:
     return filter;
   }
 protected:
-  virtual void filter_fn(int n, std::vector<double*> values, double* result);
+  virtual void filter_fn(int n, const std::vector<const double*>& values, double* result);
 };
 
 class EntropyFilter : public Hermes::Hermes2D::SimpleFilter<double>
@@ -274,7 +274,7 @@ public:
     return filter;
   }
 protected:
-  virtual void filter_fn(int n, std::vector<double*> values, double* result);
+  virtual void filter_fn(int n, const std::vector<const double*>& values, double* result);
 
   double kappa, rho_ext, p_ext;
 };

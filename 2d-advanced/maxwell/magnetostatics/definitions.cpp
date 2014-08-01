@@ -18,7 +18,7 @@ CustomWeakFormMagnetostatics::CustomWeakFormMagnetostatics(std::string material_
   add_vector_form(new DefaultVectorFormVol<double>(0, material_copper, new Hermes2DFunction<double>(-current_density * mu_vacuum)));
 }
 
-void FilterVectorPotential::filter_fn(int n, std::vector<double*> values, double* result, GeomVol<double> *e)
+void FilterVectorPotential::filter_fn(int n, const std::vector<const double*>& values, double* result, GeomVol<double> *e)
 {
   for (int i = 0; i < n; i++)
   {

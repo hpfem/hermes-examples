@@ -147,4 +147,4 @@ private:
 int power_iteration(const MaterialPropertyMaps& matprop,
   const std::vector<SpaceSharedPtr<double> >& spaces, DefaultWeakFormSourceIteration<double>* wf,
   const std::vector<MeshFunctionSharedPtr<double> >& solution, const std::string& fission_region,
-  double tol, Hermes::MatrixSolverType matrix_solver);
+  double tol);

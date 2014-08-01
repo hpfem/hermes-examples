@@ -27,7 +27,7 @@ public:
 
   virtual MeshFunction<double>* clone() const;
 protected:
-  void filter_fn(int n, std::vector<double*> values, double* result, GeomVol<double> *e);
+  void filter_fn(int n, const std::vector<const double*>& values, double* result, GeomVol<double> *e);
 };
 
 class FilterFluxDensity : public Hermes::Hermes2D::Filter < double >

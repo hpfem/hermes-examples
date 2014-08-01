@@ -225,7 +225,7 @@ int main(int argc, char* argv[])
 
   // Initial power iteration to obtain a coarse estimate of the eigenvalue and the fission source.
   Hermes::Mixins::Loggable::Static::info("Coarse mesh power iteration, %d + %d + %d + %d = %d ndof:", report_num_dofs(spaces));
-  power_iteration(matprop, spaces, (CustomWeakForm*)wf.get(), power_iterates, core, TOL_PIT_CM, matrix_solver);
+  power_iteration(matprop, spaces, (CustomWeakForm*)wf.get(), power_iterates, core, TOL_PIT_CM);
 
   // Adaptivity loop:
   int as = 1; bool done = false;
@@ -268,7 +268,7 @@ int main(int argc, char* argv[])
 
     // Solve the fine mesh problem.
     Hermes::Mixins::Loggable::Static::info("Fine mesh power iteration, %d + %d + %d + %d = %d ndof:", report_num_dofs(ref_spaces));
-    power_iteration(matprop, ref_spaces, (DefaultWeakFormSourceIteration<double>*)wf.get(), power_iterates, core, TOL_PIT_RM, matrix_solver);
+    power_iteration(matprop, ref_spaces, (DefaultWeakFormSourceIteration<double>*)wf.get(), power_iterates, core, TOL_PIT_RM);
 
     // Store the results.
     for (unsigned int g = 0; g < matprop.get_G(); g++)

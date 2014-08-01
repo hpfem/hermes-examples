@@ -109,7 +109,7 @@ int get_num_of_neg(MeshFunctionSharedPtr<double> sln)
 int power_iteration(const MaterialPropertyMaps& matprop,
   const std::vector<SpaceSharedPtr<double> >& spaces, DefaultWeakFormSourceIteration<double>* wf,
   const std::vector<MeshFunctionSharedPtr<double> >& solutions, const std::string& fission_region,
-  double tol, Hermes::MatrixSolverType matrix_solver)
+  double tol)
 {
   // Sanity checks.
   if (spaces.size() != solutions.size())

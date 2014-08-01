@@ -1256,26 +1256,26 @@ void FluxLimiter::limit_second_orders_according_to_detector(std::vector<SpaceSha
   }
 };
 
-void MachNumberFilter::filter_fn(int n, std::vector<double*> values, double* result)
+void MachNumberFilter::filter_fn(int n, const std::vector<const double*>& values, double* result)
 {
   for (int i = 0; i < n; i++)
     result[i] = std::sqrt((values.at(1)[i] / values.at(0)[i])*(values.at(1)[i] / values.at(0)[i]) + (values.at(2)[i] / values.at(0)[i])*(values.at(2)[i] / values.at(0)[i]))
     / std::sqrt(kappa * QuantityCalculator::calc_pressure(values.at(0)[i], values.at(1)[i], values.at(2)[i], values.at(3)[i], kappa) / values.at(0)[i]);
 }
 
-void PressureFilter::filter_fn(int n, std::vector<double*> values, double* result)
+void PressureFilter::filter_fn(int n, const std::vector<const double*>& values, double* result)
 {
   for (int i = 0; i < n; i++)
     result[i] = (kappa - 1.) * (values.at(3)[i] - (values.at(1)[i] * values.at(1)[i] + values.at(2)[i] * values.at(2)[i]) / (2 * values.at(0)[i]));
 }
 
-void VelocityFilter::filter_fn(int n, std::vector<double*> values, double* result)
+void VelocityFilter::filter_fn(int n, const std::vector<const double*>& values, double* result)
 {
   for (int i = 0; i < n; i++)
     result[i] = values.at(1)[i] / values.at(0)[i];
 }
 
-void EntropyFilter::filter_fn(int n, std::vector<double*> values, double* result)
+void EntropyFilter::filter_fn(int n, const std::vector<const double*>& values, double* result)
 {
   for (int i = 0; i < n; i++)
     for (int i = 0; i < n; i++)

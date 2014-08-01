@@ -185,7 +185,7 @@ SpaceSharedPtr<double> init_space(&basemesh, &bc_types, &bc_values, P_INIT);
     ref_sln.set_exact(rspace->get_mesh(), init_cond);
 
     // Project the function f() on the coarse mesh.
-    OGProjection<double>::project_global(init_space, ref_sln, sln_prev_time, matrix_solver);
+    OGProjection<double>::project_global(init_space, ref_sln, sln_prev_time);
 
     // Calculate element errors and total error estimate.
     Adapt adaptivity(init_space);
@@ -272,11 +272,11 @@ SpaceSharedPtr<double> init_space(&basemesh, &bc_types, &bc_values, P_INIT);
       // Calculate initial coefficient vector for Newton on the fine mesh.
       if (as == 1 && ts == 1) {
         info("Projecting coarse mesh solution to obtain initial vector on new fine mesh.");
-        OGProjection<double>::project_global(ref_space, sln_prev_time, coeff_vec, matrix_solver);
+        OGProjection<double>::project_global(ref_space, sln_prev_time, coeff_vec);
       }
       else {
         info("Projecting previous fine mesh solution to obtain initial vector on new fine mesh.");
-        OGProjection<double>::project_global(ref_space, ref_sln, coeff_vec, matrix_solver);
+        OGProjection<double>::project_global(ref_space, ref_sln, coeff_vec);
         delete ref_sln.get_mesh();
       }
 
@@ -295,7 +295,7 @@ SpaceSharedPtr<double> init_space(&basemesh, &bc_types, &bc_values, P_INIT);
 
       // Project the fine mesh solution on the coarse mesh.
       info("Projecting fine mesh solution on coarse mesh for error calculation.");
-      OGProjection<double>::project_global(space, &ref_sln, sln, matrix_solver);
+      OGProjection<double>::project_global(space, &ref_sln, sln);
 
       // Calculate element errors.
       info("Calculating error estimate."); 

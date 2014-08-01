@@ -107,5 +107,5 @@ private:
 
   Ord upwind_flux(Ord u_cent, Ord u_neib, Ord a_dot_n) const;
 
-  MeshSharedPtr mesh(new Mesh);
+  MeshSharedPtr mesh;
 };
