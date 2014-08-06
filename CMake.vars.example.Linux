@@ -1,5 +1,13 @@
 # LINUX
 
+#####
+#####
+# ! # IMPORTANT: If you obtained the hermes library as a debian package, 
+#####  please see the package information how to adjust this file
+#####  (as you may not have hermes git repository, or have it differently configured than the package, 
+#####  HERMES_CMAKE_VARS_FILE_LOCATION variable has no meaning for you and we have to deal with that.
+#####
+
 # Hermes library installation directory (corresponds to CMAKE_INSTALL_PREFIX in the hermes CMake configuration + the library subdirectory)
 set(HERMES_DIRECTORY "/usr/local/lib")
 

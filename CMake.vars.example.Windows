@@ -1,5 +1,11 @@
 # WINDOWS
 
+#####
+# ! # IMPORTANT: If you obtained the hermes library from the hermes-windows repository
+#####  on github (https://github.com/l-korous/hermes-windows), please see the corresponding
+#####  platform type (e.g. x64/Release) folder in taht repository for the necessary CMake.vars file.
+#####
+
 # Hermes library installation directory (corresponds to CMAKE_INSTALL_PREFIX in the hermes CMake configuration + the library subdirectory)
 set(HERMES_DIRECTORY "d:/hpfem/hermes/dependencies/lib")
 
