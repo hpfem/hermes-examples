@@ -199,8 +199,8 @@ int main(int argc, char* argv[])
 
     // Initialize Runge-Kutta time stepping.
     RungeKutta<double> runge_kutta(wf, spaces, &bt);
-    runge_kutta.set_max_allowed_iterations(NEWTON_MAX_ITER);
-    runge_kutta.set_tolerance(NEWTON_TOL);
+    runge_kutta.set_newton_max_allowed_iterations(NEWTON_MAX_ITER);
+    runge_kutta.set_newton_tolerance(NEWTON_TOL);
     runge_kutta.set_verbose_output(true);
 
     // Initialize refinement selector.

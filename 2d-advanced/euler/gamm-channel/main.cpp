@@ -44,7 +44,7 @@ const int P_INIT = 1;
 // Number of initial uniform mesh refinements.
 const int INIT_REF_NUM = 3;
 // CFL value.
-double CFL_NUMBER = 0.6;
+double CFL_NUMBER = 0.8;
 // Initial time step.
 double time_step_n = 1E-6;
 
@@ -86,12 +86,14 @@ int main(int argc, char* argv[])
   MeshFunctionSharedPtr<double> prev_rho_v_y(new ConstantSolution<double>(mesh, RHO_EXT * V2_EXT));
   MeshFunctionSharedPtr<double> prev_e(new ConstantSolution<double>(mesh, QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA)));
 
-  // Initialize weak formulation.
+  // Initialize boundary conditions.
   std::vector<std::string> solid_wall_markers({ BDY_SOLID_WALL_BOTTOM, BDY_SOLID_WALL_TOP });
   std::vector<std::string> inlet_markers({ BDY_INLET });
   std::vector<std::string> outlet_markers({ BDY_OUTLET });
 
-  WeakFormSharedPtr<double> wf(new EulerEquationsWeakFormSemiImplicit(KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, solid_wall_markers,
+  // Weak formulation.
+  WeakFormSharedPtr<double> wf(new EulerEquationsWeakFormSemiImplicit(KAPPA, { RHO_EXT }, { V1_EXT }, { V2_EXT }, { P_EXT }, solid_wall_markers,
     inlet_markers, outlet_markers, prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e, (P_INIT == 0)));
+
 #include "../euler-time-loop.cpp"
 }

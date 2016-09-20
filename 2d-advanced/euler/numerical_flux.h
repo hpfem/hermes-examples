@@ -121,6 +121,8 @@ class VijayasundaramNumericalFlux : public StegerWarmingNumericalFlux
 {
 public:
   VijayasundaramNumericalFlux(double kappa);
+  
+  EulerFluxes fluxes;
 
   virtual void numerical_flux(double result[4], double w_L[4], double w_R[4],
           double nx, double ny);

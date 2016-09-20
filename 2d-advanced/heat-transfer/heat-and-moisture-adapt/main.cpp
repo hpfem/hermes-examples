@@ -254,8 +254,8 @@ int main(int argc, char* argv[])
       {
         runge_kutta.set_time(current_time);
         runge_kutta.set_time_step(time_step);
-        runge_kutta.set_max_allowed_iterations(NEWTON_MAX_ITER);
-        runge_kutta.set_tolerance(NEWTON_TOL);
+        runge_kutta.set_newton_max_allowed_iterations(NEWTON_MAX_ITER);
+        runge_kutta.set_newton_tolerance(NEWTON_TOL);
         runge_kutta.rk_time_step_newton({ T_time_prev, w_time_prev }, { T_time_new, w_time_new });
       }
       catch (Exceptions::Exception& e)

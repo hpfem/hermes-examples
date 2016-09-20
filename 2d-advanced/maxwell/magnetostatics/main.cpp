@@ -15,7 +15,7 @@
 // Initial polynomial degree.
 const int P_INIT = 3;
 // Stopping criterion for the Newton's method.
-const double NEWTON_TOL = 1e-10;
+const double NEWTON_TOL = 1e-8;
 // Maximum allowed number of Newton iterations.
 const int NEWTON_MAX_ITER = 1000;
 // Number between 0 and 1 to damp Newton's iterations.

@@ -253,8 +253,8 @@ int main(int argc, char* argv[])
       {
         runge_kutta.set_time(current_time);
         runge_kutta.set_time_step(time_step);
-        runge_kutta.set_max_allowed_iterations(NEWTON_MAX_ITER);
-        runge_kutta.set_tolerance(NEWTON_TOL_FINE);
+        runge_kutta.set_newton_max_allowed_iterations(NEWTON_MAX_ITER);
+        runge_kutta.set_newton_tolerance(NEWTON_TOL_FINE);
         runge_kutta.rk_time_step_newton(sln_prev_time, ref_sln, bt.is_embedded() ? time_error_fn : NULL);
       }
       catch (Exceptions::Exception& e)

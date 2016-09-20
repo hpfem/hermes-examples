@@ -32,7 +32,7 @@ void NumericalFlux::f_1(double result[4], double state[4])
   result[3] = (state[1] / state[0]) * (state[3] + QuantityCalculator::calc_pressure(state[0], state[1], state[2], state[3], kappa));
 }
 
-VijayasundaramNumericalFlux::VijayasundaramNumericalFlux(double kappa) : StegerWarmingNumericalFlux(kappa)
+VijayasundaramNumericalFlux::VijayasundaramNumericalFlux(double kappa) : StegerWarmingNumericalFlux(kappa), fluxes(EulerFluxes(kappa))
 {
 }
 
@@ -40,6 +40,54 @@ void VijayasundaramNumericalFlux::numerical_flux(double result[4], double w_L[4]
   double nx, double ny)
 {
   double result_temp[4];
+  double result_1, result_2;
+  double w[4];
+  w[0] = w_L[0];
+  w[1] = w_L[1];
+  w[2] = w_L[2];
+  w[3] = w_L[3];
+
+  result_1 = fluxes.A_1_0_0(w[0], w[1], w[2], w[3]) * w[0] + fluxes.A_1_0_1(w[0], w[1], w[2], w[3]) * w[1] + fluxes.A_1_0_2(w[0], w[1], w[2], w[3]) * w[2] + fluxes.A_1_0_3(w[0], w[1], w[2], w[3]) * w[3];
+  result_2 = fluxes.A_2_0_0(w[0], w[1], w[2], w[3]) * w[0] + fluxes.A_2_0_1(w[0], w[1], w[2], w[3]) * w[1] + fluxes.A_2_0_2(w[0], w[1], w[2], w[3]) * w[2] + fluxes.A_2_0_3(w[0], w[1], w[2], w[3]) * w[3];
+  result_temp[0] = result_1 * nx + result_2 * ny;
+
+  result_1 = fluxes.A_1_1_0(w[0], w[1], w[2], w[3]) * w[0] + fluxes.A_1_1_1(w[0], w[1], w[2], w[3]) * w[1] + fluxes.A_1_1_2(w[0], w[1], w[2], w[3]) * w[2] + fluxes.A_1_1_3(w[0], w[1], w[2], w[3]) * w[3];
+  result_2 = fluxes.A_2_1_0(w[0], w[1], w[2], w[3]) * w[0] + fluxes.A_2_1_1(w[0], w[1], w[2], w[3]) * w[1] + fluxes.A_2_1_2(w[0], w[1], w[2], w[3]) * w[2] + fluxes.A_2_1_3(w[0], w[1], w[2], w[3]) * w[3];
+  result_temp[1] = result_1 * nx + result_2 * ny;
+
+  result_1 = fluxes.A_1_2_0(w[0], w[1], w[2], w[3]) * w[0] + fluxes.A_1_2_1(w[0], w[1], w[2], w[3]) * w[1] + fluxes.A_1_2_2(w[0], w[1], w[2], w[3]) * w[2] + fluxes.A_1_2_3(w[0], w[1], w[2], w[3]) * w[3];
+  result_2 = fluxes.A_2_2_0(w[0], w[1], w[2], w[3]) * w[0] + fluxes.A_2_2_1(w[0], w[1], w[2], w[3]) * w[1] + fluxes.A_2_2_2(w[0], w[1], w[2], w[3]) * w[2] + fluxes.A_2_2_3(w[0], w[1], w[2], w[3]) * w[3];
+  result_temp[2] = result_1 * nx + result_2 * ny;
+
+  result_1 = fluxes.A_1_3_0(w[0], w[1], w[2], w[3]) * w[0] + fluxes.A_1_3_1(w[0], w[1], w[2], w[3]) * w[1] + fluxes.A_1_3_2(w[0], w[1], w[2], w[3]) * w[2] + fluxes.A_1_3_3(w[0], w[1], w[2], w[3]) * w[3];
+  result_2 = fluxes.A_2_3_0(w[0], w[1], w[2], w[3]) * w[0] + fluxes.A_2_3_1(w[0], w[1], w[2], w[3]) * w[1] + fluxes.A_2_3_2(w[0], w[1], w[2], w[3]) * w[2] + fluxes.A_2_3_3(w[0], w[1], w[2], w[3]) * w[3];
+  result_temp[3] = result_1 * nx + result_2 * ny;
+
+  //////////////
+  w[0] = w_R[0];
+  w[1] = w_R[1];
+  w[2] = w_R[2];
+  w[3] = w_R[3];
+
+  result_1 = fluxes.A_1_0_0(w[0], w[1], w[2], w[3]) * w[0] + fluxes.A_1_0_1(w[0], w[1], w[2], w[3]) * w[1] + fluxes.A_1_0_2(w[0], w[1], w[2], w[3]) * w[2] + fluxes.A_1_0_3(w[0], w[1], w[2], w[3]) * w[3];
+  result_2 = fluxes.A_2_0_0(w[0], w[1], w[2], w[3]) * w[0] + fluxes.A_2_0_1(w[0], w[1], w[2], w[3]) * w[1] + fluxes.A_2_0_2(w[0], w[1], w[2], w[3]) * w[2] + fluxes.A_2_0_3(w[0], w[1], w[2], w[3]) * w[3];
+  result_temp[0] += result_1 * nx + result_2 * ny;
+
+  result_1 = fluxes.A_1_1_0(w[0], w[1], w[2], w[3]) * w[0] + fluxes.A_1_1_1(w[0], w[1], w[2], w[3]) * w[1] + fluxes.A_1_1_2(w[0], w[1], w[2], w[3]) * w[2] + fluxes.A_1_1_3(w[0], w[1], w[2], w[3]) * w[3];
+  result_2 = fluxes.A_2_1_0(w[0], w[1], w[2], w[3]) * w[0] + fluxes.A_2_1_1(w[0], w[1], w[2], w[3]) * w[1] + fluxes.A_2_1_2(w[0], w[1], w[2], w[3]) * w[2] + fluxes.A_2_1_3(w[0], w[1], w[2], w[3]) * w[3];
+  result_temp[1] += result_1 * nx + result_2 * ny;
+
+  result_1 = fluxes.A_1_2_0(w[0], w[1], w[2], w[3]) * w[0] + fluxes.A_1_2_1(w[0], w[1], w[2], w[3]) * w[1] + fluxes.A_1_2_2(w[0], w[1], w[2], w[3]) * w[2] + fluxes.A_1_2_3(w[0], w[1], w[2], w[3]) * w[3];
+  result_2 = fluxes.A_2_2_0(w[0], w[1], w[2], w[3]) * w[0] + fluxes.A_2_2_1(w[0], w[1], w[2], w[3]) * w[1] + fluxes.A_2_2_2(w[0], w[1], w[2], w[3]) * w[2] + fluxes.A_2_2_3(w[0], w[1], w[2], w[3]) * w[3];
+  result_temp[2] += result_1 * nx + result_2 * ny;
+
+  result_1 = fluxes.A_1_3_0(w[0], w[1], w[2], w[3]) * w[0] + fluxes.A_1_3_1(w[0], w[1], w[2], w[3]) * w[1] + fluxes.A_1_3_2(w[0], w[1], w[2], w[3]) * w[2] + fluxes.A_1_3_3(w[0], w[1], w[2], w[3]) * w[3];
+  result_2 = fluxes.A_2_3_0(w[0], w[1], w[2], w[3]) * w[0] + fluxes.A_2_3_1(w[0], w[1], w[2], w[3]) * w[1] + fluxes.A_2_3_2(w[0], w[1], w[2], w[3]) * w[2] + fluxes.A_2_3_3(w[0], w[1], w[2], w[3]) * w[3];
+  result_temp[3] += result_1 * nx + result_2 * ny;
+
+  for (unsigned int i = 0; i < 4; i++)
+    result[i] = result_temp[i] / 2.;
+
   double w_mean[4];
   w_mean[0] = w_L[0] + w_R[0];
   w_mean[1] = w_L[1] + w_R[1];

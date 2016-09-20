@@ -138,7 +138,7 @@ int main(int argc, char* argv[])
   std::vector<std::string> inlet_markers({ BDY_INLET });
   std::vector<std::string> outlet_markers;
 
-  WeakFormSharedPtr<double> wf(new EulerEquationsWeakFormSemiImplicit(KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, solid_wall_markers,
+  WeakFormSharedPtr<double> wf(new EulerEquationsWeakFormSemiImplicit(KAPPA, {RHO_EXT}, {V1_EXT}, {V2_EXT}, {P_EXT}, solid_wall_markers,
     inlet_markers, outlet_markers, prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e));
 #include "../euler-time-loop-space-adapt.cpp"
 }

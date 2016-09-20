@@ -135,17 +135,16 @@ int main(int argc, char* argv[])
 
     char* change_state = new char[1000];
     std::cout << "Done?";
-    std::cin.clear();
-    fflush(stdin);
-    std::cin.getline(change_state, 1);
+    std::cin >> change_state;
     if (!strcmp(change_state, "y"))
       break;
     std::cout << std::endl;
     std::cout << "Frequency change [1e9 Hz]: ";
-    double frequency_change;
-    std::cin.clear();
-    fflush(stdin);
-    std::cin >> frequency_change;
+	double frequency_change;
+	std::cin.sync();
+	std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+	std::cin.sync();
+	std::cin >> frequency_change;
 
     frequency += 1e9 * frequency_change;
     omega = 2 * M_PI * frequency;

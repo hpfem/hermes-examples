@@ -15,9 +15,9 @@ const bool VTK_VISUALIZATION = false;
 const unsigned int EVERY_NTH_STEP = 1;
 
 // Initial polynomial degree.
-const int P_INIT = 1;
+const int P_INIT = 0;
 // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM = 2;
+const int INIT_REF_NUM = 3;
 
 // Shock capturing.
 enum shockCapturingType
@@ -55,9 +55,9 @@ const double V2_EXT = 0.0;
 const double KAPPA = 1.4;
 
 // CFL value.
-const double CFL_NUMBER = 0.1;
+const double CFL_NUMBER = 0.9;
 // Initial time step.
-double time_step_n = 1E-5;
+double time_step_n = 1E-6;
 
 double TIME_INTERVAL_LENGTH = 20.;
 
@@ -92,7 +92,7 @@ int main(int argc, char* argv[])
   std::vector<std::string> inlet_markers({ BDY_INLET });
   std::vector<std::string> outlet_markers;
 
-  WeakFormSharedPtr<double> wf(new EulerEquationsWeakFormSemiImplicit(KAPPA, RHO_EXT, V1_EXT, V2_EXT, P_EXT, solid_wall_markers,
+  WeakFormSharedPtr<double> wf(new EulerEquationsWeakFormSemiImplicit(KAPPA, { RHO_EXT }, { V1_EXT }, { V2_EXT }, { P_EXT }, solid_wall_markers,
     inlet_markers, outlet_markers, prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e, (P_INIT == 0)));
 #include "../euler-time-loop.cpp"
 }

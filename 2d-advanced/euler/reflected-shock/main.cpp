@@ -23,16 +23,16 @@ using namespace Hermes::Hermes2D::Views;
 // Set to "true" to enable Hermes OpenGL visualization.
 const bool HERMES_VISUALIZATION = true;
 // Set to "true" to enable VTK output.
-const bool VTK_VISUALIZATION = false;
+const bool VTK_VISUALIZATION = true;
 // Set visual output for every nth step.
 const unsigned int EVERY_NTH_STEP = 1;
 
 // Shock capturing.
 enum shockCapturingType
 {
-  FEISTAUER,
-  KUZMIN,
-  KRIVODONOVA
+	FEISTAUER,
+	KUZMIN,
+	KRIVODONOVA
 };
 bool SHOCK_CAPTURING = true;
 shockCapturingType SHOCK_CAPTURING_TYPE = KUZMIN;
@@ -43,13 +43,14 @@ const double NU_1 = 0.1;
 const double NU_2 = 0.1;
 
 // Initial polynomial degree.
+// This example will not work if P_INIT > 1.
 const int P_INIT = 1;
 // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM = 3;
+const int INIT_REF_NUM = 4;
 // CFL value.
 double CFL_NUMBER = 0.5;
 // Initial time step.
-double time_step_n = 1E-4;
+double time_step_n = 0.01;
 
 double KAPPA = 1.4;
 
@@ -75,7 +76,8 @@ const double PRESSURE_INIT = 0.714286;
 double TIME_INTERVAL_LENGTH = 20.;
 
 // Mesh filename.
-const std::string MESH_FILENAME = "channel.mesh";
+#define MESH_FILENAME "channel.mesh"
+
 // Boundary markers.
 const std::string BDY_SOLID_WALL = "1";
 const std::string BDY_OUTLET = "2";
@@ -92,24 +94,26 @@ int main(int argc, char* argv[])
 {
 #include "../euler-init-main.cpp"
 
-  // Set initial conditions.
-  MeshFunctionSharedPtr<double> prev_rho(new ConstantSolution<double>(mesh, RHO_INIT));
-  MeshFunctionSharedPtr<double> prev_rho_v_x(new ConstantSolution<double>(mesh, RHO_INIT * V1_INIT));
-  MeshFunctionSharedPtr<double> prev_rho_v_y(new ConstantSolution<double>(mesh, RHO_INIT * V2_INIT));
-  MeshFunctionSharedPtr<double> prev_e(new ConstantSolution<double>(mesh, QuantityCalculator::calc_energy(RHO_INIT, RHO_INIT * V1_INIT, RHO_INIT * V2_INIT, PRESSURE_INIT, KAPPA)));
+#pragma region 3. Example-specific setup.
+	// Initialize boundary conditions.
+	std::vector<std::string> solid_wall_markers;
+	solid_wall_markers.push_back(BDY_SOLID_WALL);
+	std::vector<std::string> inlet_markers({ BDY_INLET_LEFT, BDY_INLET_TOP });
+	std::vector<double> rho_ext({ RHO_LEFT, RHO_TOP });
+	std::vector<double> v1_ext({ V1_LEFT, V1_TOP });
+	std::vector<double> v2_ext({ V2_LEFT, V2_TOP });
+	std::vector<double> pressure_ext({ PRESSURE_LEFT, PRESSURE_TOP });
+	std::vector<std::string> outlet_markers({ BDY_OUTLET });
 
-  // Initialize weak formulation.
-  std::vector<std::string> solid_wall_markers;
-  solid_wall_markers.push_back(BDY_SOLID_WALL);
+	// Set initial conditions.
+	MeshFunctionSharedPtr<double> prev_rho(new ConstantSolution<double>(mesh, RHO_INIT));
+	MeshFunctionSharedPtr<double> prev_rho_v_x(new ConstantSolution<double>(mesh, RHO_INIT * V1_INIT));
+	MeshFunctionSharedPtr<double> prev_rho_v_y(new ConstantSolution<double>(mesh, RHO_INIT * V2_INIT));
+	MeshFunctionSharedPtr<double> prev_e(new ConstantSolution<double>(mesh, QuantityCalculator::calc_energy(RHO_INIT, RHO_INIT * V1_INIT, RHO_INIT * V2_INIT, PRESSURE_INIT, KAPPA)));
 
-  std::vector<std::string> inlet_markers({ BDY_INLET_LEFT, BDY_INLET_TOP });
-  std::vector<double> rho_ext({ RHO_LEFT, RHO_TOP });
-  std::vector<double> v1_ext({ V1_LEFT, V1_TOP });
-  std::vector<double> v2_ext({ V2_LEFT, V2_TOP });
-  std::vector<double> pressure_ext({ PRESSURE_LEFT, PRESSURE_TOP });
+	// Weak formulation.
+	WeakFormSharedPtr<double> wf(new EulerEquationsWeakFormSemiImplicit(KAPPA, rho_ext, v1_ext, v2_ext, pressure_ext, solid_wall_markers, inlet_markers, outlet_markers, prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e, (P_INIT == 0)));
+#pragma endregion
 
-  std::vector<std::string> outlet_markers({ BDY_OUTLET });
-
-  WeakFormSharedPtr<double> wf(new EulerEquationsWeakFormSemiImplicit(KAPPA, rho_ext, v1_ext, v2_ext, pressure_ext, solid_wall_markers, inlet_markers, outlet_markers, prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e, (P_INIT == 0)));
 #include "../euler-time-loop.cpp"
 }
