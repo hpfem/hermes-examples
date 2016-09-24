@@ -16,7 +16,7 @@ using namespace RefinementSelectors;
 //
 //  Domain: square (0, L)x(0, L) where L = 30c (see mesh file domain.mesh).
 //
-//  BC:  Zero Dirichlet for the right and top edges ("vacuum boundary").
+//  BC:  Zero Dirichlet for the right and top edges ("vacuum boundary	").
 //       Zero Neumann for the left and bottom edges ("reflection boundary").
 //
 //  The following parameters can be changed:

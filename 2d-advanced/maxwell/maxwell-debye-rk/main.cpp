@@ -69,9 +69,9 @@ public:
   // Two first components are in the H1 space - we can use the classic class for that, for the last component, we will manually add the L2 norm for pressure.
   CustomErrorCalculator(CalculatedErrorType errorType) : ErrorCalculator<double>(errorType)
   {
-    this->add_error_form(new DefaultNormFormVol<double>(0, 0, HERMES_HCURL_NORM));
-    this->add_error_form(new DefaultNormFormVol<double>(1, 1, HERMES_H1_NORM));
-    this->add_error_form(new DefaultNormFormVol<double>(2, 2, HERMES_HCURL_NORM));
+    this->add_error_form(new DefaultNormFormVol<double>(0, 0, HERMES_HCURL_NORM, Hermes::Hermes2D::SolutionsDifference));
+    this->add_error_form(new DefaultNormFormVol<double>(1, 1, HERMES_H1_NORM, Hermes::Hermes2D::SolutionsDifference));
+    this->add_error_form(new DefaultNormFormVol<double>(2, 2, HERMES_HCURL_NORM, Hermes::Hermes2D::SolutionsDifference));
   }
 } errorCalculator(RelativeErrorToGlobalNorm);
 // Stopping criterion for an adaptivity step.
@@ -84,9 +84,9 @@ const CandList CAND_LIST = H2D_HP_ANISO;
 const double ERR_STOP = 1e-1;
 
 // Problem parameters.
-// Permeability of free space->
+// Permeability of free space.
 const double MU_0 = 1.0;
-// Permittivity of free space->
+// Permittivity of free space.
 const double EPS_0 = 1.0;
 // Permittivity at infinite frequency.
 const double EPS_INF = 1.0;

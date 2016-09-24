@@ -25,17 +25,17 @@ const char* mesh_file = "domain-half.mesh";
 
 // Adaptive time stepping.
 // Time step (in days).
-double time_step = 0.3;
+double time_step = .001;
 // If rel. temporal error is greater than this threshold, decrease time
 // step size and repeat time step.
 const double time_tol_upper = 1.0;
 // If rel. temporal error is less than this threshold, increase time step
 // but do not repeat time step (this might need further research).
-const double time_tol_lower = 0.5;
+const double time_tol_lower = 0.1;
 // Timestep decrease ratio after unsuccessful nonlinear solve.
-double time_step_dec = 0.8;
+double time_step_dec = 0.5;
 // Timestep increase ratio after successful nonlinear solve.
-double time_step_inc = 1.1;
+double time_step_inc = 2.0;
 // Computation will stop if time step drops below this value.
 double time_step_min = 1e-8;
 
@@ -46,14 +46,6 @@ const int P_INIT = 2;
 const int INIT_REF_NUM = 2;
 // Number of initial mesh refinements towards the top edge.
 const int INIT_REF_NUM_BDY_TOP = 1;
-
-// Constitutive relations.
-enum CONSTITUTIVE_RELATIONS {
-  CONSTITUTIVE_GENUCHTEN,    // Van Genuchten.
-  CONSTITUTIVE_GARDNER       // Gardner.
-};
-// Use van Genuchten's constitutive relations, or Gardner's.
-CONSTITUTIVE_RELATIONS constitutive_relations_type = CONSTITUTIVE_GENUCHTEN;
 
 // Choose one of the following time-integration methods, or define your own Butcher's table. The last number
 // in the name of each method is its order. The one before last, if present, is the number of stages.
@@ -76,8 +68,8 @@ ButcherTableType butcher_table_type = Implicit_SDIRK_CASH_3_23_embedded;
 // Stopping criterion for the Newton's method.
 const double NEWTON_TOL = 1e-6;
 // Maximum allowed number of Newton iterations.
-const int NEWTON_MAX_ITER = 500;
-const double DAMPING_COEFF = .9;
+const int NEWTON_MAX_ITER = 10;
+const double DAMPING_COEFF = 1.;
 
 // Times.
 // Start-up time for time-dependent Dirichlet boundary condition.
@@ -151,181 +143,184 @@ bool POLYNOMIALS_ALLOCATED = false;
 // Global variables for forms.
 double K_S, ALPHA, THETA_R, THETA_S, N, M, STORATIVITY;
 
+Hermes::Hermes2D::Mesh* mesh_internal;
+
 // Main function.
 int main(int argc, char* argv[])
 {
-  ConstitutiveRelationsGenuchtenWithLayer constitutive_relations(CONSTITUTIVE_TABLE_METHOD, NUM_OF_INSIDE_PTS, LOW_LIMIT, TABLE_PRECISION, TABLE_LIMIT, K_S_vals, ALPHA_vals, N_vals, M_vals, THETA_R_vals, THETA_S_vals, STORATIVITY_vals);
+	ConstitutiveRelationsGenuchtenWithLayer constitutive_relations(CONSTITUTIVE_TABLE_METHOD, NUM_OF_INSIDE_PTS, LOW_LIMIT, TABLE_PRECISION, TABLE_LIMIT, K_S_vals, ALPHA_vals, N_vals, M_vals, THETA_R_vals, THETA_S_vals, STORATIVITY_vals);
 
-  // Either use exact constitutive relations (slow) (method 0) or precalculate
-  // their linear approximations (faster) (method 1) or
-  // precalculate their quintic polynomial approximations (method 2) -- managed by
-  // the following loop "Initializing polynomial approximation".
-  if (CONSTITUTIVE_TABLE_METHOD == 1)
-    constitutive_relations.constitutive_tables_ready = get_constitutive_tables(1, &constitutive_relations, MATERIAL_COUNT);  // 1 stands for the Newton's method.
+	// Either use exact constitutive relations (slow) (method 0) or precalculate
+	// their linear approximations (faster) (method 1) or
+	// precalculate their quintic polynomial approximations (method 2) -- managed by
+	// the following loop "Initializing polynomial approximation".
+	if (CONSTITUTIVE_TABLE_METHOD == 1)
+		constitutive_relations.constitutive_tables_ready = get_constitutive_tables(1, &constitutive_relations, MATERIAL_COUNT);  // 1 stands for the Newton's method.
 
-  // The van Genuchten + Mualem K(h) function is approximated by polynomials close
-  // to zero in case of CONSTITUTIVE_TABLE_METHOD==1.
-  // In case of CONSTITUTIVE_TABLE_METHOD==2, all constitutive functions are approximated by polynomials.
-  Hermes::Mixins::Loggable::Static::info("Initializing polynomial approximations.");
-  for (int i = 0; i < MATERIAL_COUNT; i++)
-  {
-    // Points to be used for polynomial approximation of K(h).
-    double* points = new double[NUM_OF_INSIDE_PTS];
+	  // The van Genuchten + Mualem K(h) function is approximated by polynomials close
+	  // to zero in case of CONSTITUTIVE_TABLE_METHOD==1.
+	  // In case of CONSTITUTIVE_TABLE_METHOD==2, all constitutive functions are approximated by polynomials.
+	Hermes::Mixins::Loggable::Static::info("Initializing polynomial approximations.");
+	for (int i = 0; i < MATERIAL_COUNT; i++)
+	{
+		// Points to be used for polynomial approximation of K(h).
+		double* points = new double[NUM_OF_INSIDE_PTS];
 
-    init_polynomials(6 + NUM_OF_INSIDE_PTS, LOW_LIMIT, points, NUM_OF_INSIDE_PTS, i, &constitutive_relations, MATERIAL_COUNT, NUM_OF_INTERVALS, INTERVALS_4_APPROX);
-  }
+		init_polynomials(6 + NUM_OF_INSIDE_PTS, LOW_LIMIT, points, NUM_OF_INSIDE_PTS, i, &constitutive_relations, MATERIAL_COUNT, NUM_OF_INTERVALS, INTERVALS_4_APPROX);
+	}
 
-  constitutive_relations.polynomials_ready = true;
-  if (CONSTITUTIVE_TABLE_METHOD == 2)
-  {
-    constitutive_relations.constitutive_tables_ready = true;
-    //Assign table limit to global definition.
-    constitutive_relations.table_limit = INTERVALS_4_APPROX[NUM_OF_INTERVALS - 1];
-  }
+	constitutive_relations.polynomials_ready = true;
+	if (CONSTITUTIVE_TABLE_METHOD == 2)
+	{
+		constitutive_relations.constitutive_tables_ready = true;
+		//Assign table limit to global definition.
+		constitutive_relations.table_limit = INTERVALS_4_APPROX[NUM_OF_INTERVALS - 1];
+	}
 
-  // Choose a Butcher's table or define your own.
-  ButcherTable bt(butcher_table_type);
-  if (bt.is_explicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage explicit R-K method.", bt.get_size());
-  if (bt.is_diagonally_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage diagonally implicit R-K method.", bt.get_size());
-  if (bt.is_fully_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage fully implicit R-K method.", bt.get_size());
+	// Choose a Butcher's table or define your own.
+	ButcherTable bt(butcher_table_type);
+	if (bt.is_explicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage explicit R-K method.", bt.get_size());
+	if (bt.is_diagonally_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage diagonally implicit R-K method.", bt.get_size());
+	if (bt.is_fully_implicit()) Hermes::Mixins::Loggable::Static::info("Using a %d-stage fully implicit R-K method.", bt.get_size());
 
-  // Load the mesh.
-  MeshSharedPtr mesh(new Mesh), basemesh(new Mesh);
-  MeshReaderH2D mloader;
-  mloader.load(mesh_file, basemesh);
+	// Load the mesh.
+	MeshSharedPtr mesh(new Mesh), basemesh(new Mesh);
+	MeshReaderH2D mloader;
+	mloader.load(mesh_file, basemesh);
+	mesh_internal = mesh.get();
 
-  // Perform initial mesh refinements.
-  mesh->copy(basemesh);
-  for (int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
-  mesh->refine_towards_boundary("Top", INIT_REF_NUM_BDY_TOP);
+	// Perform initial mesh refinements.
+	mesh->copy(basemesh);
+	for (int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
+	mesh->refine_towards_boundary("Top", INIT_REF_NUM_BDY_TOP);
 
-  // Initialize boundary conditions.
-  RichardsEssentialBC bc_essential("Top", H_ELEVATION, PULSE_END_TIME, H_INIT, STARTUP_TIME);
-  EssentialBCs<double> bcs(&bc_essential);
+	// Initialize boundary conditions.
+	RichardsEssentialBC bc_essential("Top", H_ELEVATION, PULSE_END_TIME, H_INIT, STARTUP_TIME);
+	EssentialBCs<double> bcs(&bc_essential);
 
-  // Create an H1 space with default shapeset.
-  SpaceSharedPtr<double> space(new H1Space<double>(mesh, &bcs, P_INIT));
-  int ndof = space->get_num_dofs();
-  Hermes::Mixins::Loggable::Static::info("ndof = %d.", ndof);
+	// Create an H1 space with default shapeset.
+	SpaceSharedPtr<double> space(new H1Space<double>(mesh, &bcs, P_INIT));
+	int ndof = space->get_num_dofs();
+	Hermes::Mixins::Loggable::Static::info("ndof = %d.", ndof);
 
-  // Convert initial condition into a Solution.
-  MeshFunctionSharedPtr<double>  h_time_prev(new ZeroSolution<double>(mesh)), h_time_new(new ZeroSolution<double>(mesh)), time_error_fn(new ZeroSolution<double>(mesh));
+	// Convert initial condition into a Solution.
+	MeshFunctionSharedPtr<double>  h_time_prev(new ZeroSolution<double>(mesh)), h_time_new(new ZeroSolution<double>(mesh)), time_error_fn(new ZeroSolution<double>(mesh));
 
-  // Initialize views.
-  ScalarView view("Initial condition", new WinGeom(0, 0, 600, 500));
-  view.fix_scale_width(80);
+	// Initialize views.
+	ScalarView view("Initial condition", new WinGeom(0, 0, 600, 500));
+	view.fix_scale_width(80);
 
-  // Visualize the initial condition.
-  view.show(h_time_prev);
+	// Visualize the initial condition.
+	view.show(h_time_prev);
 
-  // Initialize the weak formulation.
-  WeakFormSharedPtr<double> wf(new CustomWeakFormRichardsRK(&constitutive_relations));
+	// Initialize the weak formulation.
+	WeakFormSharedPtr<double> wf(new CustomWeakFormRichardsRK(&constitutive_relations));
 
-  // Visualize the projection and mesh.
-  ScalarView sview("Initial condition", new WinGeom(0, 0, 400, 350));
-  sview.fix_scale_width(50);
-  sview.show(h_time_prev);
-  ScalarView eview("Temporal error", new WinGeom(405, 0, 400, 350));
-  eview.fix_scale_width(50);
-  eview.show(time_error_fn);
-  OrderView oview("Initial mesh", new WinGeom(810, 0, 350, 350));
-  oview.show(space);
+	// Visualize the projection and mesh.
+	ScalarView sview("Initial condition", new WinGeom(0, 0, 400, 350));
+	sview.fix_scale_width(50);
+	sview.show(h_time_prev);
+	ScalarView eview("Temporal error", new WinGeom(405, 0, 400, 350));
+	eview.fix_scale_width(50);
+	eview.show(time_error_fn);
+	OrderView oview("Initial mesh", new WinGeom(810, 0, 350, 350));
+	oview.show(space);
 
-  // Graph for time step history.
-  SimpleGraph time_step_graph;
-  Hermes::Mixins::Loggable::Static::info("Time step history will be saved to file time_step_history.dat.");
+	// Graph for time step history.
+	SimpleGraph time_step_graph;
+	Hermes::Mixins::Loggable::Static::info("Time step history will be saved to file time_step_history.dat.");
 
-  // Initialize Runge-Kutta time stepping.
-  RungeKutta<double> runge_kutta(wf, space, &bt);
-  runge_kutta.set_verbose_output(true);
-  runge_kutta.set_time_step(time_step);
-  runge_kutta.set_max_allowed_iterations(NEWTON_MAX_ITER);
-  runge_kutta.set_tolerance(NEWTON_TOL);
-  runge_kutta.set_newton_damping_coeff(DAMPING_COEFF);
+	// Initialize Runge-Kutta time stepping.
+	RungeKutta<double> runge_kutta(wf, space, &bt);
+	runge_kutta.set_verbose_output(true);
+	runge_kutta.set_time_step(time_step);
+	runge_kutta.set_newton_max_allowed_iterations(NEWTON_MAX_ITER);
+	runge_kutta.set_newton_tolerance(NEWTON_TOL);
+	runge_kutta.set_newton_damping_coeff(DAMPING_COEFF);
 
-  // Time stepping:
-  double current_time = 0;
-  int ts = 1;
-  do
-  {
-    Hermes::Mixins::Loggable::Static::info("---- Time step %d, time %3.5f s", ts, current_time);
+	// Time stepping:
+	int ts = 1;
+	do
+	{
+		Hermes::Mixins::Loggable::Static::info("---- Time step %d, time %3.5f s", ts, current_time);
 
-    Space<double>::update_essential_bc_values(space, current_time);
+		Space<double>::update_essential_bc_values(space, current_time);
 
-    // Perform one Runge-Kutta time step according to the selected Butcher's table.
-    Hermes::Mixins::Loggable::Static::info("Runge-Kutta time step (t = %g s, time step = %g s, stages: %d).",
-      current_time, time_step, bt.get_size());
-    try
-    {
-      runge_kutta.set_time(current_time);
-      runge_kutta.rk_time_step_newton(h_time_prev, h_time_new, time_error_fn);
-    }
-    catch (Exceptions::Exception& e)
-    {
-      Hermes::Mixins::Loggable::Static::info("Runge-Kutta time step failed, decreasing time step size from %g to %g days.",
-        time_step, time_step * time_step_dec);
-      time_step *= time_step_dec;
-      if (time_step < time_step_min)
-        throw Hermes::Exceptions::Exception("Time step became too small.");
-      continue;
-    }
+		// Perform one Runge-Kutta time step according to the selected Butcher's table.
+		Hermes::Mixins::Loggable::Static::info("Runge-Kutta time step (t = %g s, time step = %g s, stages: %d).",
+			current_time, time_step, bt.get_size());
+		try
+		{
+			runge_kutta.set_time_step(time_step);
+			runge_kutta.set_time(current_time);
+			runge_kutta.rk_time_step_newton(h_time_prev, h_time_new, time_error_fn);
+		}
+		catch (Exceptions::Exception& e)
+		{
+			Hermes::Mixins::Loggable::Static::info("Runge-Kutta time step failed, decreasing time step size from %g to %g days.",
+				time_step, time_step * time_step_dec);
+			time_step *= time_step_dec;
+			if (time_step < time_step_min)
+				throw Hermes::Exceptions::Exception("Time step became too small.");
+			continue;
+		}
 
-    // Copy solution for the new time step.
-    h_time_prev->copy(h_time_new);
+		// Copy solution for the new time step.
+		h_time_prev->copy(h_time_new);
 
-    // Show error function.
-    char title[100];
-    sprintf(title, "Temporal error, t = %g", current_time);
-    eview.set_title(title);
-    eview.show(time_error_fn);
+		// Show error function.
+		char title[100];
+		sprintf(title, "Temporal error, t = %g", current_time);
+		eview.set_title(title);
+		eview.show(time_error_fn);
 
-    // Calculate relative time stepping error and decide whether the
-    // time step can be accepted. If not, then the time step size is
-    // reduced and the entire time step repeated. If yes, then another
-    // check is run, and if the relative error is very low, time step
-    // is increased.
-    DefaultNormCalculator<double, HERMES_H1_NORM> normCalculator(1);
-    normCalculator.calculate_norm(time_error_fn);
-    double rel_err_time = normCalculator.get_total_norm_squared() * 100.;
+		// Calculate relative time stepping error and decide whether the
+		// time step can be accepted. If not, then the time step size is
+		// reduced and the entire time step repeated. If yes, then another
+		// check is run, and if the relative error is very low, time step
+		// is increased.
+		DefaultNormCalculator<double, HERMES_H1_NORM> normCalculator(1);
+		normCalculator.calculate_norm(time_error_fn);
+		double rel_err_time = normCalculator.get_total_norm_squared() * 100.;
 
-    Hermes::Mixins::Loggable::Static::info("rel_err_time = %g%%", rel_err_time);
-    if (rel_err_time > time_tol_upper) {
-      Hermes::Mixins::Loggable::Static::info("rel_err_time above upper limit %g%% -> decreasing time step from %g to %g days and repeating time step.",
-        time_tol_upper, time_step, time_step * time_step_dec);
-      time_step *= time_step_dec;
-      continue;
-    }
-    if (rel_err_time < time_tol_lower) {
-      Hermes::Mixins::Loggable::Static::info("rel_err_time = below lower limit %g%% -> increasing time step from %g to %g days",
-        time_tol_lower, time_step, time_step * time_step_inc);
-      time_step *= time_step_inc;
-    }
+		Hermes::Mixins::Loggable::Static::info("rel_err_time = %g%%", rel_err_time);
+		if (rel_err_time > time_tol_upper) {
+			Hermes::Mixins::Loggable::Static::info("rel_err_time above upper limit %g%% -> decreasing time step from %g to %g days and repeating time step.",
+				time_tol_upper, time_step, time_step * time_step_dec);
+			time_step *= time_step_dec;
+			continue;
+		}
+		if (rel_err_time < time_tol_lower) {
+			Hermes::Mixins::Loggable::Static::info("rel_err_time = below lower limit %g%% -> increasing time step from %g to %g days",
+				time_tol_lower, time_step, time_step * time_step_inc);
+			time_step *= time_step_inc;
+		}
 
-    // Add entry to the timestep graph.
-    time_step_graph.add_values(current_time, time_step);
-    time_step_graph.save("time_step_history.dat");
+		// Add entry to the timestep graph.
+		time_step_graph.add_values(current_time, time_step);
+		time_step_graph.save("time_step_history.dat");
 
-    // Update time.
-    current_time += time_step;
+		// Update time.
+		current_time += time_step;
 
-    // Show the new time level solution.
-    sprintf(title, "Solution, t = %g", current_time);
-    sview.set_title(title);
-    sview.show(h_time_new);
-    oview.show(space);
+		// Show the new time level solution.
+		sprintf(title, "Solution, t = %g", current_time);
+		sview.set_title(title);
+		sview.show(h_time_new);
+		oview.show(space);
 
-    // Save complete Solution.
-    char filename[100];
-    sprintf(filename, "outputs/tsln_%f.dat", current_time);
+		// Save complete Solution.
+		char filename[100];
+		sprintf(filename, "outputs/tsln_%f.dat", current_time);
 
-    // Save solution for the next time step.
-    h_time_prev->copy(h_time_new);
+		// Save solution for the next time step.
+		h_time_prev->copy(h_time_new);
 
-    // Increase time step counter.
-    ts++;
-  } while (current_time < T_FINAL);
+		// Increase time step counter.
+		ts++;
+	} while (current_time < T_FINAL);
 
-  // Wait for the view to be closed.
-  View::wait();
-  return 0;
+	// Wait for the view to be closed.
+	View::wait();
+	return 0;
 }
