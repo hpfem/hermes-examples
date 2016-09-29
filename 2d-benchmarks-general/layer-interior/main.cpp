@@ -25,7 +25,7 @@ const int P_INIT = 2;
 const int INIT_REF_NUM = 1;
 // This is a quantitative parameter of the adapt(...) function and
 // it has different meanings for various adaptive strategies.
-const double THRESHOLD = 0.3;
+const double THRESHOLD = 0.6;
 // Error calculation & adaptivity.
 DefaultErrorCalculator<double, HERMES_H1_NORM> errorCalculator(RelativeErrorToGlobalNorm, 1);
 // Stopping criterion for an adaptivity step.
@@ -35,7 +35,7 @@ Adapt<double> adaptivity(&errorCalculator, &stoppingCriterion);
 // Predefined list of element refinement candidates.
 const CandList CAND_LIST = H2D_HP_ANISO;
 // Stopping criterion for adaptivity.
-const double ERR_STOP = 1e-2;
+const double ERR_STOP = 1e-5;
 
 // Problem parameters.
 // Slope of the layer.

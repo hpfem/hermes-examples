@@ -63,6 +63,11 @@ int main(int argc, char* argv[])
   MeshReaderH2DXML mloader;
   mloader.load("initial.xml", mesh);
 
+  // Show the mesh.
+  MeshView m_view;
+  m_view.show(mesh);
+
+  // Refine the mesh.
   mesh->refine_all_elements();
 
   // Initialize boundary conditions
@@ -100,7 +105,7 @@ int main(int argc, char* argv[])
   ScalarView viewEi("Ei [V/m]", new WinGeom(600, 220, 700, 200));
   viewEi.get_linearizer()->set_criterion(LinearizerCriterionFixed(2));
 
-  ScalarView viewMagnitude("Magnitude of E [V/m]", new WinGeom(600, 440, 700, 150));
+  ScalarView viewMagnitude("Magnitude of E [V/m]", new WinGeom(30, 30, 1000, 350));
   viewMagnitude.show_mesh(false);
   //viewMagnitude.show_contours(200., 0.);
   viewMagnitude.get_linearizer()->set_criterion(LinearizerCriterionFixed(2));

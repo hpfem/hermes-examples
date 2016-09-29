@@ -39,7 +39,7 @@ protected:
 class CustomErrorForm : public NormFormVol<double>
 {
 public:
-  CustomErrorForm(int i, int j, double d, double c) : NormFormVol<double>(i, j), d(d), c(c) {};
+  CustomErrorForm(int i, int j, double d, double c) : NormFormVol<double>(i, j, SolutionsDifference), d(d), c(c) {};
 
   virtual double value(int n, double *wt, Func<double> *u, Func<double> *v, GeomVol<double> *e) const
   {

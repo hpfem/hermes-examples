@@ -35,7 +35,7 @@ const double THRESHOLD = 0.9;
 // Predefined list of element refinement candidates.
 const CandList CAND_LIST = H2D_HP_ANISO;
 // Stopping criterion for adaptivity.
-const double ERR_STOP = 1e0;
+const double ERR_STOP = 1e-1;
 
 // Problem parameters.
 const double c_TT = 2.18e+6;
@@ -113,7 +113,7 @@ const double T_REACTOR_MAX = 550.0;
 // How long does the reactor
 // need to warm up linearly from T_INITIAL
 // to T_REACTOR_MAX [seconds].
-const double REACTOR_START_TIME = 3600 * 24;
+const double REACTOR_START_TIME = 3600 * 24 * 100;
 
 // Physical time in seconds.
 double current_time = 0.0;
