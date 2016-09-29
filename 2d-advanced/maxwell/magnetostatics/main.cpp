@@ -67,6 +67,10 @@ int main(int argc, char* argv[])
   MeshReaderH2D mloader;
   mloader.load("actuator.mesh", mesh);
 
+  // View the mesh.
+  MeshView m_view;
+  m_view.show(mesh);
+
   // Perform initial mesh refinements.
   for (int i = 0; i < INIT_REF_NUM; i++)
     mesh->refine_all_elements();

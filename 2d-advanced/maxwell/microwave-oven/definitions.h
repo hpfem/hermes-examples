@@ -128,7 +128,7 @@ private:
 class CustomErrorForm : public NormFormVol < ::complex >
 {
 public:
-  CustomErrorForm(double kappa) : NormFormVol<::complex>(0, 0)
+  CustomErrorForm(double kappa) : NormFormVol<::complex>(0, 0, SolutionsDifference)
   {
     kappa_squared = sqr(kappa);
   };

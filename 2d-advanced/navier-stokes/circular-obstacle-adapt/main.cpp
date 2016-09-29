@@ -59,7 +59,7 @@ public:
   // Two first components are in the H1 space - we can use the classic class for that, for the last component, we will manually add the L2 norm for pressure.
   CustomErrorCalculator(CalculatedErrorType errorType) : DefaultErrorCalculator<double, HERMES_H1_NORM>(errorType, 2)
   {
-    this->add_error_form(new DefaultNormFormVol<double>(2, 2, HERMES_L2_NORM));
+    this->add_error_form(new DefaultNormFormVol<double>(2, 2, HERMES_L2_NORM, SolutionsDifference));
   }
 } errorCalculator(RelativeErrorToGlobalNorm);
 // Stopping criterion for an adaptivity step.

@@ -91,7 +91,7 @@ private:
 class ErrorForm : public DefaultNormFormVol < double >
 {
 public:
-  ErrorForm(unsigned int i, unsigned int j, NormType type) : DefaultNormFormVol<double>(i, j, type) {};
+  ErrorForm(unsigned int i, unsigned int j, NormType type) : DefaultNormFormVol<double>(i, j, type, SolutionsDifference) {};
 
   /// Error bilinear form.
   virtual double value(int n, double *wt, Func<double> *u_ext[],
