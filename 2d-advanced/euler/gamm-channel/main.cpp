@@ -20,9 +20,9 @@ using namespace Hermes::Hermes2D::Views;
 // Set to "true" to enable Hermes OpenGL visualization.
 const bool HERMES_VISUALIZATION = true;
 // Set to "true" to enable VTK output.
-const bool VTK_VISUALIZATION = false;
+const bool VTK_VISUALIZATION = true;
 // Set visual output for every nth step.
-const unsigned int EVERY_NTH_STEP = 1;
+const unsigned int EVERY_NTH_STEP = 100;
 
 // Shock capturing.
 enum shockCapturingType
@@ -42,7 +42,7 @@ const double NU_2 = 0.1;
 // Initial polynomial degree.
 const int P_INIT = 1;
 // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM = 3;
+const int INIT_REF_NUM = 4;
 // CFL value.
 double CFL_NUMBER = 0.8;
 // Initial time step.
@@ -80,6 +80,7 @@ int main(int argc, char* argv[])
 {
 #include "../euler-init-main.cpp"
 
+#pragma region 3. Insert problem-specific data
   // Set initial conditions.
   MeshFunctionSharedPtr<double> prev_rho(new ConstantSolution<double>(mesh, RHO_EXT));
   MeshFunctionSharedPtr<double> prev_rho_v_x(new ConstantSolution<double>(mesh, RHO_EXT * V1_EXT));
@@ -94,6 +95,7 @@ int main(int argc, char* argv[])
   // Weak formulation.
   WeakFormSharedPtr<double> wf(new EulerEquationsWeakFormSemiImplicit(KAPPA, { RHO_EXT }, { V1_EXT }, { V2_EXT }, { P_EXT }, solid_wall_markers,
     inlet_markers, outlet_markers, prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e, (P_INIT == 0)));
+#pragma endregion
 
 #include "../euler-time-loop.cpp"
 }
