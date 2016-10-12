@@ -1,4 +1,4 @@
-#pragma region 1. Load mesh and initialize spaces.
+  #pragma region 1. Load mesh and initialize spaces.
     // Load the mesh.
     MeshSharedPtr mesh(new Mesh);
     MeshReaderH2D mloader;

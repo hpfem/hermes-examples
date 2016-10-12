@@ -13,35 +13,106 @@
 //  The following parameters can be changed:
 
 // Initial polynomial degree.
-const int P_INIT = 3;
+const int P_INIT = 2;
 // Stopping criterion for the Newton's method.
-const double NEWTON_TOL = 1e-8;
+const double NEWTON_TOL = 1e-5;
 // Maximum allowed number of Newton iterations.
 const int NEWTON_MAX_ITER = 1000;
 // Number between 0 and 1 to damp Newton's iterations.
 const double NEWTON_DAMPING = 1.0;
 // Number of initial uniform mesh refinements.
-const int INIT_REF_NUM = 1;
+const int INIT_REF_NUM = 0;
 
 // Problem parameters.
 double MU_VACUUM = 4. * M_PI * 1e-7;
 // Constant initial condition for the magnetic potential.
 double INIT_COND = 0.0;
 // Volume source term.
-double CURRENT_DENSITY = 1e9;
+double CURRENT_DENSITY = 1e6;
 
 // Material and boundary markers.
-const std::string MAT_AIR = "e2";
-const std::string MAT_IRON_1 = "e0";
-const std::string MAT_IRON_2 = "e3";
-const std::string MAT_COPPER = "e1";
-const std::string BDY_DIRICHLET = "bdy";
+const std::string MAT_AIR = "2";
+const std::string MAT_IRON_1 = "0";
+const std::string MAT_IRON_2 = "3";
+const std::string MAT_COPPER = "1";
+const std::vector<std::string> BDY_DIRICHLET = { 
+"16",
+"17",
+"18",
+"19",
+"21",
+"22"
+};
 
 int main(int argc, char* argv[])
 {
   // Define nonlinear magnetic permeability via a cubic spline.
-  std::vector<double> mu_inv_pts({ 0.0, 0.5, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.6, 1.7, 1.8, 1.9, 3.0, 5.0, 10.0 });
-  std::vector<double> mu_inv_val({ 1 / 1500.0, 1 / 1480.0, 1 / 1440.0, 1 / 1400.0, 1 / 1300.0, 1 / 1150.0, 1 / 950.0, 1 / 750.0, 1 / 250.0, 1 / 180.0, 1 / 175.0, 1 / 150.0, 1 / 20.0, 1 / 10.0, 1 / 5.0 });
+  std::vector<double> mu_inv_pts({ 0.,
+	  0.0622676,
+	  0.0699801,
+	  0.0781449,
+	  0.108779,
+	  0.140252,
+	  0.589805,
+	  0.777016,
+	  0.796086,
+	  0.895488,
+	  1.01564,
+	  1.11306,
+	  1.15599,
+	  1.19261,
+	  1.27821,
+	  1.37143,
+	  1.47334,
+	  1.50096,
+	  1.51305,
+	  1.53748,
+	  1.53964,
+	  1.56167,
+	  1.57542,
+	  1.57922,
+	  1.60284,
+	  1.61321,
+	  1.62708,
+	  1.70197,
+	  1.73799,
+	  1.81436,
+	  1.91181,
+	  1.9277,
+	  1.94428 });
+  std::vector<double> mu_inv_val({ 14617.8,
+	  18943.1,
+	  20424.2,
+	  21880.9,
+	  26343.9,
+	  30625.4,
+	  63874.2,
+	  59235.4,
+	  58231.,
+	  51103.9,
+	  38703.5,
+	  26056.4,
+	  20664.7,
+	  16448.8,
+	  7526.81,
+	  2687.02,
+	  688.82,
+	  435.214,
+	  334.89,
+	  180.578,
+	  166.409,
+	  61.6026,
+	  40.5858,
+	  37.0509,
+	  24.3051,
+	  21.1503,
+	  18.0643,
+	  10.3419,
+	  8.66857,
+	  6.55724,
+	  5.11165,
+	  4.94426,
+	  4.78435 });
 
   // Create the cubic spline (and plot it for visual control).
   double bc_left = 0.0;
@@ -52,20 +123,13 @@ int main(int argc, char* argv[])
   bool extrapolate_der_right = false;
   CubicSpline mu_inv_iron(mu_inv_pts, mu_inv_val, bc_left, bc_right, first_der_left, first_der_right,
     extrapolate_der_left, extrapolate_der_right);
-  Hermes::Mixins::Loggable::Static::info("Saving cubic spline into a Pylab file spline.dat.");
-  // The interval of definition of the spline will be
-  // extended by "interval_extension" on both sides.
-  double interval_extension = 1.0;
-  bool plot_derivative = false;
   mu_inv_iron.calculate_coeffs();
-  mu_inv_iron.plot("spline.dat", interval_extension, plot_derivative);
-  plot_derivative = true;
-  mu_inv_iron.plot("spline_der.dat", interval_extension, plot_derivative);
 
   // Load the mesh.
   MeshSharedPtr mesh(new Mesh);
-  MeshReaderH2D mloader;
-  mloader.load("actuator.mesh", mesh);
+  MeshReaderH2DXML mloader;
+  std::vector<MeshSharedPtr> meshes({ mesh });
+  mloader.load("sit.msh", meshes);
 
   // View the mesh.
   MeshView m_view;
@@ -76,13 +140,21 @@ int main(int argc, char* argv[])
     mesh->refine_all_elements();
 
   // Initialize boundary conditions.
-  DefaultEssentialBCConst<double> bc_essential(BDY_DIRICHLET, 0.0);
-  EssentialBCs<double> bcs(&bc_essential);
+  DefaultEssentialBCConst<double> bc_essential("16", 0.0);
+  DefaultEssentialBCConst<double> bc_essential1("17", 0.0);
+  DefaultEssentialBCConst<double> bc_essential2("18", 0.0);
+  DefaultEssentialBCConst<double> bc_essential3("19", 0.0);
+  DefaultEssentialBCConst<double> bc_essential4("21", 0.0);
+  DefaultEssentialBCConst<double> bc_essential5("22", 0.0);
+  EssentialBCs<double> bcs({ &bc_essential, &bc_essential1, &bc_essential2 });
 
   // Create an H1 space with default shapeset.
   SpaceSharedPtr<double> space(new H1Space<double>(mesh, &bcs, P_INIT));
   int ndof = space->get_num_dofs();
   Hermes::Mixins::Loggable::Static::info("ndof: %d", ndof);
+
+  Hermes::Hermes2D::Views::BaseView<double> b;
+  b.show(space);
 
   // Initialize the weak formulation
   // This determines the increase of integration order
@@ -125,22 +197,7 @@ int main(int argc, char* argv[])
   // Visualise the solution and mesh.
   ScalarView s_view1("Vector potential", new WinGeom(0, 0, 350, 450));
   MeshFunctionSharedPtr<double> vector_potential(new FilterVectorPotential(std::vector<MeshFunctionSharedPtr<double> >({ sln, sln }), { H2D_FN_VAL, H2D_FN_VAL }));
-  s_view1.show_mesh(false);
-  s_view1.show(vector_potential);
-
-  ScalarView s_view2("Flux density", new WinGeom(360, 0, 350, 450));
-  MeshFunctionSharedPtr<double> flux_density(new FilterFluxDensity(std::vector<MeshFunctionSharedPtr<double> >({ sln, sln })));
-  s_view2.show_mesh(false);
-  s_view2.show(flux_density);
-
-  // Output solution in VTK format.
-  Linearizer lin(FileExport);
-  bool mode_3D = true;
-  lin.save_solution_vtk(flux_density, "sln.vtk", "Flux-density", mode_3D);
-  Hermes::Mixins::Loggable::Static::info("Solution in VTK format saved to file %s.", "sln.vtk");
-
-  OrderView o_view("Mesh", new WinGeom(720, 0, 350, 450));
-  o_view.show(space);
+  s_view1.show(sln);
 
   // Wait for all views to be closed.
   View::wait();

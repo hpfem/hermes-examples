@@ -1,11 +1,10 @@
-	std::vector<MeshFunctionSharedPtr<double> > prev_slns({ prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e });
-
 #pragma region 4. Filters for visualization of Mach number, pressure + visualization setup.
 	MeshFunctionSharedPtr<double>  Mach_number(new MachNumberFilter(prev_slns, KAPPA));
 	MeshFunctionSharedPtr<double>  pressure(new PressureFilter(prev_slns, KAPPA));
 
 	ScalarView pressure_view("Pressure", new WinGeom(0, 0, 600, 300));
 	ScalarView Mach_number_view("Mach number", new WinGeom(650, 0, 600, 300));
+	VectorView V_view("Velocity", new WinGeom(650, 660, 600, 300));
 	ScalarView eview("Error - density", new WinGeom(0, 330, 600, 300));
 	ScalarView eview1("Error - momentum", new WinGeom(0, 660, 600, 300));
 	OrderView order_view("Orders", new WinGeom(650, 330, 600, 300));
@@ -137,7 +136,8 @@
 				pressure->reinit();
 				pressure_view.show(prev_rho, 1);
 				Mach_number_view.show(Mach_number, 1);
-				order_view.show(space_rho);
+				// order_view.show(space_rho);
+				V_view.show(prev_rho_v_x, prev_rho_v_y, 1, 1);
 			}
 			// Output solution in VTK format.
 			if (VTK_VISUALIZATION)

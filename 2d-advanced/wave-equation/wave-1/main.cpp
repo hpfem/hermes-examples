@@ -57,7 +57,7 @@ const double T_FINAL = 20.;
 //   Implicit_SDIRK_CASH_3_23_embedded, Implicit_ESDIRK_TRBDF2_3_23_embedded, Implicit_ESDIRK_TRX2_3_23_embedded,
 //   Implicit_SDIRK_BILLINGTON_3_23_embedded, Implicit_SDIRK_CASH_5_24_embedded, Implicit_SDIRK_CASH_5_34_embedded,
 //   Implicit_DIRK_ISMAIL_7_45_embedded.
-ButcherTableType butcher_table_type = Explicit_HEUN_EULER_2_12_embedded;
+ButcherTableType butcher_table_type = Implicit_RK_1;
 
 // Problem parameters.
 // Square of wave speed.

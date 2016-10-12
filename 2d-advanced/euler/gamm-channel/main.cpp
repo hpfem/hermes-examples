@@ -86,6 +86,7 @@ int main(int argc, char* argv[])
   MeshFunctionSharedPtr<double> prev_rho_v_x(new ConstantSolution<double>(mesh, RHO_EXT * V1_EXT));
   MeshFunctionSharedPtr<double> prev_rho_v_y(new ConstantSolution<double>(mesh, RHO_EXT * V2_EXT));
   MeshFunctionSharedPtr<double> prev_e(new ConstantSolution<double>(mesh, QuantityCalculator::calc_energy(RHO_EXT, RHO_EXT * V1_EXT, RHO_EXT * V2_EXT, P_EXT, KAPPA)));
+  std::vector<MeshFunctionSharedPtr<double> > prev_slns({ prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e });
 
   // Initialize boundary conditions.
   std::vector<std::string> solid_wall_markers({ BDY_SOLID_WALL_BOTTOM, BDY_SOLID_WALL_TOP });

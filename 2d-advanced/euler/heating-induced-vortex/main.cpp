@@ -86,6 +86,7 @@ int main(int argc, char* argv[])
   MeshFunctionSharedPtr<double> prev_rho_v_x(new ConstantSolution<double>(mesh, 0.0));
   MeshFunctionSharedPtr<double> prev_rho_v_y(new ConstantSolution<double>(mesh, 0.0));
   MeshFunctionSharedPtr<double> prev_e(new InitialSolutionLinearProgress(mesh, QuantityCalculator::calc_energy(RHO_INITIAL_HIGH, RHO_INITIAL_HIGH * V1_EXT, RHO_INITIAL_HIGH * V2_EXT, P_INITIAL_HIGH, KAPPA), QuantityCalculator::calc_energy(RHO_INITIAL_LOW, RHO_INITIAL_LOW * V1_EXT, RHO_INITIAL_LOW * V2_EXT, P_INITIAL_LOW, KAPPA), MESH_SIZE));
+  std::vector<MeshFunctionSharedPtr<double> > prev_slns({ prev_rho, prev_rho_v_x, prev_rho_v_y, prev_e });
 
   // Initialize weak formulation.
   std::vector<std::string> solid_wall_markers({ BDY_SOLID_WALL });

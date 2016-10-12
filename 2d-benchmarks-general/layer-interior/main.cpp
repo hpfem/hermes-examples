@@ -43,160 +43,161 @@ double slope = 60;
 
 int main(int argc, char* argv[])
 {
-  // Load the mesh.
-  MeshSharedPtr mesh(new Mesh);
-  MeshReaderH2D mloader;
-  // Quadrilaterals.
-  mloader.load("square_quad.mesh", mesh);
-  // Triangles.
-  // mloader.load("square_tri.mesh", mesh);
+	// Load the mesh.
+	MeshSharedPtr mesh(new Mesh);
+	MeshReaderH2D mloader;
+	// Quadrilaterals.
+	mloader.load("square_quad.mesh", mesh);
+	// Triangles.
+	// mloader.load("square_tri.mesh", mesh);
 
-  MeshView m;
-  m.show(mesh);
-  m.save_screenshot("initialmesh.bmp", true);
+	MeshView m;
+	m.show(mesh);
+	m.save_screenshot("initialmesh.bmp", true);
 
-  // Perform initial mesh refinements.
-  for (int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
+	// Perform initial mesh refinements.
+	for (int i = 0; i < INIT_REF_NUM; i++) mesh->refine_all_elements();
 
-  // Define exact solution.
-  MeshFunctionSharedPtr<double> exact_sln(new CustomExactSolution(mesh, slope));
+	// Define exact solution.
+	MeshFunctionSharedPtr<double> exact_sln(new CustomExactSolution(mesh, slope));
 
-  // Define custom function f.
-  CustomFunction f(slope);
+	// Define custom function f.
+	CustomFunction f(slope);
 
-  // Initialize the weak formulation.
-  Hermes::Hermes1DFunction<double> lambda(1.0);
-  WeakFormSharedPtr<double> wf(new DefaultWeakFormPoisson<double>(HERMES_ANY, &lambda, &f));
+	// Initialize the weak formulation.
+	Hermes::Hermes1DFunction<double> lambda(1.0);
+	WeakFormSharedPtr<double> wf(new DefaultWeakFormPoisson<double>(HERMES_ANY, &lambda, &f));
 
-  // Initialize boundary conditions
-  DefaultEssentialBCNonConst<double> bc_essential("Bdy", exact_sln);
-  EssentialBCs<double> bcs(&bc_essential);
+	// Initialize boundary conditions
+	DefaultEssentialBCNonConst<double> bc_essential("Bdy", exact_sln);
+	EssentialBCs<double> bcs(&bc_essential);
 
-  // Create an H1 space with default shapeset.
-  SpaceSharedPtr<double> space(new H1Space<double>(mesh, &bcs, P_INIT));
+	// Create an H1 space with default shapeset.
+	SpaceSharedPtr<double> space(new H1Space<double>(mesh, &bcs, P_INIT));
 
-  // Initialize approximate solution.
-  MeshFunctionSharedPtr<double> sln(new Solution<double>());
+	// Initialize approximate solution.
+	MeshFunctionSharedPtr<double> sln(new Solution<double>());
 
-  // Initialize refinement selector.
-  H1ProjBasedSelector<double> selector(CAND_LIST);
+	// Initialize refinement selector.
+	H1ProjBasedSelector<double> selector(CAND_LIST);
 
-  // Initialize views.
-  Views::ScalarView sview("Solution", new Views::WinGeom(0, 0, 440, 350));
-  sview.show_mesh(false);
-  sview.fix_scale_width(50);
-  Views::OrderView oview("Polynomial orders", new Views::WinGeom(450, 0, 420, 350));
+	// Initialize views.
+	Views::ScalarView sview("Solution", new Views::WinGeom(0, 0, 440, 350));
+	sview.show_mesh(false);
+	sview.fix_scale_width(50);
+	Views::OrderView oview("Polynomial orders", new Views::WinGeom(450, 0, 420, 350));
 
-  // DOF and CPU convergence graphs.
-  SimpleGraph graph_dof_est, graph_cpu_est, graph_dof_exact, graph_cpu_exact;
+	// DOF and CPU convergence graphs.
+	SimpleGraph graph_dof_est, graph_cpu_est, graph_dof_exact, graph_cpu_exact;
 
-  // Time measurement.
-  Hermes::Mixins::TimeMeasurable cpu_time;
-  cpu_time.tick();
+	// Time measurement.
+	Hermes::Mixins::TimeMeasurable cpu_time;
+	cpu_time.tick();
 
-  ScalarView s;
+	ScalarView s;
 
-  // Adaptivity loop:
-  int as = 1; bool done = false;
-  do
-  {
-    cpu_time.tick();
+	// Adaptivity loop:
+	int as = 1; bool done = false;
+	try
+	{
+		do
+		{
+			cpu_time.tick();
 
-    // Construct globally refined reference mesh and setup reference space.
-    Mesh::ReferenceMeshCreator refMeshCreator(mesh);
-    MeshSharedPtr ref_mesh = refMeshCreator.create_ref_mesh();
+			// Construct globally refined reference mesh and setup reference space.
+			Mesh::ReferenceMeshCreator refMeshCreator(mesh);
+			MeshSharedPtr ref_mesh = refMeshCreator.create_ref_mesh();
 
-    Space<double>::ReferenceSpaceCreator refSpaceCreator(space, ref_mesh);
-    SpaceSharedPtr<double> ref_space = refSpaceCreator.create_ref_space();
-    int ndof_ref = ref_space->get_num_dofs();
+			Space<double>::ReferenceSpaceCreator refSpaceCreator(space, ref_mesh);
+			SpaceSharedPtr<double> ref_space = refSpaceCreator.create_ref_space();
+			int ndof_ref = ref_space->get_num_dofs();
 
-    Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d (%d DOF):", as, ndof_ref);
-    cpu_time.tick();
+			Hermes::Mixins::Loggable::Static::info("---- Adaptivity step %d (%d DOF):", as, ndof_ref);
+			cpu_time.tick();
 
-    Hermes::Mixins::Loggable::Static::info("Solving on reference mesh.");
+			Hermes::Mixins::Loggable::Static::info("Solving on reference mesh.");
 
-    // Assemble the discrete problem.
-    DiscreteProblem<double> dp(wf, ref_space);
+			// Assemble the discrete problem.
+			DiscreteProblem<double> dp(wf, ref_space);
 
-    NewtonSolver<double> newton(&dp);
-    //newton.set_verbose_output(false);
+			NewtonSolver<double> newton(&dp);
+			//newton.set_verbose_output(false);
 
-    MeshFunctionSharedPtr<double> ref_sln(new Solution<double>());
-    try
-    {
-      newton.solve();
-    }
-    catch (Hermes::Exceptions::Exception e)
-    {
-      e.print_msg();
-      throw Hermes::Exceptions::Exception("Newton's iteration failed.");
-    };
-    // Translate the resulting coefficient vector into the instance of Solution.
-    Solution<double>::vector_to_solution(newton.get_sln_vector(), ref_space, ref_sln);
+			MeshFunctionSharedPtr<double> ref_sln(new Solution<double>());
+			newton.solve();
 
-    cpu_time.tick();
-    Hermes::Mixins::Loggable::Static::info("Solution: %g s", cpu_time.last());
+			// Translate the resulting coefficient vector into the instance of Solution.
+			Solution<double>::vector_to_solution(newton.get_sln_vector(), ref_space, ref_sln);
 
-    // Project the fine mesh solution onto the coarse mesh.
-    Hermes::Mixins::Loggable::Static::info("Calculating error estimate and exact error.");
-    OGProjection<double>::project_global(space, ref_sln, sln);
+			cpu_time.tick();
+			Hermes::Mixins::Loggable::Static::info("Solution: %g s", cpu_time.last());
 
-    // Calculate element errors and total error estimate.
-    adaptivity.set_space(space);
-    errorCalculator.calculate_errors(sln, exact_sln, false);
-    double err_exact_rel = errorCalculator.get_total_error_squared() * 100;
+			// Project the fine mesh solution onto the coarse mesh.
+			Hermes::Mixins::Loggable::Static::info("Calculating error estimate and exact error.");
+			OGProjection<double>::project_global(space, ref_sln, sln);
 
-    errorCalculator.calculate_errors(sln, ref_sln, true);
-    double err_est_rel = errorCalculator.get_total_error_squared() * 100;
+			// Calculate element errors and total error estimate.
+			adaptivity.set_space(space);
+			errorCalculator.calculate_errors(sln, exact_sln, false);
+			double err_exact_rel = errorCalculator.get_total_error_squared() * 100;
 
-    cpu_time.tick();
-    Hermes::Mixins::Loggable::Static::info("Error calculation: %g s", cpu_time.last());
+			errorCalculator.calculate_errors(sln, ref_sln, true);
+			double err_est_rel = errorCalculator.get_total_error_squared() * 100;
 
-    // Report results.
-    Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d", space->get_num_dofs(), ref_space->get_num_dofs());
-    Hermes::Mixins::Loggable::Static::info("err_est_rel: %g%%, err_exact_rel: %g%%", err_est_rel, err_exact_rel);
+			cpu_time.tick();
+			Hermes::Mixins::Loggable::Static::info("Error calculation: %g s", cpu_time.last());
 
-    // Time measurement.
-    cpu_time.tick();
-    double accum_time = cpu_time.accumulated();
+			// Report results.
+			Hermes::Mixins::Loggable::Static::info("ndof_coarse: %d, ndof_fine: %d", space->get_num_dofs(), ref_space->get_num_dofs());
+			Hermes::Mixins::Loggable::Static::info("err_est_rel: %g%%, err_exact_rel: %g%%", err_est_rel, err_exact_rel);
 
-    // View the coarse mesh solution and polynomial orders.
-    sview.show(ref_sln);
-    sview.save_numbered_screenshot("solution%i.bmp", as, true);
-    oview.show(ref_space);
-    oview.set_b_orders(true);
-    oview.save_numbered_screenshot("space%i.bmp", as, true);
+			// Time measurement.
+			cpu_time.tick();
+			double accum_time = cpu_time.accumulated();
 
-    // Add entry to DOF and CPU convergence graphs.
-    graph_dof_est.add_values(space->get_num_dofs(), err_est_rel);
-    graph_dof_est.save("conv_dof_est.dat");
-    graph_cpu_est.add_values(accum_time, err_est_rel);
-    graph_cpu_est.save("conv_cpu_est.dat");
-    graph_dof_exact.add_values(space->get_num_dofs(), err_exact_rel);
-    graph_dof_exact.save("conv_dof_exact.dat");
-    graph_cpu_exact.add_values(accum_time, err_exact_rel);
-    graph_cpu_exact.save("conv_cpu_exact.dat");
+			// View the coarse mesh solution and polynomial orders.
+			sview.show(ref_sln);
+			sview.save_numbered_screenshot("solution%i.bmp", as, true);
+			oview.show(ref_space);
+			oview.set_b_orders(true);
+			oview.save_numbered_screenshot("space%i.bmp", as, true);
 
-    cpu_time.tick(Hermes::Mixins::TimeMeasurable::HERMES_SKIP);
+			// Add entry to DOF and CPU convergence graphs.
+			graph_dof_est.add_values(space->get_num_dofs(), err_est_rel);
+			graph_dof_est.save("conv_dof_est.dat");
+			graph_cpu_est.add_values(accum_time, err_est_rel);
+			graph_cpu_est.save("conv_cpu_est.dat");
+			graph_dof_exact.add_values(space->get_num_dofs(), err_exact_rel);
+			graph_dof_exact.save("conv_dof_exact.dat");
+			graph_cpu_exact.add_values(accum_time, err_exact_rel);
+			graph_cpu_exact.save("conv_cpu_exact.dat");
 
-    // If err_est too large, adapt the mesh. The NDOF test must be here, so that the solution may be visualized
-    // after ending due to this criterion.
-    if (err_exact_rel < ERR_STOP)
-      done = true;
-    else
-      done = adaptivity.adapt(&selector);
+			cpu_time.tick(Hermes::Mixins::TimeMeasurable::HERMES_SKIP);
 
-    cpu_time.tick();
-    Hermes::Mixins::Loggable::Static::info("Adaptation: %g s", cpu_time.last());
+			// If err_est too large, adapt the mesh. The NDOF test must be here, so that the solution may be visualized
+			// after ending due to this criterion.
+			if (err_exact_rel < ERR_STOP)
+				done = true;
+			else
+				done = adaptivity.adapt(&selector);
 
-    // Increase the counter of adaptivity steps.
-    if (done == false)
-      as++;
-  } while (done == false);
+			cpu_time.tick();
+			Hermes::Mixins::Loggable::Static::info("Adaptation: %g s", cpu_time.last());
 
-  Hermes::Mixins::Loggable::Static::info("Total running time: %g s", cpu_time.accumulated());
+			// Increase the counter of adaptivity steps.
+			if (done == false)
+				as++;
+		} while (done == false);
+	}
+	catch (Hermes::Exceptions::Exception e)
+	{
+		e.print_msg();
+		throw Hermes::Exceptions::Exception("Newton's iteration failed.");
+	};
 
-  // Wait for all views to be closed.
-  Views::View::wait();
-  return 0;
+	Hermes::Mixins::Loggable::Static::info("Total running time: %g s", cpu_time.accumulated());
+
+	// Wait for all views to be closed.
+	Views::View::wait();
+	return 0;
 }
