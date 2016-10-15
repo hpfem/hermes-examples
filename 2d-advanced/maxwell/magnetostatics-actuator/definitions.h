@@ -20,17 +20,7 @@ public:
     double current_density, int order_inc = 3);
 };
 
-class FilterVectorPotential : public Hermes::Hermes2D::MagFilter < double >
-{
-public:
-  FilterVectorPotential(std::vector<MeshFunctionSharedPtr<double> > solutions, std::vector<int> items);
-
-  virtual MeshFunction<double>* clone() const;
-protected:
-  void filter_fn(int n, const std::vector<const double*>& values, double* result, GeomVol<double> *e);
-};
-
-class FilterFluxDensity : public Hermes::Hermes2D::Filter < double >
+class FilterFluxDensity : public Hermes::Hermes2D::DXDYFilter < double >
 {
 public:
   FilterFluxDensity(std::vector<MeshFunctionSharedPtr<double> > solutions);
@@ -39,5 +29,5 @@ public:
   virtual MeshFunction<double>* clone() const;
 
 protected:
-  void precalculate(int order, int mask);
+  void filter_fn(int n, double* x, double* y, const std::vector<const double *>& values, const std::vector<const double *>& dx, const std::vector<const double *>& dy, double* rslt, double* rslt_dx, double* rslt_dy);
 };
