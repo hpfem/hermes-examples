@@ -76,14 +76,17 @@
 					if (P_INIT != 1)
 						throw new Hermes::Exceptions::Exception("P_INIT must be <= 1.");
 
+					// Limit conservative variables (in normal circumstances, might be enough).
 					PostProcessing::VertexBasedLimiter limiter(spaces, solver.get_sln_vector(), P_INIT);
 					limiter.get_solutions(prev_slns);
 
+					// The rest is limiting also the real variables (i.e. velocity, energy density)
 					int running_dofs = 0;
 					int ndof = spaces[0]->get_num_dofs();
 					double* density_sln_vector = limiter.get_solution_vector();
 					Element* e;
 					AsmList<double> al_density;
+					// We do not limit density anymore, it has been limited as a conservative variable already.
 					for (int component = 1; component < 4; component++)
 					{
 						if (spaces[component]->get_num_dofs() != ndof)
@@ -93,19 +96,23 @@
 						double* real_vector = new double[ndof];
 						memset(real_vector, 0, sizeof(double) * ndof);
 
+						// Now we put together the vector of real variables
 						for_all_active_elements(e, spaces[0]->get_mesh())
 						{
 							spaces[0]->get_element_assembly_list(e, &al_density);
 
+							// Do not get confused by the fact that we use density AsmList for indexing, it is just a technicality, the following three lines calculate the three coordinates for the actual component.
 							real_vector[al_density.dof[0]] = conservative_vector[al_density.dof[0]] / density_sln_vector[al_density.dof[0]];
 							real_vector[al_density.dof[1]] = (conservative_vector[al_density.dof[1]] - real_vector[al_density.dof[0]] * density_sln_vector[al_density.dof[1]]) / density_sln_vector[al_density.dof[0]];
 							real_vector[al_density.dof[2]] = (conservative_vector[al_density.dof[2]] - real_vector[al_density.dof[0]] * density_sln_vector[al_density.dof[2]]) / density_sln_vector[al_density.dof[0]];
 						}
-
+						
+						// Now we normally limit this particular component.
 						PostProcessing::VertexBasedLimiter real_component_limiter(spaces[0], real_vector, P_INIT);
 						real_component_limiter.get_solution();
 						real_vector = real_component_limiter.get_solution_vector();
 
+						// And now we just calculate back the conservative variables.
 						for_all_active_elements(e, spaces[0]->get_mesh())
 						{
 							spaces[0]->get_element_assembly_list(e, &al_density);
